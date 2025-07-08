@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dirección y gráficas - MRU (sentidos opuestos)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; padding: 20px; }
+        table { margin: 20px auto; border-collapse: collapse; }
+        th, td { border: 1px solid #333; padding: 10px; min-width: 60px; }
+        select { margin: 10px; }
+        .graph-section { display: none; margin-top: 30px; }
+        #graphsContainer { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px; }
+        .graph-box {
+            flex: 1 1 22%;
+            max-width: 22%;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas { width: 100% !important; height: auto !important; }
+        .feedback { font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<h2>Dirección y gráficas - Movimiento Rectilíneo Uniforme (sentidos opuestos)</h2>
+<p>Observa las siguientes tablas x-t. Determina si el objeto se mueve hacia la izquierda o hacia la derecha.</p>
+
+<table id="table1">
+    <tr><th>t (s)</th></tr>
+    <tr><th>x₁ (m)</th></tr>
+</table>
+<select id="dir1">
+    <option value="">¿Hacia dónde se mueve el móvil 1?</option>
+    <option value="derecha">Hacia la derecha</option>
+    <option value="izquierda">Hacia la izquierda</option>
+</select>
+
+<table id="table2">
+    <tr><th>t (s)</th></tr>
+    <tr><th>x₂ (m)</th></tr>
+</table>
+<select id="dir2">
+    <option value="">¿Hacia dónde se mueve el móvil 2?</option>
+    <option value="derecha">Hacia la derecha</option>
+    <option value="izquierda">Hacia la izquierda</option>
+</select>
+
+<div>
+    <button onclick="checkDirections()">Comprobar direcciones</button>
+    <button onclick="generateExample()">Otro ejemplo</button>
+</div>
+<p class="feedback" id="directionFeedback"></p>
+
+<div class="graph-section" id="graphSection">
+    <h3>Relaciona cada gráfica con el móvil correspondiente o indica si no corresponde a ninguno</h3>
+    <div id="graphsContainer"></div>
+    <button onclick="checkGraphs()">Corregir gráficas</button>
+    <p class="feedback" id="graphFeedback"></p>
+    <!-- Aquí mostramos la puntuación total -->
+    <p class="feedback" id="totalScore"></p>
+</div>
+
+<script>
+    let v1, v2, x01, x02, dir1, dir2;
+    let correctAssignments = [];
+    let directionCorrectCount = 0;
+    let graphCorrectCount = 0;
+    const tValues = [0,1,2,3,4,5];
+
+    function generateExample() {
+        // Generar x0 y velocidades opuestas
+        x01 = Math.floor(Math.random()*11);
+        do { x02 = Math.floor(Math.random()*11); } while(x02===x01);
+        v1 = (Math.floor(Math.random()*9)+1)*-1;
+        do { v2 = Math.floor(Math.random()*9)+1; } while(Math.abs(v2)===Math.abs(v1));
+        if (Math.random()<0.5) v2 *= -1;
+        dir1 = v1>0?'derecha':'izquierda';
+        dir2 = v2>0?'derecha':'izquierda';
+
+        updateTable('table1', x01, v1);
+        updateTable('table2', x02, v2);
+
+        // Reiniciar estados
+        document.getElementById('dir1').value = '';
+        document.getElementById('dir2').value = '';
+        document.getElementById('directionFeedback').textContent = '';
+        document.getElementById('graphFeedback').textContent = '';
+        document.getElementById('totalScore').textContent = '';
+        document.getElementById('graphSection').style.display = 'none';
+    }
+
+    function updateTable(tableId, x0, v) {
+        const tRow = document.querySelector(`#${tableId} tr:nth-child(1)`);
+        const xRow = document.querySelector(`#${tableId} tr:nth-child(2)`);
+        tRow.innerHTML = '<th>t (s)</th>';
+        xRow.innerHTML = `<th>${tableId==='table1'?'x₁':'x₂'} (m)</th>`;
+        for (let t of tValues) {
+            tRow.innerHTML += `<td>${t}</td>`;
+            xRow.innerHTML += `<td>${x0 + v*t}</td>`;
+        }
+    }
+
+    function checkDirections() {
+        const choice1 = document.getElementById('dir1').value;
+        const choice2 = document.getElementById('dir2').value;
+        directionCorrectCount = 0;
+        if (choice1 === dir1) directionCorrectCount++;
+        if (choice2 === dir2) directionCorrectCount++;
+
+        const fb = document.getElementById('directionFeedback');
+        if (directionCorrectCount === 2) {
+            fb.textContent = '¡Correcto! Ambas direcciones son correctas.';
+            fb.style.color = 'green';
+            document.getElementById('graphSection').style.display = 'block';
+            renderGraphs();
+        } else {
+            fb.textContent = 'Alguna dirección es incorrecta. Intenta de nuevo.';
+            fb.style.color = 'red';
+        }
+    }
+
+    function renderGraphs() {
+        const container = document.getElementById('graphsContainer');
+        container.innerHTML = '';
+        const data1 = tValues.map(t=> x01 + v1*t);
+        const data2 = tValues.map(t=> x02 + v2*t);
+        correctAssignments = [];
+
+        // Creamos dos gráficas reales y dos falsas
+        let allGraphs = [
+            { data: data1, label: '1' },
+            { data: data2, label: '2' },
+            { data: (() => { let vx,x0; do{vx=Math.floor(Math.random()*7)+1; x0=Math.floor(Math.random()*11);}while((vx===Math.abs(v1)&&x0===x01)||(vx===Math.abs(v2)&&x0===x02)); if(Math.random()<0.5) vx*=-1; return tValues.map(t=>x0+vx*t); })(), label: 'ninguno' },
+            { data: (() => { let vx,x0; do{vx=Math.floor(Math.random()*7)+1; x0=Math.floor(Math.random()*11);}while((vx===Math.abs(v1)&&x0===x01)||(vx===Math.abs(v2)&&x0===x02)); if(Math.random()<0.5) vx*=-1; return tValues.map(t=>x0+vx*t); })(), label: 'ninguno' }
+        ];
+
+        let order = [0,1,2,3].sort(()=>0.5-Math.random());
+        for (let i=0; i<4; i++) {
+            const g = allGraphs[order[i]];
+            correctAssignments.push(g.label);
+
+            const div = document.createElement('div');
+            div.className = 'graph-box';
+            const canvas = document.createElement('canvas');
+            canvas.id = 'graph'+i;
+            const sel = document.createElement('select');
+            sel.id = 'select'+i;
+            sel.innerHTML = `
+                <option value="">Selecciona</option>
+                <option value="1">Móvil 1</option>
+                <option value="2">Móvil 2</option>
+                <option value="ninguno">Ninguno de los dos</option>
+            `;
+            div.appendChild(canvas);
+            div.appendChild(document.createElement('br'));
+            div.appendChild(sel);
+            container.appendChild(div);
+
+            new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: { labels: tValues, datasets:[{ data: g.data, fill:false, borderColor:'blue', tension:0 }] },
+                options: {
+                    responsive:true,
+                    plugins:{ legend:{ display:false } },
+                    scales:{ x:{ title:{ display:true, text:'t (s)' } }, y:{ title:{ display:true, text:'x (m)' } } }
+                }
+            });
+        }
+    }
+
+    function checkGraphs() {
+        graphCorrectCount = 0;
+        for (let i=0; i<4; i++) {
+            const sel = document.getElementById('select'+i).value;
+            if (sel === correctAssignments[i]) graphCorrectCount++;
+        }
+        const fb = document.getElementById('graphFeedback');
+        if (graphCorrectCount === 4) {
+            fb.textContent = '¡Correcto! Has relacionado correctamente las gráficas.';
+            fb.style.color = 'green';
+        } else {
+            fb.textContent = 'Alguna asociación es incorrecta. Revisa las trayectorias.';
+            fb.style.color = 'red';
+        }
+        // Calcular puntuación total: 2 direcciones ×20 + 4 gráficas ×15
+        const total = directionCorrectCount*20 + graphCorrectCount*15;
+        document.getElementById('totalScore').textContent =
+            `Puntuación total: ${total} / 100`;
+    }
+
+    window.onload = generateExample;
+</script>
+
+</body>
+</html>

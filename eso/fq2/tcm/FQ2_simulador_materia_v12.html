@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulación Sólido – Contorno y Visualización Completa</title>
+  <style>
+    body {
+      margin: 0;
+      background: white;
+      font-family: sans-serif;
+    }
+    /* Controles de usuario */
+    #controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(255,255,255,0.9);
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      z-index: 10;
+    }
+    #controls label {
+      font-size: 14px;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <!-- Panel de controles -->
+  <div id="controls">
+    <div>
+      <label for="compositionSelect">Composición:</label>
+      <select id="compositionSelect">
+        <option value="pura_mono">Pura simple monoatómica</option>
+        <option value="pura_di_simple">Pura simple diatómica</option>
+        <option value="pura_di_compuesta">Pura compuesta diatómica</option>
+        <option value="mezcla_homog_mono">Mezcla homogénea monoatómica</option>
+        <option value="mezcla_homog_di_simple">Mezcla homogénea diatómica simple</option>
+        <option value="mezcla_homog_di_mixta">Mezcla homogénea diatómica (simple y compuesta)</option>
+        <option value="mezcla_hetero_mono">Mezcla heterogénea monoatómica</option>
+        <option value="mezcla_hetero_di_simple">Mezcla heterogénea diatómica simple</option>
+        <option value="mezcla_hetero_di_compuesta">Mezcla heterogénea diatómica compuesta</option>
+      </select>
+    </div>
+    <div>
+      <label for="tempSlider">Temperatura: <span id="tempLabel">50</span> K</label><br>
+      <input type="range" id="tempSlider" min="0" max="100" value="50">
+    </div>
+  </div>
+  
+  <!-- Lienzo de la simulación -->
+  <canvas id="canvas"></canvas>
+  
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    
+    // Ajuste del tamaño del canvas
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    
+    let temperature = 50; // Rango 0–100 K (fase sólida)
+    let composition = document.getElementById("compositionSelect").value;
+    
+    const maxAmplitude = 10;        // Amplitud máxima de vibración
+    const vibrationFrequency = 0.005; // Frecuencia de vibración
+    const atomRadius = 5;           // Radio de cada átomo
+    
+    let molecules = [];  // Arreglo que contendrá la retícula (cada "molécula")
+    
+    // Definición del simulation square (área con fondo blanco y borde negro)
+    let simSize, simX, simY;
+    // Definición del grid (subárea en la que se posicionan las moléculas)
+    let gridSize, gridX, gridY;
+    
+    const gridCount = 8;  
+    const bottomMargin = 20;  // Margen inferior para evitar que la fila base se "corte"
+    
+    function initializeSimulation() {
+      // El simulation square ocupa el 90% del menor lado del canvas y se centra
+      simSize = Math.min(canvas.width, canvas.height) * 0.9;
+      simX = (canvas.width - simSize) / 2;
+      simY = (canvas.height - simSize) / 2;
+      
+      /* La retícula (grid area) se define para ocupar el 40% del simulation square,
+         centrada horizontalmente. Además, se sitúa un poco por encima del borde inferior
+         (usando bottomMargin) para que la fila base (primer fila) se vea completa al vibrar. */
+      gridSize = simSize * 0.4;
+      gridX = simX + (simSize - gridSize) / 2;
+      gridY = simY + simSize - gridSize - bottomMargin;
+      
+      // Reinicializamos la retícula de moléculas
+      molecules = [];
+      const spacing = gridSize / (gridCount - 1);
+      // Se distribuyen las moléculas en una cuadrícula; la fila 0 (base) se ubica en y = gridY + gridSize
+      for (let row = 0; row < gridCount; row++) {
+        for (let col = 0; col < gridCount; col++) {
+          let x = gridX + col * spacing;
+          let y = gridY + gridSize - row * spacing;
+          molecules.push({
+            homeX: x,
+            homeY: y,
+            vibAngle: Math.random() * 2 * Math.PI,  // Dirección de vibración única
+            phase: Math.random() * 2 * Math.PI,       // Desfase aleatorio
+            row: row,   // Para patrones en mezclas homogéneas
+            col: col
+          });
+        }
+      }
+    }
+    
+    /* Función para dibujar cada molécula según la opción de composición.
+       En las mezclas homogéneas se usa el patrón “checkerboard” (según (row+col) mod 2)
+       para alternar de forma tanto vertical como horizontal. */
+    function drawMolecule(mol, currentX, currentY) {
+      switch(composition) {
+        case "pura_mono":
+          ctx.beginPath();
+          ctx.arc(currentX, currentY, atomRadius, 0, 2 * Math.PI);
+          ctx.fillStyle = "red";
+          ctx.fill();
+          break;
+          
+        case "pura_di_simple":
+          ctx.beginPath();
+          ctx.arc(currentX - atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+          ctx.fillStyle = "red";
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(currentX + atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+          ctx.fillStyle = "red";
+          ctx.fill();
+          break;
+          
+        case "pura_di_compuesta":
+          ctx.beginPath();
+          ctx.arc(currentX - atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+          ctx.fillStyle = "blue";
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(currentX + atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+          ctx.fillStyle = "red";
+          ctx.fill();
+          break;
+          
+        case "mezcla_homog_mono":
+          // Alterna en "ajedrez": (row+col) par → rojo; impar → azul
+          if ((mol.row + mol.col) % 2 === 0) {
+            ctx.beginPath();
+            ctx.arc(currentX, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+          } else {
+            ctx.beginPath();
+            ctx.arc(currentX, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+          }
+          break;
+          
+        case "mezcla_homog_di_simple":
+          if ((mol.row + mol.col) % 2 === 0) {
+            ctx.beginPath();
+            ctx.arc(currentX - atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(currentX + atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+          } else {
+            ctx.beginPath();
+            ctx.arc(currentX - atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(currentX + atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+          }
+          break;
+          
+        case "mezcla_homog_di_mixta":
+          if ((mol.row + mol.col) % 2 === 0) {
+            ctx.beginPath();
+            ctx.arc(currentX - atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(currentX + atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+          } else {
+            ctx.beginPath();
+            ctx.arc(currentX - atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(currentX + atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+          }
+          break;
+          
+        case "mezcla_hetero_mono":
+          if (mol.homeY < gridY + gridSize/2) {
+            ctx.beginPath();
+            ctx.arc(currentX, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+          } else {
+            ctx.beginPath();
+            ctx.arc(currentX, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+          }
+          break;
+          
+        case "mezcla_hetero_di_simple":
+          if (mol.homeY < gridY + gridSize/2) {
+            ctx.beginPath();
+            ctx.arc(currentX - atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(currentX + atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+          } else {
+            ctx.beginPath();
+            ctx.arc(currentX - atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(currentX + atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+          }
+          break;
+          
+        case "mezcla_hetero_di_compuesta":
+          if (mol.homeY < gridY + gridSize/2) {
+            ctx.beginPath();
+            ctx.arc(currentX - atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(currentX + atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+          } else {
+            ctx.beginPath();
+            ctx.arc(currentX - atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(currentX + atomRadius, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "green";
+            ctx.fill();
+          }
+          break;
+      }
+    }
+    
+    function animate(time) {
+      // Se limpia el canvas (fondo blanco)
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Dibujar el simulation square (fondo blanco y borde negro)
+      ctx.fillStyle = "white";
+      ctx.fillRect(simX, simY, simSize, simSize);
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(simX, simY, simSize, simSize);
+      
+      // Se dibujan todas las moléculas (sin clipping, de modo que si vibran fuera del grid se ven)
+      molecules.forEach(mol => {
+        let amplitude = (temperature / 100) * maxAmplitude;
+        let displacement = amplitude * Math.sin(vibrationFrequency * time + mol.phase);
+        let currentX = mol.homeX + displacement * Math.cos(mol.vibAngle);
+        let currentY = mol.homeY + displacement * Math.sin(mol.vibAngle);
+        drawMolecule(mol, currentX, currentY);
+      });
+      
+      requestAnimationFrame(animate);
+    }
+    
+    // Eventos de la interfaz
+    document.getElementById("tempSlider").addEventListener("input", function(e) {
+      temperature = parseFloat(e.target.value);
+      document.getElementById("tempLabel").textContent = temperature;
+    });
+    
+    document.getElementById("compositionSelect").addEventListener("change", function(e) {
+      composition = e.target.value;
+      initializeSimulation();
+    });
+    
+    window.addEventListener("resize", function() {
+      resizeCanvas();
+      initializeSimulation();
+    });
+    
+    // Inicialización y arranque de la animación
+    initializeSimulation();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

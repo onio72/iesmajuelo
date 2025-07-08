@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Química Interactiva: Átomos y Moléculas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Química Interactiva</h1>
+        <div class="session-info">
+            <span id="contadorEjemplos">Ejemplo 1 de 20</span>
+            <span class="score-board">Puntuación: <span id="puntuacion">0</span></span>
+        </div>
+
+        <div class="formula-display">
+            <p>Observa la siguiente expresión:</p>
+            <h2 id="expresionQuimica">2 H₂O</h2>
+        </div>
+
+        <div id="preguntasContainer">
+            <div class="pregunta-bloque" id="bloquePregunta1">
+                <p class="pregunta-texto">1. La expresión representa fundamentalmente:</p>
+                <button data-respuesta="atomo">Átomos individuales</button>
+                <button data-respuesta="molecula">Moléculas</button>
+                <span class="feedback-icon" id="feedback1"></span>
+            </div>
+
+            <div class="pregunta-bloque" id="bloquePregunta2" style="display: none;">
+                <p class="pregunta-texto">2. Se trata de una sustancia:</p>
+                <button data-respuesta="simple">Simple</button>
+                <button data-respuesta="compuesta">Compuesta</button>
+                <span class="feedback-icon" id="feedback2"></span>
+            </div>
+
+            <div class="pregunta-bloque" id="bloquePregunta3a" style="display: none;">
+                <p class="pregunta-texto">3. ¿Cuántos átomos hay en total?</p>
+                <input type="number" id="respuestaCantidadAtomos" min="1">
+                <button id="btnCorregirCantidadAtomos">Corregir</button>
+                <span class="feedback-icon" id="feedback3a"></span>
+            </div>
+
+            <div class="pregunta-bloque" id="bloquePregunta3b" style="display: none;">
+                <p class="pregunta-texto">3. Responde:</p>
+                <div>
+                    <label for="respuestaCantidadMoleculasSimples">¿Cuántas moléculas hay?</label>
+                    <input type="number" id="respuestaCantidadMoleculasSimples" min="1">
+                    <button data-subpregunta="cantidadMoleculas">Corregir</button>
+                    <span class="feedback-icon" id="feedback3b_moleculas"></span>
+                </div>
+                <div>
+                    <label for="respuestaAtomosPorMoleculaSimple">¿Cuántos átomos forman CADA molécula?</label>
+                    <input type="number" id="respuestaAtomosPorMoleculaSimple" min="1">
+                    <button data-subpregunta="atomosPorMolecula">Corregir</button>
+                    <span class="feedback-icon" id="feedback3b_atomosPorMolecula"></span>
+                </div>
+                <div>
+                    <label for="respuestaAtomosTotalesSimples">¿Cuántos átomos hay EN TOTAL?</label>
+                    <input type="number" id="respuestaAtomosTotalesSimples" min="1">
+                    <button data-subpregunta="atomosTotales">Corregir</button>
+                    <span class="feedback-icon" id="feedback3b_atomosTotales"></span>
+                </div>
+            </div>
+            
+            <div class="pregunta-bloque" id="bloquePregunta3c" style="display: none;">
+                <p class="pregunta-texto">3. Responde:</p>
+                <div>
+                    <label for="respuestaCantidadMoleculasCompuestas">¿Cuántas moléculas hay?</label>
+                    <input type="number" id="respuestaCantidadMoleculasCompuestas" min="1">
+                    <button data-subpregunta="cantidadMoleculas">Corregir</button>
+                    <span class="feedback-icon" id="feedback3c_moleculas"></span>
+                </div>
+                <div id="atomosPorMoleculaCompuestaContainer">
+                    </div>
+                <div id="atomosTotalesCompuestosContainer">
+                    </div>
+            </div>
+        </div>
+
+        <button id="siguienteEjemploBtn" style="display: none;">Siguiente Ejemplo</button>
+        <button id="reiniciarSesionBtn" style="display: none;">Reiniciar Sesión</button>
+        <p id="mensajeFinal" style="display: none; font-weight: bold; margin-top: 20px;"></p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

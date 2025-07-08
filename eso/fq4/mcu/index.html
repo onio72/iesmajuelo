@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movimiento circular uniforme (I)</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 1px solid black;
+            background-color: lightgray;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .control-group {
+            margin-bottom: 10px;
+        }
+        .questions {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .question {
+            margin-bottom: 15px;
+        }
+        .velocities {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 5px;
+            border: 1px solid #000;
+        }
+        .results {
+            margin-top: 10px;
+        }
+        .graph-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .graph {
+            display: none;
+            margin-left: 20px;
+        }
+    </style>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <h1>Movimiento circular uniforme (I)</h1>
+    <p>Modifica las distancias de los puntos A y B al centro del disco así como la velocidad angular de este. Tras experimentar con la animación responde a las preguntas de abajo.</p>
+    <div class="controls">
+        <div class="control-group">
+            <label for="sliderA">Radio del punto A:</label>
+            <input type="range" id="sliderA" min="0" max="150" value="100">
+        </div>
+        <div class="control-group">
+            <label for="sliderB">Radio del punto B:</label>
+            <input type="range" id="sliderB" min="0" max="100" value="50">
+        </div>
+        <div class="control-group">
+            <label for="rpmSlider">Revoluciones por minuto:</label>
+            <input type="range" id="rpmSlider" min="5" max="30" step="5" value="10">
+        </div>
+        <div class="control-group">
+            <label for="showVelocities">Mostrar velocidades</label>
+            <input type="checkbox" id="showVelocities">
+        </div>
+        <div class="control-group">
+            <button id="startButton">Iniciar</button>
+            <button id="pauseButton">Pausa</button>
+            <button id="resetButton">Reiniciar</button>
+        </div>
+        <div class="control-group">
+            <label for="showGraph">Mostrar gráfica de distancia recorrida</label>
+            <input type="checkbox" id="showGraph">
+        </div>
+    </div>
+    <div class="graph-container">
+        <canvas id="canvas" width="400" height="400"></canvas>
+        <div class="graph" id="graph">
+            <canvas id="graphCanvas" width="400" height="400"></canvas>
+        </div>
+    </div>
+    <div class="questions">
+        <div class="question">
+            <p>Pregunta 1: ¿Qué punto se mueve con mayor velocidad angular?</p>
+            <input type="radio" name="q1" value="A">A
+            <input type="radio" name="q1" value="B">B
+            <input type="radio" name="q1" value="C">Ambos tienen la misma velocidad angular.
+        </div>
+        <div class="question">
+            <p>Pregunta 2: ¿Qué punto recorre más distancia en una vuelta?</p>
+            <input type="radio" name="q2" value="A">A
+            <input type="radio" name="q2" value="B">B
+            <input type="radio" name="q2" value="C">Ambos recorren la misma distancia.
+        </div>
+        <div class="question">
+            <p>Pregunta 3: ¿Qué punto se mueve con mayor velocidad lineal?</p>
+            <input type="radio" name="q3" value="A">A
+            <input type="radio" name="q3" value="B">B
+            <input type="radio" name="q3" value="C">Ambos tienen la misma velocidad lineal.
+        </div>
+        <div class="question">
+            <p>¿Qué punto tiene mayor aceleración tangencial?</p>
+            <input type="radio" name="q4" value="A">A
+            <input type="radio" name="q4" value="B">B
+            <input type="radio" name="q4" value="C">Ambos tienen la misma aceleración tangencial (\(a_t=0\)).
+            <input type="radio" name="q4" value="D">Ambos tienen la misma aceleración tangencial (\(a_t \neq 0\)).
+        </div>
+        <div class="question">
+            <p>¿Qué punto tiene mayor aceleración normal?</p>
+            <input type="radio" name="q5" value="A">A
+            <input type="radio" name="q5" value="B">B
+            <input type="radio" name="q5" value="C">Ambos tienen la misma aceleración normal (\(a_n=0\)).
+            <input type="radio" name="q5" value="D">Ambos tienen la misma aceleración normal (\(a_n \neq 0\)).
+        </div>
+        <button id="submitAnswers">Enviar respuestas</button>
+        <div class="results" id="results"></div>
+    </div>
+    <p>Autor: Antonio González García</p>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const sliderA = document.getElementById('sliderA');
+        const sliderB = document.getElementById('sliderB');
+        const rpmSlider = document.getElementById('rpmSlider');
+        const showVelocities = document.getElementById('showVelocities');
+        const startButton = document.getElementById('startButton');
+        const pauseButton = document.getElementById('pauseButton');
+        const resetButton = document.getElementById('resetButton');
+        const showGraph = document.getElementById('showGraph');
+        const graphDiv = document.getElementById('graph');
+        const graphCanvas = document.getElementById('graphCanvas');
+        const graphCtx = graphCanvas.getContext('2d');
+        const velocitiesDiv = document.createElement('div');
+        velocitiesDiv.classList.add('velocities');
+        document.body.appendChild(velocitiesDiv);
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const wheelRadius = 150;
+        let angle = 0;
+        let animationId;
+        let isPaused = false;
+        let time = 0;
+        let distancesA = [];
+        let distancesB = [];
+
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, wheelRadius, 0, Math.PI * 2);
+            ctx.fillStyle = 'gray';
+            ctx.fill();
+            ctx.stroke();
+
+            const radiusA = parseInt(sliderA.value);
+            const radiusB = parseInt(sliderB.value);
+
+            const angleRad = (angle * Math.PI) / 180;
+
+            const xA = centerX + radiusA * Math.cos(angleRad);
+            const yA = centerY + radiusA * Math.sin(angleRad);
+            const xB = centerX + radiusB * Math.cos(angleRad);
+            const yB = centerY + radiusB * Math.sin(angleRad);
+
+            ctx.beginPath();
+            ctx.arc(xA, yA, 5, 0, Math.PI * 2);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+            ctx.fillText("A", xA + 8, yA - 8);
+
+            ctx.beginPath();
+            ctx.arc(xB, yB, 5, 0, Math.PI * 2);
+            ctx.fillStyle = 'blue';
+            ctx.fill();
+            ctx.fillText("B", xB + 8, yB - 8);
+
+            if (showVelocities.checked) {
+                const rpm = parseInt(rpmSlider.value);
+                const omega = (rpm * 2 * Math.PI) / 60;
+                const vA = (omega * radiusA / 100).toFixed(2); // Convert to m/s (assuming 100 px = 1 m)
+                const vB = (omega * radiusB / 100).toFixed(2); // Convert to m/s (assuming 100 px = 1 m)
+
+                velocitiesDiv.innerHTML = `$$v_A = ${vA}\\, \\text{m/s}$$<br>$$v_B = ${vB}\\, \\text{m/s}$$`;
+                MathJax.typeset(); // Render LaTeX
+            } else {
+                velocitiesDiv.innerHTML = '';
+            }
+        }
+
+        function update() {
+            if (!isPaused) {
+                const rpm = parseInt(rpmSlider.value);
+                const deltaAngle = (rpm * 360) / 60 / 60;
+                angle = (angle - deltaAngle) % 360; // Gira en el sentido de las agujas del reloj
+                drawWheel();
+                if (showGraph.checked) {
+                    updateGraph();
+                }
+                animationId = requestAnimationFrame(update);
+            }
+        }
+
+        startButton.addEventListener('click', () => {
+            isPaused = false;
+            update();
+        });
+
+        pauseButton.addEventListener('click', () => {
+            isPaused = true;
+            cancelAnimationFrame(animationId);
+        });
+
+        resetButton.addEventListener('click', () => {
+            isPaused = true;
+            cancelAnimationFrame(animationId);
+            angle = 0;
+            time = 0;
+            distancesA = [];
+            distancesB = [];
+            drawWheel();
+            resetGraph();
+        });
+
+        sliderA.addEventListener('input', () => {
+            drawWheel();
+            resetGraph();
+        });
+        sliderB.addEventListener('input', () => {
+            drawWheel();
+            resetGraph();
+        });
+        rpmSlider.addEventListener('input', drawWheel);
+        showVelocities.addEventListener('change', drawWheel);
+        showGraph.addEventListener('change', () => {
+            if (showGraph.checked) {
+                graphDiv.style.display = 'block';
+                resetGraph();
+            } else {
+                graphDiv.style.display = 'none';
+            }
+        });
+
+        drawWheel();
+
+        // Graph for distance vs time
+        function resetGraph() {
+            distancesA = [];
+            distancesB = [];
+            graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+
+            // Draw axes
+            graphCtx.beginPath();
+            graphCtx.moveTo(40, 0);
+            graphCtx.lineTo(40, 400);
+            graphCtx.lineTo(400, 400);
+            graphCtx.strokeStyle = 'black';
+            graphCtx.stroke();
+
+            // Labels
+            graphCtx.fillStyle = 'black';
+            graphCtx.fillText('Distancia (m)', 10, 10);
+            graphCtx.fillText('Tiempo (s)', 350, 390);
+        }
+
+        function updateGraph() {
+            time += 1 / 60;
+            const rpm = parseInt(rpmSlider.value);
+            const omega = (rpm * 2 * Math.PI) / 60;
+            const radiusA = parseInt(sliderA.value);
+            const radiusB = parseInt(sliderB.value);
+            const distanceA = omega * radiusA * time / 100; // Convert to meters
+            const distanceB = omega * radiusB * time / 100; // Convert to meters
+
+            distancesA.push({ x: 40 + time * 10, y: 400 - distanceA * 10 });
+            distancesB.push({ x: 40 + time * 10, y: 400 - distanceB * 10 });
+
+            graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+
+            // Draw axes
+            graphCtx.beginPath();
+            graphCtx.moveTo(40, 0);
+            graphCtx.lineTo(40, 400);
+            graphCtx.lineTo(400, 400);
+            graphCtx.strokeStyle = 'black';
+            graphCtx.stroke();
+
+            // Labels
+            graphCtx.fillStyle = 'black';
+            graphCtx.fillText('Distancia (m)', 10, 10);
+            graphCtx.fillText('Tiempo (s)', 350, 390);
+
+            // Draw the red line for A
+            if (distancesA.length > 1) {
+                graphCtx.beginPath();
+                graphCtx.strokeStyle = 'red';
+                graphCtx.moveTo(distancesA[0].x, distancesA[0].y);
+                distancesA.forEach(point => {
+                    graphCtx.lineTo(point.x, point.y);
+                });
+                graphCtx.stroke();
+            }
+
+            // Draw the blue line for B
+            if (distancesB.length > 1) {
+                graphCtx.beginPath();
+                graphCtx.strokeStyle = 'blue';
+                graphCtx.moveTo(distancesB[0].x, distancesB[0].y);
+                distancesB.forEach(point => {
+                    graphCtx.lineTo(point.x, point.y);
+                });
+                graphCtx.stroke();
+            }
+        }
+
+        // Questions and answers
+        const submitButton = document.getElementById('submitAnswers');
+        const resultsDiv = document.getElementById('results');
+
+        submitButton.addEventListener('click', () => {
+            const radiusA = parseInt(sliderA.value);
+            const radiusB = parseInt(sliderB.value);
+            let score = 0;
+            const answers = {
+                q1: 'C',
+                q2: radiusA > radiusB ? 'A' : 'B',
+                q3: radiusA > radiusB ? 'A' : 'B',
+                q4: 'C',
+                q5: radiusA > radiusB ? 'A' : 'B'
+            };
+
+            const formData = new FormData();
+            const formInputs = document.querySelectorAll('.questions input[type="radio"]:checked');
+            formInputs.forEach(input => {
+                formData.append(input.name, input.value);
+            });
+
+            resultsDiv.innerHTML = '';
+            for (let [key, value] of formData.entries()) {
+                const correct = value === answers[key];
+                score += correct ? 1 : 0;
+                const resultText = document.createElement('p');
+                resultText.textContent = `${key.toUpperCase()}: ${value} ${correct ? '✓' : '✗'}`;
+                resultsDiv.appendChild(resultText);
+            }
+
+            const summary = document.createElement('p');
+            summary.textContent = `Resumen de aciertos: ${score} de 5`;
+            resultsDiv.appendChild(summary);
+        });
+
+        // Shuffle questions options
+        document.addEventListener('DOMContentLoaded', () => {
+            const questionContainers = document.querySelectorAll('.question');
+            questionContainers.forEach(container => {
+                const options = Array.from(container.querySelectorAll('input[type="radio"]'));
+                for (let i = options.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [options[i].parentNode, options[j].parentNode] = [options[j].parentNode, options[i].parentNode];
+                }
+            });
+        });
+    </script>
+</body>
+</html>

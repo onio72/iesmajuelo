@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulación de Gas</title>
+  <style>
+    body {
+      margin: 0;
+      background: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    h2 {
+      margin-top: 20px;
+    }
+    /* Canvas con borde que muestra el contenedor del gas */
+    #canvas {
+      display: block;
+      margin: 20px auto;
+      border: 2px solid black;
+      background: white;
+    }
+    /* Controles centrados */
+    #controls {
+      margin: 10px auto;
+      width: 800px;
+      text-align: center;
+    }
+    label {
+      font-weight: bold;
+      margin: 0 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Simulación de Gas</h2>
+  <canvas id="canvas" width="1200" height="800"></canvas>
+  
+  <div id="controls">
+    <label>Temperatura (K):
+      <!-- El deslizador comienza en 0 K -->
+      <input type="range" id="tempSlider" min="0" max="300" step="5" value="0">
+      <span id="tempValue">0</span>
+    </label>
+    <label>Composición:
+      <select id="composition">
+        <option value="pura_mono">Pura simple monoatómica</option>
+        <option value="pura_di_simple">Pura simple diatómica</option>
+        <option value="pura_di_compuesta">Pura compuesta diatómica</option>
+        <option value="mezcla_homog_mono">Mezcla homogénea de dos simples monoatómicas</option>
+        <option value="mezcla_homog_di_simple">Mezcla homogénea de dos simples diatómicas</option>
+        <option value="mezcla_homog_di_mixta">Mezcla homogénea (una simple y una compuesta, diatómicas)</option>
+        <option value="mezcla_hetero_mono">Mezcla heterogénea de dos simples monoatómicas</option>
+        <option value="mezcla_hetero_di_simple">Mezcla heterogénea de dos simples diatómicas</option>
+        <option value="mezcla_hetero_di_compuesta">Mezcla heterogénea de dos compuestas diatómicas</option>
+      </select>
+    </label>
+  </div>
+  
+  <script>
+    /*********************
+     * CONFIGURACIÓN DEL CANVAS *
+     *********************/
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const cw = canvas.width;
+    const ch = canvas.height;
+    
+    /*********************
+     * PARÁMETROS DEL GAS *
+     *********************/
+    // Se reduce el número de partículas para facilitar la visualización.
+    const numParticles = 80;
+    let particles = [];
+    
+    // El deslizador de temperatura ahora comienza en 0 K (hasta 300 K).
+    let temperature = parseFloat(document.getElementById("tempSlider").value);
+    
+    // La velocidad se calculará proporcional a la raíz cuadrada de la temperatura.
+    // Si T = 0, la velocidad es 0; si T = 300, la velocidad será igual a maxGasSpeed.
+    const maxGasSpeed = 5;  // velocidad máxima (a 300 K)
+    function computeSpeed(temp) {
+      return maxGasSpeed * Math.sqrt(temp / 300);
+    }
+    
+    // Aumentamos el tamaño de las bolas: por ejemplo, de 8 a 12 píxeles de radio.
+    const atomRadius = 12;
+    
+    // La composición se selecciona mediante el menú desplegable.
+    let composition = document.getElementById("composition").value;
+    
+    /*********************
+     * INICIALIZACIÓN DE LAS MOLÉCULAS *
+     *********************/
+    function initializeParticles() {
+      particles = [];
+      for (let i = 0; i < numParticles; i++) {
+        let x, y;
+        let molType = "";
+        // Para las composiciones heterogéneas se segregan inicialmente:
+        if (composition === "mezcla_hetero_mono" ||
+            composition === "mezcla_hetero_di_simple" ||
+            composition === "mezcla_hetero_di_compuesta") {
+          // La mitad superior se ubica en la parte superior del canvas, la inferior en la parte inferior.
+          if (i < numParticles / 2) {
+            y = Math.random() * (ch / 2 - 2 * atomRadius) + atomRadius;
+          } else {
+            y = Math.random() * (ch / 2 - 2 * atomRadius) + ch/2;
+          }
+          x = Math.random() * (cw - 2 * atomRadius) + atomRadius;
+          
+          // Asignar el tipo según la franja:
+          if (composition === "mezcla_hetero_mono") {
+            // Ejemplo: parte superior = "mono_red", parte inferior = "mono_blue"
+            molType = (i < numParticles / 2) ? "mono_red" : "mono_blue";
+          } else if (composition === "mezcla_hetero_di_simple") {
+            molType = (i < numParticles / 2) ? "di_simple_red" : "di_simple_blue";
+          } else if (composition === "mezcla_hetero_di_compuesta") {
+            // En este caso, se usan dos variantes: "di_comp" (por ejemplo, izquierda roja, derecha azul)
+            // y "di_comp_alt" (izquierda azul, derecha verde)
+            molType = (i < numParticles / 2) ? "di_comp" : "di_comp_alt";
+          }
+        } else {
+          // Para composiciones puras y homogéneas, ubicar las partículas uniformemente en todo el canvas.
+          x = Math.random() * (cw - 2 * atomRadius) + atomRadius;
+          y = Math.random() * (ch - 2 * atomRadius) + atomRadius;
+          if (composition === "pura_mono") {
+            molType = "mono";
+          } else if (composition === "pura_di_simple") {
+            molType = "di_simple";
+          } else if (composition === "pura_di_compuesta") {
+            molType = "di_comp";
+          } else if (composition === "mezcla_homog_mono") {
+            molType = (i % 2 === 0) ? "mono_red" : "mono_blue";
+          } else if (composition === "mezcla_homog_di_simple") {
+            molType = (i % 2 === 0) ? "di_simple_red" : "di_simple_blue";
+          } else if (composition === "mezcla_homog_di_mixta") {
+            molType = (i % 2 === 0) ? "di_simple_red" : "di_comp";
+          }
+        }
+        
+        // Calcular la velocidad usando la función basada en la raíz cuadrada de la temperatura.
+        let desiredSpeed = computeSpeed(temperature);
+        let angle = Math.random() * 2 * Math.PI;
+        let vx = desiredSpeed * Math.cos(angle);
+        let vy = desiredSpeed * Math.sin(angle);
+        
+        particles.push({
+          x: x,
+          y: y,
+          vx: vx,
+          vy: vy,
+          radius: atomRadius,
+          molType: molType
+        });
+      }
+    }
+    
+    /*********************
+     * ACTUALIZACIÓN Y DIBUJO *
+     *********************/
+    function updateParticles() {
+      for (let p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        
+        // Rebote en los bordes del canvas.
+        if (p.x - p.radius < 0) {
+          p.x = p.radius;
+          p.vx = -p.vx;
+        }
+        if (p.x + p.radius > cw) {
+          p.x = cw - p.radius;
+          p.vx = -p.vx;
+        }
+        if (p.y - p.radius < 0) {
+          p.y = p.radius;
+          p.vy = -p.vy;
+        }
+        if (p.y + p.radius > ch) {
+          p.y = ch - p.radius;
+          p.vy = -p.vy;
+        }
+      }
+    }
+    
+    function drawParticles() {
+      for (let p of particles) {
+        switch(p.molType) {
+          case "mono":
+          case "mono_red":
+          case "mono_blue":
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
+            ctx.fillStyle = (p.molType === "mono_blue") ? "blue" : "red";
+            ctx.fill();
+            break;
+          case "di_simple":
+          case "di_simple_red":
+          case "di_simple_blue":
+            {
+              // Dibujar dos bolas tangentes: la separación entre centros es 2*atomRadius.
+              let offset = p.radius;
+              ctx.beginPath();
+              ctx.arc(p.x - offset, p.y, p.radius, 0, 2 * Math.PI);
+              ctx.fillStyle = (p.molType === "di_simple_blue") ? "blue" : "red";
+              ctx.fill();
+              ctx.beginPath();
+              ctx.arc(p.x + offset, p.y, p.radius, 0, 2 * Math.PI);
+              ctx.fillStyle = (p.molType === "di_simple_blue") ? "blue" : "red";
+              ctx.fill();
+            }
+            break;
+          case "di_comp":
+            {
+              let offset = p.radius;
+              ctx.beginPath();
+              ctx.arc(p.x - offset, p.y, p.radius, 0, 2 * Math.PI);
+              ctx.fillStyle = "blue";
+              ctx.fill();
+              ctx.beginPath();
+              ctx.arc(p.x + offset, p.y, p.radius, 0, 2 * Math.PI);
+              ctx.fillStyle = "red";
+              ctx.fill();
+            }
+            break;
+          case "di_comp_alt":
+            {
+              let offset = p.radius;
+              ctx.beginPath();
+              ctx.arc(p.x - offset, p.y, p.radius, 0, 2 * Math.PI);
+              ctx.fillStyle = "blue";
+              ctx.fill();
+              ctx.beginPath();
+              ctx.arc(p.x + offset, p.y, p.radius, 0, 2 * Math.PI);
+              ctx.fillStyle = "green";
+              ctx.fill();
+            }
+            break;
+          default:
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
+            ctx.fillStyle = "black";
+            ctx.fill();
+            break;
+        }
+      }
+    }
+    
+    function animate() {
+      ctx.clearRect(0, 0, cw, ch);
+      updateParticles();
+      drawParticles();
+      requestAnimationFrame(animate);
+    }
+    
+    /*********************
+     * EVENTOS DE LOS CONTROLES *
+     *********************/
+    document.getElementById("tempSlider").addEventListener("input", function() {
+      temperature = parseFloat(this.value);
+      document.getElementById("tempValue").innerText = temperature;
+      initializeParticles();
+    });
+    
+    document.getElementById("composition").addEventListener("change", function() {
+      composition = this.value;
+      initializeParticles();
+    });
+    
+    // Inicializar las partículas y arrancar la animación automáticamente.
+    initializeParticles();
+    animate();
+  </script>
+</body>
+</html>

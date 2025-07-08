@@ -1,0 +1,134 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Comparar velocidades - MRU (intervalos distintos)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #aaa;
+            padding: 10px;
+            min-width: 60px;
+        }
+        .feedback {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .options {
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Comparar dos móviles en MRU (intervalos distintos)</h2>
+<p>Observa las siguientes tablas de posición-tiempo para dos móviles que se mueven con velocidades constantes.</p>
+<p>Selecciona cuál de los dos móviles tiene mayor velocidad.</p>
+
+<table id="table1">
+    <tr><th>t (s)</th></tr>
+    <tr><th>x₁ (m)</th></tr>
+</table>
+
+<table id="table2">
+    <tr><th>t (s)</th></tr>
+    <tr><th>x₂ (m)</th></tr>
+</table>
+
+<div class="options">
+    <input type="radio" name="choice" value="1"> Móvil 1
+    <input type="radio" name="choice" value="2"> Móvil 2
+</div>
+
+<div>
+    <button onclick="checkAnswer()">Corregir</button>
+    <button onclick="generateExample()">Otro ejemplo</button>
+</div>
+
+<p class="feedback" id="feedback"></p>
+
+<script>
+    let v1, v2;
+
+    function generateExample() {
+        const tValues1 = generateTimeArray();
+        const tValues2 = generateTimeArray();
+        let x01 = Math.floor(Math.random() * 11);
+        let x02;
+        do {
+            x02 = Math.floor(Math.random() * 11);
+        } while (x02 === x01);
+
+        do {
+            v1 = Math.floor(Math.random() * 9) + 1;
+            v2 = Math.floor(Math.random() * 9) + 1;
+        } while (v1 === v2);
+
+        const row1t = document.querySelector("#table1 tr:nth-child(1)");
+        const row1x = document.querySelector("#table1 tr:nth-child(2)");
+        const row2t = document.querySelector("#table2 tr:nth-child(1)");
+        const row2x = document.querySelector("#table2 tr:nth-child(2)");
+
+        row1t.innerHTML = "<th>t (s)</th>";
+        row1x.innerHTML = "<th>x₁ (m)</th>";
+        row2t.innerHTML = "<th>t (s)</th>";
+        row2x.innerHTML = "<th>x₂ (m)</th>";
+
+        for (let t of tValues1) {
+            row1t.innerHTML += `<td>${t}</td>`;
+            row1x.innerHTML += `<td>${x01 + v1 * t}</td>`;
+        }
+        for (let t of tValues2) {
+            row2t.innerHTML += `<td>${t}</td>`;
+            row2x.innerHTML += `<td>${x02 + v2 * t}</td>`;
+        }
+
+        document.getElementById("feedback").textContent = "";
+        const radios = document.getElementsByName("choice");
+        for (let r of radios) r.checked = false;
+    }
+
+    function generateTimeArray() {
+        const start = Math.floor(Math.random() * 3);
+        const step = Math.floor(Math.random() * 2) + 1;
+        const times = [];
+        for (let i = 0; i < 6; i++) {
+            times.push(start + i * step);
+        }
+        return times;
+    }
+
+    function checkAnswer() {
+        const choice = document.querySelector('input[name="choice"]:checked');
+        const feedback = document.getElementById("feedback");
+
+        if (!choice) {
+            feedback.textContent = "Por favor, selecciona una opción.";
+            feedback.style.color = "orange";
+        } else {
+            const selected = parseInt(choice.value);
+            const correct = v1 > v2 ? 1 : 2;
+            if (selected === correct) {
+                feedback.textContent = "¡Correcto! Has identificado el móvil con mayor velocidad.";
+                feedback.style.color = "green";
+            } else {
+                feedback.textContent = "Incorrecto. Revisa cómo cambia la posición con el tiempo.";
+                feedback.style.color = "red";
+            }
+        }
+    }
+
+    window.onload = generateExample;
+</script>
+
+</body>
+</html>

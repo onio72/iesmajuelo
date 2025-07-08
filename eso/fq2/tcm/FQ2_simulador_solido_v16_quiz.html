@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz: ¿De qué tipo de sólido se trata?</title>
+  <style>
+    body {
+      margin: 0;
+      background: white;
+      font-family: Arial, sans-serif;
+      position: relative;
+    }
+    h2 {
+      margin-top: 20px;
+      text-align: center;
+    }
+    /* Canvas centrado */
+    #canvas {
+      display: block;
+      margin: auto;
+      border: 1px solid black;
+      background: white;
+    }
+    /* Contenedor del quiz: se posiciona de forma absoluta al lateral derecho del canvas */
+    #quiz {
+      position: absolute;
+      width: 250px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      background: #f9f9f9;
+      /* Se posicionará con style.right y style.top (definidos en JS) */
+    }
+    /* Opciones dispuestas verticalmente */
+    .option {
+      margin-bottom: 10px;
+      text-align: left;
+    }
+    button {
+      margin: 5px;
+    }
+    #result, #score, #questionCounter {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>¿De qué tipo de sólido se trata?</h2>
+  <canvas id="canvas" width="1200" height="800"></canvas>
+  
+  <!-- Contenedor del quiz -->
+  <div id="quiz">
+    <div id="questionCounter">Pregunta: 1 de 9</div>
+    <div id="options">
+      <div class="option">
+        <input type="radio" name="answer" id="opt1" value="pura_mono">
+        <label for="opt1">Pura simple monoatómica</label>
+      </div>
+      <div class="option">
+        <input type="radio" name="answer" id="opt2" value="pura_di_simple">
+        <label for="opt2">Pura simple diatómica</label>
+      </div>
+      <div class="option">
+        <input type="radio" name="answer" id="opt3" value="pura_di_compuesta">
+        <label for="opt3">Pura compuesta diatómica</label>
+      </div>
+      <div class="option">
+        <input type="radio" name="answer" id="opt4" value="mezcla_homog_mono">
+        <label for="opt4">Mezcla homogénea de dos simples monoatómicas</label>
+      </div>
+      <div class="option">
+        <input type="radio" name="answer" id="opt5" value="mezcla_homog_di_simple">
+        <label for="opt5">Mezcla homogénea de dos simples diatómicas</label>
+      </div>
+      <div class="option">
+        <input type="radio" name="answer" id="opt6" value="mezcla_homog_di_mixta">
+        <label for="opt6">Mezcla homogénea (una simple y una compuesta, diatómicas)</label>
+      </div>
+      <div class="option">
+        <input type="radio" name="answer" id="opt7" value="mezcla_hetero_mono">
+        <label for="opt7">Mezcla heterogénea de dos simples monoatómicas</label>
+      </div>
+      <div class="option">
+        <input type="radio" name="answer" id="opt8" value="mezcla_hetero_di_simple">
+        <label for="opt8">Mezcla heterogénea de dos simples diatómicas</label>
+      </div>
+      <div class="option">
+        <input type="radio" name="answer" id="opt9" value="mezcla_hetero_di_compuesta">
+        <label for="opt9">Mezcla heterogénea de dos compuestas diatómicas</label>
+      </div>
+    </div>
+    <button id="checkButton">Comprobar</button>
+    <button id="newButton">Nuevo sólido</button>
+    <div id="result"></div>
+    <div id="score">Puntaje: 0/100</div>
+  </div>
+  
+  <script>
+    // ----- VARIABLES DEL QUIZ -----
+    let currentQuestion = 1;
+    const totalQuestions = 9;
+    let score = 0;
+    const pointsPerQuestion = 100 / totalQuestions;
+    
+    // Opciones posibles (9 tipos de sólido)
+    const possibleSolidTypes = [
+      "pura_mono",
+      "pura_di_simple",
+      "pura_di_compuesta",
+      "mezcla_homog_mono",
+      "mezcla_homog_di_simple",
+      "mezcla_homog_di_mixta",
+      "mezcla_hetero_mono",
+      "mezcla_hetero_di_simple",
+      "mezcla_hetero_di_compuesta"
+    ];
+    // Variable que contendrá las opciones en orden aleatorio (sin repetición)
+    let shuffledOptions = [];
+    // La respuesta correcta de la pregunta actual:
+    let correctComposition = "";
+    
+    // ----- CONFIGURACIÓN DEL CANVAS -----
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const cw = canvas.width;
+    const ch = canvas.height;
+    
+    // ----- PARÁMETROS DEL SÓLIDO (Fase sólida, temperatura fija 50 K) -----
+    let temperature = 50;  
+    const maxAmplitude = 10;
+    const vibrationFrequency = 0.005;
+    const atomRadius = 5;
+    let molecules = [];
+    
+    // ----- SIMULATION SQUARE -----
+    // Ahora el simulation square ocupará el 50% del ancho del canvas.
+    // Su esquina izquierda comenzará al 15% del ancho del canvas.
+    let simSize, simX, simY;
+    // Dentro del simulation square se dibuja la retícula (grid) que ocupa el 40% de su área,
+    // centrada horizontalmente y con un margen inferior.
+    let gridSize, gridX, gridY;
+    const gridCount = 8;
+    const bottomMargin = 20;
+    
+    // ----- FUNCIONES DE AYUDA -----
+    // Función para barajar un arreglo (algoritmo de Fisher–Yates)
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+    
+    // ----- INICIALIZACIÓN DEL QUIZ -----
+    function initializeQuiz() {
+      currentQuestion = 1;
+      score = 0;
+      // Barajar las 9 opciones y guardarlas en shuffledOptions
+      shuffledOptions = shuffleArray(possibleSolidTypes.slice());
+      correctComposition = shuffledOptions[currentQuestion - 1];
+      document.getElementById("questionCounter").innerText = "Pregunta: " + currentQuestion + " de " + totalQuestions;
+      document.getElementById("score").innerText = "Puntaje: " + Math.round(score) + "/100";
+      // Asegurarse de que los botones estén habilitados
+      document.getElementById("checkButton").disabled = false;
+      document.getElementById("newButton").disabled = false;
+    }
+    
+    // ----- INICIALIZACIÓN DE LA SIMULACIÓN DEL SÓLIDO -----
+    function initializeSimulation() {
+      // Simulation square: 50% del ancho del canvas.
+      simSize = cw * 0.5;
+      // La esquina izquierda del simulation square empieza al 15% del canvas.
+      simX = cw * 0.15;
+      simY = ch - simSize;  // Se apoya en la base del canvas.
+      
+      // Grid: ocupa el 40% del simulation square, centrado horizontalmente, con bottomMargin.
+      gridSize = simSize * 0.4;
+      gridX = simX + (simSize - gridSize) / 2;
+      gridY = simY + simSize - gridSize - bottomMargin;
+      
+      // Reinicializamos la retícula de moléculas.
+      molecules = [];
+      const spacing = gridSize / (gridCount - 1);
+      let index = 0;
+      for (let row = 0; row < gridCount; row++) {
+        for (let col = 0; col < gridCount; col++) {
+          let x = gridX + col * spacing;
+          let y = gridY + gridSize - row * spacing; // la fila 0 se dibuja en la base.
+          molecules.push({
+            homeX: x,
+            homeY: y,
+            vibAngle: Math.random() * 2 * Math.PI,
+            phase: Math.random() * 2 * Math.PI,
+            row: row,
+            col: col,
+            index: index
+          });
+          index++;
+        }
+      }
+      
+      // Posicionar el contenedor del quiz: lo alineamos a la derecha del canvas.
+      const quizDiv = document.getElementById("quiz");
+      quizDiv.style.top = simY + "px";
+      quizDiv.style.right = "20px";  // 20 px de margen a la derecha.
+      // Eliminamos la propiedad left (si existiera) para que use right.
+      quizDiv.style.left = "";
+    }
+    
+    // ----- FUNCIÓN PARA DIBUJAR CADA MOLÉCULA SEGÚN EL TIPO (la composición correcta) -----
+    function drawMolecule(mol, currentX, currentY) {
+      let offset;
+      switch(correctComposition) {
+        case "pura_mono":
+          ctx.beginPath();
+          ctx.arc(currentX, currentY, atomRadius, 0, 2 * Math.PI);
+          ctx.fillStyle = "red";
+          ctx.fill();
+          break;
+        case "pura_di_simple":
+          offset = atomRadius;
+          ctx.beginPath();
+          ctx.arc(currentX - offset, currentY, atomRadius, 0, 2 * Math.PI);
+          ctx.fillStyle = "red";
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(currentX + offset, currentY, atomRadius, 0, 2 * Math.PI);
+          ctx.fillStyle = "red";
+          ctx.fill();
+          break;
+        case "pura_di_compuesta":
+          offset = atomRadius;
+          ctx.beginPath();
+          ctx.arc(currentX - offset, currentY, atomRadius, 0, 2 * Math.PI);
+          ctx.fillStyle = "blue";
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(currentX + offset, currentY, atomRadius, 0, 2 * Math.PI);
+          ctx.fillStyle = "red";
+          ctx.fill();
+          break;
+        case "mezcla_homog_mono":
+          if ((mol.row + mol.col) % 2 === 0) {
+            ctx.beginPath();
+            ctx.arc(currentX, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+          } else {
+            ctx.beginPath();
+            ctx.arc(currentX, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+          }
+          break;
+        case "mezcla_homog_di_simple":
+          if ((mol.row + mol.col) % 2 === 0) {
+            offset = atomRadius;
+            ctx.beginPath();
+            ctx.arc(currentX - offset, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(currentX + offset, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+          } else {
+            offset = atomRadius;
+            ctx.beginPath();
+            ctx.arc(currentX - offset, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(currentX + offset, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+          }
+          break;
+        case "mezcla_homog_di_mixta":
+          if ((mol.row + mol.col) % 2 === 0) {
+            offset = atomRadius;
+            ctx.beginPath();
+            ctx.arc(currentX - offset, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(currentX + offset, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+          } else {
+            offset = atomRadius;
+            ctx.beginPath();
+            ctx.arc(currentX - offset, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(currentX + offset, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+          }
+          break;
+        case "mezcla_hetero_mono":
+          if (mol.homeY < gridY + gridSize/2) {
+            ctx.beginPath();
+            ctx.arc(currentX, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+          } else {
+            ctx.beginPath();
+            ctx.arc(currentX, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+          }
+          break;
+        case "mezcla_hetero_di_simple":
+          if (mol.homeY < gridY + gridSize/2) {
+            offset = atomRadius;
+            ctx.beginPath();
+            ctx.arc(currentX - offset, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(currentX + offset, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+          } else {
+            offset = atomRadius;
+            ctx.beginPath();
+            ctx.arc(currentX - offset, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(currentX + offset, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+          }
+          break;
+        case "mezcla_hetero_di_compuesta":
+          if (mol.homeY < gridY + gridSize/2) {
+            offset = atomRadius;
+            ctx.beginPath();
+            ctx.arc(currentX - offset, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(currentX + offset, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+          } else {
+            offset = atomRadius;
+            ctx.beginPath();
+            ctx.arc(currentX - offset, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(currentX + offset, currentY, atomRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = "green";
+            ctx.fill();
+          }
+          break;
+      }
+    }
+    
+    // ----- BUCLE DE ANIMACIÓN DEL SÓLIDO -----
+    function animate(time) {
+      ctx.clearRect(0, 0, cw, ch);
+      
+      // Dibujar el simulation square (área blanca con borde negro)
+      ctx.fillStyle = "white";
+      ctx.fillRect(simX, simY, simSize, simSize);
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(simX, simY, simSize, simSize);
+      
+      // Dibujar cada molécula con su desplazamiento (vibración)
+      molecules.forEach(mol => {
+        let amplitude = (temperature / 100) * maxAmplitude;
+        let displacement = amplitude * Math.sin(vibrationFrequency * time + mol.phase);
+        let currentX = mol.homeX + displacement * Math.cos(mol.vibAngle);
+        let currentY = mol.homeY + displacement * Math.sin(mol.vibAngle);
+        drawMolecule(mol, currentX, currentY);
+      });
+      
+      requestAnimationFrame(animate);
+    }
+    
+    // ----- FUNCIONALIDAD DEL QUIZ -----
+    const checkButton = document.getElementById("checkButton");
+    const newButton = document.getElementById("newButton");
+    const resultDiv = document.getElementById("result");
+    const questionCounterDiv = document.getElementById("questionCounter");
+    const scoreDiv = document.getElementById("score");
+    
+    checkButton.addEventListener("click", function() {
+      const userAnswerElem = document.querySelector('input[name="answer"]:checked');
+      if (!userAnswerElem) {
+        resultDiv.innerText = "Por favor, selecciona una opción.";
+        return;
+      }
+      const userAnswer = userAnswerElem.value;
+      if (userAnswer === correctComposition) {
+        resultDiv.innerText = "¡Correcto!";
+        score += pointsPerQuestion;
+      } else {
+        resultDiv.innerText = "Incorrecto. La respuesta correcta es: " + correctComposition;
+      }
+      scoreDiv.innerText = "Puntaje: " + Math.round(score) + "/100";
+      checkButton.disabled = true;
+    });
+    
+    newButton.addEventListener("click", function() {
+      if (currentQuestion >= totalQuestions) {
+        resultDiv.innerText += "\nEjercicio terminado. Puntaje final: " + Math.round(score) + "/100";
+        newButton.disabled = true;
+        return;
+      }
+      // Pasar a la siguiente pregunta usando la siguiente opción en el arreglo barajado.
+      currentQuestion++;
+      if (currentQuestion <= totalQuestions) {
+        correctComposition = shuffledOptions[currentQuestion - 1];
+      }
+      console.log("Nueva respuesta correcta:", correctComposition);
+      initializeSimulation();
+      
+      // Limpiar la selección de radio.
+      const radios = document.getElementsByName("answer");
+      radios.forEach(radio => radio.checked = false);
+      
+      resultDiv.innerText = "";
+      questionCounterDiv.innerText = "Pregunta: " + currentQuestion + " de " + totalQuestions;
+      checkButton.disabled = false;
+    });
+    
+    // ----- INICIALIZACIÓN INICIAL -----
+    initializeQuiz();
+    initializeSimulation();
+    animate();
+  </script>
+</body>
+</html>

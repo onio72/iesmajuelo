@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dibuja puntos - MRU mejorado</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        canvas {
+            margin: 20px auto;
+            background: #fff;
+            border: 1px solid #ccc;
+        }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #aaa;
+            padding: 10px;
+            min-width: 60px;
+        }
+        .score {
+            font-weight: bold;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Dibuja los puntos de un MRU</h2>
+<p>
+  Haz clic en la gráfica para colocar los puntos de la tabla (t = 0, 1, 2, 3, 4).<br>
+  Puedes arrastrarlos verticalmente para ajustar su posición (el eje t permanece fijo).<br>
+  Los puntos se vuelven azul oscuro cuando están bien colocados (dentro de Δy ≤ 1).<br>
+  Al colocar correctamente los 5 puntos, se traza la recta del MRU y se calcula tu puntuación.
+</p>
+
+<table id="dataTable">
+    <tr id="rowT"><th>t (s)</th></tr>
+    <tr id="rowX"><th>x (m)</th></tr>
+</table>
+
+<canvas id="graph" width="600" height="400"></canvas>
+<div class="score" id="score"></div>
+
+<script>
+    // Parámetros aleatorios x0 y v (v distinto de 0)
+    const tValues = [0, 1, 2, 3, 4];
+    const x0 = Math.floor(Math.random() * 11);         // 0 a 10
+    let v = Math.floor(Math.random() * 9) + 1;         // 1 a 9
+    if (Math.random() < 0.5) v *= -1;                  // signo aleatorio
+    const data = tValues.map(t => x0 + v * t);         // posiciones correctas
+
+    // Llenar tabla con t y x correctos
+    const rowT = document.getElementById("rowT");
+    const rowX = document.getElementById("rowX");
+    for (let i = 0; i < tValues.length; i++) {
+        const cellT = document.createElement("td");
+        const cellX = document.createElement("td");
+        cellT.textContent = tValues[i];
+        cellX.textContent = data[i];
+        rowT.appendChild(cellT);
+        rowX.appendChild(cellX);
+    }
+
+    // Variables para puntos del usuario y arrastre
+    let userPoints = [];       // Cada punto: { t: entero 0..4, y: valor }
+    let draggingIndex = null;  // Índice del punto que se arrastra
+
+    const threshold = 1; // Δy para colorear punto como correcto
+
+    // Crear el gráfico
+    const ctx = document.getElementById('graph').getContext('2d');
+    const userDataset = {
+        label: 'Tus puntos',
+        data: [],                   // {x: t, y: valorY}
+        pointBackgroundColor: [],
+        pointRadius: 7,
+        showLine: false
+    };
+    const lineDataset = {
+        label: 'MRU correcto',
+        data: [],
+        borderColor: 'darkblue',
+        borderDash: [5, 5],
+        borderWidth: 2,
+        showLine: true,
+        fill: false,
+        pointRadius: 0
+    };
+
+    const chart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [userDataset]
+        },
+        options: {
+            responsive: false,
+            animation: false,
+            layout: {
+                padding: {
+                    left: 10   // Para que el punto t=0 se vea entero
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    title: { display: true, text: 't (s)' },
+                    min: 0,
+                    max: 4,
+                    ticks: {
+                        stepSize: 1,
+                        callback: function(value) {
+                            if (Number.isInteger(value)) return value;
+                            return '';
+                        }
+                    },
+                    grid: {
+                        color: function(context) {
+                            return (context.tick.value === 0) ? 'black' : '#e0e0e0';
+                        },
+                        lineWidth: function(context) {
+                            return (context.tick.value === 0) ? 2 : 1;
+                        }
+                    }
+                },
+                y: {
+                    title: { display: true, text: 'x (m)' },
+                    min: Math.min(...data) - 5,
+                    max: Math.max(...data) + 5,
+                    grid: {
+                        color: function(context) {
+                            return (context.tick.value === 0) ? 'black' : '#e0e0e0';
+                        },
+                        lineWidth: function(context) {
+                            return (context.tick.value === 0) ? 2 : 1;
+                        }
+                    }
+                }
+            },
+            onClick: function(event) {
+                // Al hacer clic, snap de x al entero t más cercano (0..4)
+                if (userPoints.length >= 5) return;
+
+                const canvasPos = Chart.helpers.getRelativePosition(event, chart);
+                const xVal = chart.scales.x.getValueForPixel(canvasPos.x);
+                const yVal = chart.scales.y.getValueForPixel(canvasPos.y);
+
+                const tSnap = Math.round(xVal);
+                if (tSnap < 0 || tSnap > 4) return;  
+                // Verificar si ya existe punto en ese t
+                if (userPoints.some(p => p.t === tSnap)) return;
+
+                const yPlaced = parseFloat(yVal.toFixed(2));
+                userPoints.push({ t: tSnap, y: yPlaced });
+                actualizarColores();
+                actualizarChart();
+            },
+            onHover: function(event, chartElements) {
+                const target = event.native.target;
+                target.style.cursor = chartElements.length ? 'move' : 'default';
+            }
+        }
+    });
+
+    // Función para actualizar colores de puntos y comprobar si se dibuja línea y puntuación
+    function actualizarColores() {
+        const colors = userPoints.map(pt => {
+            const yCorr = x0 + v * pt.t;
+            return (Math.abs(pt.y - yCorr) <= threshold) ? 'darkblue' : 'lightblue';
+        });
+        chart.data.datasets[0].pointBackgroundColor = colors;
+
+        // Si todos los cinco puntos están dentro del umbral y la línea aún no está
+        if (colors.length === 5 && colors.every(c => c === 'darkblue') && chart.data.datasets.length === 1) {
+            dibujarLineaCorrecta();
+            calcularPuntuacion();
+        }
+    }
+
+    // Redibuja el dataset de puntos del usuario
+    function actualizarChart() {
+        chart.data.datasets[0].data = userPoints.map(pt => ({ x: pt.t, y: pt.y }));
+        chart.update();
+    }
+
+    // Dibuja la línea correcta del MRU (desde t=0 hasta t=4)
+    function dibujarLineaCorrecta() {
+        const correctLine = [
+            { x: 0, y: x0 + v * 0 },
+            { x: 4, y: x0 + v * 4 }
+        ];
+        chart.data.datasets.push(lineDataset);
+        chart.data.datasets[1].data = correctLine;
+        chart.update();
+    }
+
+    // Calcula la puntuación basada en suma de distancias verticales
+    function calcularPuntuacion() {
+        let sumaDist = 0;
+        for (let pt of userPoints) {
+            const yCorr = x0 + v * pt.t;
+            sumaDist += Math.abs(pt.y - yCorr);
+        }
+        const score = Math.max(0, Math.round(100 - sumaDist * 5));
+        document.getElementById("score").textContent = `Puntuación: ${score} / 100`;
+    }
+
+    // Eventos para arrastrar (mousedown, mousemove, mouseup)
+    document.getElementById('graph').addEventListener('mousedown', function(evt) {
+        const pos = Chart.helpers.getRelativePosition(evt, chart);
+        const xVal = chart.scales.x.getValueForPixel(pos.x);
+        const yVal = chart.scales.y.getValueForPixel(pos.y);
+        // Buscar punto cercano (en t y y) para iniciar arrastre
+        for (let i = 0; i < userPoints.length; i++) {
+            const pt = userPoints[i];
+            if (Math.abs(pt.t - xVal) < 0.3 && Math.abs(pt.y - yVal) < 1) {
+                draggingIndex = i;
+                return;
+            }
+        }
+    });
+
+    document.getElementById('graph').addEventListener('mouseup', function(evt) {
+        draggingIndex = null;
+    });
+
+    document.getElementById('graph').addEventListener('mousemove', function(evt) {
+        if (draggingIndex === null) return;
+        const pos = Chart.helpers.getRelativePosition(evt, chart);
+        const yVal = chart.scales.y.getValueForPixel(pos.y);
+        // Conservar siempre el t original, solo mover y
+        const tConstante = userPoints[draggingIndex].t;
+        userPoints[draggingIndex].y = parseFloat(yVal.toFixed(2));
+        actualizarColores();
+        actualizarChart();
+    });
+</script>
+
+</body>
+</html>

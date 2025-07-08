@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Comparar velocidades - MRU</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #aaa;
+            padding: 10px;
+            min-width: 60px;
+        }
+        .feedback {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .options {
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Comparar dos móviles en MRU</h2>
+<p>Observa las siguientes tablas de posición-tiempo para dos móviles que se mueven con velocidades constantes.</p>
+<p>Selecciona cuál de los dos móviles tiene mayor velocidad.</p>
+
+<table id="table1">
+    <tr><th>t (s)</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+    <tr><th>x₁ (m)</th></tr>
+</table>
+
+<table id="table2">
+    <tr><th>t (s)</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+    <tr><th>x₂ (m)</th></tr>
+</table>
+
+<div class="options">
+    <input type="radio" name="choice" value="1"> Móvil 1
+    <input type="radio" name="choice" value="2"> Móvil 2
+</div>
+
+<div>
+    <button onclick="checkAnswer()">Corregir</button>
+    <button onclick="generateExample()">Otro ejemplo</button>
+</div>
+
+<p class="feedback" id="feedback"></p>
+
+<script>
+    let v1, v2;
+
+    function generateExample() {
+        const tValues = [0,1,2,3,4,5];
+        let x01 = Math.floor(Math.random() * 11);
+        let x02;
+        do {
+            x02 = Math.floor(Math.random() * 11);
+        } while (x02 === x01);
+
+        do {
+            v1 = Math.floor(Math.random() * 9) + 1;
+            v2 = Math.floor(Math.random() * 9) + 1;
+        } while (v1 === v2);
+
+        const row1 = document.querySelector("#table1 tr:nth-child(2)");
+        const row2 = document.querySelector("#table2 tr:nth-child(2)");
+        row1.innerHTML = "<th>x₁ (m)</th>";
+        row2.innerHTML = "<th>x₂ (m)</th>";
+
+        for (let t of tValues) {
+            row1.innerHTML += `<td>${x01 + v1 * t}</td>`;
+            row2.innerHTML += `<td>${x02 + v2 * t}</td>`;
+        }
+
+        document.getElementById("feedback").textContent = "";
+        const radios = document.getElementsByName("choice");
+        for (let r of radios) r.checked = false;
+    }
+
+    function checkAnswer() {
+        const choice = document.querySelector('input[name="choice"]:checked');
+        const feedback = document.getElementById("feedback");
+
+        if (!choice) {
+            feedback.textContent = "Por favor, selecciona una opción.";
+            feedback.style.color = "orange";
+        } else {
+            const selected = parseInt(choice.value);
+            const correct = v1 > v2 ? 1 : 2;
+            if (selected === correct) {
+                feedback.textContent = "¡Correcto! Has identificado el móvil con mayor velocidad.";
+                feedback.style.color = "green";
+            } else {
+                feedback.textContent = "Incorrecto. Revisa cómo cambia la posición con el tiempo.";
+                feedback.style.color = "red";
+            }
+        }
+    }
+
+    window.onload = generateExample;
+</script>
+
+</body>
+</html>

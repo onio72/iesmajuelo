@@ -1,0 +1,150 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Calcular velocidades - MRU (intervalos distintos)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #aaa;
+            padding: 10px;
+            min-width: 60px;
+        }
+        input[type="text"] {
+            width: 80px;
+            text-align: center;
+        }
+        .feedback {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .correct {
+            background-color: #c6f7c3;
+        }
+        .incorrect {
+            background-color: #f7c6c6;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Calcula la velocidad de cada móvil en MRU (intervalos distintos)</h2>
+<p>Observa las siguientes tablas de posición-tiempo. Calcula la velocidad constante de cada móvil e introdúcela en los campos de texto.</p>
+
+<table id="table1">
+    <tr><th>t (s)</th></tr>
+    <tr><th>x₁ (m)</th></tr>
+</table>
+
+<p>Velocidad móvil 1: <input type="text" id="v1Input"> m/s</p>
+
+<table id="table2">
+    <tr><th>t (s)</th></tr>
+    <tr><th>x₂ (m)</th></tr>
+</table>
+
+<p>Velocidad móvil 2: <input type="text" id="v2Input"> m/s</p>
+
+<div>
+    <button onclick="checkAnswer()">Comprobar</button>
+    <button onclick="generateExample()">Otro ejemplo</button>
+</div>
+
+<p class="feedback" id="feedback"></p>
+
+<script>
+    let v1, v2;
+
+    function generateExample() {
+        const tValues1 = generateTimeArray();
+        const tValues2 = generateTimeArray();
+        let x01 = Math.floor(Math.random() * 11);
+        let x02;
+        do {
+            x02 = Math.floor(Math.random() * 11);
+        } while (x02 === x01);
+
+        do {
+            v1 = Math.floor(Math.random() * 9) + 1;
+            v2 = Math.floor(Math.random() * 9) + 1;
+        } while (v1 === v2);
+
+        const row1t = document.querySelector("#table1 tr:nth-child(1)");
+        const row1x = document.querySelector("#table1 tr:nth-child(2)");
+        const row2t = document.querySelector("#table2 tr:nth-child(1)");
+        const row2x = document.querySelector("#table2 tr:nth-child(2)");
+
+        row1t.innerHTML = "<th>t (s)</th>";
+        row1x.innerHTML = "<th>x₁ (m)</th>";
+        row2t.innerHTML = "<th>t (s)</th>";
+        row2x.innerHTML = "<th>x₂ (m)</th>";
+
+        for (let t of tValues1) {
+            row1t.innerHTML += `<td>${t}</td>`;
+            row1x.innerHTML += `<td>${x01 + v1 * t}</td>`;
+        }
+        for (let t of tValues2) {
+            row2t.innerHTML += `<td>${t}</td>`;
+            row2x.innerHTML += `<td>${x02 + v2 * t}</td>`;
+        }
+
+        document.getElementById("v1Input").value = "";
+        document.getElementById("v2Input").value = "";
+        document.getElementById("v1Input").className = "";
+        document.getElementById("v2Input").className = "";
+        document.getElementById("feedback").textContent = "";
+    }
+
+    function generateTimeArray() {
+        const start = Math.floor(Math.random() * 3);
+        const step = Math.floor(Math.random() * 2) + 1;
+        const times = [];
+        for (let i = 0; i < 6; i++) {
+            times.push(start + i * step);
+        }
+        return times;
+    }
+
+    function checkAnswer() {
+        const v1Guess = parseFloat(document.getElementById("v1Input").value);
+        const v2Guess = parseFloat(document.getElementById("v2Input").value);
+        let correct = true;
+
+        if (v1Guess === v1) {
+            document.getElementById("v1Input").className = "correct";
+        } else {
+            document.getElementById("v1Input").className = "incorrect";
+            correct = false;
+        }
+
+        if (v2Guess === v2) {
+            document.getElementById("v2Input").className = "correct";
+        } else {
+            document.getElementById("v2Input").className = "incorrect";
+            correct = false;
+        }
+
+        const feedback = document.getElementById("feedback");
+        if (correct) {
+            feedback.textContent = "¡Correcto! Has calculado ambas velocidades.";
+            feedback.style.color = "green";
+        } else {
+            feedback.textContent = "Revisa tus cálculos. Alguna velocidad es incorrecta.";
+            feedback.style.color = "red";
+        }
+    }
+
+    window.onload = generateExample;
+</script>
+
+</body>
+</html>
