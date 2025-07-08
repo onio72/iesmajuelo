@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Colisiones. Laboratorio 01</title>
+<style>
+  canvas {
+    border: 1px solid black;
+  }
+  .slider-container {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+  }
+  .slider-label {
+    margin-right: 10px;
+  }
+  #questionSection {
+    margin-top: 20px;
+  }
+  .progress-bar {
+    width: 100%;
+    background-color: #f3f3f3;
+    border: 1px solid #ddd;
+    margin-top: 10px;
+  }
+  .progress {
+    width: 0;
+    height: 20px;
+    background-color: #4caf50;
+  }
+  table {
+    width: 800px;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  table, th, td {
+    border: 1px solid black;
+  }
+  th, td {
+    padding: 8px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>Colisiones. Laboratorio 01</h1>
+<h2>Versión 12</h2>
+
+<div class="slider-container">
+  <div>
+    <label for="mass1" class="slider-label">Masa Bola Azul:</label>
+    <input type="range" id="mass1" name="mass1" min="1" max="10" value="5">
+    <span id="mass1Value">5</span>
+  </div>
+  <div>
+    <label for="mass2" class="slider-label">Masa Bola Roja:</label>
+    <input type="range" id="mass2" name="mass2" min="1" max="10" value="5">
+    <span id="mass2Value">5</span>
+  </div>
+  <div>
+    <label for="speed1" class="slider-label">Velocidad Bola Azul:</label>
+    <input type="range" id="speed1" name="speed1" min="1" max="10" value="10">
+    <span id="speed1Value">10</span>
+  </div>
+</div>
+
+<br>
+
+<button id="startButton">Animar</button>
+<button id="pauseButton">Pausa</button>
+<button id="resetButton">Reiniciar</button>
+<button id="slowButton">Ralentizar</button>
+
+<br><br>
+
+<canvas id="canvas" width="800" height="400"></canvas>
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th>Momento Lineal Azul</th>
+      <th>Momento Lineal Roja</th>
+      <th>Momento Lineal Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Antes</td>
+      <td id="momentoAzulAntes"></td>
+      <td id="momentoRojaAntes"></td>
+      <td id="momentoTotalAntes"></td>
+    </tr>
+    <tr>
+      <td>Después</td>
+      <td id="momentoAzulDespues"></td>
+      <td id="momentoRojaDespues"></td>
+      <td id="momentoTotalDespues"></td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th>Ec Azul</th>
+      <th>Ec Roja</th>
+      <th>Ec Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Antes</td>
+      <td id="ecAzulAntes"></td>
+      <td id="ecRojaAntes"></td>
+      <td id="ecTotalAntes"></td>
+    </tr>
+    <tr>
+      <td>Después</td>
+      <td id="ecAzulDespues"></td>
+      <td id="ecRojaDespues"></td>
+      <td id="ecTotalDespues"></td>
+    </tr>
+  </tbody>
+</table>
+
+<div id="questionSection" style="display: none;">
+  <div id="question1" class="question">
+    <p>Pregunta 1: ¿Qué momento lineal tiene la bola azul antes de la colisión?</p>
+    <input type="text" id="answer1" placeholder="Respuesta numérica"><span> kg·m/s</span>
+    <button id="submitAnswer1">Enviar</button>
+    <p id="feedback1"></p>
+  </div>
+  <div id="question2" class="question" style="display: none;">
+    <p>Pregunta 2: ¿Qué momento lineal tiene la bola roja antes de la colisión?</p>
+    <input type="text" id="answer2" placeholder="Respuesta numérica"><span> kg·m/s</span>
+    <button id="submitAnswer2">Enviar</button>
+    <p id="feedback2"></p>
+  </div>
+  <div id="question3" class="question" style="display: none;">
+    <p>Pregunta 3: ¿Qué valor tiene el momento lineal total antes de la colisión?</p>
+    <input type="text" id="answer3" placeholder="Respuesta numérica"><span> kg·m/s</span>
+    <button id="submitAnswer3">Enviar</button>
+    <p id="feedback3"></p>
+  </div>
+  <div id="question4" class="question" style="display: none;">
+    <p>Pregunta 4: ¿Qué valor tiene el momento lineal total después de la colisión?</p>
+    <input type="text" id="answer4" placeholder="Respuesta numérica"><span> kg·m/s</span>
+    <button id="submitAnswer4">Enviar</button>
+    <p id="feedback4"></p>
+  </div>
+  <div id="question5" class="question" style="display: none;">
+    <p>Pregunta 5: ¿Se conserva el momento total?</p>
+    <input type="radio" id="answer5Yes" name="answer5" value="sí">
+    <label for="answer5Yes">Sí</label>
+    <input type="radio" id="answer5No" name="answer5" value="no">
+    <label for="answer5No">No</label>
+    <button id="submitAnswer5">Enviar</button>
+    <p id="feedback5"></p>
+  </div>
+  <div id="question6" class="question" style="display: none;">
+    <p>Pregunta 6: ¿Qué energía cinética tiene la bola azul antes de la colisión?</p>
+    <input type="text" id="answer6" placeholder="Respuesta numérica"><span> J</span>
+    <button id="submitAnswer6">Enviar</button>
+    <p id="feedback6"></p>
+  </div>
+  <div id="question7" class="question" style="display: none;">
+    <p>Pregunta 7: ¿Qué energía cinética tiene la bola roja antes de la colisión?</p>
+    <input type="text" id="answer7" placeholder="Respuesta numérica"><span> J</span>
+    <button id="submitAnswer7">Enviar</button>
+    <p id="feedback7"></p>
+  </div>
+  <div id="question8" class="question" style="display: none;">
+    <p>Pregunta 8: ¿Cuál es la energía cinética total antes de la colisión?</p>
+    <input type="text" id="answer8" placeholder="Respuesta numérica"><span> J</span>
+    <button id="submitAnswer8">Enviar</button>
+    <p id="feedback8"></p>
+  </div>
+  <div id="question9" class="question" style="display: none;">
+    <p>Pregunta 9: ¿Cuál es la energía cinética total después de la colisión?</p>
+    <input type="text" id="answer9" placeholder="Respuesta numérica"><span> J</span>
+    <button id="submitAnswer9">Enviar</button>
+    <p id="feedback9"></p>
+  </div>
+  <div id="question10" class="question" style="display: none;">
+    <p>Pregunta 10: ¿Se conserva la energía cinética total?</p>
+    <input type="radio" id="answer10Yes" name="answer10" value="sí">
+    <label for="answer10Yes">Sí</label>
+    <input type="radio" id="answer10No" name="answer10" value="no">
+    <label for="answer10No">No</label>
+    <button id="submitAnswer10">Enviar</button>
+    <p id="feedback10"></p>
+  </div>
+  <div class="progress-bar">
+    <div class="progress" id="progressBar"></div>
+  </div>
+  <p>Respuestas correctas: <span id="correctAnswers">0</span></p>
+  <p>Respuestas incorrectas: <span id="incorrectAnswers">0</span></p>
+</div>
+
+<script src="simulador.js"></script>
+
+</body>
+</html>
