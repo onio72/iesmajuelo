@@ -7,14 +7,49 @@
   <style>
     * {
       box-sizing: border-box;
+      scroll-behavior: smooth;
     }
 
     body {
       font-family: 'Inter', sans-serif;
       margin: 0;
-      padding: 2em;
+      padding-top: 70px;
       background: #f5f7fa;
       color: #2c3e50;
+      line-height: 1.6;
+    }
+
+    /* Barra de navegación */
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: #ffffffee;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      justify-content: center;
+      padding: 0.8em;
+      margin: 0;
+      flex-wrap: wrap;
+    }
+
+    nav li {
+      margin: 0 1em;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #1a73e8;
+      font-weight: 600;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
     }
 
     h1 {
@@ -33,13 +68,11 @@
     h3 {
       font-size: 1.2em;
       margin-top: 0.8em;
-      color: #2c3e50;
     }
 
     h4 {
       font-size: 1em;
       margin-top: 0.5em;
-      color: #2c3e50;
     }
 
     ul {
@@ -51,7 +84,7 @@
       margin-bottom: 0.5em;
     }
 
-    a {
+    a.resource {
       display: inline-block;
       padding: 0.4em 0.6em;
       background: #e8f0fe;
@@ -62,106 +95,133 @@
       transition: background 0.3s;
     }
 
-    a::before {
+    a.resource::before {
       content: "🔗 ";
     }
 
-    a:hover {
+    a.resource:hover {
       background: #d2e3fc;
     }
 
+    section {
+      margin: 2em auto;
+      max-width: 800px;
+      padding: 0 1em;
+    }
+
     @media (max-width: 600px) {
-      body {
-        padding: 1em;
+      nav ul {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      nav li {
+        margin: 0.5em 0;
       }
     }
   </style>
 </head>
 <body>
 
-  <h1>Equipo directivo</h1>
-  <ul>
-    <li><a href="https://onio72.github.io/ed/calendario.html" target="_blank">Calendario</a></li>
-  </ul>
+  <nav>
+    <ul>
+      <li><a href="#equipo">Equipo directivo</a></li>
+      <li><a href="#cdd">CDD</a></li>
+      <li><a href="#bach">Bachillerato</a></li>
+      <li><a href="#eso">ESO</a></li>
+    </ul>
+  </nav>
 
-  <h1>CDD</h1>
-  <ul>
-    <li><a href="https://onio72.github.io/cdd/" target="_blank">Repositorio de píldoras</a></li>
-  </ul>
+  <section id="equipo">
+    <h1>Equipo directivo</h1>
+    <ul>
+      <li><a class="resource" href="https://onio72.github.io/ed/calendario.html" target="_blank">Calendario</a></li>
+    </ul>
+  </section>
 
-  <h1>Repositorio de Recursos FQ</h1>
-  <h2>Bachillerato</h2>
+  <section id="cdd">
+    <h1>CDD</h1>
+    <ul>
+      <li><a class="resource" href="https://onio72.github.io/cdd/" target="_blank">Repositorio de píldoras</a></li>
+    </ul>
+  </section>
 
-  <h3>FQ1</h3>
-  <h4>Química</h4>
-  <ul>
-    <li><a href="https://onio72.github.io/iesmajuelo/bach/fq1/formulaempirica/" target="_blank">Fórmula empírica</a></li>
-  </ul>
+  <section id="bach">
+    <h1>Repositorio de Recursos FQ</h1>
+    <h2>Bachillerato</h2>
 
-  <h4>Física</h4>
-  <h4>MRUA</h4>
-  <ul>
-    <li><a href="https://onio72.github.io/iesmajuelo/bach/fq1/caidalibre/grifo/index.html" target="_blank">Caída libre - Grifo</a></li>
-  </ul>
+    <h3>FQ1</h3>
+    <h4>Química</h4>
+    <ul>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/formulaempirica/" target="_blank">Fórmula empírica</a></li>
+    </ul>
 
-  <h4>Dinámica</h4>
-  <ul>
-    <li><a href="https://onio72.github.io/iesmajuelo/bach/fq1/planoinclinado/" target="_blank">Plano inclinado</a></li>
-    <li><a href="https://onio72.github.io/iesmajuelo/bach/fq1/planohorizontal/resuelto.html" target="_blank">Plano horizontal - Resuelto</a></li>
-    <li><a href="https://onio72.github.io/iesmajuelo/bach/fq1/planohorizontal/diagrama.html" target="_blank">Plano horizontal - Diagrama</a></li>
-    <li><a href="https://onio72.github.io/iesmajuelo/bach/fq1/cuerposenlazados/" target="_blank">Cuerpos enlazados</a></li>
-  </ul>
+    <h4>Física</h4>
+    <h4>MRUA</h4>
+    <ul>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/caidalibre/grifo/index.html" target="_blank">Caída libre - Grifo</a></li>
+    </ul>
 
-  <h4>Colisiones</h4>
-  <ul>
-    <li><a href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choques.html" target="_blank">Choque inelástico</a></li>
-    <li><a href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque01.html" target="_blank">Choque elástico</a></li>
-    <li><a href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque02.html" target="_blank">Choque inelástico 2</a></li>
-    <li><a href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque03.html" target="_blank">Choque con coef. de restitución 1</a></li>
-    <li><a href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque04.html" target="_blank">Choque con coef. de restitución 2</a></li>
-    <li><a href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/colision01.html" target="_blank">No va</a></li>
-  </ul>
+    <h4>Dinámica</h4>
+    <ul>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/planoinclinado/" target="_blank">Plano inclinado</a></li>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/planohorizontal/resuelto.html" target="_blank">Plano horizontal - Resuelto</a></li>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/planohorizontal/diagrama.html" target="_blank">Plano horizontal - Diagrama</a></li>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/cuerposenlazados/" target="_blank">Cuerpos enlazados</a></li>
+    </ul>
 
-  <h3>Física 2º</h3>
-  <h4>Campo eléctrico</h4>
-  <ul>
-    <li><a href="https://onio72.github.io/iesmajuelo/bach/fi2/t03/campo_electrico/" target="_blank">Calculadora de campo eléctrico creado por dos cargas</a></li>
-  </ul>
+    <h4>Colisiones</h4>
+    <ul>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choques.html" target="_blank">Choque inelástico</a></li>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque01.html" target="_blank">Choque elástico</a></li>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque02.html" target="_blank">Choque inelástico 2</a></li>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque03.html" target="_blank">Choque con coef. de restitución 1</a></li>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque04.html" target="_blank">Choque con coef. de restitución 2</a></li>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/colision01.html" target="_blank">No va</a></li>
+    </ul>
 
-  <h2>ESO</h2>
+    <h3>Física 2º</h3>
+    <h4>Campo eléctrico</h4>
+    <ul>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t03/campo_electrico/" target="_blank">Calculadora de campo eléctrico creado por dos cargas</a></li>
+    </ul>
+  </section>
 
-  <h3>FQ2</h3>
-  <h4>Formulación</h4>
-  <ul>
-    <li><a href="https://onio72.github.io/iesmajuelo/eso/fq2/formulasquimicas/" target="_blank">Fórmulas químicas</a></li>
-  </ul>
+  <section id="eso">
+    <h2>ESO</h2>
 
-  <h4>TCM</h4>
-  <ul>
-    <li><a href="https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_gas_v02.html" target="_blank">Simulador gases</a></li>
-    <li><a href="https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_materia_v12.html" target="_blank">Simulador materia</a></li>
-    <li><a href="https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_solido_v16_quiz.html" target="_blank">Simulador sólidos + Quiz</a></li>
-  </ul>
+    <h3>FQ2</h3>
+    <h4>Formulación</h4>
+    <ul>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/formulasquimicas/" target="_blank">Fórmulas químicas</a></li>
+    </ul>
 
-  <h4>Cinemática</h4>
-  <ul>
-    <li><a href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/dibujargrafica.html" target="_blank">Dibujar gráfica</a></li>
-    <li><a href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_sentidov.html" target="_blank">MRU sentido velocidad</a></li>
-    <li><a href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_comparav.html" target="_blank">Comparar velocidades MRU</a></li>
-    <li><a href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_comparav2.html" target="_blank">Comparar velocidades MRU 2</a></li>
-    <li><a href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_calculov.html" target="_blank">Cálculo de velocidad</a></li>
-  </ul>
+    <h4>TCM</h4>
+    <ul>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_gas_v02.html" target="_blank">Simulador gases</a></li>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_materia_v12.html" target="_blank">Simulador materia</a></li>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_solido_v16_quiz.html" target="_blank">Simulador sólidos + Quiz</a></li>
+    </ul>
 
-  <h3>FQ3</h3>
-  <ul>
-    <li><a href="https://onio72.github.io/iesmajuelo/eso/fq3/formulacion/tabla_valencias.html" target="_blank">Tabla de valencias</a></li>
-  </ul>
+    <h4>Cinemática</h4>
+    <ul>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/dibujargrafica.html" target="_blank">Dibujar gráfica</a></li>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_sentidov.html" target="_blank">MRU sentido velocidad</a></li>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_comparav.html" target="_blank">Comparar velocidades MRU</a></li>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_comparav2.html" target="_blank">Comparar velocidades MRU 2</a></li>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_calculov.html" target="_blank">Cálculo de velocidad</a></li>
+    </ul>
 
-  <h3>FQ4</h3>
-  <ul>
-    <li><a href="https://onio72.github.io/iesmajuelo/eso/fq4/mcu/index.html" target="_blank">MCU</a></li>
-  </ul>
+    <h3>FQ3</h3>
+    <ul>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq3/formulacion/tabla_valencias.html" target="_blank">Tabla de valencias</a></li>
+    </ul>
+
+    <h3>FQ4</h3>
+    <ul>
+      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq4/mcu/index.html" target="_blank">MCU</a></li>
+    </ul>
+  </section>
 
 </body>
 </html>
-
