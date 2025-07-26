@@ -720,66 +720,53 @@ el.addEventListener('input', () => {
             }
 
             updateChargeVisual(chargeId, x, y) {
-                const svgX = this.centerX + x * this.scale;
-                const svgY = this.centerY - y * this.scale;
-                
-                const chargesGroup = document.getElementById('charges');
-                const existingCharge = document.getElementById(`charge-${chargeId}`);
-                if (existingCharge) existingCharge.remove();
+    const svgX = this.centerX + x * this.scale;
+    const svgY = this.centerY - y * this.scale;
 
-                // Definir color y símbolo para masas (sin polaridad)
-                let color;
-                if (chargeId === 'q1') {
-                    // color verde para la primera masa
-                    color = '#16A34A';
-                } else {
-                    // color morado para la segunda masa
-                    color = '#7C3AED';
-                }
-                const symbol = 'M';
+    const chargesGroup = document.getElementById('charges');
+    const existingCharge = document.getElementById(`charge-${chargeId}`);
+    if (existingCharge) existingCharge.remove();
 
-                const chargeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                chargeGroup.id = `charge-${chargeId}`;
-                chargeGroup.style.cursor = 'grab';
+    // Definir color para masas (sin polaridad)
+    let color;
+    if (chargeId === 'q1') {
+        // color verde para la primera masa
+        color = '#16A34A';
+    } else {
+        // color morado para la segunda masa
+        color = '#7C3AED';
+    }
 
-                // Enhanced charge visualization with hover effects
-                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                circle.setAttribute('cx', svgX);
-                circle.setAttribute('cy', svgY);
-                circle.setAttribute('r', 12 / this.zoomLevel);
-                circle.setAttribute('fill', color);
-                circle.setAttribute('stroke', '#ffffff');
-                circle.setAttribute('stroke-width', '2');
-                circle.setAttribute('class', 'transition-all hover:r-14');
+    const chargeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    chargeGroup.id = `charge-${chargeId}`;
+    chargeGroup.style.cursor = 'grab';
 
-                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                text.setAttribute('x', svgX);
-                text.setAttribute('y', svgY);
-                text.setAttribute('text-anchor', 'middle');            // Centrado horizontal
-                text.setAttribute('dominant-baseline', 'middle');      // Centrado vertical moderno
-                text.setAttribute('alignment-baseline', 'middle');     // Compatibilidad adicional (opcional)
-                text.setAttribute('fill', '#FFFFFF');
-                text.setAttribute('font-size', 16 / this.zoomLevel);
-                text.setAttribute('font-weight', 'bold');
-                text.setAttribute('stroke', '#FFFFFF');
-                text.setAttribute('stroke-width', '0.4');
-                text.textContent = symbol;
+    // Circunferencia de la masa
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', svgX);
+    circle.setAttribute('cy', svgY);
+    circle.setAttribute('r', 12 / this.zoomLevel);
+    circle.setAttribute('fill', color);
+    circle.setAttribute('stroke', '#ffffff');
+    circle.setAttribute('stroke-width', '2');
+    circle.setAttribute('class', 'transition-all hover:r-14');
 
+    // Etiqueta M₁ o M₂ (encima del círculo)
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', svgX);
+    label.setAttribute('y', svgY - 18);
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('fill', color);
+    label.setAttribute('font-size', 12 / this.zoomLevel);
+    label.setAttribute('font-weight', 'bold');
+    label.textContent = chargeId === 'q1' ? 'M₁' : 'M₂';
 
-                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                label.setAttribute('x', svgX);
-                label.setAttribute('y', svgY - 18);
-                label.setAttribute('text-anchor', 'middle');
-                label.setAttribute('fill', color);
-                label.setAttribute('font-size', 12 / this.zoomLevel);
-                label.setAttribute('font-weight', 'bold');
-                label.textContent = chargeId === 'q1' ? 'M₁' : 'M₂';
+    // Añadir al grupo
+    chargeGroup.appendChild(circle);
+    chargeGroup.appendChild(label);
+    chargesGroup.appendChild(chargeGroup);
+}
 
-                chargeGroup.appendChild(circle);
-                chargeGroup.appendChild(text);
-                chargeGroup.appendChild(label);
-                chargesGroup.appendChild(chargeGroup);
-            }
 
             updateTestPointVisual(x, y) {
                 const svgX = this.centerX + x * this.scale;
