@@ -124,7 +124,43 @@
                                     <text x="585" y="195">X</text>
                                     <text x="305" y="15">Y</text>
                                 </g>
-                                <!-- Additional numeric labels omitted for brevity in this copy -->
+                                <!-- Numeric labels on the axes -->
+                                <g id="gridCoordinates" fill="#94a3b8" font-size="10">
+                                    <!-- Positive X-axis markers -->
+                                    <text x="330" y="195">1</text>
+                                    <text x="360" y="195">2</text>
+                                    <text x="390" y="195">3</text>
+                                    <text x="420" y="195">4</text>
+                                    <text x="450" y="195">5</text>
+                                    <text x="480" y="195">6</text>
+                                    <text x="510" y="195">7</text>
+                                    <text x="540" y="195">8</text>
+                                    <text x="570" y="195">9</text>
+                                    <!-- Negative X-axis markers -->
+                                    <text x="270" y="195">−1</text>
+                                    <text x="240" y="195">−2</text>
+                                    <text x="210" y="195">−3</text>
+                                    <text x="180" y="195">−4</text>
+                                    <text x="150" y="195">−5</text>
+                                    <text x="120" y="195">−6</text>
+                                    <text x="90"  y="195">−7</text>
+                                    <text x="60"  y="195">−8</text>
+                                    <text x="30"  y="195">−9</text>
+                                    <!-- Positive Y-axis markers -->
+                                    <text x="305" y="170">1</text>
+                                    <text x="305" y="140">2</text>
+                                    <text x="305" y="110">3</text>
+                                    <text x="305" y="80">4</text>
+                                    <text x="305" y="50">5</text>
+                                    <text x="305" y="20">6</text>
+                                    <!-- Negative Y-axis markers -->
+                                    <text x="305" y="230">−1</text>
+                                    <text x="305" y="260">−2</text>
+                                    <text x="305" y="290">−3</text>
+                                    <text x="305" y="320">−4</text>
+                                    <text x="305" y="350">−5</text>
+                                    <text x="305" y="380">−6</text>
+                                </g>
                                 <!-- Interactive elements -->
                                 <g id="charges"></g>
                                 <g id="vectors"></g>
@@ -612,6 +648,16 @@
         resetZoom() {
             this.zoomLevel = 1;
             this.updateZoom();
+            // Re-render charges and the test charge to restore appropriate sizes
+            if (this.charges.q1) {
+                this.updateChargeVisual('q1', this.charges.q1.x, this.charges.q1.y);
+            }
+            if (this.charges.q2) {
+                this.updateChargeVisual('q2', this.charges.q2.x, this.charges.q2.y);
+            }
+            if (this.testPoint) {
+                this.updateTestPointVisual(this.testPoint.x, this.testPoint.y);
+            }
         }
         getCoordinatesFromEvent(e) {
             const pt = this.svg.createSVGPoint();
@@ -663,15 +709,22 @@
             this.updateChargeVisual(chargeId, x, y);
         }
         placeTestPoint(x, y) {
+            // Save test charge position
             this.testPoint = { x, y };
-            // update display
-            document.getElementById('testPointPosition').textContent = `Posición de Q₃: (${x.toFixed(1)}, ${y.toFixed(1)})`;
+            // Update display with units (m) and specific label for Q₃
+            document.getElementById('testPointPosition').textContent = `Posición de Q₃: (${x.toFixed(1)}, ${y.toFixed(1)}) m`;
+            // Update coordinate inputs
             document.getElementById('testPointCoordX').value = x.toFixed(1);
             document.getElementById('testPointCoordY').value = y.toFixed(1);
+            // Redraw the test charge visual
             this.updateTestPointVisual(x, y);
         }
         updatePositionDisplay(chargeId, x, y) {
-            document.getElementById(`${chargeId}Position`).textContent = `Posición: (${x.toFixed(1)}, ${y.toFixed(1)})`;
+            // Display positions for Q1 and Q2 including units (m)
+            const labelEl = document.getElementById(`${chargeId}Position`);
+            if (labelEl) {
+                labelEl.textContent = `Posición: (${x.toFixed(1)}, ${y.toFixed(1)}) m`;
+            }
         }
         updateChargeVisual(chargeId, x, y) {
             const svgX = this.centerX + x * this.scale;
@@ -826,37 +879,39 @@
             }
         }
         updateCalculations() {
+            // Ensure all three charges are placed
             if (!this.charges.q1 || !this.charges.q2 || !this.testPoint) return;
             const q1 = this.getChargeValue('q1');
             const q2 = this.getChargeValue('q2');
             const q3 = this.getChargeValue('q3');
-            // Position vectors from test charge to source charges (Q₁ and Q₂)
+            // Separation vectors from source charges to the test charge (Q3): r = r_q3 − r_qi
             const r1 = {
-                x: this.charges.q1.x - this.testPoint.x,
-                y: this.charges.q1.y - this.testPoint.y
+                x: this.testPoint.x - this.charges.q1.x,
+                y: this.testPoint.y - this.charges.q1.y
             };
             const r2 = {
-                x: this.charges.q2.x - this.testPoint.x,
-                y: this.charges.q2.y - this.testPoint.y
+                x: this.testPoint.x - this.charges.q2.x,
+                y: this.testPoint.y - this.charges.q2.y
             };
-            const r1Mag = Math.sqrt(r1.x*r1.x + r1.y*r1.y);
-            const r2Mag = Math.sqrt(r2.x*r2.x + r2.y*r2.y);
-            // Unit vectors pointing from Q₃ towards Q₁ and Q₂
+            const r1Mag = Math.sqrt(r1.x * r1.x + r1.y * r1.y);
+            const r2Mag = Math.sqrt(r2.x * r2.x + r2.y * r2.y);
+            // Unit vectors along r1 and r2
             const u1 = { x: r1.x / r1Mag, y: r1.y / r1Mag };
             const u2 = { x: r2.x / r2Mag, y: r2.y / r2Mag };
-            // Compute electric force vectors on Q₃ due to Q₁ and Q₂
+            // Electric force vectors on Q₃ due to Q₁ and Q₂
+            // F = k * q_i * q3 / |r|^2 * direction from q_i to q3 (repulsive/attractive automatically handled by sign)
             const f1 = {
-                x: (this.k * q1 * q3 / (r1Mag * r1Mag)) * u1.x,
-                y: (this.k * q1 * q3 / (r1Mag * r1Mag)) * u1.y
+                x: (this.k * q1 * q3 / Math.pow(r1Mag, 2)) * u1.x,
+                y: (this.k * q1 * q3 / Math.pow(r1Mag, 2)) * u1.y
             };
             const f2 = {
-                x: (this.k * q2 * q3 / (r2Mag * r2Mag)) * u2.x,
-                y: (this.k * q2 * q3 / (r2Mag * r2Mag)) * u2.y
+                x: (this.k * q2 * q3 / Math.pow(r2Mag, 2)) * u2.x,
+                y: (this.k * q2 * q3 / Math.pow(r2Mag, 2)) * u2.y
             };
             const fTotal = { x: f1.x + f2.x, y: f1.y + f2.y };
-            const f1Mag = Math.sqrt(f1.x*f1.x + f1.y*f1.y);
-            const f2Mag = Math.sqrt(f2.x*f2.x + f2.y*f2.y);
-            const fTotalMag = Math.sqrt(fTotal.x*fTotal.x + fTotal.y*fTotal.y);
+            const f1Mag = Math.sqrt(f1.x * f1.x + f1.y * f1.y);
+            const f2Mag = Math.sqrt(f2.x * f2.x + f2.y * f2.y);
+            const fTotalMag = Math.sqrt(fTotal.x * fTotal.x + fTotal.y * fTotal.y);
             // Format numbers as scientific notation for KaTeX
             function formatLatexScientific(value, digits = 2) {
                 if (value === 0) return `${value.toFixed(digits)}`;
@@ -867,15 +922,17 @@
                 }
                 return `${mantissa}\\cdot 10^{${exponent}}`;
             }
-            // Render position and unit vectors
+            // Render position vectors and magnitudes
             renderTex('r1Vector', `\\vec{r}_1=( ${r1.x.toFixed(2)},\\; ${r1.y.toFixed(2)} )\\,\\mathrm{m}`);
             renderTex('r2Vector', `\\vec{r}_2=( ${r2.x.toFixed(2)},\\; ${r2.y.toFixed(2)} )\\,\\mathrm{m}`);
             renderTex('r1Magnitude', `|\\vec{r}_1|=${r1Mag.toFixed(2)}\\,\\mathrm{m}`);
             renderTex('r2Magnitude', `|\\vec{r}_2|=${r2Mag.toFixed(2)}\\,\\mathrm{m}`);
+            // Separator line between blocks
             document.getElementById('espacioEntreBloques').innerHTML = '<hr style="margin: 12px 0; border: none; border-top: 1px solid #ddd;">';
+            // Unit vectors
             renderTex('u1Vector', `\\hat{u}_1=( ${u1.x.toFixed(3)},\\; ${u1.y.toFixed(3)} )`);
             renderTex('u2Vector', `\\hat{u}_2=( ${u2.x.toFixed(3)},\\; ${u2.y.toFixed(3)} )`);
-            // Render forces
+            // Forces
             renderTex('f1Magnitude', `|\\vec{F}_1|=${formatLatexScientific(f1Mag)}\\,\\mathrm{N}`);
             renderTex('f2Magnitude', `|\\vec{F}_2|=${formatLatexScientific(f2Mag)}\\,\\mathrm{N}`);
             renderTex('f1Vector', `\\vec{F}_1=( ${formatLatexScientific(f1.x)},\\; ${formatLatexScientific(f1.y)} )\\,\\mathrm{N}`);
@@ -884,7 +941,7 @@
             renderTex('fTotalMagnitude', `|\\vec{F}_{\\mathrm{total}}|=${formatLatexScientific(fTotalMag)}\\,\\mathrm{N}`);
             const angleDeg = Math.atan2(fTotal.y, fTotal.x) * (180 / Math.PI);
             renderTex('fTotalAngle', `\\theta = ${angleDeg.toFixed(1)}^\\circ`);
-            // Draw scaled vectors
+            // Draw vectors scaled for display
             this.updateVectorVisuals(f1, f2, fTotal);
         }
         updateVectorVisuals(f1, f2, fTotal) {
