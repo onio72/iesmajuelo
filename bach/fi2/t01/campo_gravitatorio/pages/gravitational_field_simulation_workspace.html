@@ -826,17 +826,22 @@ el.addEventListener('input', () => {
                     y: this.charges.q2.y - this.testPoint.y
                 };
 
-                // Magnitudes
-                const r1Mag = Math.sqrt(r1.x * r1.x + r1.y * r1.y);
-                const r2Mag = Math.sqrt(r2.x * r2.x + r2.y * r2.y);
+                // Magnitudes (en mm)
+const r1Mag = Math.sqrt(r1.x * r1.x + r1.y * r1.y);
+const r2Mag = Math.sqrt(r2.x * r2.x + r2.y * r2.y);
 
-                // Vectores unitarios apuntando hacia las masas
-                const u1 = { x: r1.x / r1Mag, y: r1.y / r1Mag };
-                const u2 = { x: r2.x / r2Mag, y: r2.y / r2Mag };
+// Convertir a metros
+const r1Mag_m = r1Mag / 1000;
+const r2Mag_m = r2Mag / 1000;
 
-                // Magnitudes del campo gravitatorio
-                const g1Mag = this.G * m1 / (r1Mag * r1Mag);
-                const g2Mag = this.G * m2 / (r2Mag * r2Mag);
+// Vectores unitarios apuntando hacia las masas
+const u1 = { x: r1.x / r1Mag, y: r1.y / r1Mag };
+const u2 = { x: r2.x / r2Mag, y: r2.y / r2Mag };
+
+// Magnitudes del campo gravitatorio
+const g1Mag = this.G * m1 / (r1Mag_m * r1Mag_m);
+const g2Mag = this.G * m2 / (r2Mag_m * r2Mag_m);
+
 
                 // Vectores del campo gravitatorio (siempre apuntan hacia las masas)
                 const g1 = {
