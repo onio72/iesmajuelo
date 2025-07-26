@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<!-- This file is based on electric_field_simulation_workspace.html but modified to display electric forces instead of fields.
+     It introduces a third charge Q₃ (test charge) with its own value, units and polarity. The simulation now shows the
+     forces exerted by Q₁ and Q₂ on Q₃ and the resulting total force. -->
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de Fuerzas Eléctricas – Espacio de Simulación</title>
+
+  <!-- Estilos y scripts principales -->
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="icon" href="../public/favicon.ico" />
+  <link rel="manifest" href="../public/manifest.json" />
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    rel="stylesheet"
+  />
+  <script
+    type="module"
+    src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Felectricf1586back.builtwithrocket.new&_be=https%3A%2F%2Fapplication.rocket.new&_v=0.1.6"
+  ></script>
+
+  <!-- KaTeX: renderizado de fórmulas -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+  />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+</head>
+
+<body class="bg-background min-h-screen">
+    <!-- Header -->
+    <header class="bg-surface shadow-subtle border-b border-secondary-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                            <i class="fas fa-bolt text-white text-sm"></i>
+                        </div>
+                        <h1 class="text-xl font-semibold text-text-primary">Calculadora de Fuerzas Eléctricas</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="flex items-center space-x-2 px-3 py-2 text-sm text-secondary-600 hover:text-primary transition-colors">
+                        <i class="fas fa-globe text-sm"></i>
+                        <span>ES</span>
+                    </button>
+                    <button class="p-2 text-secondary-600 hover:text-primary transition-colors" title="Ayuda">
+                        <i class="fas fa-question-circle text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Interactive Grid Section (100% width at top) -->
+        <div class="w-full mb-6">
+            <div class="card">
+                <div class="h-full flex flex-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold text-text-primary">Cuadrícula Interactiva</h2>
+                        <div class="flex items-center space-x-4 text-sm text-secondary-600">
+                            <span>Arrastra cargas para moverlas | Rueda del ratón para zoom</span>
+                            <button id="resetZoom" class="btn-secondary text-xs">
+                                <i class="fas fa-search-minus mr-1"></i>
+                                Reset Zoom
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Enhanced Grid Container with Zoom Controls -->
+                    <div class="relative bg-secondary-50 rounded-lg border-2 border-secondary-200 overflow-hidden" style="height: 500px;">
+                        <div id="zoomInfo" class="absolute top-4 right-4 bg-surface px-3 py-2 rounded-lg shadow-subtle border border-secondary-200 text-sm font-mono z-10">
+                            Zoom: <span id="zoomLevel">100%</span>
+                        </div>
+                        <svg id="electricFieldGrid" class="w-full h-full cursor-crosshair"
+                             viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+                            <!-- Enhanced Grid with Dynamic Patterns -->
+                            <defs>
+                                <!-- Fine and coarse grids with offsets -->
+<pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse"
+         patternTransform="translate(0,20)">
+    <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#CBD5E1" stroke-width="1"/>
+</pattern>
+
+<pattern id="gridFine" width="6" height="6" patternUnits="userSpaceOnUse"
+         patternTransform="translate(0,2)">
+    <path d="M 6 0 L 0 0 0 6" fill="none" stroke="#E5E7EB" stroke-width="0.5"/>
+</pattern>
+<marker id="arrowhead-orange"
+        viewBox="0 0 10 10"
+        refX="9" refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto"
+        markerUnits="userSpaceOnUse">
+  <path d="M 0 0 L 10 5 L 0 10 z" fill="#F97316" />
+</marker>
+<marker id="arrowhead-green"
+        viewBox="0 0 10 10"
+        refX="9" refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto"
+        markerUnits="userSpaceOnUse">
+  <path d="M 0 0 L 10 5 L 0 10 z" fill="#16A34A" />
+</marker>
+                            </defs>
+                            <g id="zoomGroup">
+                                <!-- Draw grid rectangles for coarse and fine patterns -->
+                                <rect width="100%" height="100%" fill="url(#grid)" />
+                                <rect width="100%" height="100%" fill="url(#gridFine)" opacity="0" />
+
+                                <!-- Axes -->
+                                <g stroke="#1e293b" stroke-width="1">
+                                    <line x1="0" y1="200" x2="600" y2="200" /> <!-- X-axis -->
+                                    <line x1="300" y1="0" x2="300" y2="400" /> <!-- Y-axis -->
+                                </g>
+                                <!-- Axis labels -->
+                                <g fill="#1e293b" font-size="12" font-weight="bold">
+                                    <text x="585" y="195">X</text>
+                                    <text x="305" y="15">Y</text>
+                                </g>
+                                <!-- Numeric labels on the axes -->
+                                <g id="gridCoordinates" fill="#94a3b8" font-size="10">
+                                    <!-- Positive X-axis markers -->
+                                    <text x="330" y="195">1</text>
+                                    <text x="360" y="195">2</text>
+                                    <text x="390" y="195">3</text>
+                                    <text x="420" y="195">4</text>
+                                    <text x="450" y="195">5</text>
+                                    <text x="480" y="195">6</text>
+                                    <text x="510" y="195">7</text>
+                                    <text x="540" y="195">8</text>
+                                    <text x="570" y="195">9</text>
+                                    <!-- Negative X-axis markers -->
+                                    <text x="270" y="195">−1</text>
+                                    <text x="240" y="195">−2</text>
+                                    <text x="210" y="195">−3</text>
+                                    <text x="180" y="195">−4</text>
+                                    <text x="150" y="195">−5</text>
+                                    <text x="120" y="195">−6</text>
+                                    <text x="90"  y="195">−7</text>
+                                    <text x="60"  y="195">−8</text>
+                                    <text x="30"  y="195">−9</text>
+                                    <!-- Positive Y-axis markers -->
+                                    <text x="305" y="170">1</text>
+                                    <text x="305" y="140">2</text>
+                                    <text x="305" y="110">3</text>
+                                    <text x="305" y="80">4</text>
+                                    <text x="305" y="50">5</text>
+                                    <text x="305" y="20">6</text>
+                                    <!-- Negative Y-axis markers -->
+                                    <text x="305" y="230">−1</text>
+                                    <text x="305" y="260">−2</text>
+                                    <text x="305" y="290">−3</text>
+                                    <text x="305" y="320">−4</text>
+                                    <text x="305" y="350">−5</text>
+                                    <text x="305" y="380">−6</text>
+                                </g>
+                                <!-- Interactive elements -->
+                                <g id="charges"></g>
+                                <g id="vectors"></g>
+                                <g id="testPoint"></g>
+                            </g>
+                        </svg>
+                        <!-- Enhanced Coordinate Display -->
+                        <div id="coordinateDisplay" class="absolute top-4 left-4 bg-surface px-3 py-2 rounded-lg shadow-subtle border border-secondary-200 text-sm font-mono opacity-0 transition-opacity">
+                            <span id="currentCoords">X: 0, Y: 0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Section (33.33% each, below grid) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- Charge Q₁ Controls with Coordinate Editing -->
+            <div class="card">
+                <h3 class="text-md font-semibold text-text-primary mb-3 flex items-center">
+                    <div class="w-3 h-3 bg-success rounded-full mr-2"></div>
+                    Carga Q₁
+                </h3>
+                <div class="space-y-3">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Valor</label>
+                             <input type="number" id="q1Value" class="input-field text-sm" placeholder="5.0" value="5.0" step="0.1" min="0.1" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Unidades</label>
+                            <select id="q1Units" class="input-field text-sm">
+                                <option value="nC">nC</option>
+                                <option value="μC">μC</option>
+                                <option value="C">C</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-text-secondary mb-1">Polaridad</label>
+                        <select id="q1Polarity" class="input-field text-sm">
+                            <option value="positive" selected>Positiva (+)</option>
+                            <option value="negative">Negativa (-)</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Coordenadas</label>
+                            <input type="number" id="q1CoordX" class="coordinate-input" placeholder="x" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1 invisible">.</label>
+                            <input type="number" id="q1CoordY" class="coordinate-input" placeholder="y" />
+                        </div>
+                    </div>
+                    <button id="updateQ1Position" class="btn-secondary w-full text-xs">
+                        <i class="fas fa-map-marker-alt mr-1"></i>
+                        Actualizar Posición
+                    </button>
+                    <div class="text-base tex text-secondary-600">
+                        <span id="q1Position">Posición: No colocada</span>
+                    </div>
+                    <div class="text-base text-secondary-600 mt-1">
+                        <span id="q1DisplayValue">Carga: No definida</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charge Q₂ Controls with Coordinate Editing -->
+            <div class="card">
+                <h3 class="text-md font-semibold text-text-primary mb-3 flex items-center">
+                    <div class="w-3 h-3 bg-accent rounded-full mr-2"></div>
+                    Carga Q₂
+                </h3>
+                <div class="space-y-3">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Valor</label>
+                            <input type="number" id="q2Value" class="input-field text-sm" placeholder="3.0" value="3.0" step="0.1" min="0.1" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Unidades</label>
+                            <select id="q2Units" class="input-field text-sm">
+                                <option value="nC">nC</option>
+                                <option value="μC">μC</option>
+                                <option value="C">C</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-text-secondary mb-1">Polaridad</label>
+                        <select id="q2Polarity" class="input-field text-sm">
+                            <option value="positive">Positiva (+)</option>
+                            <option value="negative" selected>Negativa (-)</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Coordenadas</label>
+                            <input type="number" id="q2CoordX" class="coordinate-input" placeholder="x" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1 invisible">.</label>
+                            <input type="number" id="q2CoordY" class="coordinate-input" placeholder="y" />
+                        </div>
+                    </div>
+                    <button id="updateQ2Position" class="btn-secondary w-full text-xs">
+                        <i class="fas fa-map-marker-alt mr-1"></i>
+                        Actualizar Posición
+                    </button>
+                    <div class="text-base tex text-secondary-600">
+                        <span id="q2Position">Posición: No colocada</span>
+                    </div>
+                    <div class="text-base text-secondary-600 mt-1">
+                        <span id="q2DisplayValue">Carga: No definida</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Charge Q₃ Controls -->
+            <div class="card">
+                <h3 class="text-md font-semibold text-text-primary mb-3 flex items-center">
+                    <div class="w-3 h-3 bg-primary rounded-full mr-2"></div>
+                    Carga Q₃
+                </h3>
+                <div class="space-y-3">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Valor</label>
+                            <input type="number" id="q3Value" class="input-field text-sm" placeholder="1.0" value="1.0" step="0.1" min="0.1" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Unidades</label>
+                            <select id="q3Units" class="input-field text-sm">
+                                <option value="nC">nC</option>
+                                <option value="μC">μC</option>
+                                <option value="C">C</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-text-secondary mb-1">Polaridad</label>
+                        <select id="q3Polarity" class="input-field text-sm">
+                            <option value="positive" selected>Positiva (+)</option>
+                            <option value="negative">Negativa (-)</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Coordenadas</label>
+                            <input type="number" id="testPointCoordX" class="coordinate-input" placeholder="x" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1 invisible">.</label>
+                            <input type="number" id="testPointCoordY" class="coordinate-input" placeholder="y" />
+                        </div>
+                    </div>
+                    <button id="updateTestPointPosition" class="btn-secondary w-full text-xs">
+                        <i class="fas fa-crosshairs mr-1"></i>
+                        Actualizar Q₃
+                    </button>
+
+                    <div class="text-base tex text-secondary-600">
+                        <span id="testPointPosition">Posición de Q₃: No seleccionada</span>
+                    </div>
+                    <div class="text-base text-secondary-600 mt-1">
+                        <span id="q3DisplayValue">Carga: No definida</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="clearAll" class="flex-1 btn-secondary text-xs">
+                            <i class="fas fa-trash-alt mr-1"></i>
+                            Limpiar
+                        </button>
+                        <button id="autoPlace" class="flex-1 btn-secondary text-xs">
+                            <i class="fas fa-magic mr-1"></i>
+                            Auto
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calculations Panel (Full Width, Below controls) -->
+        <div class="w-full">
+            <div class="card">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-text-primary">Cálculos Matemáticos</h2>
+                    <div class="flex items-center space-x-2">
+                        <button id="toggleCalculations" class="btn-secondary text-sm">
+                            <i class="fas fa-chevron-up"></i>
+                            <span class="hidden sm:inline ml-2">Contraer</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="calculationsContent" class="overflow-y-auto">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Combined column: position + unit vectors -->
+                        <div class="bg-secondary-50 rounded-lg p-4 space-y-6">
+                            <!-- Position vectors -->
+                            <div>
+                                <h3 class="text-sm font-semibold text-text-primary mb-3 flex items-center">
+                                    <i class="fas fa-vector-square text-blue-600 mr-2"></i>
+                                    Vectores de Posición
+                                </h3>
+                                <div class="space-y-2 text-sm font-mono">
+                                    <div><span id="r1Vector">No calculado</span></div>
+                                    <div><span id="r2Vector">No calculado</span></div>
+                                    <div class="pt-2 border-t border-secondary-200"><span id="r1Magnitude">No calculado</span></div>
+                                    <div><span id="r2Magnitude">No calculado</span></div>
+                                </div>
+                            </div>
+                            <div id="espacioEntreBloques"></div>
+                            <!-- Unit vectors -->
+                            <div>
+                                <h3 class="text-sm font-semibold text-text-primary mb-3 flex items-center">
+                                    <i class="fas fa-compass text-green-600 mr-2"></i>
+                                    Vectores Unitarios
+                                </h3>
+                                <div class="space-y-2 text-sm font-mono">
+                                    <div><span id="u1Vector">No calculado</span></div>
+                                    <div><span id="u2Vector">No calculado</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Electric Forces -->
+                        <div class="bg-secondary-50 rounded-lg p-4">
+                            <h3 class="text-sm font-semibold text-text-primary mb-3 flex items-center">
+                                <i class="fas fa-bolt text-warning mr-2"></i>
+                                Fuerzas Eléctricas
+                            </h3>
+                            <div class="space-y-2 text-sm font-mono">
+                                <div><span id="f1Magnitude">No calculado</span></div>
+                                <div><span id="f2Magnitude">No calculado</span></div>
+                                <div class="pt-2 border-t border-secondary-200"><span id="f1Vector">No calculado</span></div>
+                                <div><span id="f2Vector">No calculado</span></div>
+                            </div>
+                        </div>
+                        <!-- Total Force -->
+                        <div class="bg-secondary-50 rounded-lg p-4">
+                            <h3 class="text-sm font-semibold text-text-primary mb-3 flex items-center">
+                                <i class="fas fa-plus text-primary mr-2"></i>
+                                Fuerza Total
+                            </h3>
+                            <div class="space-y-2 text-sm font-mono">
+                                <div><span id="fTotalVector">No calculado</span></div>
+                                <div><span id="fTotalMagnitude">No calculado</span></div>
+                                <div><span id="fTotalAngle">No calculado</span></div>
+                            </div>
+                            <div class="mt-3 space-y-1 text-xs text-secondary-600">
+                                <div class="flex items-center text-orange-500">
+                                    <div class="w-3 h-1 bg-orange-500 mr-2"></div>
+                                    <span>F₁ y F₂ (Naranja)</span>
+                                </div>
+                                <div class="flex items-center text-green-600">
+                                    <div class="w-3 h-1 bg-green-600 mr-2"></div>
+                                    <span>F<sub>total</sub> (Verde)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Instructions Modal (kept the same) -->
+    <div id="instructionsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-surface rounded-xl shadow-medium max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-semibold text-text-primary">Instrucciones de Uso</h2>
+                    <button id="closeInstructions" class="text-secondary-600 hover:text-text-primary">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="space-y-4 text-sm text-text-secondary">
+                    <div>
+                        <h3 class="font-semibold text-text-primary mb-2">1. Colocar y Editar Cargas</h3>
+                        <p>Haz clic en la cuadrícula para colocar cargas o usa los campos de coordenadas para posicionarlas exactamente. Arrastra las cargas para moverlas interactivamente.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-text-primary mb-2">2. Navegación y Zoom</h3>
+                        <p>Usa la rueda del ratón para hacer zoom. Los ejes están centrados con numeración completa hasta los bordes visibles.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-text-primary mb-2">3. Cálculo de Fuerzas</h3>
+                        <p>Coloca la carga testigo haciendo clic o editando sus coordenadas. Los resultados aparecen en el panel separado de cálculos.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-text-primary mb-2">4. Interfaz Mejorada</h3>
+                        <p>El panel de cuadrícula y el de cálculos están separados para evitar solapamientos y mejorar la visualización.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Helper para renderizar con KaTeX en cada actualización
+    function renderTex(targetId, tex) {
+        const element = document.getElementById(targetId);
+        if (!element) return;
+        try {
+            katex.render(tex, element, { throwOnError: false });
+        } catch (err) {
+            element.textContent = tex;
+        }
+    }
+
+    class ElectricForceCalculator {
+        constructor() {
+            this.svg = document.getElementById('electricFieldGrid');
+            this.zoomGroup = this.svg.querySelector('#zoomGroup');
+            this.charges = { q1: null, q2: null };
+            this.testPoint = null; // used for Q₃
+            this.k = 8.99e9; // Coulomb's constant (N·m²/C²)
+            this.scale = 30; // pixels per unit distance
+            this.centerX = 300;
+            this.centerY = 200;
+            this.currentStep = 'q1'; // q1, q2, testPoint
+            // Zoom and drag properties
+            this.zoomLevel = 1;
+            this.zoomMin = 0.5;
+            this.zoomMax = 3;
+            this.isDragging = false;
+            this.dragTarget = null;
+            this.dragOffset = { x: 0, y: 0 };
+            // Initialize events
+            this.initializeEventListeners();
+            this.showInstructions();
+            this.updateZoom();
+            updateQ1Display();
+            updateQ2Display();
+            updateQ3Display();
+        }
+
+        initializeEventListeners() {
+            // Grid interactions
+            this.svg.addEventListener('click', (e) => this.handleGridClick(e));
+            this.svg.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+            this.svg.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+            this.svg.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+            this.svg.addEventListener('mouseleave', (e) => this.handleMouseLeave(e));
+            // Enforce non-negative value inputs for magnitudes
+            ['q1Value','q2Value','q3Value'].forEach(id => {
+                const el = document.getElementById(id);
+                el.addEventListener('input', () => {
+                    if (el.value < 0) el.value = Math.abs(el.value);
+                });
+            });
+            // Zoom
+            this.svg.addEventListener('wheel', (e) => this.handleZoom(e));
+            // Coordinate display
+            this.svg.addEventListener('mousemove', (e) => this.updateCoordinateDisplay(e));
+            // Listeners for charges q1 and q2 value/unit to recalculate
+            ['q1Value','q1Units','q1Polarity'].forEach(id => {
+                document.getElementById(id).addEventListener('change', () => {
+                    if (this.charges.q1) this.updateChargeVisual('q1', this.charges.q1.x, this.charges.q1.y);
+                    this.updateCalculations();
+                });
+            });
+            ['q2Value','q2Units','q2Polarity'].forEach(id => {
+                document.getElementById(id).addEventListener('change', () => {
+                    if (this.charges.q2) this.updateChargeVisual('q2', this.charges.q2.x, this.charges.q2.y);
+                    this.updateCalculations();
+                });
+            });
+            // Listener for test charge (q3) value, units and polarity
+            ['q3Value','q3Units','q3Polarity'].forEach(id => {
+                const el = document.getElementById(id);
+                el.addEventListener('change', () => {
+                    // Update display and visual
+                    updateQ3Display();
+                    if (this.testPoint) this.updateTestPointVisual(this.testPoint.x, this.testPoint.y);
+                    this.updateCalculations();
+                });
+            });
+            // Coordinate update buttons
+            document.getElementById('updateQ1Position').addEventListener('click', () => this.updateChargeFromCoords('q1'));
+            document.getElementById('updateQ2Position').addEventListener('click', () => this.updateChargeFromCoords('q2'));
+            document.getElementById('updateTestPointPosition').addEventListener('click', () => this.updateTestPointFromCoords());
+            // Clear and auto buttons
+            document.getElementById('clearAll').addEventListener('click', () => this.clearAll());
+            document.getElementById('autoPlace').addEventListener('click', () => this.autoPlaceCharges());
+            document.getElementById('resetZoom').addEventListener('click', () => this.resetZoom());
+            // Instructions modal
+            document.querySelector('[title="Ayuda"]').addEventListener('click', () => this.showInstructions());
+            document.getElementById('closeInstructions').addEventListener('click', () => this.hideInstructions());
+            // Toggle calculations display
+            document.getElementById('toggleCalculations').addEventListener('click', () => this.toggleCalculations());
+        }
+
+        // Coordinate display on hover
+        updateCoordinateDisplay(e) {
+            const coords = this.getCoordinatesFromEvent(e);
+            document.getElementById('currentCoords').textContent = `X: ${coords.x.toFixed(1)}, Y: ${coords.y.toFixed(1)}`;
+            document.getElementById('coordinateDisplay').style.opacity = '1';
+        }
+
+        // Handle click on grid to place charges sequentially
+        handleGridClick(e) {
+            if (this.isDragging) return;
+            const coords = this.getCoordinatesFromEvent(e);
+            if (this.currentStep === 'q1' && !this.charges.q1) {
+                this.placeCharge('q1', coords.x, coords.y);
+                this.currentStep = 'q2';
+            } else if (this.currentStep === 'q2' && !this.charges.q2) {
+                this.placeCharge('q2', coords.x, coords.y);
+                this.currentStep = 'testPoint';
+            } else if (this.currentStep === 'testPoint' && this.charges.q1 && this.charges.q2) {
+                this.placeTestPoint(coords.x, coords.y);
+                this.updateCalculations();
+            }
+        }
+
+        handleMouseDown(e) {
+            const target = e.target.closest('[id^="charge-"]');
+            if (target) {
+                this.isDragging = true;
+                this.dragTarget = target.id.split('-')[1];
+                const coords = this.getCoordinatesFromEvent(e);
+                const charge = this.charges[this.dragTarget];
+                this.dragOffset.x = coords.x - charge.x;
+                this.dragOffset.y = coords.y - charge.y;
+                this.svg.style.cursor = 'grabbing';
+                e.preventDefault();
+            }
+        }
+        handleMouseMove(e) {
+            if (this.isDragging && this.dragTarget) {
+                const coords = this.getCoordinatesFromEvent(e);
+                const newX = coords.x - this.dragOffset.x;
+                const newY = coords.y - this.dragOffset.y;
+                // Update charge position
+                this.charges[this.dragTarget] = { x: newX, y: newY };
+                this.updateChargeVisual(this.dragTarget, newX, newY);
+                this.updatePositionDisplay(this.dragTarget, newX, newY);
+                this.updateCoordinateInputs(this.dragTarget, newX, newY);
+                if (this.testPoint) {
+                    this.updateCalculations();
+                }
+            } else {
+                const target = e.target.closest('[id^="charge-"]');
+                this.svg.style.cursor = target ? 'grab' : 'crosshair';
+            }
+            this.updateCoordinateDisplay(e);
+        }
+        handleMouseUp(e) {
+            if (this.isDragging) {
+                this.isDragging = false;
+                this.dragTarget = null;
+                this.svg.style.cursor = 'crosshair';
+            }
+        }
+        handleMouseLeave(e) {
+            this.handleMouseUp(e);
+            document.getElementById('coordinateDisplay').style.opacity = '0';
+        }
+        handleZoom(e) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            const newZoom = Math.max(this.zoomMin, Math.min(this.zoomMax, this.zoomLevel + delta));
+            if (newZoom !== this.zoomLevel) {
+                this.zoomLevel = newZoom;
+                this.updateZoom();
+            }
+        }
+        updateZoom() {
+            const bbox = this.svg.viewBox.baseVal;
+            const cx = bbox.width / 2;
+            const cy = bbox.height / 2;
+            const z = this.zoomLevel;
+            const translateX = cx * (1 - z);
+            const translateY = cy * (1 - z);
+            this.zoomGroup.setAttribute('transform', `translate(${translateX}, ${translateY}) scale(${z})`);
+            document.getElementById('zoomLevel').textContent = `${Math.round(z * 100)}%`;
+            const fineGrid = this.svg.querySelector('rect[fill="url(#gridFine)"]');
+            if (fineGrid) fineGrid.setAttribute('opacity', z > 1.5 ? '1' : '0');
+        }
+        resetZoom() {
+            this.zoomLevel = 1;
+            this.updateZoom();
+            // Re-render charges and the test charge to restore appropriate sizes
+            if (this.charges.q1) {
+                this.updateChargeVisual('q1', this.charges.q1.x, this.charges.q1.y);
+            }
+            if (this.charges.q2) {
+                this.updateChargeVisual('q2', this.charges.q2.x, this.charges.q2.y);
+            }
+            if (this.testPoint) {
+                this.updateTestPointVisual(this.testPoint.x, this.testPoint.y);
+            }
+        }
+        getCoordinatesFromEvent(e) {
+            const pt = this.svg.createSVGPoint();
+            pt.x = e.clientX;
+            pt.y = e.clientY;
+            const local = pt.matrixTransform(this.zoomGroup.getScreenCTM().inverse());
+            const x = (local.x - this.centerX) / this.scale;
+            const y = -(local.y - this.centerY) / this.scale;
+            return { x, y };
+        }
+        updateChargeFromCoords(chargeId) {
+            const xInput = document.getElementById(`${chargeId}CoordX`);
+            const yInput = document.getElementById(`${chargeId}CoordY`);
+            const x = parseFloat(xInput.value);
+            const y = parseFloat(yInput.value);
+            if (!isNaN(x) && !isNaN(y)) {
+                this.placeCharge(chargeId, x, y);
+                if (this.testPoint) {
+                    this.updateCalculations();
+                }
+            }
+        }
+        updateTestPointFromCoords() {
+            const xInput = document.getElementById('testPointCoordX');
+            const yInput = document.getElementById('testPointCoordY');
+            const x = parseFloat(xInput.value);
+            const y = parseFloat(yInput.value);
+            if (!isNaN(x) && !isNaN(y)) {
+                this.placeTestPoint(x, y);
+                this.updateCalculations();
+            }
+        }
+        updateCoordinateInputs(chargeId, x, y) {
+            document.getElementById(`${chargeId}CoordX`).value = x.toFixed(1);
+            document.getElementById(`${chargeId}CoordY`).value = y.toFixed(1);
+        }
+        autoPlaceCharges() {
+            // Place charges symmetrically and Q₃ at origin
+            this.placeCharge('q1', -2, 1);
+            this.placeCharge('q2', 2, -1);
+            this.placeTestPoint(0, 0);
+            this.currentStep = 'testPoint';
+            this.updateCalculations();
+        }
+        placeCharge(chargeId, x, y) {
+            this.charges[chargeId] = { x, y };
+            this.updatePositionDisplay(chargeId, x, y);
+            this.updateCoordinateInputs(chargeId, x, y);
+            this.updateChargeVisual(chargeId, x, y);
+        }
+        placeTestPoint(x, y) {
+            // Save test charge position
+            this.testPoint = { x, y };
+            // Update display with units (m) and specific label for Q₃
+            document.getElementById('testPointPosition').textContent = `Posición de Q₃: (${x.toFixed(1)}, ${y.toFixed(1)}) m`;
+            // Update coordinate inputs
+            document.getElementById('testPointCoordX').value = x.toFixed(1);
+            document.getElementById('testPointCoordY').value = y.toFixed(1);
+            // Redraw the test charge visual
+            this.updateTestPointVisual(x, y);
+        }
+        updatePositionDisplay(chargeId, x, y) {
+            // Display positions for Q1 and Q2 including units (m)
+            const labelEl = document.getElementById(`${chargeId}Position`);
+            if (labelEl) {
+                labelEl.textContent = `Posición: (${x.toFixed(1)}, ${y.toFixed(1)}) m`;
+            }
+        }
+        updateChargeVisual(chargeId, x, y) {
+            const svgX = this.centerX + x * this.scale;
+            const svgY = this.centerY - y * this.scale;
+            const chargesGroup = document.getElementById('charges');
+            const existingCharge = document.getElementById(`charge-${chargeId}`);
+            if (existingCharge) existingCharge.remove();
+            // Determine color and symbol
+            const polarity = document.getElementById(`${chargeId}Polarity`).value;
+            const color = polarity === 'positive' ? '#DC2626' : '#2563EB';
+            const symbol = polarity === 'positive' ? '+' : '-';
+            const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            group.id = `charge-${chargeId}`;
+            group.style.cursor = 'grab';
+            // Circle
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', svgX);
+            circle.setAttribute('cy', svgY);
+            circle.setAttribute('r', 12 / this.zoomLevel);
+            circle.setAttribute('fill', color);
+            circle.setAttribute('stroke', '#ffffff');
+            circle.setAttribute('stroke-width', '2');
+            circle.setAttribute('class', 'transition-all hover:r-14');
+            // Symbol text
+            const sym = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            sym.setAttribute('x', svgX);
+            sym.setAttribute('y', svgY);
+            sym.setAttribute('text-anchor', 'middle');
+            sym.setAttribute('dominant-baseline', 'middle');
+            sym.setAttribute('alignment-baseline', 'middle');
+            sym.setAttribute('fill', '#FFFFFF');
+            sym.setAttribute('font-size', 16 / this.zoomLevel);
+            sym.setAttribute('font-weight', 'bold');
+            sym.setAttribute('stroke', '#FFFFFF');
+            sym.setAttribute('stroke-width', '0.4');
+            sym.textContent = symbol;
+            // Label (Q₁ or Q₂)
+            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            label.setAttribute('x', svgX);
+            label.setAttribute('y', svgY - 18);
+            label.setAttribute('text-anchor', 'middle');
+            label.setAttribute('fill', color);
+            label.setAttribute('font-size', 12 / this.zoomLevel);
+            label.setAttribute('font-weight', 'bold');
+            label.textContent = chargeId === 'q1' ? 'Q₁' : 'Q₂';
+            group.appendChild(circle);
+            group.appendChild(sym);
+            group.appendChild(label);
+            chargesGroup.appendChild(group);
+        }
+        updateTestPointVisual(x, y) {
+            const svgX = this.centerX + x * this.scale;
+            const svgY = this.centerY - y * this.scale;
+            const testGroup = document.getElementById('testPoint');
+            testGroup.innerHTML = '';
+            // Determine color and symbol from q3Polarity
+            const polarity = document.getElementById('q3Polarity').value;
+            const color = polarity === 'positive' ? '#DC2626' : '#2563EB';
+            const symbol = polarity === 'positive' ? '+' : '-';
+            // Circle (smaller)
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', svgX);
+            circle.setAttribute('cy', svgY);
+            circle.setAttribute('r', 8 / this.zoomLevel);
+            circle.setAttribute('fill', color);
+            circle.setAttribute('stroke', '#ffffff');
+            circle.setAttribute('stroke-width', '2');
+            // Symbol inside circle
+            const sym = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            sym.setAttribute('x', svgX);
+            sym.setAttribute('y', svgY);
+            sym.setAttribute('text-anchor', 'middle');
+            sym.setAttribute('dominant-baseline', 'middle');
+            sym.setAttribute('alignment-baseline', 'middle');
+            sym.setAttribute('fill', '#FFFFFF');
+            sym.setAttribute('font-size', 12 / this.zoomLevel);
+            sym.setAttribute('font-weight', 'bold');
+            sym.textContent = symbol;
+            // Label above circle
+            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            label.setAttribute('x', svgX);
+            label.setAttribute('y', svgY - 15);
+            label.setAttribute('text-anchor', 'middle');
+            label.setAttribute('fill', color);
+            label.setAttribute('font-size', 10 / this.zoomLevel);
+            label.setAttribute('font-weight', 'bold');
+            label.textContent = 'Q₃';
+            testGroup.appendChild(circle);
+            testGroup.appendChild(sym);
+            testGroup.appendChild(label);
+        }
+        getChargeValue(chargeId) {
+            const raw = parseFloat(document.getElementById(`${chargeId}Value`).value);
+            const valueAbs = isNaN(raw) ? 0 : Math.abs(raw);
+            const pol  = document.getElementById(`${chargeId}Polarity`).value;
+            const unit = document.getElementById(`${chargeId}Units`).value;
+            const mult = unit === 'nC' ? 1e-9 : unit === 'μC' ? 1e-6 : 1;
+            return valueAbs * mult * (pol === 'negative' ? -1 : 1);
+        }
+        clearAll() {
+            this.charges = { q1: null, q2: null };
+            this.testPoint = null;
+            this.currentStep = 'q1';
+            document.getElementById('charges').innerHTML = '';
+            document.getElementById('vectors').innerHTML = '';
+            document.getElementById('testPoint').innerHTML = '';
+            // Clear coordinate inputs
+            ['q1CoordX','q1CoordY','q2CoordX','q2CoordY','testPointCoordX','testPointCoordY'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            document.getElementById('q1Position').textContent = 'Posición: No colocada';
+            document.getElementById('q2Position').textContent = 'Posición: No colocada';
+            document.getElementById('testPointPosition').textContent = 'Posición de Q₃: No seleccionada';
+            // Reset calculation outputs
+            [
+                'r1Vector','r2Vector','r1Magnitude','r2Magnitude',
+                'u1Vector','u2Vector',
+                'f1Magnitude','f2Magnitude','f1Vector','f2Vector',
+                'fTotalVector','fTotalMagnitude','fTotalAngle'
+            ].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = 'No calculado';
+            });
+        }
+        autoPlaceCharges() {
+            // Already defined above; intentionally duplicate for clarity
+            this.placeCharge('q1', -2, 1);
+            this.placeCharge('q2', 2, -1);
+            this.placeTestPoint(0, 0);
+            this.currentStep = 'testPoint';
+            this.updateCalculations();
+        }
+        showInstructions() {
+            document.getElementById('instructionsModal').classList.remove('hidden');
+        }
+        hideInstructions() {
+            document.getElementById('instructionsModal').classList.add('hidden');
+        }
+        toggleCalculations() {
+            const content = document.getElementById('calculationsContent');
+            const button = document.getElementById('toggleCalculations');
+            const icon = button.querySelector('i');
+            const text = button.querySelector('span');
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.className = 'fas fa-chevron-up';
+                if (text) text.textContent = 'Contraer';
+            } else {
+                content.style.display = 'none';
+                icon.className = 'fas fa-chevron-down';
+                if (text) text.textContent = 'Expandir';
+            }
+        }
+        updateCalculations() {
+            // Ensure all three charges are placed
+            if (!this.charges.q1 || !this.charges.q2 || !this.testPoint) return;
+            const q1 = this.getChargeValue('q1');
+            const q2 = this.getChargeValue('q2');
+            const q3 = this.getChargeValue('q3');
+            // Separation vectors from source charges to the test charge (Q3): r = r_q3 − r_qi
+            const r1 = {
+                x: this.testPoint.x - this.charges.q1.x,
+                y: this.testPoint.y - this.charges.q1.y
+            };
+            const r2 = {
+                x: this.testPoint.x - this.charges.q2.x,
+                y: this.testPoint.y - this.charges.q2.y
+            };
+            const r1Mag = Math.sqrt(r1.x * r1.x + r1.y * r1.y);
+            const r2Mag = Math.sqrt(r2.x * r2.x + r2.y * r2.y);
+            // Unit vectors along r1 and r2
+            const u1 = { x: r1.x / r1Mag, y: r1.y / r1Mag };
+            const u2 = { x: r2.x / r2Mag, y: r2.y / r2Mag };
+            // Electric force vectors on Q₃ due to Q₁ and Q₂
+            // F = k * q_i * q3 / |r|^2 * direction from q_i to q3 (repulsive/attractive automatically handled by sign)
+            const f1 = {
+                x: (this.k * q1 * q3 / Math.pow(r1Mag, 2)) * u1.x,
+                y: (this.k * q1 * q3 / Math.pow(r1Mag, 2)) * u1.y
+            };
+            const f2 = {
+                x: (this.k * q2 * q3 / Math.pow(r2Mag, 2)) * u2.x,
+                y: (this.k * q2 * q3 / Math.pow(r2Mag, 2)) * u2.y
+            };
+            const fTotal = { x: f1.x + f2.x, y: f1.y + f2.y };
+            const f1Mag = Math.sqrt(f1.x * f1.x + f1.y * f1.y);
+            const f2Mag = Math.sqrt(f2.x * f2.x + f2.y * f2.y);
+            const fTotalMag = Math.sqrt(fTotal.x * fTotal.x + fTotal.y * fTotal.y);
+            // Format numbers as scientific notation for KaTeX
+            function formatLatexScientific(value, digits = 2) {
+                if (value === 0) return `${value.toFixed(digits)}`;
+                const exponent = Math.floor(Math.log10(Math.abs(value)));
+                const mantissa = (value / Math.pow(10, exponent)).toFixed(digits);
+                if (exponent === 0) {
+                    return `${mantissa}`;
+                }
+                return `${mantissa}\\cdot 10^{${exponent}}`;
+            }
+            // Render position vectors and magnitudes
+            renderTex('r1Vector', `\\vec{r}_1=( ${r1.x.toFixed(2)},\\; ${r1.y.toFixed(2)} )\\,\\mathrm{m}`);
+            renderTex('r2Vector', `\\vec{r}_2=( ${r2.x.toFixed(2)},\\; ${r2.y.toFixed(2)} )\\,\\mathrm{m}`);
+            renderTex('r1Magnitude', `|\\vec{r}_1|=${r1Mag.toFixed(2)}\\,\\mathrm{m}`);
+            renderTex('r2Magnitude', `|\\vec{r}_2|=${r2Mag.toFixed(2)}\\,\\mathrm{m}`);
+            // Separator line between blocks
+            document.getElementById('espacioEntreBloques').innerHTML = '<hr style="margin: 12px 0; border: none; border-top: 1px solid #ddd;">';
+            // Unit vectors
+            renderTex('u1Vector', `\\hat{u}_1=( ${u1.x.toFixed(3)},\\; ${u1.y.toFixed(3)} )`);
+            renderTex('u2Vector', `\\hat{u}_2=( ${u2.x.toFixed(3)},\\; ${u2.y.toFixed(3)} )`);
+            // Forces
+            renderTex('f1Magnitude', `|\\vec{F}_1|=${formatLatexScientific(f1Mag)}\\,\\mathrm{N}`);
+            renderTex('f2Magnitude', `|\\vec{F}_2|=${formatLatexScientific(f2Mag)}\\,\\mathrm{N}`);
+            renderTex('f1Vector', `\\vec{F}_1=( ${formatLatexScientific(f1.x)},\\; ${formatLatexScientific(f1.y)} )\\,\\mathrm{N}`);
+            renderTex('f2Vector', `\\vec{F}_2=( ${formatLatexScientific(f2.x)},\\; ${formatLatexScientific(f2.y)} )\\,\\mathrm{N}`);
+            renderTex('fTotalVector', `\\vec{F}_{\\mathrm{total}}=( ${formatLatexScientific(fTotal.x)},\\; ${formatLatexScientific(fTotal.y)} )\\,\\mathrm{N}`);
+            renderTex('fTotalMagnitude', `|\\vec{F}_{\\mathrm{total}}|=${formatLatexScientific(fTotalMag)}\\,\\mathrm{N}`);
+            const angleDeg = Math.atan2(fTotal.y, fTotal.x) * (180 / Math.PI);
+            renderTex('fTotalAngle', `\\theta = ${angleDeg.toFixed(1)}^\\circ`);
+            // Draw vectors scaled for display
+            this.updateVectorVisuals(f1, f2, fTotal);
+        }
+        updateVectorVisuals(f1, f2, fTotal) {
+            const group = document.getElementById('vectors');
+            group.innerHTML = '';
+            const sx = this.centerX + this.testPoint.x * this.scale;
+            const sy = this.centerY - this.testPoint.y * this.scale;
+            // compute max magnitude for scaling
+            const mag1 = Math.sqrt(f1.x*f1.x + f1.y*f1.y);
+            const mag2 = Math.sqrt(f2.x*f2.x + f2.y*f2.y);
+            const magT = Math.sqrt(fTotal.x*fTotal.x + fTotal.y*fTotal.y);
+            const maxMag = Math.max(mag1, mag2, magT);
+            if (maxMag === 0 || isNaN(maxMag)) return;
+            const maxPixels = 100;
+            const scaleFactor = maxPixels / maxMag;
+            const draw = (vec, color, label) => {
+                const dx = vec.x * scaleFactor;
+                const dy = vec.y * scaleFactor;
+                this.drawVector(group, sx, sy, dx, -dy, color, label, this.zoomLevel);
+            };
+            draw(f1, '#F97316', 'F₁');
+            draw(f2, '#F97316', 'F₂');
+            draw(fTotal, '#16A34A', 'Fₜ');
+        }
+        // Draw individual vector with arrowhead and label
+        drawVector(group, x0, y0, dx, dy, color = '#333', label = '', zoomLevel = 1) {
+            const NS = 'http://www.w3.org/2000/svg';
+            const len = Math.sqrt(dx*dx + dy*dy);
+            if (len < 2) return;
+            const arrowOffset = 10;
+            const scale = (len - arrowOffset) / len;
+            const x1 = x0 + dx * scale;
+            const y1 = y0 + dy * scale;
+            let markerUrl;
+            if (color === '#F97316') {
+                markerUrl = 'url(#arrowhead-orange)';
+            } else if (color === '#16A34A') {
+                markerUrl = 'url(#arrowhead-green)';
+            } else {
+                markerUrl = 'url(#arrowhead-orange)';
+            }
+            const line = document.createElementNS(NS, 'line');
+            line.setAttribute('x1', x0);
+            line.setAttribute('y1', y0);
+            line.setAttribute('x2', x1);
+            line.setAttribute('y2', y1);
+            line.setAttribute('stroke', color);
+            line.setAttribute('stroke-width', 2);
+            line.setAttribute('stroke-linecap', 'round');
+            line.setAttribute('marker-end', markerUrl);
+            group.appendChild(line);
+            if (label) {
+                const baseX = x0 + dx * 0.6;
+                const baseY = y0 + dy * 0.6;
+                const perpX = -dy / len;
+                const perpY = dx / len;
+                const offsetDistance = 15 / zoomLevel;
+                const tx = baseX + perpX * offsetDistance;
+                const ty = baseY + perpY * offsetDistance - 3 / zoomLevel;
+                const text = document.createElementNS(NS, 'text');
+                text.setAttribute('x', tx);
+                text.setAttribute('y', ty);
+                text.setAttribute('fill', color);
+                text.setAttribute('font-size', `${12 / zoomLevel}`);
+                text.setAttribute('font-weight', 'bold');
+                text.setAttribute('text-anchor', 'middle');
+                text.textContent = label;
+                group.appendChild(text);
+            }
+        }
+    }
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        new ElectricForceCalculator();
+    });
+    // Display update helpers for charge magnitude and units
+    function updateQ1Display() {
+        const valueInput = document.getElementById('q1Value');
+        const unitsSelect = document.getElementById('q1Units');
+        let val = parseFloat(valueInput.value);
+        if (isNaN(val)) val = 0;
+        const formatted = val.toFixed(2);
+        const unit = unitsSelect.value;
+        document.getElementById('q1DisplayValue').textContent = `Carga: ${formatted} ${unit}`;
+    }
+    document.getElementById('q1Value').addEventListener('input', updateQ1Display);
+    document.getElementById('q1Units').addEventListener('change', updateQ1Display);
+    document.getElementById('q1Polarity').addEventListener('change', updateQ1Display);
+    // Q2 display
+    function updateQ2Display() {
+        const valueInput = document.getElementById('q2Value');
+        const unitsSelect = document.getElementById('q2Units');
+        let val = parseFloat(valueInput.value);
+        if (isNaN(val)) val = 0;
+        const formatted = val.toFixed(2);
+        const unit = unitsSelect.value;
+        document.getElementById('q2DisplayValue').textContent = `Carga: ${formatted} ${unit}`;
+    }
+    document.getElementById('q2Value').addEventListener('input', updateQ2Display);
+    document.getElementById('q2Units').addEventListener('change', updateQ2Display);
+    document.getElementById('q2Polarity').addEventListener('change', updateQ2Display);
+    // Q3 display
+    function updateQ3Display() {
+        const valueInput = document.getElementById('q3Value');
+        const unitsSelect = document.getElementById('q3Units');
+        let val = parseFloat(valueInput.value);
+        if (isNaN(val)) val = 0;
+        const formatted = val.toFixed(2);
+        const unit = unitsSelect.value;
+        document.getElementById('q3DisplayValue').textContent = `Carga: ${formatted} ${unit}`;
+    }
+    document.getElementById('q3Value').addEventListener('input', updateQ3Display);
+    document.getElementById('q3Units').addEventListener('change', updateQ3Display);
+    document.getElementById('q3Polarity').addEventListener('change', updateQ3Display);
+    </script>
+</body>
+</html>
