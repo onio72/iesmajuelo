@@ -203,8 +203,6 @@
                         <div>
                             <label class="block text-sm font-medium text-text-secondary mb-1">Unidades</label>
                             <select id="q1Units" class="input-field text-sm">
-                                <option value="μg">μg</option>
-                                <option value="mg">mg</option>
                                 <option value="g">g</option>
                                 <option value="kg">kg</option>
                             </select>
@@ -251,8 +249,6 @@
                         <div>
                             <label class="block text-sm font-medium text-text-secondary mb-1">Unidades</label>
                             <select id="q2Units" class="input-field text-sm">
-                                <option value="μg">μg</option>
-                                <option value="mg">mg</option>
                                 <option value="g">g</option>
                                 <option value="kg">kg</option>
                             </select>
@@ -874,10 +870,10 @@ el.addEventListener('input', () => {
 
               
 // Update UI con KaTeX renderizado en caliente
-    renderTex('r1Vector', `\\vec{r}_1=( ${r1.x.toFixed(2)},\\; ${r1.y.toFixed(2)} )\\,\\mathrm{m}`);
-renderTex('r2Vector', `\\vec{r}_2=( ${r2.x.toFixed(2)},\\; ${r2.y.toFixed(2)} )\\,\\mathrm{m}`);
-renderTex('r1Magnitude', `|\\vec{r}_1|=${r1Mag.toFixed(2)}\\,\\mathrm{m}`);
-renderTex('r2Magnitude', `|\\vec{r}_2|=${r2Mag.toFixed(2)}\\,\\mathrm{m}`);
+    renderTex('r1Vector', `\\vec{r}_1=( ${r1.x.toFixed(2)},\\; ${r1.y.toFixed(2)} )\\,\\mathrm{mm}`);
+renderTex('r2Vector', `\\vec{r}_2=( ${r2.x.toFixed(2)},\\; ${r2.y.toFixed(2)} )\\,\\mathrm{mm}`);
+renderTex('r1Magnitude', `|\\vec{r}_1|=${r1Mag.toFixed(2)}\\,\\mathrm{mm}`);
+renderTex('r2Magnitude', `|\\vec{r}_2|=${r2Mag.toFixed(2)}\\,\\mathrm{mm}`);
 
 document.getElementById('espacioEntreBloques').innerHTML ='<hr style="margin: 12px 0; border: none; border-top: 1px solid #ddd;">';
 
