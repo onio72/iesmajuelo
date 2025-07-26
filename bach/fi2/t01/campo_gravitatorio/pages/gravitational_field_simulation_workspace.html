@@ -902,29 +902,32 @@ this.updateVectorVisuals(g1, g2, gTotal);
 
             }
 //Se actualiza para que dibuje bien los vectores aunque sean extremadamente pequeños
-            updateVectorVisuals(g1, g2, gTotal) {
+updateVectorVisuals(g1, g2, gTotal) {
     const g = document.getElementById('vectors');
     g.innerHTML = '';
 
     const sx = this.centerX + this.testPoint.x * this.scale;
     const sy = this.centerY - this.testPoint.y * this.scale;
 
-    // Nueva escala logarítmica
-    const logScale = (v) => {
-        const magnitude = Math.sqrt(v.x * v.x + v.y * v.y);
-        return Math.log10(1 + magnitude); // Siempre positivo
-    };
-
-    const scaleFactor = 60 / this.zoomLevel; // ajusta visibilidad
+    const scaleFactor = 80 / this.zoomLevel;     // escala logarítmica base
+    const minDrawLength = 12;                    // longitud mínima visible en píxeles
 
     const drawLogVector = (vec, color, label) => {
-        const len = logScale(vec) * scaleFactor;
+        const magnitude = Math.sqrt(vec.x ** 2 + vec.y ** 2);
+        if (magnitude === 0 || isNaN(magnitude)) return;
+
+        const logLength = Math.log10(1 + magnitude);
+        const scaledLength = Math.max(logLength * scaleFactor, minDrawLength);
+
+        // dirección unitaria del vector
         const unit = {
-            x: vec.x / Math.sqrt(vec.x * vec.x + vec.y * vec.y),
-            y: vec.y / Math.sqrt(vec.x * vec.x + vec.y * vec.y)
+            x: vec.x / magnitude,
+            y: vec.y / magnitude
         };
-        const dx = unit.x * len;
-        const dy = unit.y * len;
+
+        const dx = unit.x * scaledLength;
+        const dy = unit.y * scaledLength;
+
         this.drawVector(g, sx, sy, dx, -dy, color, label, this.zoomLevel);
     };
 
@@ -933,11 +936,11 @@ this.updateVectorVisuals(g1, g2, gTotal);
     drawLogVector(gTotal, '#16A34A', 'g_t');
 }
 
+
 //Se actualiza para que dibuje bien los vectores
 drawVector(group, x0, y0, dx, dy, color = '#333', label = '', zoomLevel = 1) {
     const NS = 'http://www.w3.org/2000/svg';
     const len = Math.sqrt(dx * dx + dy * dy);
-    if (len < 0.5) return; // o incluso eliminar esta línea
 
     const arrowOffset = 10;
     const scale = (len - arrowOffset) / len;
