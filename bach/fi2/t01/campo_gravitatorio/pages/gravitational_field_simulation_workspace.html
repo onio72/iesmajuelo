@@ -909,32 +909,32 @@ updateVectorVisuals(g1, g2, gTotal) {
     const sx = this.centerX + this.testPoint.x * this.scale;
     const sy = this.centerY - this.testPoint.y * this.scale;
 
-    const scaleFactor = 80 / this.zoomLevel;     // escala logarítmica base
-    const minDrawLength = 12;                    // longitud mínima visible en píxeles
+    // Paso 1: calcular magnitudes reales
+    const mag1 = Math.sqrt(g1.x ** 2 + g1.y ** 2);
+    const mag2 = Math.sqrt(g2.x ** 2 + g2.y ** 2);
+    const magT = Math.sqrt(gTotal.x ** 2 + gTotal.y ** 2);
 
-    const drawLogVector = (vec, color, label) => {
-        const magnitude = Math.sqrt(vec.x ** 2 + vec.y ** 2);
-        if (magnitude === 0 || isNaN(magnitude)) return;
+    // Paso 2: máxima magnitud
+    const maxMag = Math.max(mag1, mag2, magT);
 
-        const logLength = Math.log10(1 + magnitude);
-        const scaledLength = Math.max(logLength * scaleFactor, minDrawLength);
+    if (maxMag === 0 || isNaN(maxMag)) return; // nada que dibujar
 
-        // dirección unitaria del vector
-        const unit = {
-            x: vec.x / magnitude,
-            y: vec.y / magnitude
-        };
+    // Paso 3: escala lineal para que el mayor mida 100 px
+    const maxPixels = 100;
+    const scaleFactor = maxPixels / maxMag;
 
-        const dx = unit.x * scaledLength;
-        const dy = unit.y * scaledLength;
-
+    // Función interna para dibujar
+    const drawScaledVector = (vec, color, label) => {
+        const dx = vec.x * scaleFactor;
+        const dy = vec.y * scaleFactor;
         this.drawVector(g, sx, sy, dx, -dy, color, label, this.zoomLevel);
     };
 
-    drawLogVector(g1, '#F97316', 'g₁');
-    drawLogVector(g2, '#F97316', 'g₂');
-    drawLogVector(gTotal, '#16A34A', 'g_t');
+    drawScaledVector(g1, '#F97316', 'g₁');
+    drawScaledVector(g2, '#F97316', 'g₂');
+    drawScaledVector(gTotal, '#16A34A', 'g_t');
 }
+
 
 
 //Se actualiza para que dibuje bien los vectores
