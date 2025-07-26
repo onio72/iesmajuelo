@@ -727,21 +727,14 @@ el.addEventListener('input', () => {
     const existingCharge = document.getElementById(`charge-${chargeId}`);
     if (existingCharge) existingCharge.remove();
 
-    // Definir color para masas (sin polaridad)
-    let color;
-    if (chargeId === 'q1') {
-        // color verde para la primera masa
-        color = '#16A34A';
-    } else {
-        // color morado para la segunda masa
-        color = '#7C3AED';
-    }
+    // Color único para ambas masas
+    const color = '#E53935'; // Rojo intenso
 
     const chargeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     chargeGroup.id = `charge-${chargeId}`;
     chargeGroup.style.cursor = 'grab';
 
-    // Circunferencia de la masa
+    // Circunferencia
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle.setAttribute('cx', svgX);
     circle.setAttribute('cy', svgY);
@@ -751,7 +744,7 @@ el.addEventListener('input', () => {
     circle.setAttribute('stroke-width', '2');
     circle.setAttribute('class', 'transition-all hover:r-14');
 
-    // Etiqueta M₁ o M₂ (encima del círculo)
+    // Etiqueta M₁ o M₂ (roja)
     const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     label.setAttribute('x', svgX);
     label.setAttribute('y', svgY - 18);
@@ -761,7 +754,7 @@ el.addEventListener('input', () => {
     label.setAttribute('font-weight', 'bold');
     label.textContent = chargeId === 'q1' ? 'M₁' : 'M₂';
 
-    // Añadir al grupo
+    // Añadir elementos
     chargeGroup.appendChild(circle);
     chargeGroup.appendChild(label);
     chargesGroup.appendChild(chargeGroup);
