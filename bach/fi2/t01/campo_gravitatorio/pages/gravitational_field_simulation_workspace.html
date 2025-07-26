@@ -129,46 +129,7 @@
                                 <text x="580" y="195" fill="#475569" font-size="14" font-weight="500">X</text>
                                 <text x="305" y="15" fill="#475569" font-size="14" font-weight="500">Y</text>
                                 
-                                <!-- Complete Grid Coordinates - Extended to edges -->
-                                <g id="gridCoordinates">
-                                    <!-- Positive X-axis markers (extended) -->
-                                    <text x="330" y="195" fill="#64748B" font-size="10">1</text>
-                                    <text x="360" y="195" fill="#64748B" font-size="10">2</text>
-                                    <text x="390" y="195" fill="#64748B" font-size="10">3</text>
-                                    <text x="420" y="195" fill="#64748B" font-size="10">4</text>
-                                    <text x="450" y="195" fill="#64748B" font-size="10">5</text>
-                                    <text x="480" y="195" fill="#64748B" font-size="10">6</text>
-                                    <text x="510" y="195" fill="#64748B" font-size="10">7</text>
-                                    <text x="540" y="195" fill="#64748B" font-size="10">8</text>
-                                    <text x="570" y="195" fill="#64748B" font-size="10">9</text>
-                                    
-                                    <!-- Negative X-axis markers (extended) -->
-                                    <text x="270" y="195" fill="#64748B" font-size="10">-1</text>
-                                    <text x="240" y="195" fill="#64748B" font-size="10">-2</text>
-                                    <text x="210" y="195" fill="#64748B" font-size="10">-3</text>
-                                    <text x="180" y="195" fill="#64748B" font-size="10">-4</text>
-                                    <text x="150" y="195" fill="#64748B" font-size="10">-5</text>
-                                    <text x="120" y="195" fill="#64748B" font-size="10">-6</text>
-                                    <text x="90"  y="195" fill="#64748B" font-size="10">-7</text>
-                                    <text x="60"  y="195" fill="#64748B" font-size="10">-8</text>
-                                    <text x="30"  y="195" fill="#64748B" font-size="10">-9</text>
-                                    
-                                    <!-- Positive Y-axis markers (extended) -->
-                                    <text x="305" y="170" fill="#64748B" font-size="10">1</text>
-                                    <text x="305" y="140" fill="#64748B" font-size="10">2</text>
-                                    <text x="305" y="110" fill="#64748B" font-size="10">3</text>
-                                    <text x="305" y="80"  fill="#64748B" font-size="10">4</text>
-                                    <text x="305" y="50"  fill="#64748B" font-size="10">5</text>
-                                    <text x="305" y="20"  fill="#64748B" font-size="10">6</text>
-                                    
-                                    <!-- Negative Y-axis markers (extended) -->
-                                    <text x="305" y="230" fill="#64748B" font-size="10">-1</text>
-                                    <text x="305" y="260" fill="#64748B" font-size="10">-2</text>
-                                    <text x="305" y="290" fill="#64748B" font-size="10">-3</text>
-                                    <text x="305" y="320" fill="#64748B" font-size="10">-4</text>
-                                    <text x="305" y="350" fill="#64748B" font-size="10">-5</text>
-                                    <text x="305" y="380" fill="#64748B" font-size="10">-6</text>
-                                </g>
+                                <g id="gridCoordinates"></g>
                                 
                                 <!-- Interactive Elements -->
                                 <g id="charges"></g>
@@ -610,27 +571,28 @@ el.addEventListener('input', () => {
                     this.updateZoom();
                 }
             }
-
-            updateZoom() {
+// Se cambia para generar marcas en los ejes en función del nivel de zoom
+updateZoom() {
     const bbox = this.svg.viewBox.baseVal;
     const cx = bbox.width / 2;
     const cy = bbox.height / 2;
 
     const z = this.zoomLevel;
 
-    // Escalado centrado en el centro visual del SVG
     const translateX = cx * (1 - z);
     const translateY = cy * (1 - z);
 
     this.zoomGroup.setAttribute('transform', `translate(${translateX}, ${translateY}) scale(${z})`);
 
-    // Actualizar porcentaje de zoom visible
     document.getElementById('zoomLevel').textContent = `${Math.round(z * 100)}%`;
 
-    // Mostrar/ocultar cuadrícula fina según nivel de zoom
     const fineGrid = this.svg.querySelector('rect[fill="url(#gridFine)"]');
     if (fineGrid) fineGrid.setAttribute('opacity', z > 1.5 ? '1' : '0');
+
+    // 👇 Aquí llamas para actualizar las marcas numéricas
+    this.updateGridCoordinates();
 }
+
 
 
             resetZoom() {
