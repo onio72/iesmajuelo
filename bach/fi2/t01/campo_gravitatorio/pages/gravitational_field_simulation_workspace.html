@@ -907,7 +907,7 @@ this.updateVectorVisuals(g1, g2, gTotal);
 
     const sx = this.centerX + this.testPoint.x * this.scale;
     const sy = this.centerY - this.testPoint.y * this.scale;
-    const k  = 50 / this.zoomLevel; // factor visual
+    const k = 1e10 / this.zoomLevel; // mucho mayor
 
     // Naranja para g1 y g2
     this.drawVector(g, sx, sy, g1.x * k, -g1.y * k, '#F97316', 'g₁', this.zoomLevel);
@@ -920,7 +920,7 @@ this.updateVectorVisuals(g1, g2, gTotal);
 drawVector(group, x0, y0, dx, dy, color = '#333', label = '', zoomLevel = 1) {
     const NS = 'http://www.w3.org/2000/svg';
     const len = Math.sqrt(dx * dx + dy * dy);
-    if (len < 2) return;
+    if (len < 0.5) return; // o incluso eliminar esta línea
 
     const arrowOffset = 10;
     const scale = (len - arrowOffset) / len;
