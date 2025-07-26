@@ -896,22 +896,38 @@ this.updateVectorVisuals(g1, g2, gTotal);
 
 
             }
-
+//Se actualiza para que dibuje bien los vectores aunque sean extremadamente pequeños
             updateVectorVisuals(g1, g2, gTotal) {
     const g = document.getElementById('vectors');
     g.innerHTML = '';
 
     const sx = this.centerX + this.testPoint.x * this.scale;
     const sy = this.centerY - this.testPoint.y * this.scale;
-    const k = 1e10 / this.zoomLevel; // mucho mayor
 
-    // Naranja para g1 y g2
-    this.drawVector(g, sx, sy, g1.x * k, -g1.y * k, '#F97316', 'g₁', this.zoomLevel);
-    this.drawVector(g, sx, sy, g2.x * k, -g2.y * k, '#F97316', 'g₂', this.zoomLevel);
+    // Nueva escala logarítmica
+    const logScale = (v) => {
+        const magnitude = Math.sqrt(v.x * v.x + v.y * v.y);
+        return Math.log10(1 + magnitude); // Siempre positivo
+    };
 
-    // Verde para el total
-    this.drawVector(g, sx, sy, gTotal.x * k, -gTotal.y * k, '#16A34A', 'g_t', this.zoomLevel);
+    const scaleFactor = 60 / this.zoomLevel; // ajusta visibilidad
+
+    const drawLogVector = (vec, color, label) => {
+        const len = logScale(vec) * scaleFactor;
+        const unit = {
+            x: vec.x / Math.sqrt(vec.x * vec.x + vec.y * vec.y),
+            y: vec.y / Math.sqrt(vec.x * vec.x + vec.y * vec.y)
+        };
+        const dx = unit.x * len;
+        const dy = unit.y * len;
+        this.drawVector(g, sx, sy, dx, -dy, color, label, this.zoomLevel);
+    };
+
+    drawLogVector(g1, '#F97316', 'g₁');
+    drawLogVector(g2, '#F97316', 'g₂');
+    drawLogVector(gTotal, '#16A34A', 'g_t');
 }
+
 //Se actualiza para que dibuje bien los vectores
 drawVector(group, x0, y0, dx, dy, color = '#333', label = '', zoomLevel = 1) {
     const NS = 'http://www.w3.org/2000/svg';
