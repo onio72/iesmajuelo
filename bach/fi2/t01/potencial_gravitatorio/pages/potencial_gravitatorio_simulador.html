@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calculadora de Campo Gravitatorio – Espacio de Simulación</title>
-
+  <title>Calculadora de Potencial Gravitatorio – Espacio de Simulación</title>
+  
   <!-- Estilos y scripts principales -->
   <link rel="stylesheet" href="../css/main.css" />
   <link rel="icon" href="../public/favicon.ico" />
@@ -37,7 +37,7 @@
                             <!-- Icono de peso para simbolizar la gravedad -->
                             <i class="fas fa-weight-hanging text-white text-sm"></i>
                         </div>
-                        <h1 class="text-xl font-semibold text-text-primary">Calculadora de Campo Gravitatorio</h1>
+                        <h1 class="text-xl font-semibold text-text-primary">Calculadora de Potencial Gravitatorio</h1>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -333,7 +333,7 @@
                 </div>
                 
                 <div id="calculationsContent" class="overflow-y-auto">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <!-- Columna combinada: posición + unitarios -->
 <div class="bg-secondary-50 rounded-lg p-4 space-y-6">
   <!-- Vectores de Posición -->
@@ -349,18 +349,7 @@
       <div><span id="r2Magnitude">No calculado</span></div>
     </div>
   </div>
-<div id="espacioEntreBloques"></div>
-  <!-- Vectores Unitarios -->
-  <div>
-    <h3 class="text-sm font-semibold text-text-primary mb-3 flex items-center">
-      <i class="fas fa-compass text-green-600 mr-2"></i>
-      Vectores Unitarios
-    </h3>
-    <div class="space-y-2 text-sm font-mono">
-      <div><span id="u1Vector">No calculado</span></div>
-      <div><span id="u2Vector">No calculado</span></div>
-    </div>
-  </div>
+
 </div>
 
 
@@ -389,16 +378,7 @@
                                 <div><span id="gTotalMagnitude">No calculado</span></div>
                                 <div><span id="gTotalAngle">No calculado</span></div>
                             </div>
-                            <div class="mt-3 space-y-1 text-xs text-secondary-600">
-                                <div class="flex items-center text-orange-500">
-                                    <div class="w-3 h-1 bg-orange-500 mr-2"></div>
-                                    <span>g₁ y g₂ (Naranja)</span>
-                                </div>
-                                <div class="flex items-center text-green-600">
-                                    <div class="w-3 h-1 bg-green-600 mr-2"></div>
-                                    <span>g<sub>total</sub> (Verde)</span>
-                                </div>
-                            </div>
+                            
 
                         </div>
                     </div>
@@ -852,8 +832,8 @@ renderTex('r2Magnitude', `|\\vec{r}_2|=${r2Mag.toFixed(2)}\\,\\mathrm{mm}`);
 
 document.getElementById('espacioEntreBloques').innerHTML ='<hr style="margin: 12px 0; border: none; border-top: 1px solid #ddd;">';
 
-renderTex('u1Vector', `\\hat{u}_1=( ${u1.x.toFixed(3)},\\; ${u1.y.toFixed(3)} )`);
-renderTex('u2Vector', `\\hat{u}_2=( ${u2.x.toFixed(3)},\\; ${u2.y.toFixed(3)} )`);
+//renderTex('u1Vector', `\\hat{u}_1=( ${u1.x.toFixed(3)},\\; ${u1.y.toFixed(3)} )`);
+//renderTex('u2Vector', `\\hat{u}_2=( ${u2.x.toFixed(3)},\\; ${u2.y.toFixed(3)} )`);
 
 
 renderTex('g1Magnitude', `V_1 = ${formatLatexScientific(V1)}\,\mathrm{J/kg}`);
@@ -1037,8 +1017,9 @@ drawVector(group, x0, y0, dx, dy, color = '#333', label = '', zoomLevel = 1) {
 
         // Initialize the enhanced calculator when the page loads
         document.addEventListener('DOMContentLoaded', () => {
-            new GravitationalFieldCalculator();
-        });
+    new GravitationalFieldCalculator();
+    document.getElementById('calculationsContent').style.display = 'block';
+});
       
       // Para mostrar el valor de las masas con su unidad
       // Función para actualizar el texto debajo de la masa
