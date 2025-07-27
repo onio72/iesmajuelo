@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de Potencial Gravitatorio – Espacio de Simulación</title>
+  
+  <!-- Estilos y scripts principales -->
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="icon" href="../public/favicon.ico" />
+  <link rel="manifest" href="../public/manifest.json" />
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    rel="stylesheet"
+  />
+  <script
+    type="module"
+    src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Felectricf1586back.builtwithrocket.new&_be=https%3A%2F%2Fapplication.rocket.new&_v=0.1.6"
+  ></script>
+
+  <!-- KaTeX: renderizado de fórmulas -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+  />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+</head>
+
+<body class="bg-background min-h-screen">
+    <!-- Header -->
+    <header class="bg-surface shadow-subtle border-b border-secondary-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                            <!-- Icono de peso para simbolizar la gravedad -->
+                            <i class="fas fa-weight-hanging text-white text-sm"></i>
+                        </div>
+                        <h1 class="text-xl font-semibold text-text-primary">Calculadora de Potencial Gravitatorio</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="flex items-center space-x-2 px-3 py-2 text-sm text-secondary-600 hover:text-primary transition-colors">
+                        <i class="fas fa-globe text-sm"></i>
+                        <span>ES</span>
+                    </button>
+                    <button class="p-2 text-secondary-600 hover:text-primary transition-colors" title="Ayuda">
+                        <i class="fas fa-question-circle text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Interactive Grid Section (100% width at top) -->
+        <div class="w-full mb-6">
+            <div class="card">
+                <div class="h-full flex flex-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold text-text-primary">Cuadrícula Interactiva</h2>
+                        <div class="flex items-center space-x-4 text-sm text-secondary-600">
+                            <span>Arrastra masas para moverlas | Rueda del ratón para zoom</span>
+                            <button id="resetZoom" class="btn-secondary text-xs">
+                                <i class="fas fa-search-minus mr-1"></i>
+                                Reset Zoom
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Enhanced Grid Container with Zoom Controls -->
+                    <div class="relative bg-secondary-50 rounded-lg border-2 border-secondary-200 overflow-hidden" style="height: 500px;">
+                        <div id="zoomInfo" class="absolute top-4 right-4 bg-surface px-3 py-2 rounded-lg shadow-subtle border border-secondary-200 text-sm font-mono z-10">
+                            Zoom: <span id="zoomLevel">100%</span>
+                        </div>
+                        
+                        <svg id="electricFieldGrid" class="w-full h-full cursor-crosshair"
+                             viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+                            <!-- Enhanced Grid with Dynamic Patterns -->
+                            <defs>
+                                <!-- 200 % 30 = 20  => desplazamos la rejilla gruesa 20px en Y -->
+<pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse"
+         patternTransform="translate(0,20)">
+    <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#CBD5E1" stroke-width="1"/>
+</pattern>
+
+<!-- 200 % 6 = 2 => desplazamos la rejilla fina 2px en Y -->
+<pattern id="gridFine" width="6" height="6" patternUnits="userSpaceOnUse"
+         patternTransform="translate(0,2)">
+    <path d="M 6 0 L 0 0 0 6" fill="none" stroke="#E5E7EB" stroke-width="0.5"/>
+</pattern>
+<marker id="arrowhead-orange"
+        viewBox="0 0 10 10"
+        refX="9" refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto"
+        markerUnits="userSpaceOnUse">
+  <path d="M 0 0 L 10 5 L 0 10 z" fill="#F97316" />
+</marker>
+
+<marker id="arrowhead-green"
+        viewBox="0 0 10 10"
+        refX="9" refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto"
+        markerUnits="userSpaceOnUse">
+  <path d="M 0 0 L 10 5 L 0 10 z" fill="#16A34A" />
+</marker>
+  
+                            </defs>
+                            
+                            <!-- Zoomable and Pannable Group -->
+                            <g id="zoomGroup">
+                                <!-- Fine Grid Background (for higher zoom levels) -->
+                                <rect width="100%" height="100%" fill="url(#gridFine)" opacity="0" pointer-events="none"/>
+                                
+                                <!-- Main Grid Background -->
+                                <rect width="100%" height="100%" fill="url(#grid)" pointer-events="none"/>
+                                
+                                <!-- Enhanced Centered Axes -->
+                                <line x1="300" y1="0" x2="300" y2="400" stroke="#475569" stroke-width="2"/>
+                                <line x1="0" y1="200" x2="600" y2="200" stroke="#475569" stroke-width="2"/>
+                                
+                                <!-- Extended Axis Labels -->
+                                <text x="580" y="195" fill="#475569" font-size="14" font-weight="500">X</text>
+                                <text x="305" y="15" fill="#475569" font-size="14" font-weight="500">Y</text>
+                                
+                                <!-- Complete Grid Coordinates - Extended to edges -->
+                                <g id="gridCoordinates">
+                                    <!-- Positive X-axis markers (extended) -->
+                                    <text x="330" y="195" fill="#64748B" font-size="10">1</text>
+                                    <text x="360" y="195" fill="#64748B" font-size="10">2</text>
+                                    <text x="390" y="195" fill="#64748B" font-size="10">3</text>
+                                    <text x="420" y="195" fill="#64748B" font-size="10">4</text>
+                                    <text x="450" y="195" fill="#64748B" font-size="10">5</text>
+                                    <text x="480" y="195" fill="#64748B" font-size="10">6</text>
+                                    <text x="510" y="195" fill="#64748B" font-size="10">7</text>
+                                    <text x="540" y="195" fill="#64748B" font-size="10">8</text>
+                                    <text x="570" y="195" fill="#64748B" font-size="10">9</text>
+                                    
+                                    <!-- Negative X-axis markers (extended) -->
+                                    <text x="270" y="195" fill="#64748B" font-size="10">-1</text>
+                                    <text x="240" y="195" fill="#64748B" font-size="10">-2</text>
+                                    <text x="210" y="195" fill="#64748B" font-size="10">-3</text>
+                                    <text x="180" y="195" fill="#64748B" font-size="10">-4</text>
+                                    <text x="150" y="195" fill="#64748B" font-size="10">-5</text>
+                                    <text x="120" y="195" fill="#64748B" font-size="10">-6</text>
+                                    <text x="90"  y="195" fill="#64748B" font-size="10">-7</text>
+                                    <text x="60"  y="195" fill="#64748B" font-size="10">-8</text>
+                                    <text x="30"  y="195" fill="#64748B" font-size="10">-9</text>
+                                    
+                                    <!-- Positive Y-axis markers (extended) -->
+                                    <text x="305" y="170" fill="#64748B" font-size="10">1</text>
+                                    <text x="305" y="140" fill="#64748B" font-size="10">2</text>
+                                    <text x="305" y="110" fill="#64748B" font-size="10">3</text>
+                                    <text x="305" y="80"  fill="#64748B" font-size="10">4</text>
+                                    <text x="305" y="50"  fill="#64748B" font-size="10">5</text>
+                                    <text x="305" y="20"  fill="#64748B" font-size="10">6</text>
+                                    
+                                    <!-- Negative Y-axis markers (extended) -->
+                                    <text x="305" y="230" fill="#64748B" font-size="10">-1</text>
+                                    <text x="305" y="260" fill="#64748B" font-size="10">-2</text>
+                                    <text x="305" y="290" fill="#64748B" font-size="10">-3</text>
+                                    <text x="305" y="320" fill="#64748B" font-size="10">-4</text>
+                                    <text x="305" y="350" fill="#64748B" font-size="10">-5</text>
+                                    <text x="305" y="380" fill="#64748B" font-size="10">-6</text>
+                                </g>
+                                
+                                <!-- Interactive Elements -->
+                                <g id="charges"></g>
+                                <g id="vectors"></g>
+                                <g id="testPoint"></g>
+                            </g>
+                        </svg>
+                        
+                        <!-- Enhanced Coordinate Display -->
+                        <div id="coordinateDisplay" class="absolute top-4 left-4 bg-surface px-3 py-2 rounded-lg shadow-subtle border border-secondary-200 text-sm font-mono opacity-0 transition-opacity">
+                            <span id="currentCoords">X: 0, Y: 0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Section (33.33% each, below grid) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- Controles para la masa M₁ con edición de coordenadas -->
+            <div class="card">
+                <h3 class="text-md font-semibold text-text-primary mb-3 flex items-center">
+                    <div class="w-3 h-3 bg-success rounded-full mr-2"></div>
+                    Masa M₁
+                </h3>
+                <div class="space-y-3">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Valor</label>
+                             <input type="number" id="q1Value" class="input-field text-sm" placeholder="5.0" value="5.0" step="0.1" min="0.1" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Unidades</label>
+                            <select id="q1Units" class="input-field text-sm">
+                                <option value="g">g</option>
+                                <option value="kg">kg</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Las masas no tienen polaridad -->
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Coordenadas</label>
+                            <input type="number" id="q1CoordX" class="coordinate-input" placeholder="x" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1 invisible">.</label>
+                            <input type="number" id="q1CoordY" class="coordinate-input" placeholder="y" />
+                        </div>
+                    </div>
+                    <button id="updateQ1Position" class="btn-secondary w-full text-xs">
+                        <i class="fas fa-map-marker-alt mr-1"></i>
+                        Actualizar Posición
+                    </button>
+<div class="text-base tex text-secondary-600">
+    <span id="q1Position">Posición: No colocada</span>
+</div>
+<div class="text-base text-secondary-600 mt-1">
+    <span id="q1DisplayValue">Masa: No definida</span>
+</div>
+                </div>
+            </div>
+
+            <!-- Controles para la masa M₂ con edición de coordenadas -->
+            <div class="card">
+                <h3 class="text-md font-semibold text-text-primary mb-3 flex items-center">
+                    <div class="w-3 h-3 bg-accent rounded-full mr-2"></div>
+                    Masa M₂
+                </h3>
+                <div class="space-y-3">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Valor</label>
+                            <input type="number" id="q2Value" class="input-field text-sm" placeholder="3.0" value="3.0" step="0.1" min="0.1" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Unidades</label>
+                            <select id="q2Units" class="input-field text-sm">
+                                <option value="g">g</option>
+                                <option value="kg">kg</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Las masas no tienen polaridad -->
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Coordenadas</label>
+                            <input type="number" id="q2CoordX" class="coordinate-input" placeholder="x" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1 invisible">.</label>
+                            <input type="number" id="q2CoordY" class="coordinate-input" placeholder="y" />
+                        </div>
+                    </div>
+                    <button id="updateQ2Position" class="btn-secondary w-full text-xs">
+                        <i class="fas fa-map-marker-alt mr-1"></i>
+                        Actualizar Posición
+                    </button>
+<div class="text-base tex text-secondary-600">
+    <span id="q2Position">Posición: No colocada</span>
+</div>
+<div class="text-base text-secondary-600 mt-1">
+    <span id="q2DisplayValue">Masa: No definida</span>
+</div>
+                </div>
+            </div>
+
+            <!-- Test Point Controls -->
+            <div class="card">
+                <h3 class="text-md font-semibold text-text-primary mb-3 flex items-center">
+                    <div class="w-3 h-3 bg-primary rounded-full mr-2"></div>
+                    Punto de Testeo del Campo
+                </h3>
+                <div class="space-y-3">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Coordenadas</label>
+                            <input type="number" id="testPointCoordX" class="coordinate-input" placeholder="x" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1 invisible">.</label>
+                            <input type="number" id="testPointCoordY" class="coordinate-input" placeholder="y" />
+                        </div>
+                    </div>
+                    <button id="updateTestPointPosition" class="btn-secondary w-full text-xs">
+                        <i class="fas fa-crosshairs mr-1"></i>
+                        Actualizar Punto
+                    </button>
+                    
+                    <div class="text-base tex text-secondary-600">
+    <span id="testPointPosition">Posición: No seleccionado</span>
+</div>
+                    <div class="flex gap-2">
+                        <button id="clearAll" class="flex-1 btn-secondary text-xs">
+                            <i class="fas fa-trash-alt mr-1"></i>
+                            Limpiar
+                        </button>
+                        <button id="autoPlace" class="flex-1 btn-secondary text-xs">
+                            <i class="fas fa-magic mr-1"></i>
+                            Auto
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calculations Panel (Full Width, Below controls) -->
+        <div class="w-full">
+            <div class="card">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-text-primary">Cálculos Matemáticos</h2>
+                    <div class="flex items-center space-x-2">
+                        <button id="toggleCalculations" class="btn-secondary text-sm">
+                            <i class="fas fa-chevron-up"></i>
+                            <span class="hidden sm:inline ml-2">Contraer</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="calculationsContent" class="overflow-y-auto">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Columna combinada: posición + unitarios -->
+<div class="bg-secondary-50 rounded-lg p-4 space-y-6">
+  <!-- Vectores de Posición -->
+  <div>
+    <h3 class="text-sm font-semibold text-text-primary mb-3 flex items-center">
+      <i class="fas fa-vector-square text-blue-600 mr-2"></i>
+      Vectores de Posición
+    </h3>
+    <div class="space-y-2 text-sm font-mono">
+      <div><span id="r1Vector">No calculado</span></div>
+      <div><span id="r2Vector">No calculado</span></div>
+      <div class="pt-2 border-t border-secondary-200"><span id="r1Magnitude">No calculado</span></div>
+      <div><span id="r2Magnitude">No calculado</span></div>
+    </div>
+  </div>
+
+</div>
+
+
+                        <!-- Campos Gravitatorios -->
+                        <div class="bg-secondary-50 rounded-lg p-4">
+                            <h3 class="text-sm font-semibold text-text-primary mb-3 flex items-center">
+                                <i class="fas fa-weight-hanging text-warning mr-2"></i>
+                                Potencial gravitatorio
+                            </h3>
+                            <div class="space-y-2 text-sm font-mono">
+                                <div><span id="g1Magnitude">No calculado</span></div>
+                                <div><span id="g2Magnitude">No calculado</span></div>
+                                <div class="pt-2 border-t border-secondary-200"><span id="g1Vector">No calculado</span></div>
+                                <div><span id="g2Vector">No calculado</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Potencial total -->
+                        <div class="bg-secondary-50 rounded-lg p-4">
+                            <h3 class="text-sm font-semibold text-text-primary mb-3 flex items-center">
+                                <i class="fas fa-plus text-primary mr-2"></i>
+                                Potencial total
+                            </h3>
+                            <div class="space-y-2 text-sm font-mono">
+                                <div><span id="gTotalVector">No calculado</span></div>
+                                <div><span id="gTotalMagnitude">No calculado</span></div>
+                                <div><span id="gTotalAngle">No calculado</span></div>
+                            </div>
+                            
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Instructions Modal (Updated) -->
+    <div id="instructionsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-surface rounded-xl shadow-medium max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-semibold text-text-primary">Instrucciones de Uso</h2>
+                    <button id="closeInstructions" class="text-secondary-600 hover:text-text-primary">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="space-y-4 text-sm text-text-secondary">
+                    <div>
+                        <h3 class="font-semibold text-text-primary mb-2">1. Colocar y Editar Masas</h3>
+                        <p>Haz clic en la cuadrícula para colocar masas o usa los campos de coordenadas para posicionarlas exactamente. Arrastra las masas para moverlas interactivamente.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-text-primary mb-2">2. Navegación y Zoom</h3>
+                        <p>Usa la rueda del ratón para hacer zoom. Los ejes están centrados con numeración completa hasta los bordes visibles.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-text-primary mb-2">3. Cálculo del Campo</h3>
+                        <p>Coloca el punto de cálculo haciendo clic o editando sus coordenadas. Los resultados aparecen en el panel separado de cálculos.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-text-primary mb-2">4. Interfaz Mejorada</h3>
+                        <p>El panel de cuadrícula y el de cálculos están separados para evitar solapamientos y mejorar la visualización.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+ 
+  // Helper para renderizar con KaTeX en cada actualización
+  function renderTex(targetId, tex) {
+    const el = document.getElementById(targetId);
+    el.innerHTML = katex.renderToString(tex, { throwOnError: false });
+  }
+        // Enhanced Gravitational Field Calculator with Interactive Features
+        class GravitationalFieldCalculator {
+            constructor() {
+                this.svg = document.getElementById('electricFieldGrid');
+                this.zoomGroup = document.getElementById('zoomGroup');
+                this.charges = { q1: null, q2: null };
+                this.testPoint = null;
+                this.G = 6.67430e-11; // Constante gravitacional universal
+                this.scale = 30; // pixels per unit
+                this.centerX = 300;
+                this.centerY = 200;
+                this.currentStep = 'q1'; // q1, q2, testPoint
+                
+                // Zoom and drag properties
+                this.zoomLevel = 1;
+                this.zoomMin = 0.8;
+                this.zoomMax = 1.4;
+                this.isDragging = false;
+                this.dragTarget = null;
+                this.dragOffset = { x: 0, y: 0 };
+                
+                this.initializeEventListeners();
+                this.showInstructions();
+                // Aplicar el zoom inicial centrado
+                this.updateZoom();
+                updateQ1Display();
+            }
+
+            initializeEventListeners() {
+                // Enhanced grid interaction
+                this.svg.addEventListener('click', (e) => this.handleGridClick(e));
+                this.svg.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+                this.svg.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                this.svg.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+                this.svg.addEventListener('mouseleave', (e) => this.handleMouseLeave(e));
+                // Forzar valores positivos en los inputs
+                ['q1Value','q2Value'].forEach(id => {
+                    const el = document.getElementById(id);
+                    el.addEventListener('input', () => {
+                        if (el.value < 0) el.value = Math.abs(el.value);
+                    });
+                });
+                
+                // Zoom functionality
+                this.svg.addEventListener('wheel', (e) => this.handleZoom(e));
+                
+                // Mouse move for coordinate display
+                this.svg.addEventListener('mousemove', (e) => this.updateCoordinateDisplay(e));
+
+                // Control panel listeners with charge visualization update
+                ['q1Value', 'q1Units'].forEach(id => {
+ document.getElementById(id).addEventListener('change', () => this.updateCalculations());
+});
+['q2Value', 'q2Units'].forEach(id => {
+document.getElementById(id).addEventListener('change', () => this.updateCalculations());
+});
+
+// Forzar que q1Value y q2Value nunca queden negativos
+['q1Value','q2Value'].forEach(id => {
+const el = document.getElementById(id);
+el.addEventListener('input', () => {
+ if (el.value < 0) el.value = Math.abs(el.value);
+        });
+        });
+
+                // No hay polaridad para masas, por lo que no se necesitan oyentes de cambio de polaridad
+
+                // Coordinate input listeners
+                document.getElementById('updateQ1Position').addEventListener('click', () => this.updateChargeFromCoords('q1'));
+                document.getElementById('updateQ2Position').addEventListener('click', () => this.updateChargeFromCoords('q2'));
+                document.getElementById('updateTestPointPosition').addEventListener('click', () => this.updateTestPointFromCoords());
+
+                // Enhanced buttons
+                document.getElementById('clearAll').addEventListener('click', () => this.clearAll());
+                document.getElementById('autoPlace').addEventListener('click', () => this.autoPlaceCharges());
+                document.getElementById('resetZoom').addEventListener('click', () => this.resetZoom());
+
+                // Instructions modal
+                document.querySelector('[title="Ayuda"]').addEventListener('click', () => this.showInstructions());
+                document.getElementById('closeInstructions').addEventListener('click', () => this.hideInstructions());
+
+                // Enhanced calculations toggle
+                document.getElementById('toggleCalculations').addEventListener('click', () => this.toggleCalculations());
+            }
+
+            handleGridClick(e) {
+                if (this.isDragging) return;
+                
+                const coords = this.getCoordinatesFromEvent(e);
+                
+                if (this.currentStep === 'q1' && !this.charges.q1) {
+                    this.placeCharge('q1', coords.x, coords.y);
+                    this.currentStep = 'q2';
+                } else if (this.currentStep === 'q2' && !this.charges.q2) {
+                    this.placeCharge('q2', coords.x, coords.y);
+                    this.currentStep = 'testPoint';
+                } else if (this.currentStep === 'testPoint' && this.charges.q1 && this.charges.q2) {
+                    this.placeTestPoint(coords.x, coords.y);
+                    this.updateCalculations();
+                }
+            }
+
+            handleMouseDown(e) {
+                const target = e.target.closest('[id^="charge-"]');
+                if (target) {
+                    this.isDragging = true;
+                    this.dragTarget = target.id.split('-')[1]; // Extract charge ID
+                    const coords = this.getCoordinatesFromEvent(e);
+                    const charge = this.charges[this.dragTarget];
+                    this.dragOffset.x = coords.x - charge.x;
+                    this.dragOffset.y = coords.y - charge.y;
+                    this.svg.style.cursor = 'grabbing';
+                    e.preventDefault();
+                }
+            }
+
+            handleMouseMove(e) {
+                if (this.isDragging && this.dragTarget) {
+                    const coords = this.getCoordinatesFromEvent(e);
+                    const newX = coords.x - this.dragOffset.x;
+                    const newY = coords.y - this.dragOffset.y;
+                    
+                    // Update charge position
+                    this.charges[this.dragTarget] = { x: newX, y: newY };
+                    this.updateChargeVisual(this.dragTarget, newX, newY);
+                    this.updatePositionDisplay(this.dragTarget, newX, newY);
+                    this.updateCoordinateInputs(this.dragTarget, newX, newY);
+                    
+                    if (this.testPoint) {
+                        this.updateCalculations();
+                    }
+                } else {
+                    // Update cursor for draggable elements
+                    const target = e.target.closest('[id^="charge-"]');
+                    this.svg.style.cursor = target ? 'grab' : 'crosshair';
+                }
+                
+                this.updateCoordinateDisplay(e);
+            }
+
+            handleMouseUp(e) {
+                if (this.isDragging) {
+                    this.isDragging = false;
+                    this.dragTarget = null;
+                    this.svg.style.cursor = 'crosshair';
+                }
+            }
+
+            handleMouseLeave(e) {
+                this.handleMouseUp(e);
+                document.getElementById('coordinateDisplay').style.opacity = '0';
+            }
+
+            handleZoom(e) {
+                e.preventDefault();
+                
+                const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                const newZoom = Math.max(this.zoomMin, Math.min(this.zoomMax, this.zoomLevel + delta));
+                
+                if (newZoom !== this.zoomLevel) {
+                    this.zoomLevel = newZoom;
+                    this.updateZoom();
+                }
+            }
+
+            updateZoom() {
+    const bbox = this.svg.viewBox.baseVal;
+    const cx = bbox.width / 2;
+    const cy = bbox.height / 2;
+
+    const z = this.zoomLevel;
+
+    // Escalado centrado en el centro visual del SVG
+    const translateX = cx * (1 - z);
+    const translateY = cy * (1 - z);
+
+    this.zoomGroup.setAttribute('transform', `translate(${translateX}, ${translateY}) scale(${z})`);
+
+    // Actualizar porcentaje de zoom visible
+    document.getElementById('zoomLevel').textContent = `${Math.round(z * 100)}%`;
+
+    // Mostrar/ocultar cuadrícula fina según nivel de zoom
+    const fineGrid = this.svg.querySelector('rect[fill="url(#gridFine)"]');
+    if (fineGrid) fineGrid.setAttribute('opacity', z > 1.5 ? '1' : '0');
+}
+
+
+            resetZoom() {
+                this.zoomLevel = 1;
+                this.updateZoom();
+            
+            }
+
+            getCoordinatesFromEvent(e) {
+                const pt = this.svg.createSVGPoint();
+                pt.x = e.clientX;
+                pt.y = e.clientY;
+                const local = pt.matrixTransform(this.zoomGroup.getScreenCTM().inverse());
+                const x = (local.x - this.centerX) / this.scale;
+                const y = -(local.y - this.centerY) / this.scale;
+                return { x, y };
+            }
+
+            updateChargeFromCoords(chargeId) {
+                const xInput = document.getElementById(`${chargeId}CoordX`);
+                const yInput = document.getElementById(`${chargeId}CoordY`);
+                
+                const x = parseFloat(xInput.value);
+                const y = parseFloat(yInput.value);
+                
+                if (!isNaN(x) && !isNaN(y)) {
+                    this.placeCharge(chargeId, x, y);
+                    if (this.testPoint) {
+                        this.updateCalculations();
+        this.updateCalculations();
+                    }
+                }
+            }
+
+            updateTestPointFromCoords() {
+                const xInput = document.getElementById('testPointCoordX');
+                const yInput = document.getElementById('testPointCoordY');
+                
+                const x = parseFloat(xInput.value);
+                const y = parseFloat(yInput.value);
+                
+                if (!isNaN(x) && !isNaN(y)) {
+                    this.placeTestPoint(x, y);
+                    this.updateCalculations();
+        this.updateCalculations();
+                }
+            }
+
+            updateCoordinateInputs(chargeId, x, y) {
+                document.getElementById(`${chargeId}CoordX`).value = x.toFixed(1);
+                document.getElementById(`${chargeId}CoordY`).value = y.toFixed(1);
+            }
+
+            autoPlaceCharges() {
+                // Auto-place charges in a symmetric configuration
+                this.placeCharge('q1', -2, 1);
+                this.placeCharge('q2', 2, -1);
+                this.placeTestPoint(0, 0);
+                this.currentStep = 'testPoint';
+                this.updateCalculations();
+            }
+
+            placeCharge(chargeId, x, y) {
+                this.charges[chargeId] = { x, y };
+                
+                // Update position display
+                this.updatePositionDisplay(chargeId, x, y);
+                this.updateCoordinateInputs(chargeId, x, y);
+
+                // Visual representation
+                this.updateChargeVisual(chargeId, x, y);
+        this.updateCalculations();
+            }
+
+            placeTestPoint(x, y) {
+                this.testPoint = { x, y };
+                document.getElementById('testPointPosition').textContent = 
+                    `Posición: (${x.toFixed(1)}, ${y.toFixed(1)})`;
+                
+                // Update coordinate inputs
+                document.getElementById('testPointCoordX').value = x.toFixed(1);
+                document.getElementById('testPointCoordY').value = y.toFixed(1);
+                
+                this.updateTestPointVisual(x, y);
+        this.updateCalculations();
+            }
+
+            updatePositionDisplay(chargeId, x, y) {
+                document.getElementById(`${chargeId}Position`).textContent = 
+                    `Posición: (${x.toFixed(1)}, ${y.toFixed(1)})`;
+            }
+
+            updateChargeVisual(chargeId, x, y) {
+    const svgX = this.centerX + x * this.scale;
+    const svgY = this.centerY - y * this.scale;
+
+    const chargesGroup = document.getElementById('charges');
+    const existingCharge = document.getElementById(`charge-${chargeId}`);
+    if (existingCharge) existingCharge.remove();
+
+    // Color único para ambas masas
+    const color = '#E53935'; // Rojo intenso
+
+    const chargeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    chargeGroup.id = `charge-${chargeId}`;
+    chargeGroup.style.cursor = 'grab';
+
+    // Circunferencia
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', svgX);
+    circle.setAttribute('cy', svgY);
+    circle.setAttribute('r', 12 / this.zoomLevel);
+    circle.setAttribute('fill', color);
+    circle.setAttribute('stroke', '#ffffff');
+    circle.setAttribute('stroke-width', '2');
+    circle.setAttribute('class', 'transition-all hover:r-14');
+
+    // Etiqueta M₁ o M₂ (roja)
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', svgX);
+    label.setAttribute('y', svgY - 18);
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('fill', color);
+    label.setAttribute('font-size', 12 / this.zoomLevel);
+    label.setAttribute('font-weight', 'bold');
+    label.textContent = chargeId === 'q1' ? 'M₁' : 'M₂';
+
+    // Añadir elementos
+    chargeGroup.appendChild(circle);
+    chargeGroup.appendChild(label);
+    chargesGroup.appendChild(chargeGroup);
+}
+
+
+            updateTestPointVisual(x, y) {
+                const svgX = this.centerX + x * this.scale;
+                const svgY = this.centerY - y * this.scale;
+                
+                const testPointGroup = document.getElementById('testPoint');
+                testPointGroup.innerHTML = '';
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', svgX);
+                circle.setAttribute('cy', svgY);
+                circle.setAttribute('r', 6 / this.zoomLevel);
+                circle.setAttribute('fill', '#2563EB');
+                circle.setAttribute('stroke', '#ffffff');
+                circle.setAttribute('stroke-width', '2');
+
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', svgX);
+                label.setAttribute('y', svgY - 15);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('fill', '#2563EB');
+                label.setAttribute('font-size', 10 / this.zoomLevel);
+                label.setAttribute('font-weight', 'bold');
+                label.textContent = 'P';
+
+                testPointGroup.appendChild(circle);
+                testPointGroup.appendChild(label);
+            }
+
+            updateCalculations() {
+                if (!this.charges.q1 || !this.charges.q2 || !this.testPoint) return;
+
+                // Obtener las masas en kg
+                const m1 = this.getMassValue('q1');
+                const m2 = this.getMassValue('q2');
+
+                // Vectores de posición desde el punto de testeo hacia las masas
+                const r1 = {
+                    x: this.charges.q1.x - this.testPoint.x,
+                    y: this.charges.q1.y - this.testPoint.y
+                };
+                const r2 = {
+                    x: this.charges.q2.x - this.testPoint.x,
+                    y: this.charges.q2.y - this.testPoint.y
+                };
+
+                // Magnitudes (en mm)
+const r1Mag = Math.sqrt(r1.x * r1.x + r1.y * r1.y);
+const r2Mag = Math.sqrt(r2.x * r2.x + r2.y * r2.y);
+
+// Convertir a metros
+const r1Mag_m = r1Mag / 1000;
+const r2Mag_m = r2Mag / 1000;
+
+// Vectores unitarios apuntando hacia las masas
+const u1 = { x: r1.x / r1Mag, y: r1.y / r1Mag };
+const u2 = { x: r2.x / r2Mag, y: r2.y / r2Mag };
+
+
+// Potenciales gravitatorios (escalar)
+const V1 = -this.G * m1 / r1Mag_m;
+const V2 = -this.G * m2 / r2Mag_m;
+const Vtotal = V1 + V2;
+
+                const gTotal = { x: g1.x + g2.x, y: g1.y + g2.y };
+                const gTotalMag = Math.sqrt(gTotal.x * gTotal.x + gTotal.y * gTotal.y);
+
+                // Actualiza la interfaz con fórmulas KaTeX
+
+              // Modificación para mejorar el aspecto de la notación científica
+              function formatLatexScientific(value, digits = 2) {
+    if (value === 0) return `${value.toFixed(digits)}`;
+
+    const exponent = Math.floor(Math.log10(Math.abs(value)));
+    const mantissa = (value / Math.pow(10, exponent)).toFixed(digits);
+
+    if (exponent === 0) {
+        return `${mantissa}`;
+    }
+
+    return `${mantissa}\\cdot 10^{${exponent}}`;
+}
+
+              
+// Update UI con KaTeX renderizado en caliente
+    renderTex('r1Vector', `\\vec{r}_1=( ${r1.x.toFixed(2)},\\; ${r1.y.toFixed(2)} )\\,\\mathrm{mm}`);
+renderTex('r2Vector', `\\vec{r}_2=( ${r2.x.toFixed(2)},\\; ${r2.y.toFixed(2)} )\\,\\mathrm{mm}`);
+renderTex('r1Magnitude', `|\\vec{r}_1|=${r1Mag.toFixed(2)}\\,\\mathrm{mm}`);
+renderTex('r2Magnitude', `|\\vec{r}_2|=${r2Mag.toFixed(2)}\\,\\mathrm{mm}`);
+
+document.getElementById('espacioEntreBloques').innerHTML ='<hr style="margin: 12px 0; border: none; border-top: 1px solid #ddd;">';
+
+//renderTex('u1Vector', `\\hat{u}_1=( ${u1.x.toFixed(3)},\\; ${u1.y.toFixed(3)} )`);
+//renderTex('u2Vector', `\\hat{u}_2=( ${u2.x.toFixed(3)},\\; ${u2.y.toFixed(3)} )`);
+
+
+renderTex('g1Magnitude', `V_1 = ${formatLatexScientific(V1)}\,\mathrm{J/kg}`);
+renderTex('g2Magnitude', `V_2 = ${formatLatexScientific(V2)}\,\mathrm{J/kg}`);
+renderTex('g1Vector', `\text{Potencial total:}`);
+renderTex('g2Vector', `V = ${formatLatexScientific(Vtotal)}\,\mathrm{J/kg}`);
+
+
+
+
+            }
+//Se actualiza para que dibuje bien los vectores aunque sean extremadamente pequeños
+updateVectorVisuals(g1, g2, gTotal) {
+    const g = document.getElementById('vectors');
+    g.innerHTML = '';
+
+    const sx = this.centerX + this.testPoint.x * this.scale;
+    const sy = this.centerY - this.testPoint.y * this.scale;
+
+    // Paso 1: calcular magnitudes reales
+    const mag1 = Math.sqrt(g1.x ** 2 + g1.y ** 2);
+    const mag2 = Math.sqrt(g2.x ** 2 + g2.y ** 2);
+    const magT = Math.sqrt(gTotal.x ** 2 + gTotal.y ** 2);
+
+    // Paso 2: máxima magnitud
+    const maxMag = Math.max(mag1, mag2, magT);
+
+    if (maxMag === 0 || isNaN(maxMag)) return; // nada que dibujar
+
+    // Paso 3: escala lineal para que el mayor mida 100 px
+    const maxPixels = 100;
+    const scaleFactor = maxPixels / maxMag;
+
+    // Función interna para dibujar
+    const drawScaledVector = (vec, color, label) => {
+        const dx = vec.x * scaleFactor;
+        const dy = vec.y * scaleFactor;
+        this.drawVector(g, sx, sy, dx, -dy, color, label, this.zoomLevel);
+    };
+
+    drawScaledVector(g1, '#F97316', 'g₁');
+    drawScaledVector(g2, '#F97316', 'g₂');
+    drawScaledVector(gTotal, '#16A34A', 'gₜ');
+}
+
+
+
+//Se actualiza para que dibuje bien los vectores
+drawVector(group, x0, y0, dx, dy, color = '#333', label = '', zoomLevel = 1) {
+    const NS = 'http://www.w3.org/2000/svg';
+    const len = Math.sqrt(dx * dx + dy * dy);
+
+    const arrowOffset = 10;
+    const scale = (len - arrowOffset) / len;
+    const x1 = x0 + dx * scale;
+    const y1 = y0 + dy * scale;
+
+    // Seleccionar el marcador correcto según el color
+    let markerUrl;
+    if (color === '#F97316') { // Naranja
+        markerUrl = 'url(#arrowhead-orange)';
+    } else if (color === '#16A34A') { // Verde
+        markerUrl = 'url(#arrowhead-green)';
+    } else {
+        markerUrl = 'url(#arrowhead-orange)'; // Por defecto naranja
+    }
+
+    const line = document.createElementNS(NS, 'line');
+    line.setAttribute('x1', x0);
+    line.setAttribute('y1', y0);
+    line.setAttribute('x2', x1);
+    line.setAttribute('y2', y1);
+    line.setAttribute('stroke', color);
+    line.setAttribute('stroke-width', 2);
+    line.setAttribute('stroke-linecap', 'round');
+    line.setAttribute('marker-end', markerUrl);
+    group.appendChild(line);
+
+    if (label) {
+    // Calcular la posición base (60% del vector)
+    const baseX = x0 + dx * 0.6;
+    const baseY = y0 + dy * 0.6;
+    
+    // Calcular vector perpendicular para desplazar la etiqueta
+    const perpX = -dy / len; // Vector perpendicular normalizado
+    const perpY = dx / len;
+    
+    // Desplazar la etiqueta hacia arriba y hacia afuera del vector
+    const offsetDistance = 15 / zoomLevel; // Distancia de separación
+    const tx = baseX + perpX * offsetDistance;
+    const ty = baseY + perpY * offsetDistance - 3 / zoomLevel;
+    
+    const text = document.createElementNS(NS, 'text');
+    text.setAttribute('x', tx);
+    text.setAttribute('y', ty);
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', `${12 / zoomLevel}`);
+    text.setAttribute('font-weight', 'bold');
+    text.setAttribute('text-anchor', 'middle');
+    text.textContent = label;
+    group.appendChild(text);
+}
+}
+
+
+           getMassValue(chargeId) {
+    // El usuario introduce el valor de la masa (siempre positivo)
+    const raw = parseFloat(document.getElementById(`${chargeId}Value`).value);
+    const valueAbs = isNaN(raw) ? 0 : Math.abs(raw);
+    const unit = document.getElementById(`${chargeId}Units`).value; // 'μg' | 'mg' | 'g' | 'kg'
+    let mult;
+    if (unit === 'μg') {
+        mult = 1e-9; // microgramos a kg
+    } else if (unit === 'mg') {
+        mult = 1e-6; // miligramos a kg
+    } else if (unit === 'g') {
+        mult = 1e-3; // gramos a kg
+    } else {
+        mult = 1;    // kilogramos ya están en kg
+    }
+    // masa en kg
+    return valueAbs * mult;
+}
+
+            updateCoordinateDisplay(e) {
+                const coords = this.getCoordinatesFromEvent(e);
+                document.getElementById('currentCoords').textContent = `X: ${coords.x.toFixed(1)}, Y: ${coords.y.toFixed(1)}`;
+                document.getElementById('coordinateDisplay').style.opacity = '1';
+            }
+
+            clearAll() {
+                this.charges = { q1: null, q2: null };
+                this.testPoint = null;
+                this.currentStep = 'q1';
+                
+                document.getElementById('charges').innerHTML = '';
+                document.getElementById('vectors').innerHTML = '';
+                document.getElementById('testPoint').innerHTML = '';
+                
+                // Clear coordinate inputs
+                ['q1CoordX', 'q1CoordY', 'q2CoordX', 'q2CoordY', 'testPointCoordX', 'testPointCoordY'].forEach(id => {
+                    document.getElementById(id).value = '';
+                });
+                
+                document.getElementById('q1Position').textContent = 'Posición: No colocada';
+                document.getElementById('q2Position').textContent = 'Posición: No colocada';
+                document.getElementById('testPointPosition').textContent = 'Posición: No seleccionado';
+                
+                // Restablecer los resultados de cálculo
+                ['r1Vector', 'r2Vector', 'r1Magnitude', 'r2Magnitude', 'u1Vector', 'u2Vector',
+                 'g1Magnitude', 'g2Magnitude', 'g1Vector', 'g2Vector', 'gTotalVector', 'gTotalMagnitude', 'gTotalAngle'].forEach(id => {
+                    document.getElementById(id).textContent = 'No calculado';
+                });
+            }
+
+            showInstructions() {
+                document.getElementById('instructionsModal').classList.remove('hidden');
+            }
+
+            hideInstructions() {
+                document.getElementById('instructionsModal').classList.add('hidden');
+            }
+
+            toggleCalculations() {
+                const content = document.getElementById('calculationsContent');
+                const button = document.getElementById('toggleCalculations');
+                const icon = button.querySelector('i');
+                const text = button.querySelector('span');
+                
+                if (content.style.display === 'none') {
+                    content.style.display = 'block';
+                    icon.className = 'fas fa-chevron-up';
+                    if (text) text.textContent = 'Contraer';
+                } else {
+                    content.style.display = 'none';
+                    icon.className = 'fas fa-chevron-down';
+                    if (text) text.textContent = 'Expandir';
+                }
+            }
+        }
+
+        // Initialize the enhanced calculator when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+    new GravitationalFieldCalculator();
+    document.getElementById('calculationsContent').style.display = 'block';
+});
+      
+      // Para mostrar el valor de las masas con su unidad
+      // Función para actualizar el texto debajo de la masa
+      // Función específica para actualizar M1
+function updateQ1Display() {
+    const valueInput = document.getElementById('q1Value');
+    const unitsSelect = document.getElementById('q1Units');
+    // Leer valores actuales
+    let value = parseFloat(valueInput.value).toFixed(2);
+    const unit = unitsSelect.value;
+    // Mostrar texto formateado en pantalla
+    const displayElement = document.getElementById('q1DisplayValue');
+    displayElement.textContent = `Masa: ${value} ${unit}`;
+}
+
+// Llamar automáticamente la función cada vez que se modifique algo
+document.getElementById('q1Value').addEventListener('input', updateQ1Display);
+document.getElementById('q1Units').addEventListener('change', updateQ1Display);
+// Sin polaridad, no es necesario escuchar cambios de polaridad
+
+// Ejecutar al cargar la página
+document.addEventListener('DOMContentLoaded', updateQ2Display);
+      
+// Función específica para actualizar M2
+function updateQ2Display() {
+    const valueInput = document.getElementById('q2Value');
+    const unitsSelect = document.getElementById('q2Units');
+    let value = parseFloat(valueInput.value).toFixed(2);
+    const unit = unitsSelect.value;
+    const displayElement = document.getElementById('q2DisplayValue');
+    displayElement.textContent = `Masa: ${value} ${unit}`;
+}
+
+// Eventos para la interacción en tiempo real para M2
+document.getElementById('q2Value').addEventListener('input', updateQ2Display);
+document.getElementById('q2Units').addEventListener('change', updateQ2Display);
+
+// Inicializar al cargar la página para M2
+document.addEventListener('DOMContentLoaded', updateQ2Display);
+// Validar valor de masa M1
+document.getElementById('q1Value').addEventListener('input', (e) => {
+    const value = parseFloat(e.target.value);
+    if (value <= 0) {
+        e.target.setCustomValidity("El valor de la masa no puede ser cero.");
+        e.target.reportValidity(); // muestra el mensaje
+    } else {
+        e.target.setCustomValidity("");
+    }
+});
+
+// Validar valor de masa M2
+      document.getElementById('q2Value').addEventListener('input', (e) => {
+    const value = parseFloat(e.target.value);
+    if (value <= 0) {
+        e.target.setCustomValidity("El valor de la masa no puede ser cero.");
+        e.target.reportValidity();
+    } else {
+        e.target.setCustomValidity("");
+    }
+});
+
+    </script>
+    <!-- Eliminado: script propio de Rocket (no existe en GitHub Pages) -->
+</body>
+</html>
+
