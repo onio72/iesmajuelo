@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Cambiamos el título para reflejar la nueva calculadora de potencial -->
   <title>Calculadora de Potencial Gravitatorio – Espacio de Simulación</title>
-  
+
   <!-- Estilos y scripts principales -->
   <link rel="stylesheet" href="../css/main.css" />
   <link rel="icon" href="../public/favicon.ico" />
@@ -37,6 +38,7 @@
                             <!-- Icono de peso para simbolizar la gravedad -->
                             <i class="fas fa-weight-hanging text-white text-sm"></i>
                         </div>
+                        <!-- Cambiamos el encabezado principal para la calculadora de potencial -->
                         <h1 class="text-xl font-semibold text-text-primary">Calculadora de Potencial Gravitatorio</h1>
                     </div>
                 </div>
@@ -284,7 +286,8 @@
             <div class="card">
                 <h3 class="text-md font-semibold text-text-primary mb-3 flex items-center">
                     <div class="w-3 h-3 bg-primary rounded-full mr-2"></div>
-                    Punto de Testeo del Campo
+                    <!-- Ajustamos el nombre del punto de prueba para potencial -->
+                    Punto de Testeo del Potencial
                 </h3>
                 <div class="space-y-3">
                     <div class="grid grid-cols-2 gap-2">
@@ -333,53 +336,53 @@
                 </div>
                 
                 <div id="calculationsContent" class="overflow-y-auto">
+                    <!-- Ajustamos la cuadrícula para mostrar cuatro columnas en pantallas grandes -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <!-- Columna combinada: posición + unitarios -->
-<div class="bg-secondary-50 rounded-lg p-4 space-y-6">
-  <!-- Vectores de Posición -->
-  <div>
-    <h3 class="text-sm font-semibold text-text-primary mb-3 flex items-center">
-      <i class="fas fa-vector-square text-blue-600 mr-2"></i>
-      Vectores de Posición
-    </h3>
-    <div class="space-y-2 text-sm font-mono">
-      <div><span id="r1Vector">No calculado</span></div>
-      <div><span id="r2Vector">No calculado</span></div>
-      <div class="pt-2 border-t border-secondary-200"><span id="r1Magnitude">No calculado</span></div>
-      <div><span id="r2Magnitude">No calculado</span></div>
-    </div>
-  </div>
-
-</div>
-
-
-                        <!-- Campos Gravitatorios -->
+                        <!-- Primera columna: vectores de posición -->
                         <div class="bg-secondary-50 rounded-lg p-4">
                             <h3 class="text-sm font-semibold text-text-primary mb-3 flex items-center">
-                                <i class="fas fa-weight-hanging text-warning mr-2"></i>
-                                Potencial gravitatorio
+                                <i class="fas fa-vector-square text-blue-600 mr-2"></i>
+                                Vectores de Posición
                             </h3>
                             <div class="space-y-2 text-sm font-mono">
-                                <div><span id="g1Magnitude">No calculado</span></div>
-                                <div><span id="g2Magnitude">No calculado</span></div>
-                                <div class="pt-2 border-t border-secondary-200"><span id="g1Vector">No calculado</span></div>
-                                <div><span id="g2Vector">No calculado</span></div>
+                                <div><span id="r1Vector">No calculado</span></div>
+                                <div><span id="r2Vector">No calculado</span></div>
+                            </div>
+                        </div>
+                        <!-- Segunda columna: módulos de los vectores -->
+                        <div class="bg-secondary-50 rounded-lg p-4">
+                            <h3 class="text-sm font-semibold text-text-primary mb-3 flex items-center">
+                                <i class="fas fa-ruler text-purple-600 mr-2"></i>
+                                Módulos de los vectores
+                            </h3>
+                            <div class="space-y-2 text-sm font-mono">
+                                <div><span id="r1Magnitude">No calculado</span></div>
+                                <div><span id="r2Magnitude">No calculado</span></div>
                             </div>
                         </div>
 
-                        <!-- Potencial total -->
+
+                        <!-- Tercera columna: potenciales individuales -->
+                        <div class="bg-secondary-50 rounded-lg p-4">
+                            <h3 class="text-sm font-semibold text-text-primary mb-3 flex items-center">
+                                <i class="fas fa-weight-hanging text-warning mr-2"></i>
+                                Potenciales individuales
+                            </h3>
+                            <div class="space-y-2 text-sm font-mono">
+                                <div><span id="V1Value">No calculado</span></div>
+                                <div><span id="V2Value">No calculado</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Cuarta columna: potencial total -->
                         <div class="bg-secondary-50 rounded-lg p-4">
                             <h3 class="text-sm font-semibold text-text-primary mb-3 flex items-center">
                                 <i class="fas fa-plus text-primary mr-2"></i>
                                 Potencial total
                             </h3>
                             <div class="space-y-2 text-sm font-mono">
-                                <div><span id="gTotalVector">No calculado</span></div>
-                                <div><span id="gTotalMagnitude">No calculado</span></div>
-                                <div><span id="gTotalAngle">No calculado</span></div>
+                                <div><span id="VTotalValue">No calculado</span></div>
                             </div>
-                            
-
                         </div>
                     </div>
                 </div>
@@ -407,8 +410,8 @@
                         <p>Usa la rueda del ratón para hacer zoom. Los ejes están centrados con numeración completa hasta los bordes visibles.</p>
                     </div>
                     <div>
-                        <h3 class="font-semibold text-text-primary mb-2">3. Cálculo del Campo</h3>
-                        <p>Coloca el punto de cálculo haciendo clic o editando sus coordenadas. Los resultados aparecen en el panel separado de cálculos.</p>
+                        <h3 class="font-semibold text-text-primary mb-2">3. Cálculo del Potencial</h3>
+                        <p>Coloca el punto de cálculo haciendo clic o editando sus coordenadas. Los resultados del potencial gravitatorio aparecen en el panel separado de cálculos.</p>
                     </div>
                     <div>
                         <h3 class="font-semibold text-text-primary mb-2">4. Interfaz Mejorada</h3>
@@ -441,6 +444,7 @@
                 
                 // Zoom and drag properties
                 this.zoomLevel = 1;
+                // Ajustamos el rango de zoom a 80 %–140 %
                 this.zoomMin = 0.8;
                 this.zoomMax = 1.4;
                 this.isDragging = false;
@@ -794,53 +798,35 @@ const r2Mag = Math.sqrt(r2.x * r2.x + r2.y * r2.y);
 const r1Mag_m = r1Mag / 1000;
 const r2Mag_m = r2Mag / 1000;
 
-// Vectores unitarios apuntando hacia las masas
-const u1 = { x: r1.x / r1Mag, y: r1.y / r1Mag };
-const u2 = { x: r2.x / r2Mag, y: r2.y / r2Mag };
+        // Calculamos los potenciales gravitatorios (J/kg) en lugar de los campos
+        const V1 = -this.G * m1 / r1Mag_m;
+        const V2 = -this.G * m2 / r2Mag_m;
+        const VTotal = V1 + V2;
 
+        // Función para formatear valores en notación científica
+        function formatLatexScientific(value, digits = 2) {
+            if (value === 0) return `${value.toFixed(digits)}`;
+            const exponent = Math.floor(Math.log10(Math.abs(value)));
+            const mantissa = (value / Math.pow(10, exponent)).toFixed(digits);
+            if (exponent === 0) {
+                return `${mantissa}`;
+            }
+            return `${mantissa}\\cdot 10^{${exponent}}`;
+        }
 
-// Potenciales gravitatorios (escalar)
-const V1 = -this.G * m1 / r1Mag_m;
-const V2 = -this.G * m2 / r2Mag_m;
-const Vtotal = V1 + V2;
+        // Actualización de los vectores de posición y sus magnitudes
+        renderTex('r1Vector', `\\vec{r}_1=( ${r1.x.toFixed(2)},\\; ${r1.y.toFixed(2)} )\\,\\mathrm{mm}`);
+        renderTex('r2Vector', `\\vec{r}_2=( ${r2.x.toFixed(2)},\\; ${r2.y.toFixed(2)} )\\,\\mathrm{mm}`);
+        renderTex('r1Magnitude', `|\\vec{r}_1|=${r1Mag.toFixed(2)}\\,\\mathrm{mm}`);
+        renderTex('r2Magnitude', `|\\vec{r}_2|=${r2Mag.toFixed(2)}\\,\\mathrm{mm}`);
 
-                const gTotal = { x: g1.x + g2.x, y: g1.y + g2.y };
-                const gTotalMag = Math.sqrt(gTotal.x * gTotal.x + gTotal.y * gTotal.y);
+        // Actualización de los potenciales individuales y total
+        renderTex('V1Value', `V_1=${formatLatexScientific(V1)}\\,\\mathrm{J/kg}`);
+        renderTex('V2Value', `V_2=${formatLatexScientific(V2)}\\,\\mathrm{J/kg}`);
+        renderTex('VTotalValue', `V_{\\mathrm{total}}=${formatLatexScientific(VTotal)}\\,\\mathrm{J/kg}`);
 
-                // Actualiza la interfaz con fórmulas KaTeX
-
-              // Modificación para mejorar el aspecto de la notación científica
-              function formatLatexScientific(value, digits = 2) {
-    if (value === 0) return `${value.toFixed(digits)}`;
-
-    const exponent = Math.floor(Math.log10(Math.abs(value)));
-    const mantissa = (value / Math.pow(10, exponent)).toFixed(digits);
-
-    if (exponent === 0) {
-        return `${mantissa}`;
-    }
-
-    return `${mantissa}\\cdot 10^{${exponent}}`;
-}
-
-              
-// Update UI con KaTeX renderizado en caliente
-    renderTex('r1Vector', `\\vec{r}_1=( ${r1.x.toFixed(2)},\\; ${r1.y.toFixed(2)} )\\,\\mathrm{mm}`);
-renderTex('r2Vector', `\\vec{r}_2=( ${r2.x.toFixed(2)},\\; ${r2.y.toFixed(2)} )\\,\\mathrm{mm}`);
-renderTex('r1Magnitude', `|\\vec{r}_1|=${r1Mag.toFixed(2)}\\,\\mathrm{mm}`);
-renderTex('r2Magnitude', `|\\vec{r}_2|=${r2Mag.toFixed(2)}\\,\\mathrm{mm}`);
-
-document.getElementById('espacioEntreBloques').innerHTML ='<hr style="margin: 12px 0; border: none; border-top: 1px solid #ddd;">';
-
-//renderTex('u1Vector', `\\hat{u}_1=( ${u1.x.toFixed(3)},\\; ${u1.y.toFixed(3)} )`);
-//renderTex('u2Vector', `\\hat{u}_2=( ${u2.x.toFixed(3)},\\; ${u2.y.toFixed(3)} )`);
-
-
-renderTex('g1Magnitude', `V_1 = ${formatLatexScientific(V1)}\,\mathrm{J/kg}`);
-renderTex('g2Magnitude', `V_2 = ${formatLatexScientific(V2)}\,\mathrm{J/kg}`);
-renderTex('g1Vector', `\text{Potencial total:}`);
-renderTex('g2Vector', `V = ${formatLatexScientific(Vtotal)}\,\mathrm{J/kg}`);
-
+        // Limpiar los vectores en el SVG ya que no se dibujan campos
+        document.getElementById('vectors').innerHTML = '';
 
 
 
@@ -982,10 +968,10 @@ drawVector(group, x0, y0, dx, dy, color = '#333', label = '', zoomLevel = 1) {
                 document.getElementById('q2Position').textContent = 'Posición: No colocada';
                 document.getElementById('testPointPosition').textContent = 'Posición: No seleccionado';
                 
-                // Restablecer los resultados de cálculo
-                ['r1Vector', 'r2Vector', 'r1Magnitude', 'r2Magnitude', 'u1Vector', 'u2Vector',
-                 'g1Magnitude', 'g2Magnitude', 'g1Vector', 'g2Vector', 'gTotalVector', 'gTotalMagnitude', 'gTotalAngle'].forEach(id => {
-                    document.getElementById(id).textContent = 'No calculado';
+                // Restablecer los resultados de cálculo para vectores y potenciales
+                ['r1Vector', 'r2Vector', 'r1Magnitude', 'r2Magnitude', 'V1Value', 'V2Value', 'VTotalValue'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = 'No calculado';
                 });
             }
 
@@ -1017,9 +1003,8 @@ drawVector(group, x0, y0, dx, dy, color = '#333', label = '', zoomLevel = 1) {
 
         // Initialize the enhanced calculator when the page loads
         document.addEventListener('DOMContentLoaded', () => {
-    new GravitationalFieldCalculator();
-    document.getElementById('calculationsContent').style.display = 'block';
-});
+            new GravitationalFieldCalculator();
+        });
       
       // Para mostrar el valor de las masas con su unidad
       // Función para actualizar el texto debajo de la masa
