@@ -303,21 +303,41 @@
                             </select>
                         </div>
                     </div>
+                    <!-- Campos de coordenadas iniciales de M₃ -->
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-sm font-medium text-text-secondary mb-1">Coordenadas</label>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Coord. inicial X</label>
                             <input type="number" id="q3CoordX" class="coordinate-input" placeholder="x" />
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-text-secondary mb-1 invisible">.</label>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Coord. inicial Y</label>
                             <input type="number" id="q3CoordY" class="coordinate-input" placeholder="y" />
                         </div>
                     </div>
-                    <button id="updateQ3Position" class="btn-secondary w-full text-xs">
+                    <!-- Botón para actualizar la posición inicial -->
+                    <button id="updateQ3InitialPosition" class="btn-secondary w-full text-xs mt-1">
                         <i class="fas fa-map-marker-alt mr-1"></i>
-                        Actualizar Posición
+                        Actualizar posición inicial
                     </button>
-                    <div class="text-base text-secondary-600">
+
+                    <!-- Campos de coordenadas finales de M₃ -->
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Coord. final X</label>
+                            <input type="number" id="q3FinalCoordX" class="coordinate-input" placeholder="x" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-secondary mb-1">Coord. final Y</label>
+                            <input type="number" id="q3FinalCoordY" class="coordinate-input" placeholder="y" />
+                        </div>
+                    </div>
+                    <!-- Botón para actualizar la posición final -->
+                    <button id="updateQ3FinalPosition" class="btn-secondary w-full text-xs mt-1">
+                        <i class="fas fa-map-marker-alt mr-1"></i>
+                        Actualizar posición final
+                    </button>
+
+                    <div class="text-base text-secondary-600 mt-2">
                         <span id="q3InitialPosition">Posición inicial: No colocada</span>
                     </div>
                     <div class="text-base text-secondary-600 mt-1">
@@ -465,7 +485,13 @@
                             </h3>
                             <div class="space-y-2 text-sm font-mono">
                                 <div><span id="workFormula">W = U_{3i} - U_{3f}</span></div>
-                                <div><span id="workValue">No calculado</span></div>
+                                <div class="flex items-center space-x-2">
+                                    <span id="workValue">No calculado</span>
+                                    <!-- Botón para mostrar información adicional sobre el trabajo -->
+                                    <button id="toggleWorkInfo" class="btn-secondary text-xs px-2 py-1">+Info</button>
+                                </div>
+                                <!-- Texto informativo sobre el signo del trabajo -->
+                                <div id="workInfoText" class="mt-2 text-xs text-secondary-600 hidden"></div>
                             </div>
                         </div>
                     </div>
@@ -592,7 +618,10 @@ el.addEventListener('input', () => {
                 // Coordinate input listeners
                 document.getElementById('updateQ1Position').addEventListener('click', () => this.updateChargeFromCoords('q1'));
                 document.getElementById('updateQ2Position').addEventListener('click', () => this.updateChargeFromCoords('q2'));
-                document.getElementById('updateQ3Position').addEventListener('click', () => this.updateChargeFromCoords('q3'));
+                // Posición inicial de M₃ se actualiza con este botón
+                document.getElementById('updateQ3InitialPosition').addEventListener('click', () => this.updateChargeFromCoords('q3'));
+                // Posición final de M₃ se actualiza con este botón
+                document.getElementById('updateQ3FinalPosition').addEventListener('click', () => this.updateFinalPositionFromCoords());
 
                 // Enhanced buttons
                 document.getElementById('clearAll').addEventListener('click', () => this.clearAll());
@@ -605,6 +634,12 @@ el.addEventListener('input', () => {
 
                 // Enhanced calculations toggle
                 document.getElementById('toggleCalculations').addEventListener('click', () => this.toggleCalculations());
+
+                // Botón para mostrar/ocultar explicación del trabajo
+                const toggleInfoBtn = document.getElementById('toggleWorkInfo');
+                if (toggleInfoBtn) {
+                    toggleInfoBtn.addEventListener('click', () => this.toggleWorkInfo());
+                }
             }
 
             handleGridClick(e) {
@@ -784,6 +819,11 @@ el.addEventListener('input', () => {
                 this.placeCharge('q2', 2, -1);
                 this.placeCharge('q3', 0, 0);
                 this.currentStep = 'q3';
+                // Limpiar campos de coordenadas finales de M₃
+                const xFinal = document.getElementById('q3FinalCoordX');
+                const yFinal = document.getElementById('q3FinalCoordY');
+                if (xFinal) xFinal.value = '';
+                if (yFinal) yFinal.value = '';
                 this.updateWorkCalculations();
             }
 
@@ -1010,12 +1050,58 @@ el.addEventListener('input', () => {
                 if (UTotalInitial !== null && UTotalFinal !== null) {
                     const work = UTotalInitial - UTotalFinal;
                     renderTex('workValue', `${formatLatexScientific(work)}\\,\\mathrm{J}`);
+                    // Actualizar la explicación del trabajo según su signo
+                    const infoEl = document.getElementById('workInfoText');
+                    if (infoEl) {
+                        let message = '';
+                        const absW = Math.abs(work);
+                        if (absW < 1e-40) {
+                            message = 'No se realiza trabajo en el desplazamiento porque la energía potencial no cambia; las posiciones inicial y final se encuentran en la misma superficie equipotencial.';
+                        } else if (work > 0) {
+                            message = 'El trabajo es positivo, lo que indica que el sistema gravitatorio libera energía al mover M₃ desde la posición inicial hasta la posición final (la energía potencial disminuye).';
+                        } else {
+                            message = 'El trabajo es negativo, lo que indica que se debe suministrar energía externa para mover M₃ hasta la posición final (la energía potencial aumenta).';
+                        }
+                        infoEl.textContent = message;
+                    }
                 } else {
                     document.getElementById('workValue').textContent = 'No calculado';
+                    const infoEl = document.getElementById('workInfoText');
+                    if (infoEl) infoEl.textContent = '';
                 }
 
                 // No dibujamos vectores de campo
                 document.getElementById('vectors').innerHTML = '';
+            }
+
+            // Actualiza la posición final de M₃ a partir de los campos de coordenadas finales ingresados manualmente
+            updateFinalPositionFromCoords() {
+                const xInput = document.getElementById('q3FinalCoordX');
+                const yInput = document.getElementById('q3FinalCoordY');
+                const x = parseFloat(xInput ? xInput.value : NaN);
+                const y = parseFloat(yInput ? yInput.value : NaN);
+                if (isNaN(x) || isNaN(y)) return;
+                // Asegurarse de que M₃ (posición inicial) exista
+                if (!this.charges.q3) return;
+                // Evitar que la posición final coincida con M₁ o M₂
+                const coincidesWithM1 = this.charges.q1 && Math.abs(x - this.charges.q1.x) < 1e-6 && Math.abs(y - this.charges.q1.y) < 1e-6;
+                const coincidesWithM2 = this.charges.q2 && Math.abs(x - this.charges.q2.x) < 1e-6 && Math.abs(y - this.charges.q2.y) < 1e-6;
+                if (coincidesWithM1 || coincidesWithM2) return;
+                // Actualizar la posición de M₃ en el SVG para representar la posición final
+                this.charges.q3 = { x, y };
+                this.finalPosition = { x, y };
+                // Actualizar visual y entradas de coordenadas iniciales para mantener consistencia
+                this.updateChargeVisual('q3', x, y);
+                this.updateCoordinateInputs('q3', x, y);
+                this.updateFinalPositionDisplay(x, y);
+                this.updateWorkCalculations();
+            }
+
+            // Alternar la visibilidad de la información sobre el signo del trabajo
+            toggleWorkInfo() {
+                const infoEl = document.getElementById('workInfoText');
+                if (!infoEl) return;
+                infoEl.classList.toggle('hidden');
             }
 
             updateCalculations() {
@@ -1246,7 +1332,7 @@ drawVector(group, x0, y0, dx, dy, color = '#333', label = '', zoomLevel = 1) {
                 if (tpGroup) tpGroup.innerHTML = '';
 
                 // Limpiar inputs de coordenadas
-                ['q1CoordX', 'q1CoordY', 'q2CoordX', 'q2CoordY', 'q3CoordX', 'q3CoordY'].forEach(id => {
+                ['q1CoordX', 'q1CoordY', 'q2CoordX', 'q2CoordY', 'q3CoordX', 'q3CoordY', 'q3FinalCoordX', 'q3FinalCoordY'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.value = '';
                 });
