@@ -598,9 +598,18 @@
                 // Mouse move for coordinate display
                 this.svg.addEventListener('mousemove', (e) => this.updateCoordinateDisplay(e));
 
-                // Control panel listeners with charge visualization update
-                ['q1Value','q1Units','q2Value','q2Units','q3Value','q3Units'].forEach(id => {
-                    document.getElementById(id).addEventListener('change', () => this.updateCalculations());
+                // Control panel listeners: actualizar valores y polaridades para recálculo del trabajo
+                ['q1Value','q1Units','q1Polarity','q2Value','q2Units','q2Polarity','q3Value','q3Units','q3Polarity'].forEach(id => {
+                    document.getElementById(id).addEventListener('change', () => {
+                        // Si cambia la polaridad, actualizamos la representación visual de la carga correspondiente
+                        if (id.endsWith('Polarity')) {
+                            const cid = id.slice(0,2);
+                            if (this.charges[cid]) {
+                                this.updateChargeVisual(cid, this.charges[cid].x, this.charges[cid].y);
+                            }
+                        }
+                        this.updateWorkCalculations();
+                    });
                 });
 
                 // Forzar que q1Value, q2Value y q3Value nunca queden negativos
@@ -611,32 +620,26 @@ el.addEventListener('input', () => {
         });
         });
 
-                // Add polarity change listeners to update charge visualization
-                document.getElementById('q1Polarity').addEventListener('change', () => {
-                    if (this.charges.q1) {
-                        this.updateChargeVisual('q1', this.charges.q1.x, this.charges.q1.y);
-                    }
-                    this.updateCalculations();
-                });
-                document.getElementById('q2Polarity').addEventListener('change', () => {
-                    if (this.charges.q2) {
-                        this.updateChargeVisual('q2', this.charges.q2.x, this.charges.q2.y);
-                    }
-                    this.updateCalculations();
-                });
-                document.getElementById('q3Polarity').addEventListener('change', () => {
-                    if (this.charges.q3) {
-                        this.updateChargeVisual('q3', this.charges.q3.x, this.charges.q3.y);
-                    }
-                    this.updateCalculations();
-                });
+                // Los cambios de polaridad se gestionan en el listener general de cambio anterior
 
                 // Coordinate input listeners
-                document.getElementById('updateQ1Position').addEventListener('click', () => this.updateChargeFromCoords('q1'));
-                document.getElementById('updateQ2Position').addEventListener('click', () => this.updateChargeFromCoords('q2'));
+                document.getElementById('updateQ1Position').addEventListener('click', () => {
+                    this.updateChargeFromCoords('q1');
+                    this.updateWorkCalculations();
+                });
+                document.getElementById('updateQ2Position').addEventListener('click', () => {
+                    this.updateChargeFromCoords('q2');
+                    this.updateWorkCalculations();
+                });
                 // Manejamos posiciones inicial y final de Q₃ por separado
-                document.getElementById('updateQ3InitialPosition').addEventListener('click', () => this.updateQ3InitialFromCoords());
-                document.getElementById('updateQ3FinalPosition').addEventListener('click', () => this.updateQ3FinalFromCoords());
+                document.getElementById('updateQ3InitialPosition').addEventListener('click', () => {
+                    this.updateQ3InitialFromCoords();
+                    this.updateWorkCalculations();
+                });
+                document.getElementById('updateQ3FinalPosition').addEventListener('click', () => {
+                    this.updateQ3FinalFromCoords();
+                    this.updateWorkCalculations();
+                });
 
                 // Enhanced buttons
                 document.getElementById('clearAll').addEventListener('click', () => this.clearAll());
@@ -676,7 +679,7 @@ el.addEventListener('input', () => {
                     // Colocamos la tercera carga en su posición inicial
                     this.placeCharge('q3', coords.x, coords.y, true);
                     this.currentStep = 'done';
-                    this.updateCalculations();
+                    this.updateWorkCalculations();
                 }
             }
 
@@ -701,14 +704,20 @@ el.addEventListener('input', () => {
                     const newY = coords.y - this.dragOffset.y;
                     
                     // Update charge position
-                    this.charges[this.dragTarget] = { x: newX, y: newY };
+                    if (this.dragTarget === 'q3' && this.charges.q3) {
+                        // Mantener la propiedad 'initial' al actualizar la posición final
+                        this.charges.q3.x = newX;
+                        this.charges.q3.y = newY;
+                    } else {
+                        this.charges[this.dragTarget] = { x: newX, y: newY };
+                    }
                     this.updateChargeVisual(this.dragTarget, newX, newY);
                     this.updatePositionDisplay(this.dragTarget, newX, newY);
                     this.updateCoordinateInputs(this.dragTarget, newX, newY);
                     
-                    // Recalcular únicamente cuando las tres cargas estén definidas
-                    if (this.charges.q1 && this.charges.q2 && this.charges.q3) {
-                        this.updateCalculations();
+                    // Recalcular en tiempo real solo si se arrastran Q₁ o Q₂ y Q₃ está definida
+                    if ((this.dragTarget === 'q1' || this.dragTarget === 'q2') && this.charges.q3 && this.charges.q1 && this.charges.q2) {
+                        this.updateWorkCalculations();
                     }
                 } else {
                     // Update cursor for draggable elements
@@ -731,7 +740,7 @@ el.addEventListener('input', () => {
                     // Si las tres cargas están definidas, recalculamos para actualizar
                     // las energías potenciales en la posición final y el trabajo.
                     if (this.charges.q1 && this.charges.q2 && this.charges.q3) {
-                        this.updateCalculations();
+                        this.updateWorkCalculations();
                     }
                 }
             }
@@ -800,9 +809,9 @@ el.addEventListener('input', () => {
                 
                 if (!isNaN(x) && !isNaN(y)) {
                     this.placeCharge(chargeId, x, y);
-                    // Si todas las cargas están colocadas, actualiza los cálculos
+                    // Si todas las cargas están colocadas, actualiza los cálculos de trabajo
                     if (this.charges.q1 && this.charges.q2 && this.charges.q3) {
-                        this.updateCalculations();
+                        this.updateWorkCalculations();
                     }
                 }
             }
@@ -823,7 +832,7 @@ el.addEventListener('input', () => {
                     }
                     // Actualizar los cálculos si las otras dos cargas existen
                     if (this.charges.q1 && this.charges.q2) {
-                        this.updateCalculations();
+                        this.updateWorkCalculations();
                     }
                 }
             }
@@ -837,8 +846,141 @@ el.addEventListener('input', () => {
                     this.placeCharge('q3', x, y, false);
                     // Actualizar cálculos si las otras dos cargas existen
                     if (this.charges.q1 && this.charges.q2) {
-                        this.updateCalculations();
+                        this.updateWorkCalculations();
                     }
+                }
+            }
+
+            // Calcula las energías potenciales inicial y final de Q3 y el trabajo
+            updateWorkCalculations() {
+                const chargesReady = this.charges.q1 && this.charges.q2 && this.charges.q3;
+                // Helper para notación científica
+                const formatLatexScientific = (value, digits = 2) => {
+                    if (value === 0) return `${value.toFixed(digits)}`;
+                    const exponent = Math.floor(Math.log10(Math.abs(value)));
+                    const mantissa = (value / Math.pow(10, exponent)).toFixed(digits);
+                    if (exponent === 0) {
+                        return `${mantissa}`;
+                    }
+                    return `${mantissa}\\cdot 10^{${exponent}}`;
+                };
+                let UTotalInit = null;
+                let UTotalFinal = null;
+                // Calcular valores iniciales si existe posición inicial
+                if (chargesReady && this.charges.q3.initial) {
+                    const q1 = this.getChargeValue('q1');
+                    const q2 = this.getChargeValue('q2');
+                    const q3 = this.getChargeValue('q3');
+                    // Vectores de posición desde Q1 y Q2 hacia Q3 inicial
+                    const r1i = {
+                        x: this.charges.q3.initial.x - this.charges.q1.x,
+                        y: this.charges.q3.initial.y - this.charges.q1.y
+                    };
+                    const r2i = {
+                        x: this.charges.q3.initial.x - this.charges.q2.x,
+                        y: this.charges.q3.initial.y - this.charges.q2.y
+                    };
+                    const r1Mag = Math.hypot(r1i.x, r1i.y);
+                    const r2Mag = Math.hypot(r2i.x, r2i.y);
+                    // Energías potenciales individuales para posición inicial
+                    const U13i = this.k * q1 * q3 / r1Mag;
+                    const U23i = this.k * q2 * q3 / r2Mag;
+                    UTotalInit = U13i + U23i;
+                    // Actualizar UI
+                    renderTex('r1VectorInit', `\\vec{r}_1=( ${r1i.x.toFixed(2)},\\; ${r1i.y.toFixed(2)} )\\,\\mathrm{m}`);
+                    renderTex('r2VectorInit', `\\vec{r}_2=( ${r2i.x.toFixed(2)},\\; ${r2i.y.toFixed(2)} )\\,\\mathrm{m}`);
+                    renderTex('r1MagnitudeInit', `|\\vec{r}_1|=${r1Mag.toFixed(2)}\\,\\mathrm{m}`);
+                    renderTex('r2MagnitudeInit', `|\\vec{r}_2|=${r2Mag.toFixed(2)}\\,\\mathrm{m}`);
+                    renderTex('u13Init', `U_{13}^{i}=${formatLatexScientific(U13i)}\\,\\mathrm{J}`);
+                    renderTex('u23Init', `U_{23}^{i}=${formatLatexScientific(U23i)}\\,\\mathrm{J}`);
+                    renderTex('u3Init', `U_{3}^{i}=${formatLatexScientific(UTotalInit)}\\,\\mathrm{J}`);
+                } else {
+                    // Mostrar "No calculado" en inicial
+                    const ids = ['r1VectorInit','r2VectorInit','r1MagnitudeInit','r2MagnitudeInit','u13Init','u23Init','u3Init'];
+                    ids.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.textContent = 'No calculado';
+                    });
+                }
+                // Calcular valores finales si existe final distinto de inicial
+                if (chargesReady && this.charges.q3 && (!this.charges.q3.initial || this.charges.q3.x !== this.charges.q3.initial.x || this.charges.q3.y !== this.charges.q3.initial.y)) {
+                    const q1 = this.getChargeValue('q1');
+                    const q2 = this.getChargeValue('q2');
+                    const q3 = this.getChargeValue('q3');
+                    const xf = this.charges.q3.x;
+                    const yf = this.charges.q3.y;
+                    // Vectores de posición desde Q1 y Q2 hacia Q3 final
+                    const r1f = {
+                        x: xf - this.charges.q1.x,
+                        y: yf - this.charges.q1.y
+                    };
+                    const r2f = {
+                        x: xf - this.charges.q2.x,
+                        y: yf - this.charges.q2.y
+                    };
+                    const r1Magf = Math.hypot(r1f.x, r1f.y);
+                    const r2Magf = Math.hypot(r2f.x, r2f.y);
+                    const U13f = this.k * q1 * q3 / r1Magf;
+                    const U23f = this.k * q2 * q3 / r2Magf;
+                    UTotalFinal = U13f + U23f;
+                    renderTex('r1VectorFinal', `\\vec{r}_1=( ${r1f.x.toFixed(2)},\\; ${r1f.y.toFixed(2)} )\\,\\mathrm{m}`);
+                    renderTex('r2VectorFinal', `\\vec{r}_2=( ${r2f.x.toFixed(2)},\\; ${r2f.y.toFixed(2)} )\\,\\mathrm{m}`);
+                    renderTex('r1MagnitudeFinal', `|\\vec{r}_1|=${r1Magf.toFixed(2)}\\,\\mathrm{m}`);
+                    renderTex('r2MagnitudeFinal', `|\\vec{r}_2|=${r2Magf.toFixed(2)}\\,\\mathrm{m}`);
+                    renderTex('u13Final', `U_{13}^{f}=${formatLatexScientific(U13f)}\\,\\mathrm{J}`);
+                    renderTex('u23Final', `U_{23}^{f}=${formatLatexScientific(U23f)}\\,\\mathrm{J}`);
+                    renderTex('u3Final', `U_{3}^{f}=${formatLatexScientific(UTotalFinal)}\\,\\mathrm{J}`);
+                    // Mostrar secciones finales
+                    const finalSection = document.getElementById('finalCalcSection');
+                    const workSection = document.getElementById('workCalcSection');
+                    const workSeparator = document.getElementById('workSeparator');
+                    if (finalSection) finalSection.classList.remove('hidden');
+                    if (workSection) workSection.classList.remove('hidden');
+                    if (workSeparator) workSeparator.classList.remove('hidden');
+                } else {
+                    // Ocultar secciones finales
+                    const finalSection = document.getElementById('finalCalcSection');
+                    const workSection = document.getElementById('workCalcSection');
+                    const workSeparator = document.getElementById('workSeparator');
+                    if (finalSection) finalSection.classList.add('hidden');
+                    if (workSection) workSection.classList.add('hidden');
+                    if (workSeparator) workSeparator.classList.add('hidden');
+                    // Restablecer campos finales
+                    const ids = ['r1VectorFinal','r2VectorFinal','r1MagnitudeFinal','r2MagnitudeFinal','u13Final','u23Final','u3Final','workExpression','workValue'];
+                    ids.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.textContent = 'No calculado';
+                    });
+                    // Ocultar info de trabajo
+                    const infoEl = document.getElementById('workInfo');
+                    if (infoEl) infoEl.classList.add('hidden');
+                }
+                // Calcular trabajo si ambos totales definidos
+                if (UTotalInit !== null && UTotalFinal !== null) {
+                    const work = UTotalInit - UTotalFinal;
+                    // Mostrar expresión
+                    renderTex('workExpression', `W = U_{3}^{i} - U_{3}^{f}`);
+                    renderTex('workValue', `${formatLatexScientific(work)}\\,\\mathrm{J}`);
+                    // Explicación del signo
+                    const infoEl = document.getElementById('workInfo');
+                    if (infoEl) {
+                        let message = '';
+                        const absW = Math.abs(work);
+                        if (absW < 1e-40) {
+                            message = 'No se realiza trabajo en el desplazamiento porque la energía potencial no cambia; las posiciones inicial y final se encuentran en la misma superficie equipotencial.';
+                        } else if (work > 0) {
+                            message = 'El trabajo es positivo; el campo eléctrico realiza trabajo al mover la carga Q₃ desde la posición inicial hasta la posición final (la energía potencial disminuye).';
+                        } else {
+                            message = 'El trabajo es negativo; se debe suministrar energía externa para mover la carga Q₃ hasta la posición final (la energía potencial aumenta).';
+                        }
+                        infoEl.textContent = message;
+                    }
+                } else {
+                    // Si no se puede calcular el trabajo, restablecer campos
+                    const expr = document.getElementById('workExpression');
+                    const val = document.getElementById('workValue');
+                    if (expr) expr.textContent = 'No calculado';
+                    if (val) val.textContent = 'No calculado';
                 }
             }
 
@@ -876,7 +1018,7 @@ el.addEventListener('input', () => {
                 // Colocamos la tercera carga en el origen como posición inicial y final
                 this.placeCharge('q3', 0, 0, true);
                 this.currentStep = 'done';
-                this.updateCalculations();
+                this.updateWorkCalculations();
             }
 
             placeCharge(chargeId, x, y, isInitial = false) {
