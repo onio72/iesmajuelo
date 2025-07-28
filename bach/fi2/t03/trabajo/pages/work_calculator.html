@@ -191,7 +191,7 @@
             <div class="card">
                 <h3 class="text-md font-semibold text-text-primary mb-3 flex items-center">
                     <div class="w-3 h-3 bg-success rounded-full mr-2"></div>
-                    Carga M₁
+                    Carga Q₁
                 </h3>
                 <div class="space-y-3">
                     <div class="grid grid-cols-2 gap-2">
@@ -244,7 +244,7 @@
             <div class="card">
                 <h3 class="text-md font-semibold text-text-primary mb-3 flex items-center">
                     <div class="w-3 h-3 bg-accent rounded-full mr-2"></div>
-                    Carga M₂
+                    Carga Q₂
                 </h3>
                 <div class="space-y-3">
                     <div class="grid grid-cols-2 gap-2">
@@ -297,7 +297,7 @@
             <div class="card">
                 <h3 class="text-md font-semibold text-text-primary mb-3 flex items-center">
                     <div class="w-3 h-3 bg-primary rounded-full mr-2"></div>
-                    Carga M₃
+                    Carga Q₃
                 </h3>
                 <div class="space-y-3">
                     <div class="grid grid-cols-2 gap-2">
@@ -321,7 +321,7 @@
                             <option value="negative">Negativa (-)</option>
                         </select>
                     </div>
-                    <!-- Coordenadas iniciales de M₃ -->
+                    <!-- Coordenadas iniciales de Q₃ -->
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-sm font-medium text-text-secondary mb-1">Coordenadas iniciales</label>
@@ -336,7 +336,7 @@
                         <i class="fas fa-map-marker-alt mr-1"></i>
                         Actualizar posición inicial
                     </button>
-                    <!-- Coordenadas finales de M₃ -->
+                    <!-- Coordenadas finales de Q₃ -->
                     <div class="grid grid-cols-2 gap-2 mt-2">
                         <div>
                             <label class="block text-sm font-medium text-text-secondary mb-1">Coordenadas finales</label>
@@ -523,15 +523,15 @@
                     </div>
                     <div>
                         <h3 class="font-semibold text-text-primary mb-2">3. Cálculo de la Energía Potencial Inicial</h3>
-                        <p>Coloca las cargas M₁, M₂ y la carga M₃ en su posición inicial haciendo clic en la cuadrícula o editando sus coordenadas. El panel de cálculos mostrará los vectores de posición, sus módulos y las energías potenciales individuales y total correspondientes a la posición inicial.</p>
+                        <p>Coloca las cargas Q₁, Q₂ y la carga Q₃ en su posición inicial haciendo clic en la cuadrícula o editando sus coordenadas. El panel de cálculos mostrará los vectores de posición, sus módulos y las energías potenciales individuales y total correspondientes a la posición inicial.</p>
                     </div>
                     <div>
                         <h3 class="font-semibold text-text-primary mb-2">4. Cálculo en la Posición Final</h3>
-                        <p>Una vez colocada M₃ en la posición inicial, arrástrala hasta su posición final (o edita las coordenadas finales manualmente). El panel mostrará los mismos cálculos para la posición final cuando M₃ deje de moverse.</p>
+                        <p>Una vez colocada Q₃ en la posición inicial, arrástrala hasta su posición final (o edita las coordenadas finales manualmente). El panel mostrará los mismos cálculos para la posición final cuando Q₃ deje de moverse.</p>
                     </div>
                     <div>
                         <h3 class="font-semibold text-text-primary mb-2">5. Trabajo Realizado</h3>
-                        <p>Al existir ambas posiciones, se calculará el trabajo necesario para mover M₃ desde la posición inicial hasta la final usando la diferencia de energías potenciales (W = U<sub>3,i</sub> − U<sub>3,f</sub>). Pulsa el botón +Info para conocer el significado físico del signo del trabajo.</p>
+                        <p>Al existir ambas posiciones, se calculará el trabajo necesario para mover Q₃ desde la posición inicial hasta la final usando la diferencia de energías potenciales (W = U<sub>3,i</sub> − U<sub>3,f</sub>). Pulsa el botón +Info para conocer el significado físico del signo del trabajo.</p>
                     </div>
                     <div>
                         <h3 class="font-semibold text-text-primary mb-2">6. Interfaz Mejorada</h3>
@@ -634,7 +634,7 @@ el.addEventListener('input', () => {
                 // Coordinate input listeners
                 document.getElementById('updateQ1Position').addEventListener('click', () => this.updateChargeFromCoords('q1'));
                 document.getElementById('updateQ2Position').addEventListener('click', () => this.updateChargeFromCoords('q2'));
-                // Manejamos posiciones inicial y final de M₃ por separado
+                // Manejamos posiciones inicial y final de Q₃ por separado
                 document.getElementById('updateQ3InitialPosition').addEventListener('click', () => this.updateQ3InitialFromCoords());
                 document.getElementById('updateQ3FinalPosition').addEventListener('click', () => this.updateQ3FinalFromCoords());
 
@@ -723,7 +723,7 @@ el.addEventListener('input', () => {
                 // Al finalizar el arrastre de una carga, restablece el estado de arrastre
                 // y actualiza los cálculos si todas las cargas están presentes. De esta
                 // forma los valores finales sólo se recalculan cuando el usuario suelta
-                // la carga M3, tal y como se describe en las especificaciones.
+                // la carga Q3, tal y como se describe en las especificaciones.
                 if (this.isDragging) {
                     this.isDragging = false;
                     this.dragTarget = null;
@@ -972,7 +972,8 @@ el.addEventListener('input', () => {
                 label.setAttribute('font-size', 12 / this.zoomLevel);
                 label.setAttribute('font-weight', 'bold');
                 // Etiqueta según el identificador de carga
-                label.textContent = chargeId === 'q1' ? 'M₁' : chargeId === 'q2' ? 'M₂' : 'M₃';
+                // Mostrar etiquetas de cargas con Q en lugar de M
+                label.textContent = chargeId === 'q1' ? 'Q₁' : chargeId === 'q2' ? 'Q₂' : 'Q₃';
 
                 chargeGroup.appendChild(circle);
                 chargeGroup.appendChild(text);
@@ -1322,9 +1323,9 @@ drawVector(group, x0, y0, dx, dy, color = '#333', label = '', zoomLevel = 1) {
                     if (Math.abs(W) < 1e-12 || Math.abs(W) / denom < 1e-6) {
                         explanation = 'El trabajo es nulo. No se realiza trabajo en el desplazamiento y las posiciones inicial y final se encuentran en la misma superficie equipotencial.';
                     } else if (W > 0) {
-                        explanation = 'El trabajo es positivo. Esto indica que se debe realizar trabajo sobre la carga M₃ para trasladarla de la posición inicial a la final.';
+                        explanation = 'El trabajo es positivo. Esto indica que se debe realizar trabajo sobre la carga Q₃ para trasladarla de la posición inicial a la final.';
                     } else {
-                        explanation = 'El trabajo es negativo. La carga M₃ cede energía al sistema durante el desplazamiento.';
+                        explanation = 'El trabajo es negativo. La carga Q₃ cede energía al sistema durante el desplazamiento.';
                     }
                     const infoEl = document.getElementById('workInfo');
                     if (infoEl) {
