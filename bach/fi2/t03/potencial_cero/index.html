@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Potencial eléctrico – Zonas de potencial nulo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Buscador de puntos de potencial nulo</h1>
+  </header>
+  <main>
+    <div id="content-wrapper">
+      <div id="canvas-container">
+        <!-- Se amplía el tamaño de la cuadrícula para mejorar la visibilidad -->
+        <canvas id="grid" width="800" height="800"></canvas>
+      </div>
+      <div id="controls">
+        <label>
+          <input type="checkbox" id="noZeroCheckbox" /> No se anula en ningún
+          punto
+        </label>
+        <button id="nextBtn" disabled>Comprobar respuesta y pasar a la siguiente</button>
+        <div id="message"></div>
+        <div id="score">Puntuación: <span id="scoreValue">0</span></div>
+      </div>
+    </div>
+  </main>
+  <!-- Ventana modal de introducción -->
+  <div id="modal-overlay" class="hidden">
+    <div id="modal-content">
+      <h2>Introducción</h2>
+      <p>
+        El <strong>potencial eléctrico</strong> en un punto es una medida de la energía
+        potencial por unidad de carga necesaria para traer una carga positiva desde
+        el infinito hasta ese punto. Para una carga puntual de valor <em>q</em> situada
+        a una distancia <em>r</em>, el potencial se calcula mediante la expresión:
+      </p>
+      <p style="text-align:center; font-size:1.2rem;">
+        <em>V</em> = <em>k</em> · (<em>q</em>/<em>r</em>)
+      </p>
+      <p>
+        Este valor es positivo cuando la carga creadora es positiva y negativo si
+        la carga es negativa. Al tratarse de una magnitud
+        <strong>escalar</strong>, el potencial total en un punto se obtiene sumando
+        los potenciales aportados por cada carga individual. Por
+        ello, en distribuciones con cargas del mismo signo el potencial total no
+        puede anularse, mientras que con cargas de signo opuesto pueden existir
+        puntos de potencial cero.
+      </p>
+      <button id="closeModal">Comenzar</button>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
