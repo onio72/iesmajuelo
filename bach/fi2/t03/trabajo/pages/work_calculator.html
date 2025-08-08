@@ -819,15 +819,34 @@ el.addEventListener('input', () => {
             // Actualiza la posición inicial de la carga 3 desde los campos de coordenadas
             // Actualiza sólo la posición inicial de la carga 3
 updateQ3InitialFromCoords() {
-    const x = parseFloat(document.getElementById('q3CoordXInitial').value);
-    const y = parseFloat(document.getElementById('q3CoordYInitial').value);
-    if (!isNaN(x) && !isNaN(y)) {
-        // Fijamos la posición inicial sin tocar la final
-        this.placeCharge('q3', x, y, true);
-        // Aplicamos la posición final que el usuario haya introducido
-        this.updateQ3FinalFromCoords();
+    const xI = parseFloat(document.getElementById('q3CoordXInitial').value);
+    const yI = parseFloat(document.getElementById('q3CoordYInitial').value);
+    if (!isNaN(xI) && !isNaN(yI)) {
+        // 1) Guardar posibles coords finales previas
+        const rawXf = document.getElementById('q3CoordXFinal').value;
+        const rawYf = document.getElementById('q3CoordYFinal').value;
+        const oldXf = parseFloat(rawXf);
+        const oldYf = parseFloat(rawYf);
+
+        // 2) Fijar sólo la posición inicial (no toca la final)
+        this.placeCharge('q3', xI, yI, true);
+
+        if (!isNaN(oldXf) && !isNaN(oldYf)) {
+            // 3a) Si había final, restaurarla
+            this.placeCharge('q3', oldXf, oldYf, false);
+        } else {
+            // 3b) Si no, dejar los campos de final vacíos
+            document.getElementById('q3CoordXFinal').value = '';
+            document.getElementById('q3CoordYFinal').value = '';
+        }
+
+        // 4) Recalcular energías y trabajo con ambas posiciones
+        if (this.charges.q1 && this.charges.q2) {
+            this.updateWorkCalculations();
+        }
     }
 }
+
 
             // Actualiza la posición final de la carga 3 desde los campos de coordenadas
             updateQ3FinalFromCoords() {
