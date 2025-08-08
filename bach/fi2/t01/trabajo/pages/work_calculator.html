@@ -1076,26 +1076,32 @@ el.addEventListener('input', () => {
 
             // Actualiza la posición final de M₃ a partir de los campos de coordenadas finales ingresados manualmente
             updateFinalPositionFromCoords() {
-                const xInput = document.getElementById('q3FinalCoordX');
-                const yInput = document.getElementById('q3FinalCoordY');
-                const x = parseFloat(xInput ? xInput.value : NaN);
-                const y = parseFloat(yInput ? yInput.value : NaN);
-                if (isNaN(x) || isNaN(y)) return;
-                // Asegurarse de que M₃ (posición inicial) exista
-                if (!this.charges.q3) return;
-                // Evitar que la posición final coincida con M₁ o M₂
-                const coincidesWithM1 = this.charges.q1 && Math.abs(x - this.charges.q1.x) < 1e-6 && Math.abs(y - this.charges.q1.y) < 1e-6;
-                const coincidesWithM2 = this.charges.q2 && Math.abs(x - this.charges.q2.x) < 1e-6 && Math.abs(y - this.charges.q2.y) < 1e-6;
-                if (coincidesWithM1 || coincidesWithM2) return;
-                // Actualizar la posición de M₃ en el SVG para representar la posición final
-                this.charges.q3 = { x, y };
-                this.finalPosition = { x, y };
-                // Actualizar visual y entradas de coordenadas iniciales para mantener consistencia
-                this.updateChargeVisual('q3', x, y);
-                this.updateCoordinateInputs('q3', x, y);
-                this.updateFinalPositionDisplay(x, y);
-                this.updateWorkCalculations();
-            }
+    // 1) Leer sólo de los inputs de posición FINAL
+    const xInput = document.getElementById('q3FinalCoordX');
+    const yInput = document.getElementById('q3FinalCoordY');
+    const x = parseFloat(xInput.value);
+    const y = parseFloat(yInput.value);
+
+    // 2) Validar
+    if (isNaN(x) || isNaN(y) || !this.initialPosition) return;
+    const coincideM1 = this.charges.q1 &&
+        Math.abs(x - this.charges.q1.x) < 1e-6 &&
+        Math.abs(y - this.charges.q1.y) < 1e-6;
+    const coincideM2 = this.charges.q2 &&
+        Math.abs(x - this.charges.q2.x) < 1e-6 &&
+        Math.abs(y - this.charges.q2.y) < 1e-6;
+    if (coincideM1 || coincideM2) return;
+
+    // 3) Actualizar sólo la marca SVG de M₃ en la nueva posición
+    this.updateChargeVisual('q3', x, y);
+
+    // 4) Mostrarla en el panel de controles
+    this.updateFinalPositionDisplay(x, y);
+
+    // 5) Guardar y recalcular
+    this.finalPosition = { x, y };
+    this.updateWorkCalculations();
+}
 
             // Alternar la visibilidad de la información sobre el signo del trabajo
             toggleWorkInfo() {
