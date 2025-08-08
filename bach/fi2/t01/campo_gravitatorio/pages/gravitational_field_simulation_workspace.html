@@ -13,11 +13,6 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     rel="stylesheet"
   />
-  <script
-    type="module"
-    src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Felectricf1586back.builtwithrocket.new&_be=https%3A%2F%2Fapplication.rocket.new&_v=0.1.6"
-  ></script>
-
   <!-- KaTeX: renderizado de fórmulas -->
   <link
     rel="stylesheet"
@@ -77,7 +72,8 @@
                         </div>
                         
                         <svg id="electricFieldGrid" class="w-full h-full cursor-crosshair"
-                             viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+     viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet"
+     style="touch-action: none;">
                             <!-- Enhanced Grid with Dynamic Patterns -->
                             <defs>
                                 <!-- 200 % 30 = 20  => desplazamos la rejilla gruesa 20px en Y -->
@@ -458,21 +454,58 @@
                 this.centerX = 300;
                 this.centerY = 200;
                 this.currentStep = 'q1'; // q1, q2, testPoint
-                
-                // Zoom and drag properties
-                this.zoomLevel = 1;
-                this.zoomMin = 0.8;
-                this.zoomMax = 1.4;
-                this.isDragging = false;
-                this.dragTarget = null;
-                this.dragOffset = { x: 0, y: 0 };
+                this.minSeparation = 0.6; // fallback; con scale=30 y radios 12px/6px ≈ 0.6 unidades
+
+                // Drag de elementos (cargas)
+this.isDragging = false;
+this.dragTarget = null;
+this.dragOffset = { x: 0, y: 0 };
+
+// Navegación (zoom + pan del lienzo)
+this.zoomLevel = 1;
+this.zoomMin = 0.5;
+this.zoomMax = 6;
+this.panX = 0;
+this.panY = 0;
+this.isPanning = false;
+this.spaceDown = false; // para pan con tecla Espacio
                 
                 this.initializeEventListeners();
                 this.showInstructions();
                 // Aplicar el zoom inicial centrado
-                this.updateZoom();
+                this.applyViewTransform();
                 updateQ1Display();
             }
+// === helpers de separación mínima ===
+dist2(ax, ay, bx, by) {
+  return (ax - bx) ** 2 + (ay - by) ** 2;
+}
+
+// Separación mínima dinámica (en unidades de cuadrícula)
+getMinSeparation() {
+  const rMassPx = 12; // radio visual de la masa en px
+  const rPointPx = 6; // radio visual del punto P en px
+  const dyn = (rMassPx + rPointPx) / this.scale; // p.ej. (12+6)/30 = 0.6
+  return Math.max(dyn, this.minSeparation || 0); // fallback por si acaso
+}
+
+// Cercanía entre dos puntos dadas sus coords (usa umbral dinámico)
+isNearPoint(ax, ay, bx, by, tol = this.getMinSeparation()) {
+  return this.dist2(ax, ay, bx, by) < tol * tol;
+}
+
+// ¿(x,y) está demasiado cerca de alguna masa? (opcionalmente ignorar una)
+isNearAnyMass(x, y, ignoreId = null) {
+  const tol = this.getMinSeparation();
+  if (this.charges.q1 && ignoreId !== 'q1') {
+    if (this.isNearPoint(x, y, this.charges.q1.x, this.charges.q1.y, tol)) return true;
+  }
+  if (this.charges.q2 && ignoreId !== 'q2') {
+    if (this.isNearPoint(x, y, this.charges.q2.x, this.charges.q2.y, tol)) return true;
+  }
+  return false;
+}
+
 
             initializeEventListeners() {
                 // Enhanced grid interaction
@@ -481,7 +514,29 @@
                 this.svg.addEventListener('mousemove', (e) => this.handleMouseMove(e));
                 this.svg.addEventListener('mouseup', (e) => this.handleMouseUp(e));
                 this.svg.addEventListener('mouseleave', (e) => this.handleMouseLeave(e));
-                // Forzar valores positivos en los inputs
+              // === GESTOS TÁCTILES (pinch y pan con un dedo) ===
+this.svg.addEventListener('pointerdown', (e)=>this.handlePointer(e,'down'));
+this.svg.addEventListener('pointermove', (e)=>this.handlePointer(e,'move'));
+this.svg.addEventListener('pointerup',   (e)=>this.handlePointer(e,'up'));
+this.svg.addEventListener('pointercancel',(e)=>this.handlePointer(e,'up'));
+                // Evitar menú contextual para poder usar botón derecho como pan
+this.svg.addEventListener('contextmenu', (e) => e.preventDefault());
+
+// Pan con tecla Espacio (sin scroll de la página)
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    const tag = (document.activeElement?.tagName || '').toLowerCase();
+    // si no estás escribiendo en un campo de texto, bloquea el scroll por Space
+    if (!['input','textarea','select'].includes(tag)) e.preventDefault();
+    this.spaceDown = true;
+  }
+});
+
+window.addEventListener('keyup', (e) => {
+  if (e.code === 'Space') this.spaceDown = false;
+});
+
+// Forzar valores positivos en los inputs
                 ['q1Value','q2Value'].forEach(id => {
                     const el = document.getElementById(id);
                     el.addEventListener('input', () => {
@@ -490,10 +545,8 @@
                 });
                 
                 // Zoom functionality
-                this.svg.addEventListener('wheel', (e) => this.handleZoom(e));
+                this.svg.addEventListener('wheel', (e) => this.handleZoom(e), { passive: false });
                 
-                // Mouse move for coordinate display
-                this.svg.addEventListener('mousemove', (e) => this.updateCoordinateDisplay(e));
 
                 // Control panel listeners with charge visualization update
                 ['q1Value', 'q1Units'].forEach(id => {
@@ -503,13 +556,6 @@
 document.getElementById(id).addEventListener('change', () => this.updateCalculations());
 });
 
-// Forzar que q1Value y q2Value nunca queden negativos
-['q1Value','q2Value'].forEach(id => {
-const el = document.getElementById(id);
-el.addEventListener('input', () => {
- if (el.value < 0) el.value = Math.abs(el.value);
-        });
-        });
 
                 // No hay polaridad para masas, por lo que no se necesitan oyentes de cambio de polaridad
 
@@ -532,7 +578,7 @@ el.addEventListener('input', () => {
             }
 
             handleGridClick(e) {
-                if (this.isDragging) return;
+  if (this.isDragging || this.isPanning) return;
                 
                 const coords = this.getCoordinatesFromEvent(e);
                 
@@ -549,50 +595,156 @@ el.addEventListener('input', () => {
             }
 
             handleMouseDown(e) {
-                const target = e.target.closest('[id^="charge-"]');
-                if (target) {
-                    this.isDragging = true;
-                    this.dragTarget = target.id.split('-')[1]; // Extract charge ID
-                    const coords = this.getCoordinatesFromEvent(e);
-                    const charge = this.charges[this.dragTarget];
-                    this.dragOffset.x = coords.x - charge.x;
-                    this.dragOffset.y = coords.y - charge.y;
-                    this.svg.style.cursor = 'grabbing';
-                    e.preventDefault();
-                }
-            }
+  const target = e.target.closest('[id^="charge-"]');
+  const isRightButton = e.button === 2;
 
-            handleMouseMove(e) {
-                if (this.isDragging && this.dragTarget) {
-                    const coords = this.getCoordinatesFromEvent(e);
-                    const newX = coords.x - this.dragOffset.x;
-                    const newY = coords.y - this.dragOffset.y;
-                    
-                    // Update charge position
-                    this.charges[this.dragTarget] = { x: newX, y: newY };
-                    this.updateChargeVisual(this.dragTarget, newX, newY);
-                    this.updatePositionDisplay(this.dragTarget, newX, newY);
-                    this.updateCoordinateInputs(this.dragTarget, newX, newY);
-                    
-                    if (this.testPoint) {
-                        this.updateCalculations();
-                    }
-                } else {
-                    // Update cursor for draggable elements
-                    const target = e.target.closest('[id^="charge-"]');
-                    this.svg.style.cursor = target ? 'grab' : 'crosshair';
-                }
-                
-                this.updateCoordinateDisplay(e);
-            }
+  // Si clic en carga → arrastre de la carga
+  if (target && !isRightButton && !this.spaceDown) {
+    this.isDragging = true;
+    this.dragTarget = target.id.split('-')[1];
+    const coords = this.getCoordinatesFromEvent(e);
+    const charge = this.charges[this.dragTarget];
+    this.dragOffset.x = coords.x - charge.x;
+    this.dragOffset.y = coords.y - charge.y;
+    this.svg.style.cursor = 'grabbing';
+    e.preventDefault();
+    return;
+  }
 
-            handleMouseUp(e) {
-                if (this.isDragging) {
-                    this.isDragging = false;
-                    this.dragTarget = null;
-                    this.svg.style.cursor = 'crosshair';
-                }
-            }
+  // Si botón derecho o Space → pan del lienzo
+  if (isRightButton || this.spaceDown) {
+    this.isPanning = true;
+    this.svg.style.cursor = 'grabbing';
+    // Guardamos el último punto en coords del SVG (no del grupo)
+    const pt = this.getSvgPointFromClient(e.clientX, e.clientY);
+    this._lastPanSvgPt = pt;
+    e.preventDefault();
+  }
+}
+
+handleMouseMove(e) {
+  // Arrastre de carga
+  if (this.isDragging && this.dragTarget) {
+    const coords = this.getCoordinatesFromEvent(e);
+    const newX = coords.x - this.dragOffset.x;
+    const newY = coords.y - this.dragOffset.y;
+
+    // 1) No acercarse a la otra masa
+    if (this.isNearAnyMass(newX, newY, this.dragTarget)) {
+      this.svg.style.cursor = 'not-allowed';
+      return;
+    }
+
+    // 2) No acercarse al punto de prueba (si existe)
+    if (this.testPoint && this.isNearPoint(newX, newY, this.testPoint.x, this.testPoint.y)) {
+      this.svg.style.cursor = 'not-allowed';
+      return;
+    }
+
+    this.svg.style.cursor = 'grabbing';
+
+    this.charges[this.dragTarget] = { x: newX, y: newY };
+    this.updateChargeVisual(this.dragTarget, newX, newY);
+    this.updatePositionDisplay(this.dragTarget, newX, newY);
+    this.updateCoordinateInputs(this.dragTarget, newX, newY);
+    if (this.testPoint) this.updateCalculations();
+  }
+  // Pan del lienzo
+  else if (this.isPanning) {
+    const curr = this.getSvgPointFromClient(e.clientX, e.clientY);
+    const dx = curr.x - this._lastPanSvgPt.x;
+    const dy = curr.y - this._lastPanSvgPt.y;
+    this._lastPanSvgPt = curr;
+
+    this.panX += dx;
+    this.panY += dy;
+    this.applyViewTransform();
+  } else {
+    const target = e.target.closest('[id^="charge-"]');
+    this.svg.style.cursor = (target ? 'grab' : (this.spaceDown ? 'grab' : 'crosshair'));
+  }
+
+  this.updateCoordinateDisplay(e);
+}
+
+
+handleMouseUp(e) {
+  if (this.isDragging) {
+    this.isDragging = false;
+    this.dragTarget = null;
+  }
+  if (this.isPanning) {
+    this.isPanning = false;
+  }
+  this.svg.style.cursor = this.spaceDown ? 'grab' : 'crosshair';
+}
+handlePointer(e, type) {
+    if (e.pointerType !== 'touch') return;
+    this._touches = this._touches || new Map();
+
+    if (type === 'down') this._touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (type === 'up')   this._touches.delete(e.pointerId);
+    if (type === 'move') this._touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    const pts = [...this._touches.values()];
+
+    // Pan con un dedo
+    if (pts.length === 1 && type === 'move') {
+        const currSvg = this.getSvgPointFromClient(pts[0].x, pts[0].y);
+        if (!this._prevSvg) this._prevSvg = currSvg;
+        const dx = currSvg.x - this._prevSvg.x;
+        const dy = currSvg.y - this._prevSvg.y;
+        this.panX += dx; 
+        this.panY += dy;
+        this._prevSvg = currSvg;
+        this.applyViewTransform();
+    } 
+    // Pinch-zoom con dos dedos
+    else if (pts.length === 2) {
+        const [a, b] = pts;
+        const mid = { x: (a.x + b.x)/2, y: (a.y + b.y)/2 };
+        const d = Math.hypot(a.x - b.x, a.y - b.y);
+
+        if (!this._pinchPrev) this._pinchPrev = { mid, d };
+        const prev = this._pinchPrev;
+
+        const anchorLocal = this.getLocalPointFromClient(mid.x, mid.y);
+        const anchorSvg   = this.getSvgPointFromClient(mid.x, mid.y);
+
+        const factor = d / prev.d;
+        const zNew = Math.max(this.zoomMin, Math.min(this.zoomMax, this.zoomLevel * factor));
+        if (zNew !== this.zoomLevel) {
+            this.zoomLevel = zNew;
+            this.panX = anchorSvg.x - anchorLocal.x * this.zoomLevel;
+            this.panY = anchorSvg.y - anchorLocal.y * this.zoomLevel;
+        } else {
+            const prevSvg = this.getSvgPointFromClient(prev.mid.x, prev.mid.y);
+            const currSvg = this.getSvgPointFromClient(mid.x, mid.y);
+            this.panX += (currSvg.x - prevSvg.x);
+            this.panY += (currSvg.y - prevSvg.y);
+        }
+
+        this._pinchPrev = { mid, d };
+        this.applyViewTransform();
+    } 
+    // Reset cuando hay 0 o más de 2 dedos
+    else {
+        this._prevSvg = null;
+        this._pinchPrev = null;
+    }
+}
+getSvgPointFromClient(clientX, clientY) {
+    const pt = this.svg.createSVGPoint();
+    pt.x = clientX;
+    pt.y = clientY;
+    return pt.matrixTransform(this.svg.getScreenCTM().inverse());
+}
+
+getLocalPointFromClient(clientX, clientY) {
+    const svgPt = this.getSvgPointFromClient(clientX, clientY);
+    return svgPt.matrixTransform(this.zoomGroup.getCTM().inverse());
+}
+
 
             handleMouseLeave(e) {
                 this.handleMouseUp(e);
@@ -600,44 +752,55 @@ el.addEventListener('input', () => {
             }
 
             handleZoom(e) {
-                e.preventDefault();
-                
-                const delta = e.deltaY > 0 ? -0.1 : 0.1;
-                const newZoom = Math.max(this.zoomMin, Math.min(this.zoomMax, this.zoomLevel + delta));
-                
-                if (newZoom !== this.zoomLevel) {
-                    this.zoomLevel = newZoom;
-                    this.updateZoom();
-                }
-            }
+  e.preventDefault();
 
-            updateZoom() {
-    const bbox = this.svg.viewBox.baseVal;
-    const cx = bbox.width / 2;
-    const cy = bbox.height / 2;
+  // 1) Punto ancla: local al grupo ANTES del zoom
+  const anchorLocal = this.getLocalPointFromClient(e.clientX, e.clientY);
+  // 2) Punto del SVG (padre del grupo); lo queremos constante en pantalla
+  const anchorSvg = this.getSvgPointFromClient(e.clientX, e.clientY);
 
-    const z = this.zoomLevel;
+  // 3) Escala suave y con límites
+  const SENS = 0.0018; // sensibilidad
+  const factor = Math.exp(-e.deltaY * SENS);
+  const zNew = Math.max(this.zoomMin, Math.min(this.zoomMax, this.zoomLevel * factor));
+  if (zNew === this.zoomLevel) return;
 
-    // Escalado centrado en el centro visual del SVG
-    const translateX = cx * (1 - z);
-    const translateY = cy * (1 - z);
+  this.zoomLevel = zNew;
 
-    this.zoomGroup.setAttribute('transform', `translate(${translateX}, ${translateY}) scale(${z})`);
+  // 4) Ajuste de pan para mantener el ancla bajo el cursor:
+  //    Queremos: anchorLocal (con nueva escala) → anchorSvg
+  //    Transform final: [ z 0 0 z panX panY ]
+  this.panX = anchorSvg.x - anchorLocal.x * this.zoomLevel;
+  this.panY = anchorSvg.y - anchorLocal.y * this.zoomLevel;
 
-    // Actualizar porcentaje de zoom visible
-    document.getElementById('zoomLevel').textContent = `${Math.round(z * 100)}%`;
-
-    // Mostrar/ocultar cuadrícula fina según nivel de zoom
-    const fineGrid = this.svg.querySelector('rect[fill="url(#gridFine)"]');
-    if (fineGrid) fineGrid.setAttribute('opacity', z > 1.5 ? '1' : '0');
+  this.applyViewTransform();
 }
 
 
+            applyViewTransform() {
+  // Transformación en una sola matriz: escala + pan en coords del SVG
+  this.zoomGroup.setAttribute(
+    'transform',
+    `matrix(${this.zoomLevel},0,0,${this.zoomLevel},${this.panX},${this.panY})`
+  );
+
+  // UI zoom %
+  document.getElementById('zoomLevel').textContent = `${Math.round(this.zoomLevel * 100)}%`;
+
+  // Mostrar cuadrícula fina a partir de ~1.6x
+  const fineGrid = this.svg.querySelector('rect[fill="url(#gridFine)"]');
+  if (fineGrid) fineGrid.setAttribute('opacity', this.zoomLevel > 1.6 ? '1' : '0');
+}
+
+
+
             resetZoom() {
-                this.zoomLevel = 1;
-                this.updateZoom();
-            
-            }
+  this.zoomLevel = 1;
+  this.panX = 0;
+  this.panY = 0;
+  this.applyViewTransform();
+}
+
 
             getCoordinatesFromEvent(e) {
                 const pt = this.svg.createSVGPoint();
@@ -665,17 +828,23 @@ el.addEventListener('input', () => {
             }
 
             updateTestPointFromCoords() {
-                const xInput = document.getElementById('testPointCoordX');
-                const yInput = document.getElementById('testPointCoordY');
-                
-                const x = parseFloat(xInput.value);
-                const y = parseFloat(yInput.value);
-                
-                if (!isNaN(x) && !isNaN(y)) {
-                    this.placeTestPoint(x, y);
-                    this.updateCalculations();
-                }
-            }
+  const x = parseFloat(document.getElementById('testPointCoordX').value);
+  const y = parseFloat(document.getElementById('testPointCoordY').value);
+  if (isNaN(x) || isNaN(y)) return;
+
+  const tooClose =
+    (this.charges.q1 && this.isNearPoint(x, y, this.charges.q1.x, this.charges.q1.y)) ||
+    (this.charges.q2 && this.isNearPoint(x, y, this.charges.q2.x, this.charges.q2.y));
+
+  if (tooClose) {
+    alert('El punto de prueba está demasiado cerca de una masa.');
+    return;
+  }
+
+  this.placeTestPoint(x, y);
+  this.updateCalculations();
+}
+
 
             updateCoordinateInputs(chargeId, x, y) {
                 document.getElementById(`${chargeId}CoordX`).value = x.toFixed(1);
@@ -692,27 +861,47 @@ el.addEventListener('input', () => {
             }
 
             placeCharge(chargeId, x, y) {
-                this.charges[chargeId] = { x, y };
-                
-                // Update position display
-                this.updatePositionDisplay(chargeId, x, y);
-                this.updateCoordinateInputs(chargeId, x, y);
+  // No permitir solapamiento entre M1 y M2
+  if (this.isNearAnyMass(x, y, chargeId)) {
+    alert('Esa posición está demasiado cerca de la otra masa.');
+    return;
+  }
 
-                // Visual representation
-                this.updateChargeVisual(chargeId, x, y);
-            }
+  // Y también evita colocarlas encima del punto de prueba (si existe)
+  if (this.testPoint && this.isNearPoint(x, y, this.testPoint.x, this.testPoint.y)) {
+    alert('Esa posición está demasiado cerca del punto de prueba.');
+    return;
+  }
+
+  this.charges[chargeId] = { x, y };
+  this.updatePositionDisplay(chargeId, x, y);
+  this.updateCoordinateInputs(chargeId, x, y);
+  this.updateChargeVisual(chargeId, x, y);
+  if (this.testPoint) this.updateCalculations();
+}
+
+
 
             placeTestPoint(x, y) {
-                this.testPoint = { x, y };
-                document.getElementById('testPointPosition').textContent = 
-                    `Posición: (${x.toFixed(1)}, ${y.toFixed(1)})`;
-                
-                // Update coordinate inputs
-                document.getElementById('testPointCoordX').value = x.toFixed(1);
-                document.getElementById('testPointCoordY').value = y.toFixed(1);
-                
-                this.updateTestPointVisual(x, y);
-            }
+  // Bloquear si P cae cerca de M1 o M2
+  const tooClose =
+    (this.charges.q1 && this.isNearPoint(x, y, this.charges.q1.x, this.charges.q1.y)) ||
+    (this.charges.q2 && this.isNearPoint(x, y, this.charges.q2.x, this.charges.q2.y));
+
+  if (tooClose) {
+    alert('El punto de prueba está demasiado cerca de una masa.');
+    return;
+  }
+
+  this.testPoint = { x, y };
+  document.getElementById('testPointPosition').textContent =
+    `Posición: (${x.toFixed(1)}, ${y.toFixed(1)})`;
+  document.getElementById('testPointCoordX').value = x.toFixed(1);
+  document.getElementById('testPointCoordY').value = y.toFixed(1);
+
+  this.updateTestPointVisual(x, y);
+}
+
 
             updatePositionDisplay(chargeId, x, y) {
                 document.getElementById(`${chargeId}Position`).textContent = 
@@ -979,7 +1168,7 @@ drawVector(group, x0, y0, dx, dy, color = '#333', label = '', zoomLevel = 1) {
     // El usuario introduce el valor de la masa (siempre positivo)
     const raw = parseFloat(document.getElementById(`${chargeId}Value`).value);
     const valueAbs = isNaN(raw) ? 0 : Math.abs(raw);
-    const unit = document.getElementById(`${chargeId}Units`).value; // 'μg' | 'mg' | 'g' | 'kg'
+    const unit = document.getElementById(`${chargeId}Units`).value; // 'g' | 'kg'
     let mult;
     if (unit === 'μg') {
         mult = 1e-9; // microgramos a kg
@@ -1075,8 +1264,6 @@ document.getElementById('q1Value').addEventListener('input', updateQ1Display);
 document.getElementById('q1Units').addEventListener('change', updateQ1Display);
 // Sin polaridad, no es necesario escuchar cambios de polaridad
 
-// Ejecutar al cargar la página
-document.addEventListener('DOMContentLoaded', updateQ2Display);
       
 // Función específica para actualizar M2
 function updateQ2Display() {
@@ -1117,7 +1304,6 @@ document.getElementById('q1Value').addEventListener('input', (e) => {
 });
 
     </script>
-    <!-- Eliminado: script propio de Rocket (no existe en GitHub Pages) -->
 </body>
 </html>
 
