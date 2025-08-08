@@ -817,25 +817,17 @@ el.addEventListener('input', () => {
             }
 
             // Actualiza la posición inicial de la carga 3 desde los campos de coordenadas
-            updateQ3InitialFromCoords() {
-                const x = parseFloat(document.getElementById('q3CoordXInitial').value);
-                const y = parseFloat(document.getElementById('q3CoordYInitial').value);
-                if (!isNaN(x) && !isNaN(y)) {
-                    // Fijamos la posición inicial y final en los mismos valores
-                    this.placeCharge('q3', x, y, true);
-                    // Copiamos las coordenadas al campo de final
-                    const xFinalInput = document.getElementById('q3CoordXFinal');
-                    const yFinalInput = document.getElementById('q3CoordYFinal');
-                    if (xFinalInput && yFinalInput) {
-                        xFinalInput.value = x.toFixed(1);
-                        yFinalInput.value = y.toFixed(1);
-                    }
-                    // Actualizar los cálculos si las otras dos cargas existen
-                    if (this.charges.q1 && this.charges.q2) {
-                        this.updateWorkCalculations();
-                    }
-                }
-            }
+            // Actualiza sólo la posición inicial de la carga 3
+updateQ3InitialFromCoords() {
+    const x = parseFloat(document.getElementById('q3CoordXInitial').value);
+    const y = parseFloat(document.getElementById('q3CoordYInitial').value);
+    if (!isNaN(x) && !isNaN(y)) {
+        // Fijamos la posición inicial sin tocar la final
+        this.placeCharge('q3', x, y, true);
+        // Aplicamos la posición final que el usuario haya introducido
+        this.updateQ3FinalFromCoords();
+    }
+}
 
             // Actualiza la posición final de la carga 3 desde los campos de coordenadas
             updateQ3FinalFromCoords() {
