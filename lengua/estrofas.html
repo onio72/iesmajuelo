@@ -1,1 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Analizador de estrofas y rimas · v8</title>
+<style>
+  :root{ --bg:#0f172a; --card:#111827; --ink:#e5e7eb; --muted:#94a3b8; --accent:#22d3ee; --chip:#0b1222; --border:#1f2937; --base-font:16px; }
+  [data-theme="light"]{ --bg:#f7fafc; --card:#ffffff; --ink:#0f172a; --muted:#4b5563; --accent:#0ea5e9; --chip:#eef2f7; --border:#e5e7eb; }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:linear-gradient(180deg,var(--bg),color-mix(in oklab,var(--bg),#000 6%));color:var(--ink);font:var(--base-font)/1.5 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+  header{padding:24px 16px;text-align:center}
+  header h1{margin:0 0 6px;font-weight:800;letter-spacing:.2px}
+  header p{margin:0;color:var(--muted)}
+  /* Resultado más ancho, Resumen más estrecho */
+  .wrap{max-width:1300px;margin:0 auto;padding:16px;display:grid;gap:16px;grid-template-columns:1.6fr .4fr}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 30px #0002}
+  .card h2{margin:0;padding:14px 16px;border-bottom:1px solid var(--border);font-size:18px}
+  .card .body{padding:16px}
+  textarea{width:100%;min-height:260px;resize:vertical;background:color-mix(in oklab,var(--card),#000 8%);color:var(--ink);border:1px solid var(--border);border-radius:12px;padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  button{border:0;border-radius:12px;padding:10px 14px;background:var(--accent);color:#072127;font-weight:700;cursor:pointer}
+  button.secondary{background:transparent;border:1px solid var(--border);color:var(--ink)}
+  .hint{color:var(--muted);font-size:13px}
+  .out{padding:10px 14px;background:color-mix(in oklab,var(--card),#000 8%);border:1px solid var(--border);border-radius:12px;max-height:70vh;overflow:auto}
+  .stanza{padding:10px 12px;border-left:3px solid color-mix(in oklab,var(--accent),#000 70%);border-radius:10px;margin:12px 0;background:color-mix(in oklab,var(--card),#000 4%)}
+  .verso{display:flex;gap:10px;align-items:flex-start}
+  .num{flex:0 0 36px;color:color-mix(in oklab,var(--accent),#000 25%);background:color-mix(in oklab,var(--accent),#000 85%);border-radius:8px;text-align:center;margin-top:4px;padding:2px 6px;font-weight:700}
+  .texto{flex:1 1 auto;}
+  .marks{white-space:pre-wrap}
+  .rhymeTail{font-weight:700;border-radius:6px;padding:0 4px}
+  .stressed{ text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px }
+  .meta{color:var(--muted);font-size:13px;margin-top:6px}
+  .tag{display:inline-block;border:1px solid var(--border);color:var(--ink);background:var(--chip);padding:2px 8px;border-radius:999px;margin-right:6px;margin-top:6px}
+  .legend{display:flex;flex-wrap:wrap;gap:8px}
+  .legend .chip{display:flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid var(--border);border-radius:999px;background:var(--chip)}
+  .sw{width:14px;height:14px;border-radius:4px;display:inline-block}
+  .scheme{font-family:ui-monospace,monospace;font-size:14px;color:color-mix(in oklab,var(--accent),#000 20%)}
+  .toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .slider{display:flex;align-items:center;gap:10px}
+  .kv{font-variant-numeric:tabular-nums}
+  .zoomable{--zoom:1; font-size: calc(var(--base-font) * var(--zoom));}
+  .author{margin-left:8px;color:var(--muted);font-size:14px}
+</style>
+</head>
+<body data-theme="dark">
+<header>
+  <h1>Analizador de estrofas y rimas</h1>
+  <p>Subraya <b>desde la última sílaba tónica</b> y asigna rimas por la <b>terminación de la última palabra</b> (desde su vocal tónica: p.ej., <i>pópa</i> → <code>opa</code>, <i>Europá</i> → <code>opa</code>). <br>Convención: <b>mayúsculas = rima consonante</b>, <b>minúsculas = rima asonante</b>.</p>
+</header>
+<div class="wrap">
+  <section class="card" style="grid-column:1 / span 2">
+    <h2>Entrada</h2>
+    <div class="body zoomable">
+      <div class="toolbar">
+        <textarea id="poem" class="zoomable" placeholder="Pega aquí tu poema. Separa estrofas con una línea en blanco."></textarea>
+        <div class="split">
+          <div>
+            <div class="row">
+              <button id="analyze">Analizar</button>
+              <button class="secondary" id="demo">Cargar ejemplo</button>
+              <button class="secondary" id="next">Siguiente ejemplo ▶</button>
+              <select id="ejemplos" class="secondary" title="Tipos de estrofa"></select>
+              <span id="autorActual" class="author" aria-live="polite"></span>
+            </div>
+            <div class="row slider">
+              <label for="zoom">Tamaño de texto (pizarra):</label>
+              <input type="range" id="zoom" min="1" max="2.2" step="0.05" value="1" />
+              <span id="zoomVal" class="kv">1.00×</span>
+            </div>
+          </div>
+          <div>
+            <div class="row">
+              <button class="secondary" id="toggleTheme" aria-pressed="true">Modo oscuro</button>
+            </div>
+            <span class="hint">Consejo: usa una línea en blanco para separar estrofas.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="card" style="grid-column:1">
+    <h2>Resultado</h2>
+    <div class="body zoomable">
+      <div id="output" class="out" aria-live="polite"></div>
+    </div>
+  </section>
+  <section class="card" style="grid-column:2">
+    <h2>Resumen</h2>
+    <div class="body zoomable">
+      <div id="summary" class="out"></div>
+    </div>
+  </section>
+</div>
+<footer class="zoomable" style="padding:18px;text-align:center;color:var(--muted);font-size:12px">Estimación aproximada. La rima se calcula con la <b>última palabra</b> (desde su vocal tónica). El deslizador aumenta también el tamaño del texto de <b>Entrada</b>.</footer>
+<script>
+// ===== Utilidades métricas =====
+const VOCALES = "aeiouáéíóúü";
+const SOFT_LETTERS = "A-Za-zÁÉÍÓÚÜáéíóúüÑñ";
+const RE_LAST_WORD = new RegExp(`([${SOFT_LETTERS}]+)[^${SOFT_LETTERS}]*$`);
+const LIMPIA_SOLO_LETRAS = s => s.toLowerCase().normalize('NFD').replace(/[^a-zñáéíóúü\s]/g, '');
+function esVocal(ch){ return ch && VOCALES.includes(ch.toLowerCase()); }
+function divideEnEstrofas(text){ return text.replace(/\r\n?/g,'\n').split(/\n{2,}/).map(st => st.split(/\n/).filter(l => l.trim().length>0)); }
+
+function contarSilabasVerso(verso){
+  const limpio = verso.trim(); if(!limpio) return 0;
+  const palabras = LIMPIA_SOLO_LETRAS(limpio).split(/\s+/).filter(Boolean);
+  if(palabras.length===0) return 0;
+  let silabas = 0;
+  for(const p of palabras){
+    const w = p; let grupos = 0; let i=0;
+    while(i<w.length){
+      if(esVocal(w[i])){ grupos++; i++; while(i<w.length && esVocal(w[i])){ const cur=w[i]; if('íú'.includes(cur)) break; else i++; } }
+      else i++;
+    }
+    silabas += Math.max(grupos,1);
+  }
+  // Sinalefas (aprox.)
+  let sinalefas = 0;
+  for(let i=0;i<palabras.length-1;i++){
+    const a=palabras[i], b=palabras[i+1];
+    const u=a[a.length-1], i1=b[0], i2=b.slice(0,2);
+    const vu=esVocal(u), vi=esVocal(i1)||(i1==='h'&&esVocal(b[1]||''));
+    if(vu&&vi) sinalefas++; else if(vu && i1==='y' && esVocal(b[1]||'')) sinalefas++; else if(vu && (i2==='hi'||i2==='hu') && esVocal(b[2]||'')) sinalefas++;
+  }
+  silabas -= sinalefas;
+  const pf = palabras[palabras.length-1];
+  const tipo = tipoAcentoPalabra(pf);
+  if(tipo==='aguda') silabas += 1; else if(tipo==='esdrujula') silabas -= 1;
+  return silabas;
+}
+
+function tipoAcentoPalabra(pal){
+  if(!pal) return 'llana';
+  const m = [...pal].findIndex(ch=>/[áéíóú]/.test(ch));
+  if(m>=0){ const tot=[...pal].length; const pos=tot-m; if(pos>=3) return 'esdrujula'; return pos===1?'aguda':'llana'; }
+  return /[aeiouáéíóúns]$/i.test(pal) ? 'llana':'aguda';
+}
+
+function indiceVocalTonicaEnPalabra(word){
+  if(!word) return 0;
+  const m=word.match(/[áéíóú]/); if(m) return m.index;
+  const idx=[]; for(let i=0;i<word.length;i++) if(esVocal(word[i])) idx.push(i);
+  if(idx.length===0) return Math.max(0,word.length-1);
+  if(/[aeiouáéíóúns]$/i.test(word)) return idx.length>=2? idx[idx.length-2] : idx[0];
+  return idx[idx.length-1];
+}
+
+// Datos para rima y visualización: última palabra, índice de tónica, límites de palabra
+function datosRimaYVisual(verso){
+  const m=verso.match(RE_LAST_WORD); if(!m) return {consonante:'', asonante:'', start:-1, wordStart:-1, wordEnd:verso.length};
+  const last=m[1];
+  const wordEnd = verso.length - (verso.match(/[^A-Za-zÁÉÍÓÚÜáéíóúüÑñ]*$/)?.[0].length || 0);
+  const wordStart = wordEnd - last.length;
+  const tIdx = indiceVocalTonicaEnPalabra(last);
+  const start = wordStart + tIdx;
+  const tailWord = last.slice(tIdx).toLowerCase();
+  const tailLimpia = tailWord.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const consonante = tailLimpia.replace(/[^a-zñü]/g,'');
+  const asonante = (tailLimpia.match(/[aeiouü]/g)||[]).join('');
+  return {consonante, asonante, start, wordStart, wordEnd};
+}
+
+function esquemaRimas(versos){
+  const datos = versos.map(v=>({texto:v, silabas:contarSilabasVerso(v), info:datosRimaYVisual(v)}));
+  // 1) Intentar rima CONSONANTE → letras MAYÚSCULAS
+  const mapC=new Map(); let next='A'.charCodeAt(0);
+  let letras=datos.map(d=>{const k=d.info.consonante; if(!k) return '-'; if(!mapC.has(k)) mapC.set(k,String.fromCharCode(next++)); return mapC.get(k);});
+  const todas=letras.filter(l=>l!=='-');
+  const todasDistintas=new Set(todas).size===todas.length;
+  let esAso=false;
+  // 2) Si no hay patrón claro consonante, usar ASONANTE → letras minúsculas
+  if(letras.every(l=>l==='-') || todasDistintas){ const mapA=new Map(); let n='a'.charCodeAt(0); letras=datos.map(d=>{const k=d.info.asonante; if(!k) return '-'; if(!mapA.has(k)) mapA.set(k,String.fromCharCode(n++)); return mapA.get(k);}); esAso=true; }
+  return {datos, letras, esAso};
+}
+
+function promedioSilabas(versos){ const xs=versos.map(contarSilabasVerso).filter(n=>n>0); return xs.length? xs.reduce((a,b)=>a+b,0)/xs.length:0; }
+function clasificarEstrofa(versos, letras, esAso){
+  const n=versos.length, media=promedioSilabas(versos), arteMayor=media>8.5, esquema=letras.join(''); const es=s=>esquema.toLowerCase()===s.toLowerCase();
+  if(n===2){ if(/^(AA|aa|Aa)$/.test(esquema)) return {tipo:'Pareado', detalle: esAso?'(asonante)':'(consonante)'}; return {tipo:'Dístico', detalle:'(libre)'}; }
+  if(n===3){ if(es('ABA')) return {tipo:arteMayor?'Terceto':'Tercetillo', detalle: esAso?'(asonante)':'(consonante)'}; if(es('a-a')) return {tipo:'Soleá', detalle:'(asonante en pares)'}; return {tipo:'3 versos', detalle:'('+esquema+')'}; }
+  if(n===4){ if(es('ABBA')) return {tipo: arteMayor?'Cuarteto':'Redondilla', detalle: esAso?'(asonante)':'(consonante)'}; if(es('ABAB')||es('abab')) return {tipo: arteMayor?'Serventesio':'Cuarteta', detalle: esAso?'(asonante)':'(consonante)'}; return {tipo:'4 versos', detalle:'('+esquema+')'}; }
+  if(n===5){ const s=versos.map(contarSilabasVerso); const l=/^[aA]B[aA]bB$/.test(esquema)&&Math.abs(s[0]-7)<=1&&Math.abs(s[1]-11)<=1&&Math.abs(s[2]-7)<=1&&Math.abs(s[3]-7)<=1&&Math.abs(s[4]-11)<=1; if(l) return {tipo:'Lira', detalle:'(7-11-7-7-11)'}; return {tipo:arteMayor?'Quinteto':'Quintilla', detalle: esAso?'(asonante)':'(consonante)'}; }
+  if(n===6){ return {tipo: arteMayor?'Sexteto':'Sextilla', detalle: esAso?'(asonante)':'(consonante)'}; }
+  if(n===8){ return {tipo: arteMayor?'Octava real/alta':'Octavilla', detalle: esAso?'(asonante)':'(consonante)'}; }
+  if(n===10){ return {tipo:'Décima (espinela?)', detalle: esAso?'(asonante)':'(consonante)'}; }
+  if(n===14){ const p1=letras.slice(0,4).join(''); const p2=letras.slice(4,8).join(''); const son=p1==='ABBA'&&p2==='ABBA'&&arteMayor&&!esAso; return {tipo: son?'Soneto (aprox.)':'14 versos', detalle: esAso?'(asonante)':'(consonante)'}; }
+  return {tipo:`Estrofa de ${n} versos`, detalle: esAso?'(asonante)':'(consonante)'};
+}
+
+function colorFromKey(k){ const i=k.charCodeAt(0); const hue=((i*47)%360); return `hsl(${hue} 70% 60%)`; }
+function escapeHTML(s){ return s.replace(/[&<>\"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c])); }
+
+function analizar(poema){
+  const estrofas=divideEnEstrofas(poema); const output=document.getElementById('output'); const summary=document.getElementById('summary');
+  output.innerHTML=''; summary.innerHTML=''; let totalVersos=0; const leyenda=new Map();
+  estrofas.forEach((versos, idx)=>{
+    const {datos, letras, esAso} = esquemaRimas(versos); const clasif=clasificarEstrofa(versos, letras, esAso);
+    const cont=document.createElement('div'); cont.className='stanza';
+    const titulo=document.createElement('div');
+    titulo.innerHTML = `<div class="tag">Estrofa ${idx+1}</div> <span class="scheme">${letras.join(' ')||'(sin rima)'}</span> <span class="tag">${clasif.tipo} ${clasif.detalle||''}</span> <span class="tag">Versos: ${versos.length}</span>`;
+    cont.appendChild(titulo);
+    datos.forEach((d,i)=>{
+      totalVersos++; const wrap=document.createElement('div'); wrap.className='verso';
+      const n=document.createElement('div'); n.className='num'; n.textContent=i+1;
+      const t=document.createElement('div'); t.className='texto';
+      const s=d.texto; const pos=d.info.start>=0? d.info.start : s.length; const wordEnd=d.info.wordEnd>=0? d.info.wordEnd : s.length; const antes=s.slice(0,pos); const colaPalabra=s.slice(pos, wordEnd); const resto=s.slice(wordEnd);
+      const letra=letras[i]; let color=''; if(letra && letra!=='-'){ if(!leyenda.has(letra)) leyenda.set(letra,colorFromKey(letra)); color=leyenda.get(letra); }
+      let html=escapeHTML(antes)+`<span class="stressed ${color? 'rhymeTail':''}" ${color? `style=\"background:${color}\"`:''}>${escapeHTML(colaPalabra)}</span>`+escapeHTML(resto);
+      t.innerHTML = `<div class="marks">${html}</div><div class="meta">Sílabas: <b>${d.silabas}</b> · Terminación (cons.): <code>${d.info.consonante||'—'}</code> · (aso.): <code>${d.info.asonante||'—'}</code></div>`;
+      wrap.appendChild(n); wrap.appendChild(t); cont.appendChild(wrap);
+    });
+    output.appendChild(cont);
+  });
+  const leg=document.createElement('div'); leg.className='legend'; if(leyenda.size){ for(const [l,col] of leyenda){ const it=document.createElement('div'); it.className='chip'; it.innerHTML=`<span class="sw" style="background:${col}"></span><span>Rima ${l}</span>`; leg.appendChild(it);} } else { const it=document.createElement('div'); it.className='chip'; it.textContent='Sin grupos de rima detectados'; leg.appendChild(it);} 
+  const info=document.createElement('div'); info.style.marginTop='10px'; info.innerHTML=`<div class="tag">Estrofas: ${estrofas.length}</div>`; summary.appendChild(leg); summary.appendChild(info);
+}
+
+// ===== UI =====
+const poemEl=document.getElementById('poem');
+const ejemplosSel=document.getElementById('ejemplos');
+const zoom=document.getElementById('zoom');
+const zoomVal=document.getElementById('zoomVal');
+const toggleTheme=document.getElementById('toggleTheme');
+const autorActual=document.getElementById('autorActual');
+
+function applyZoom(){ const z=parseFloat(zoom.value)||1; zoomVal.textContent=z.toFixed(2)+'×'; document.querySelectorAll('.zoomable').forEach(el=>el.style.setProperty('--zoom', z)); }
+zoom.addEventListener('input', applyZoom); applyZoom();
+
+function setTheme(theme){ document.body.setAttribute('data-theme', theme); toggleTheme.textContent = theme==='dark'? 'Modo oscuro' : 'Modo claro'; toggleTheme.setAttribute('aria-pressed', theme==='dark'); }
+let currentTheme='dark'; setTheme(currentTheme);
+toggleTheme.addEventListener('click', ()=>{ currentTheme=currentTheme==='dark'?'light':'dark'; setTheme(currentTheme); });
+
+// ===== Ejemplos por tipo (≥3 c/u) con autor y descripciones coherentes por esquema =====
+const E = {
+  'Pareado (AA/aa)': [
+    {autor:'Ejemplo didáctico', texto:`Brilla la luna clara en la montaña,\nresuena el eco dulce que la acompaña.`},
+    {autor:'Ejemplo didáctico', texto:`Cruje la leña viva en la cabaña,\ny el vino enciende historias en la entraña.`},
+    {autor:'Ejemplo didáctico', texto:`Tiembla la tarde roja en la campaña,\ny el viento silba antiguo por la caña.`},
+    {autor:'Jorge Guillén', texto:`Miro hacia atrás, hacia los años, lejos -\nLa vaga imagen sobre mis espejos.`},
+    {autor:'Gustavo Adolfo Bécquer', texto:`...tu hermosura y mi dicha a contemplar,\naquellas que aprendieron nuestros nombres... ¡esas... no volverán!.`},
+    {autor:'Gloria Fuertes', texto:`Cada abeja con su pareja.\nCada pato con su pata`}
+  ],
+  'Aleluya (AA/aa)': [
+    {autor:'Ejemplo didáctico', texto:`Luz de la aurora,\nvida que aflora.`},
+    {autor:'Ejemplo didáctico', texto:`Canta la brisa,\nríe la prisa.`},
+    {autor:'Ejemplo didáctico', texto:`Nieve que cae,\nsol que te trae.`}
+  ],
+  'Terceto (ABA, BCB...)': [
+    {autor:'Ejemplo didáctico', texto:`Del viento soy amigo y compañero,\nme lleva donde quiere, libremente,\ny sigo su sendero verdadero.`},
+    {autor:'Ejemplo didáctico', texto:`Cruzo la noche, tímido viajero,\nperdido entre la estrella refulgente,\ny vuelvo al alba, sabio y marinero.`},
+    {autor:'Ejemplo didáctico', texto:`El río dice, grave y transparente,\nla historia de mi pueblo duradero;\nmi voz se asoma, tímida corriente.`}
+  ],
+  'Tercetillo (ABA/aba)': [
+    {autor:'Ejemplo didáctico', texto:`En la plaza canta,\nla fuente encantada,\nel agua que encanta.`},
+    {autor:'Ejemplo didáctico', texto:`Baila luna nueva,\nsobre la arboleda,\nla sombra se atreve.`},
+    {autor:'Ejemplo didáctico', texto:`Pasa la cigarra,\ncruza la guitarra,\nla tarde se para.`}
+  ],
+  'Cuarteto (ABBA)': [
+    {autor:'Ejemplo didáctico', texto:`Canta el laúd su antigua melodía,\nde mármol es el sueño de la esfera;\ny en márgenes de luz, dorada hoguera,\nse incendia la solemne tarde fría.`},
+    {autor:'Ejemplo didáctico', texto:`Callado el bosque guarda su armonía,\nla niebla al valle tímida se aferra;\ny un ciervo bebe en paz, tiembla la tierra,\ncomo si oyera antigua letanía.`},
+    {autor:'Ejemplo didáctico', texto:`La torre al cielo impávida se inclina,\nruge el torrente al pie de la ladera;\ny el eco en la montaña se refina,\nsilencio, piedra, música viajera.`}
+  ],
+  'Redondilla (ABBA)': [
+    {autor:'Ejemplo didáctico', texto:`Si el amor todo lo puede,\ny a mí no me ha socorrido,\nserá que nunca he querido\ncomo el querer se concede.`},
+    {autor:'Ejemplo didáctico', texto:`Dime si tus ojos pueden\nver el viento cuando pasa;\nque yo, si miro a tu casa,\nveo el alma que me encienden.`},
+    {autor:'Ejemplo didáctico', texto:`Cuando la luna desciende\nsobre el patio de mi aldea,\nmi guitarra se recrea\ncon la pena que me enciende.`}
+  ],
+  'Cuarteta (ABAB/abab)': [
+    {autor:'Ejemplo didáctico', texto:`Por la calle va la niña,\nva cantando su canción;\npor la tarde se avecina\ncon su risa y su ilusión.`},
+    {autor:'Ejemplo didáctico', texto:`Vuela un cometa en la arena,\ncorre un niño tras su voz;\nla marea sube y suena,\ny nos moja el corazón.`},
+    {autor:'Ejemplo didáctico', texto:`Cruza un tren la carretera,\nse deshace el mirador;\nla cigüeña alza bandera,\nregresando con calor.`}
+  ],
+  'Serventesio (ABAB)': [
+    {autor:'Ejemplo didáctico', texto:`La torre mira al mar desde su orilla,\nlos vientos baten bronces en la altura;\nresuena por la costa la vigilia,\ny duerme entre las dunas la espesura.`},
+    {autor:'Ejemplo didáctico', texto:`Vibra la cuerda tensa de la arcilla,\nresuena en la caverna su abertura;\nrepite el paso leve su semilla,\ncreciendo en la ladera la frescura.`},
+    {autor:'Ejemplo didáctico', texto:`Laten los cascos sobre la gravilla,\nse eleva del gran río la neblura;\nla tarde, entre los álamos, destella,\ny el campo guarda fiel su travesura.`}
+  ],
+  'Quinteto (ABABA/AABBA...)': [
+    {autor:'Ejemplo didáctico', texto:`Miro la luna sobre el mar callado,\nrespiro el aire fresco de la orilla,\nrecuerdo el dulce beso que me diste,\nsoñando con tu voz al otro lado,\ny guardo en mí la paz que tú me diste.`},
+    {autor:'Ejemplo didáctico', texto:`Tarde de invierno rompe en luz dorada,\ncrujen los pinos juntos en la sierra,\nsube mi paso lento por la espada,\ny cae al valle manso la quimera,\ncomo una antigua música templada.`},
+    {autor:'Ejemplo didáctico', texto:`Guardo en mi mesa el mapa de tu viaje,\ntrazo caminos, puentes y montañas,\npara cruzar contigo el oleaje,\nromper las viejas sombras y marañas,\nvolver al puerto en íntimo lenguaje.`}
+  ],
+  'Quintilla (aabba/abaab/abbab/aabab)': [
+    {autor:'Ejemplo didáctico', texto:`El río baja cantando,\nlleva en su voz alegría,\nel monte se está adornando\ncon flores que el sol envía,\ny el día se va alumbrando.`},
+    {autor:'Ejemplo didáctico', texto:`Tiembla el trigo en la colina,\ncrece al paso la amapola,\nse dibuja en la retina\nuna aldea blanca y sola,\ny un campanil que domina.`},
+    {autor:'Ejemplo didáctico', texto:`En el patio huele a nardos,\nse perfuma la mañana,\nlos mirlos tejen sus lazos,\ny la abuela en la ventana\ncuenta cuentos a sus gatos.`}
+  ],
+  'Sexteto (AABBCC)': [
+    {autor:'Ejemplo didáctico', texto:`Clara es la luz que al alba se despierta,\ndulce el rumor del mar que va creciendo;\nla flor del campo tímida se yerta,\ny el aire tibio va su olor trayendo;\nla nube blanca sobre el cielo incierta,\nflotando libre va desapareciendo.`},
+    {autor:'Ejemplo didáctico', texto:`Cruje la nieve al paso de la senda,\ncalla la alondra en pálido contento;\nligera cae del pino la vianda,\ny el río guarda un cóncavo lamento;\nse curva el viento, dócil en la prenda,\ny acaso olvida al bosque su tormento.`},
+    {autor:'Ejemplo didáctico', texto:`Corre la voz serena por la aldea,\nse tiñe de naranja la vereda;\nla tarde, en su cristal, canta y golpea,\ny enciende al horizonte su moneda;\nmi sombra al campo vuelve donde sea,\nmi casa abre su puerta y me conceda.`}
+  ],
+  'Sextilla (aabccb)': [
+    {autor:'Ejemplo didáctico', texto:`Corre el agua cristalina,\nsusurra con voz de amores,\nel campo luce sus flores,\nla brisa viene y camina;\nse inclina la verde encina,\nme envuelve con sus olores.`},
+    {autor:'Ejemplo didáctico', texto:`Bajo el cielo de ceniza,\nlate un fuego en los hogares;\ncruza el humo los pinares,\nla ventana nos avisa;\nse eterniza la sonrisa,\nrepartiendo sus cantares.`},
+    {autor:'Ejemplo didáctico', texto:`Sube el pueblo hasta la ermita,\nva la marcha entre tambores;\nrepartiendo sus colores,\nla mañana se acredita;\nla campana resucita,\nrespondiendo a los clamores.`}
+  ],
+  'Octava real (ABABABCC)': [
+    {autor:'Ejemplo didáctico', texto:`Sopla el viento del norte en la ribera,\nrompe las olas grandes en la roca;\nsu espuma blanca sube en una esfera,\ny el canto de gaviotas se coloca;\nla nave sigue firme en su carrera,\nla brisa en sus banderas se sofoca,\nel cielo guarda en calma su grandeza,\ny el sol se asoma y mira con belleza.`},
+    {autor:'Ejemplo didáctico', texto:`Luce la madrugada en las salinas,\nresuena bajo el paso la escollera;\nse alzan, como cristales, las cortinas,\ny el agua vibra, limpia y marinera;\nlas nubes, peregrinas y divinas,\nse quiebran en el lomo de la esfera;\ny al fin, como una firma en la marea,\nla luz deja su rúbrica y clarea.`},
+    {autor:'Ejemplo didáctico', texto:`Vuelan al puerto barcas encendidas,\nel puerto las recibe lentamente;\nlos remos dan al aire sus salidas,\ny el cielo enciende brillos en la frente;\nse anuncian por el muelle las partidas,\nretumban las campanas de repente;\ny en calma, tras la órbita del día,\nla mar canta su vieja melodía.`}
+  ],
+  'Copla de pie quebrado (ABc ABc DEf DEf...)': [
+    {autor:'Jorge Manrique (dom. público)', texto:`Recuerde el alma dormida,\navive el seso y despierte,\ncontemplando\ncomo se pasa la vida,\ncomo se viene la muerte\ntan callando;\ncuán presto se va el placer,\ncomo después de acordado,\nda dolor;\ncomo a nuestro parecer,\ncualquier tiempo pasado\nfue mejor.`},
+    {autor:'Ejemplo didáctico', texto:`Vuelve el camino al valle,\nse duerme el verde monte,\nsosegado;\nlate mi paso y calla,\nme guía el horizonte\nrecordado;\nsi miro atrás, me duele,\nsi miro al sol, renuevo\nmi latido;\nque la piedad me vele,\nque me sostenga nuevo\nlo vivido.`},
+    {autor:'Ejemplo didáctico', texto:`Toca la lluvia el techo,\nse duerme el viejo río,\nrecatado;\nmi corazón deshecho,\nrecobra el señorío\nsosegado;\nquiebran las nubes, mudas,\nse abre un claro y responde\nmi esperanza;\ny entre las luces, dudas,\nse queda en mí la responde\nque me alcanza.`}
+  ],
+  'Décima / espinela (ABBAACCDDC)': [
+    {autor:'Ejemplo didáctico', texto:`A la sombra de un naranjo,\nme puse yo a descansar,\ny quise en su paz hallar\nun alivio al desengaño;\nel canto de un pobre extraño\nme hizo pronto sonreír,\ny al pronto quise seguir\nsus pasos por la vereda,\npero la tarde ya queda\ny me invita a no partir.`},
+    {autor:'Ejemplo didáctico', texto:`Tiene la mar en su espejo\nun secreto que me llama,\ncuando el ocaso se inflama\ny el día se queda añejo;\nse vuelve el mundo más viejo,\nse vuelve nuevo mi afán,\nporque me nace un refrán\nque en la costa se desvela:\nquien sueña y pone su vela,\npronto a buen puerto saldrá.`},
+    {autor:'Ejemplo didáctico', texto:`Canta el canario en la higuera,\nresponde alegre el jazmín,\nretumba claro el clarín\npor la calle dominguera;\nmi abuela en la enramadera\ndesgrana un cuento mejor,\ny yo guardo ese rumor\ncomo un tesoro en el pecho;\nque vivir tiene un derecho:\nno perder nunca el amor.`}
+  ],
+  'Soneto (ABBA ABBA CDE CDE)': [
+    {autor:'Ejemplo didáctico', texto:`Cuando contemplo el cielo, en la noche fría,\ny miro en la distancia tanta esfera,\nme vence de mi nada la carrera\ny arde mi pensamiento en lejanía.\n\nMe miro por debajo, alma vacía,\nme alumbra tu silencio en la ribera,\ny entonces todo el tiempo se me altera,\ncomo agua que a tu orilla se volvía.\n\nEntonces ya mi voz se queda a solas,\nmi paso, por el campo, se desanda,\ny el aire me desnuda de mis olas.\n\nMas vuelvo a tu calor, divina manda,\ny bebo en tu quietud las mismas auras,\ny en ellas mi querer se acrisola y anda.`},
+    {autor:'Ejemplo didáctico', texto:`Toco la puerta leve de tu estancia,\nla brisa abre el jazmín de la ventana,\ny cae a mis pies la tarde en lontananza,\ncon paso de gacela sobre arena.\n\nRespiro, y tu silencio me desgrana\nla música inefable de la infancia;\nme salva, por un hilo, la confianza,\ny vuelve el corazón a la mañana.\n\nEntonces sé que el tiempo no me nombra,\nque soy la sombra leve de un deseo,\nque todo lo ganado se deshace;\n\npero si enciendes tú mi tenue sombra,\nla llama vuelve a ser de carne y fuego,\ny el mundo, en tu mirada, se rehace.`},
+    {autor:'Ejemplo didáctico', texto:`Cruzo la calle húmeda de enero,\nla nieve en los aleros se desvela,\ny un perro late, trémulo y ligero,\nencogiéndose al pie de la escalera.\n\nEs tarde y no me guardo de la espera,\ncamino en el rumor del aguacero;\nla ciudad se me vuelve un avispero,\ny el alma, un campo abierto de madera.\n\nOigo una risa, enciende la cornisa,\nmi paso reconoce su alegría,\ny alumbra el vértigo de otra promesa.\n\nEntonces ya no pesa la camisa,\nse va la niebla gris de mediodía,\ny nace en mí la antigua ligereza.`}
+  ]
+};
+
+const TIPOS = Object.keys(E);
+const cursorPorTipo = Object.fromEntries(TIPOS.map(t=>[t, Math.floor(Math.random()*E[t].length)]));
+
+function poblarTipos(){
+  const sel=ejemplosSel; sel.innerHTML='';
+  TIPOS.forEach((t,i)=>{ const o=document.createElement('option'); const num=String(i+1).padStart(2,'0'); o.value=t; o.textContent=`${num} · ${t}`; sel.appendChild(o); });
+  sel.selectedIndex=Math.floor(Math.random()*TIPOS.length);
+}
+function tipoDesdeSelect(){ return ejemplosSel.value; }
+function ejemploActual(tipo){ const i=cursorPorTipo[tipo]%E[tipo].length; return E[tipo][i]; }
+function avanzar(tipo){ cursorPorTipo[tipo]=(cursorPorTipo[tipo]+1)%E[tipo].length; }
+function cargarEjemploTipo(tipo, avanzarAntes=false){ if(avanzarAntes) avanzar(tipo); const ej=ejemploActual(tipo); poemEl.value=ej.texto; autorActual.textContent = `Autor/a: ${ej.autor}`; analizar(ej.texto); }
+
+poblarTipos();
+document.getElementById('demo').addEventListener('click', ()=>cargarEjemploTipo(tipoDesdeSelect(), false));
+document.getElementById('next').addEventListener('click', ()=>cargarEjemploTipo(tipoDesdeSelect(), true));
+ejemplosSel.addEventListener('change', ()=>cargarEjemploTipo(tipoDesdeSelect(), false));
+document.getElementById('analyze').addEventListener('click', ()=>{ autorActual.textContent = 'Autor/a: —'; analizar(poemEl.value); });
+
+// Carga inicial
+cargarEjemploTipo(tipoDesdeSelect(), false);
+</script>
+</body>
+</html>
 
