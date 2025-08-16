@@ -1,13 +1,689 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Plano Inclinado con Rozamiento</title>
-    <script type="module" crossorigin src="/assets/index-0mHGUMOD.js"></script>
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
-</html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Plano inclinado con rozamiento — HTML+JS</title>
+<style>
+  :root{
+    --bg:#f8fafc;
+    --fg:#0f172a;
+    --muted:#475569;
+    --card:#ffffff;
+    --border:#e2e8f0;
+    --accent:#2563eb;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+  }
+  h1{font-size:28px; margin:0 0 8px}
+  .state{margin-bottom:10px; font-weight:600}
 
+  .layout{
+    display:grid; gap:16px; align-items:start;
+    grid-template-columns:minmax(240px, 28%) 1fr;
+    padding:16px;
+  }
+  .box{
+    background:var(--card); border:1px solid var(--border);
+    border-radius:12px; padding:12px;
+  }
+  .controls{display:grid; gap:12px; max-width:28vw; min-width:240px}
+  label{display:block; font-weight:600; margin-bottom:6px}
+  .row{display:flex; align-items:center; justify-content:space-between; gap:8px}
+  input[type="range"]{width:100%; height:6px; padding:0}
+  select{width:100%; padding:6px 8px; border-radius:8px; border:1px solid var(--border); background:#fff}
+  button{
+    padding:8px 12px; border-radius:10px; border:1px solid var(--border);
+    background:#e2e8f0; cursor:pointer; font-weight:600;
+  }
+  button:disabled{opacity:.6; cursor:not-allowed}
+  table{width:100%; font-size:14px; border-collapse:collapse}
+  td{padding:6px 0}
+  td:last-child{text-align:right}
+
+  .scene{
+    position:relative; min-width:0; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .hud{
+    position:absolute; top:8px; left:8px; font-size:14px; line-height:1.25; color:#111827;
+    background: rgba(255,255,255,0.6); padding:6px 8px; border-radius:8px; border:1px solid var(--border);
+    backdrop-filter: blur(4px);
+  }
+  .subtle{color:var(--muted); font-weight:500}
+  .mu-block.disabled{opacity:.6; pointer-events:none}
+
+  /* Botones estado */
+  .play-green{background:#dcfce7}
+  .play-red{background:#fee2e2}
+  .play-grey{background:#f1f5f9}
+
+  /* Responsivo */
+  @media (max-width: 980px){
+    .layout{grid-template-columns:1fr}
+    .controls{max-width:none}
+  }
+</style>
+</head>
+<body>
+  <div class="layout">
+    <div>
+      <h1>Plano inclinado con rozamiento</h1>
+      <div id="stateText" class="state">—</div>
+
+      <div class="controls">
+        <div class="box">
+          <div class="row">
+            <label for="m">Masa m (kg): <span id="mVal">3.0</span></label>
+          </div>
+          <input id="m" type="range" min="0.5" max="10" step="0.1" value="3"/>
+        </div>
+
+        <div class="box">
+          <div class="row">
+            <label for="theta">Ángulo θ (°): <span id="thetaVal">20.0</span></label>
+          </div>
+          <input id="theta" type="range" min="0" max="45" step="0.5" value="20"/>
+        </div>
+
+        <div class="box">
+          <div class="row">
+            <label for="v0">Velocidad inicial v₀ (m/s): <span id="v0Val">0.0</span> <span id="v0Hint" class="subtle"></span></label>
+          </div>
+          <input id="v0" type="range" min="-5" max="5" step="0.5" value="0"/>
+        </div>
+
+        <div class="box">
+          <div style="margin-bottom:8px">
+            <label for="matSel">Material</label>
+            <select id="matSel">
+              <option value="custom">Personalizado</option>
+            </select>
+          </div>
+          <div id="muBlock" class="">
+            <div class="row" style="margin:6px 0 4px">
+              <span>μe: <b id="muSVal">0.40</b></span>
+              <input id="muS" type="range" min="0" max="1" step="0.01" value="0.4"/>
+            </div>
+            <div class="row" style="margin:6px 0 0">
+              <span>μc: <b id="muKVal">0.30</b></span>
+              <input id="muK" type="range" min="0" max="1" step="0.01" value="0.3"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="box" style="display:flex; gap:8px">
+          <button id="btnPlay" class="play-grey" title="Comienza/pausa la simulación">Play</button>
+          <button id="btnReset" title="Recoloca el bloque en el centro de la hipotenusa">Reiniciar posición</button>
+        </div>
+
+        <div class="box">
+          <table>
+            <tbody>
+              <tr><td>g</td><td id="gVal">9.81 m/s²</td></tr>
+              <tr><td>W = m·g</td><td id="WVal">—</td></tr>
+              <tr><td>W∥ = m·g·sinθ</td><td id="WxVal">—</td></tr>
+              <tr><td>W⊥ = m·g·cosθ</td><td id="WyVal">—</td></tr>
+              <tr><td>N</td><td id="NVal">—</td></tr>
+              <tr><td>μe·N</td><td id="muSNVal">—</td></tr>
+              <tr><td>μc·N</td><td id="muKNVal">—</td></tr>
+              <tr><td>Fr = <span id="frMuLabel">μe</span>·N</td><td id="FrAppliedVal">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="sceneBox" class="box scene" style="height:420px;">
+      <div class="hud">
+        <div>v: <span id="vNow">0.00</span> m/s</div>
+        <div>a: <span id="aNow">0.00</span> m/s²</div>
+      </div>
+      <svg id="svg" width="820" height="420" viewBox="0 0 820 420" aria-label="Escena del plano inclinado">
+        <defs>
+          <marker id="arrowHead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="black"></path>
+          </marker>
+        </defs>
+        <!-- contenido dinámico -->
+      </svg>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ===== Constantes / Datos =====
+  const g = 9.81; // m/s²
+  const pxPerMeter = 40;
+  const pad = 40;
+  const topPad = 16;
+  const minBase = 300;
+
+  // Lista de materiales (amplía si quieres)
+  const MATS = [
+    { id:"acero-acero", nombre:"Acero/Acero (seco)", mu_s:0.74, mu_k:0.57 },
+    { id:"madera-madera", nombre:"Madera/Madera",   mu_s:0.50, mu_k:0.30 },
+    { id:"goma-madera",  nombre:"Goma/Madera",      mu_s:0.80, mu_k:0.60 },
+    { id:"teflon-teflon",nombre:"PTFE/PTFE",        mu_s:0.04, mu_k:0.04 },
+    { id:"hielo-acero",  nombre:"Hielo/Acero",      mu_s:0.03, mu_k:0.02 }
+  ];
+
+  // ===== Estado =====
+  const state = {
+    m: 3,
+    theta: 20,
+    muS: 0.4,
+    muK: 0.3,
+    matSel: "custom",
+    v0: 0,                 // v0 usuario (m/s); v0>0 "sube", v0<0 "baja"
+    playing: false,
+    sDown: 0,              // posición a lo largo de la hipotenusa (px)
+    vAlong: 0,             // velocidad sobre el plano (m/s); >0 bajando
+    lastT: 0,
+    raf: 0,
+
+    // Geometría dinámica
+    w: 820,
+    h: 420,
+    Lpx: 0,
+    prevLpx: 0,
+
+    // Caches de dibujo
+    geom: null,
+    phys: null
+  };
+
+  // ===== Referencias DOM =====
+  const el = {
+    m: byId("m"), theta: byId("theta"), muS: byId("muS"), muK: byId("muK"),
+    mVal: byId("mVal"), thetaVal: byId("thetaVal"),
+    muSVal: byId("muSVal"), muKVal: byId("muKVal"),
+    v0: byId("v0"), v0Val: byId("v0Val"), v0Hint: byId("v0Hint"),
+    matSel: byId("matSel"), muBlock: byId("muBlock"),
+    btnPlay: byId("btnPlay"), btnReset: byId("btnReset"),
+    gVal: byId("gVal"), WVal: byId("WVal"), WxVal: byId("WxVal"), WyVal: byId("WyVal"),
+    NVal: byId("NVal"), muSNVal: byId("muSNVal"), muKNVal: byId("muKNVal"),
+    FrAppliedVal: byId("FrAppliedVal"), frMuLabel: byId("frMuLabel"),
+    stateText: byId("stateText"),
+    sceneBox: byId("sceneBox"), svg: byId("svg"),
+    vNow: byId("vNow"), aNow: byId("aNow")
+  };
+
+  // Rellena select materiales
+  MATS.forEach(m => {
+    const opt = document.createElement("option");
+    opt.value = m.id;
+    opt.textContent = `${m.nombre} (μe=${m.mu_s.toFixed(2)}, μc=${m.mu_k.toFixed(2)})`;
+    el.matSel.appendChild(opt);
+  });
+
+  // Inicializa valores en UI
+  el.mVal.textContent = state.m.toFixed(1);
+  el.thetaVal.textContent = state.theta.toFixed(1);
+  el.muSVal.textContent = state.muS.toFixed(2);
+  el.muKVal.textContent = state.muK.toFixed(2);
+  el.v0Val.textContent = state.v0.toFixed(1);
+  el.gVal.textContent = `${g.toFixed(2)} m/s²`;
+  el.muK.max = state.muS; // μc ≤ μe
+
+  // ===== Eventos UI =====
+  el.m.addEventListener("input", e => {
+    state.m = parseFloat(e.target.value);
+    el.mVal.textContent = state.m.toFixed(1);
+    resetVelocityOnly();
+    renderAll();
+  });
+
+  el.theta.addEventListener("input", e => {
+    state.theta = parseFloat(e.target.value);
+    el.thetaVal.textContent = state.theta.toFixed(1);
+    resetVelocityOnly();
+    renderAll();
+  });
+
+  el.v0.addEventListener("input", e => {
+    state.v0 = parseFloat(e.target.value);
+    el.v0Val.textContent = state.v0.toFixed(1);
+    el.v0Hint.textContent = state.v0 < 0 ? "↓ (baja)" : state.v0 > 0 ? "↑ (sube)" : "";
+    // No arrancamos aún; se aplica al pulsar Play
+    renderAll();
+  });
+
+  el.muS.addEventListener("input", e => {
+    state.muS = clamp(parseFloat(e.target.value), 0, 1);
+    if (state.muK > state.muS) state.muK = state.muS;
+    el.muSVal.textContent = state.muS.toFixed(2);
+    el.muK.max = state.muS;
+    el.muK.value = state.muK.toString();
+    el.muKVal.textContent = state.muK.toFixed(2);
+    resetVelocityOnly();
+    renderAll();
+  });
+
+  el.muK.addEventListener("input", e => {
+    state.muK = clamp(parseFloat(e.target.value), 0, state.muS);
+    el.muKVal.textContent = state.muK.toFixed(2);
+    resetVelocityOnly();
+    renderAll();
+  });
+
+  el.matSel.addEventListener("change", e => {
+    state.matSel = e.target.value;
+    if (state.matSel !== "custom") {
+      const mat = MATS.find(x => x.id === state.matSel);
+      if (mat) {
+        state.muS = mat.mu_s;
+        state.muK = Math.min(mat.mu_k, mat.mu_s);
+        el.muS.value = state.muS.toString();
+        el.muK.value = state.muK.toString();
+        el.muSVal.textContent = state.muS.toFixed(2);
+        el.muKVal.textContent = state.muK.toFixed(2);
+        el.muK.max = state.muS;
+      }
+      el.muBlock.classList.add("disabled");
+    } else {
+      el.muBlock.classList.remove("disabled");
+    }
+    resetVelocityOnly();
+    renderAll();
+  });
+
+  el.btnPlay.addEventListener("click", () => {
+    // Solo comenzar si desliza o hay v0 ≠ 0
+    const { slides } = computePhysics();
+    if (!state.playing) {
+      if (!(slides || Math.abs(state.v0) > 1e-9)) return;
+
+      // Recolocar centrado según tamaño actual del bloque y Lpx
+      const bSize = blockSizeFromM(state.m);
+      const s0 = sInicialFromV0(state.v0, bSize.w, state.Lpx);
+      state.sDown = s0;
+
+      // v0>0 "sube" ⇒ interna negativa; v0<0 "baja" ⇒ interna positiva
+      state.vAlong = state.v0 < 0 ? Math.abs(state.v0) : state.v0 > 0 ? -Math.abs(state.v0) : 0;
+      state.lastT = 0;
+      state.playing = true;
+      stepStart();
+    } else {
+      state.playing = false;
+      cancelAnimationFrame(state.raf);
+      renderAll();
+    }
+  });
+
+  el.btnReset.addEventListener("click", () => {
+    state.playing = false;
+    cancelAnimationFrame(state.raf);
+    state.sDown = state.Lpx / 2;
+    state.vAlong = 0;
+    state.lastT = 0;
+    renderAll();
+  });
+
+  window.addEventListener("resize", () => {
+    // Ajusta ancho del SVG al contenedor y recalcula
+    fitWidth();
+    renderAll();
+  });
+
+  // ===== Utilidades =====
+  function byId(id){ return document.getElementById(id); }
+  function clamp(x, a, b){ return Math.max(a, Math.min(b, x)); }
+
+  function blockSizeFromM(m){
+    const sizeFactor = Math.sqrt(m / 3);
+    const w = clamp(60 * sizeFactor, 36, 120);
+    const h = clamp(40 * sizeFactor, 24, 80);
+    return { w, h };
+  }
+
+  function sInicialFromV0(v0, bW, Lpx){
+    // Siempre empieza centrado, evitando solapar extremos con el bloque
+    return clamp(Lpx/2, bW/2, Lpx - bW/2);
+  }
+
+  // ===== Geometría =====
+  function computeGeometry(){
+    // Ajusta ancho al contenedor
+    fitWidth();
+
+    const angle = (state.theta * Math.PI) / 180;
+    const extraH = Math.max(0, state.theta - 30) * 8;
+    const hBase = 420 + extraH;
+
+    const w = state.w;
+    const tanA = Math.max(1e-4, Math.tan(angle));
+    const tY = clamp(state.theta / 45, 0, 1);
+    const c = 0.5 + 0.5 * tY;
+
+    const baseWidthMax = Math.min(Math.floor(w * 0.7), Math.max(300, w - 2*pad));
+    const base = Math.max(minBase, baseWidthMax);
+
+    const requiredH = (topPad + tY*pad + tanA*base) / c;
+    const h = Math.max(hBase, Math.ceil(requiredH));
+
+    // Vértices del triángulo
+    const x0 = (w - base) / 2;
+    const y0 = c * h - tY * pad;
+    const x2 = x0 + base;
+    const y2 = y0 - tanA * base;
+    const x1 = x2;
+    const y1 = y0;
+
+    const Lpx = Math.hypot(x2 - x0, y2 - y0);
+
+    // Arco del ángulo
+    const rArc = Math.max(24, Math.min(48, base * 0.08));
+    const arcPath = `M ${x0 + rArc} ${y0} A ${rArc} ${rArc} 0 0 0 ${x0 + rArc*Math.cos(angle)} ${y0 - rArc*Math.sin(angle)}`;
+    const showAngleArc = state.theta > 0.5;
+
+    const mid = angle / 2;
+    const rLabel = rArc + 14;
+    const padTextX = 10, padTextY = 8;
+    let tx = x0 + rLabel*Math.cos(mid);
+    let ty = y0 - rLabel*Math.sin(mid);
+    tx = Math.max(x0 + padTextX, tx);
+    ty = Math.min(y0 - padTextY, ty);
+
+    // Si cambia Lpx (geometría), recolocamos como en React
+    state.prevLpx = state.Lpx || Lpx;
+    state.Lpx = Lpx;
+    state.h = h;
+
+    if (Math.abs(state.Lpx - state.prevLpx) > 0.5) {
+      state.sDown = Lpx / 2;
+      state.vAlong = 0;
+    }
+
+    return { w, h, x0, y0, x1, y1, x2, y2, angle, arcPath, showAngleArc, tx, ty };
+  }
+
+  function fitWidth(){
+    const padH = 0; // ya tenemos padding interno en .box
+    const boxW = el.sceneBox.clientWidth - padH;
+    state.w = Math.max(420, Math.floor(boxW));
+    el.svg.setAttribute("width", state.w.toString());
+  }
+
+  // ===== Física =====
+  function computePhysics(){
+    const { m } = state;
+    const { angle } = state.geom;
+
+    const W = m * g;
+    const Wx = W * Math.sin(angle);
+    const Wy = W * Math.cos(angle);
+    const N  = Wy;
+
+    const fMaxStatic = state.muS * N;
+    const slides = Wx > fMaxStatic + 1e-9;
+    const frictionApplied = slides ? state.muK * N : Wx; // si no desliza, equilibra
+    const accWhenSliding = slides ? g * (Math.sin(angle) - state.muK * Math.cos(angle)) : 0;
+    const stateText = slides ? `DESLIZA (usa μc) — a = ${accWhenSliding.toFixed(3)} m/s²`
+                             : `EN EQUILIBRIO (usa μe)`;
+
+    // Aceleración "ahora" (depende de vAlong)
+    const moving = Math.abs(state.vAlong) > 1e-6;
+    const willSlideFromRest = !moving && Wx > state.muS * N;
+    const aNow = moving
+      ? g * (Math.sin(angle) - state.muK * Math.cos(angle) * Math.sign(state.vAlong))
+      : willSlideFromRest
+      ? g * (Math.sin(angle) - state.muK * Math.cos(angle))
+      : 0;
+
+    const frModeSub = slides ? "c" : "e";
+
+    return { W, Wx, Wy, N, slides, frictionApplied, accWhenSliding, stateText, aNow, frModeSub };
+  }
+
+  function accelFromV(v, s, Lpx, angle, muS, muK, N, Wx){
+    if (s <= 0 || s >= Lpx) return 0;
+    const moving = Math.abs(v) > 1e-6;
+    if (moving){
+      return g * (Math.sin(angle) - muK * Math.cos(angle) * Math.sign(v));
+    }
+    const willSlide = Wx > muS * N;
+    return willSlide ? g * (Math.sin(angle) - muK * Math.cos(angle)) : 0;
+  }
+
+  // ===== Animación =====
+  function stepStart(){
+    cancelAnimationFrame(state.raf);
+    state.raf = requestAnimationFrame(step);
+  }
+
+  function step(t){
+    if (!state.lastT) state.lastT = t;
+    const dt = Math.min((t - state.lastT)/1000, 0.05);
+    state.lastT = t;
+
+    const { Lpx } = state;
+    const { angle } = state.geom;
+    const { muS, muK } = state;
+    const { N, Wx } = state.phys;
+
+    let s = state.sDown;
+    let v = state.vAlong;
+
+    const a = accelFromV(v, s, Lpx, angle, muS, muK, N, Wx);
+    v += a * dt;
+    const ds = v * dt * pxPerMeter;
+
+    s = clamp(s + ds, 0, Lpx);
+
+    // parar si extremos
+    if (s <= 0 || s >= Lpx){
+      state.vAlong = 0;
+      state.sDown = s;
+      state.playing = false;
+      renderAll(); // actualización final
+      return;
+    }
+
+    state.vAlong = v;
+    if (s !== state.sDown) state.sDown = s;
+
+    renderAll(true); // render durante animación
+    state.raf = requestAnimationFrame(step);
+  }
+
+  function resetVelocityOnly(){
+    state.vAlong = 0;
+    state.lastT = 0;
+  }
+
+  // ===== Render =====
+  function renderAll(fromAnim=false){
+    // Geometría
+    state.geom = computeGeometry();
+    const G = state.geom;
+
+    // Física (depende de m, θ, μ, etc.)
+    state.phys = computePhysics();
+    const P = state.phys;
+
+    // UI Estado
+    el.stateText.textContent = P.stateText;
+    el.vNow.textContent = state.vAlong.toFixed(2);
+    // aNow recalculada en computePhysics (depende de v)
+    el.aNow.textContent = P.aNow.toFixed(2);
+
+    // Tabla numérica
+    el.WVal.textContent = `${P.W.toFixed(2)} N`;
+    el.WxVal.textContent = `${P.Wx.toFixed(2)} N`;
+    el.WyVal.textContent = `${P.Wy.toFixed(2)} N`;
+    el.NVal.textContent  = `${P.N.toFixed(2)} N`;
+    el.muSNVal.textContent = `${(state.muS * P.N).toFixed(2)} N`;
+    el.muKNVal.textContent = `${(state.muK * P.N).toFixed(2)} N`;
+    el.FrAppliedVal.textContent = `${P.frictionApplied.toFixed(2)} N`;
+    el.frMuLabel.textContent = P.frModeSub === "c" ? "μc" : "μe";
+
+    // Botón Play: colores / habilitado
+    const canPlay = P.slides || Math.abs(state.v0) > 1e-9;
+    el.btnPlay.disabled = !canPlay && !state.playing;
+    el.btnPlay.textContent = state.playing ? "Pause" : "Play";
+    el.btnPlay.className = "";
+    el.btnPlay.classList.add(state.playing ? "play-red" : (P.slides ? "play-green" : "play-grey"));
+
+    // Actualiza tamaño del contenedor visual (altura)
+    el.sceneBox.style.height = `${G.h}px`;
+    el.svg.setAttribute("height", G.h.toString());
+    el.svg.setAttribute("viewBox", `0 0 ${G.w} ${G.h}`);
+
+    // Dibujo SVG
+    drawScene(G, P, fromAnim);
+  }
+
+  function drawScene(G, P, fromAnim){
+    const svg = el.svg;
+    svg.innerHTML = `
+      <defs>
+        <marker id="arrowHead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="black"></path>
+        </marker>
+      </defs>
+    `;
+
+    // Plano
+    const plane = svgElem("polygon", {
+      points: `${G.x0},${G.y0} ${G.x1},${G.y1} ${G.x2},${G.y2}`,
+      fill:"#dbeafe", stroke:"#334155", "stroke-width":"2"
+    });
+    svg.appendChild(plane);
+
+    // Hipotenusa guía
+    const hypo = svgElem("line", {
+      x1:G.x0, y1:G.y0, x2:G.x2, y2:G.y2,
+      stroke:"#94a3b8", "stroke-dasharray":"4 4"
+    });
+    svg.appendChild(hypo);
+
+    // Arco y etiqueta del ángulo
+    if (G.showAngleArc){
+      const arc = svgElem("path", { d:G.arcPath, fill:"none", stroke:"#334155", "stroke-width":"2" });
+      svg.appendChild(arc);
+      const label = svgElem("text", { x:G.tx, y:G.ty, "font-size":"12", fill:"#0f172a" });
+      label.textContent = `θ = ${state.theta.toFixed(0)}°`;
+      svg.appendChild(label);
+    }
+
+    // Posición sobre hipotenusa
+    const tDown = clamp(state.sDown / state.Lpx, 0, 1);
+    const bx = G.x2 + (G.x0 - G.x2) * tDown;
+    const by = G.y2 + (G.y0 - G.y2) * tDown;
+
+    // Tamaño del bloque
+    const { w:bW, h:bH } = blockSizeFromM(state.m);
+
+    // Vector tangente (pantalla) a lo largo de la hipotenusa (arriba→abajo)
+    const hx_screen = G.x0 - G.x2;
+    const hy_screen = G.y0 - G.y2;
+    const hlen = Math.hypot(hx_screen, hy_screen) || 1;
+
+    // ut (coordenadas matemáticas, y hacia arriba) → invertir y de pantalla
+    const ut = [ hx_screen / hlen, -(hy_screen / hlen) ];
+    const un_raw = [-ut[1], ut[0]]; // +90º
+
+    // Centro del bloque (punto de aplicación de fuerzas)
+    const nHat_screen = [ (G.x2 - G.x0)/state.Lpx, (G.y2 - G.y0)/state.Lpx ];
+    // ¡Ojo! nHat_screen es tangente; para normal exterior usamos [tHat.y, -tHat.x]
+    const tHat = [ (G.x2 - G.x0)/state.Lpx, (G.y2 - G.y0)/state.Lpx ];
+    const nHatOut = [ tHat[1], -tHat[0] ];
+    const Fx0 = bx + nHatOut[0] * (bH/2);
+    const Fy0 = by + nHatOut[1] * (bH/2);
+
+    // Fuerzas en coords matemáticas (y positiva hacia arriba)
+    const W = state.m * g; // módulo del peso
+    const W_vec = [0, -W];
+
+    // Normal (apunta hacia el bloque)
+    const Fn_math = [ -un_raw[0]*P.N, -un_raw[1]*P.N ];
+
+    // Rozamiento (paralela al plano, sentido opuesto al movimiento o hacia arriba en reposo)
+    let frSign;
+    const vAlong = state.vAlong;
+    if (Math.abs(vAlong) > 1e-6){
+      frSign = vAlong > 0 ? -1 : +1; // bajando ⇒ rozamiento arriba
+    } else {
+      frSign = -1; // estático hacia arriba
+    }
+    const Ff_math = [ ut[0]*(frSign*P.frictionApplied), ut[1]*(frSign*P.frictionApplied) ];
+
+    // Escala a SVG
+    const targetLen = G.h * 0.3;
+    const k = Math.min(6, targetLen / (state.m * g));
+    const toSvg = (Fx, Fy) => [ Fx * k, -Fy * k ];
+    const [dW_X, dW_Y]  = toSvg(W_vec[0],   W_vec[1]);
+    const [dN_X, dN_Y]  = toSvg(Fn_math[0], Fn_math[1]);
+    const [dFr_X,dFr_Y] = toSvg(Ff_math[0], Ff_math[1]);
+
+    // Bloque (centrado en hipotenusa, girado -θ)
+    const gBlock = svgElem("g", { transform:`translate(${bx},${by}) rotate(${-state.theta})` });
+    const rect = svgElem("rect", { x: -bW/2, y: -bH, width:bW, height:bH, rx:6, fill:"#cbd5e1", stroke:"#334155" });
+    gBlock.appendChild(rect);
+    svg.appendChild(gBlock);
+
+    // Centro
+    const center = svgElem("circle", { cx:Fx0, cy:Fy0, r:3, fill:"#111827" });
+    svg.appendChild(center);
+
+    // Peso p
+    svg.appendChild(svgElem("line", {
+      x1:Fx0, y1:Fy0, x2:Fx0 + dW_X, y2:Fy0 + dW_Y,
+      stroke:"black", "stroke-width":"2", "marker-end":"url(#arrowHead)"
+    }));
+    const pLab = svgElem("text", { x:Fx0 - 8, y:Fy0 + dW_Y + 16, "font-size":"14" });
+    pLab.textContent = "p";
+    svg.appendChild(pLab);
+
+    // Normal N
+    svg.appendChild(svgElem("line", {
+      x1:Fx0, y1:Fy0, x2:Fx0 + dN_X, y2:Fy0 + dN_Y,
+      stroke:"black", "stroke-width":"2", "marker-end":"url(#arrowHead)"
+    }));
+    const nLab = svgElem("text", { x:Fx0 + dN_X + 6, y:Fy0 + dN_Y, "font-size":"14" });
+    nLab.textContent = "N";
+    svg.appendChild(nLab);
+
+    // Rozamiento Fr (con subíndices)
+    svg.appendChild(svgElem("line", {
+      x1:Fx0, y1:Fy0, x2:Fx0 + dFr_X, y2:Fy0 + dFr_Y,
+      stroke:"black", "stroke-width":"2", "marker-end":"url(#arrowHead)"
+    }));
+    const frLab = svgElem("text", { x:Fx0 + dFr_X + 6, y:Fy0 + dFr_Y, "font-size":"14" });
+    frLab.appendChild(tspan("F"));
+    const subr = tspan("r"); subr.setAttribute("baseline-shift","sub"); subr.setAttribute("font-size","11");
+    frLab.appendChild(subr);
+    const subm = tspan(P.frModeSub); subm.setAttribute("baseline-shift","sub"); subm.setAttribute("font-size","11");
+    frLab.appendChild(subm);
+    svg.appendChild(frLab);
+  }
+
+  function svgElem(name, attrs){
+    const e = document.createElementNS("http://www.w3.org/2000/svg", name);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function tspan(text){
+    const e = document.createElementNS("http://www.w3.org/2000/svg","tspan");
+    e.textContent = text;
+    return e;
+  }
+
+  // ===== Inicio =====
+  // Dimensiones iniciales y sDown centrado
+  fitWidth();
+  state.geom = computeGeometry();
+  state.sDown = state.Lpx / 2;
+  renderAll();
+
+})();
+</script>
+</body>
+</html>
