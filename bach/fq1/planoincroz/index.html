@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -125,9 +126,9 @@
           <table>
             <tbody>
               <tr><td>g</td><td id="gVal">9.81 m/s²</td></tr>
-              <tr><td>W = m·g</td><td id="WVal">—</td></tr>
-              <tr><td>W∥ = m·g·sinθ</td><td id="WxVal">—</td></tr>
-              <tr><td>W⊥ = m·g·cosθ</td><td id="WyVal">—</td></tr>
+              <tr><td>p = m·g</td><td id="WVal">—</td></tr>
+              <tr><td>p∥ = m·g·sinθ</td><td id="WxVal">—</td></tr>
+              <tr><td>p⊥ = m·g·cosθ</td><td id="WyVal">—</td></tr>
               <tr><td>N</td><td id="NVal">—</td></tr>
               <tr><td>μe·N</td><td id="muSNVal">—</td></tr>
               <tr><td>μc·N</td><td id="muKNVal">—</td></tr>
@@ -422,11 +423,11 @@
     const N  = Wy;
 
     const fMaxStatic = state.muS * N;
-    const slides = Wx > fMaxStatic + 1e-9;
-    const frictionApplied = slides ? state.muK * N : Wx; // si no desliza, equilibra
+    // condición estricta de deslizamiento: solo si supera la fricción estática
+    const slides = Wx > fMaxStatic;
+    const frictionApplied = slides ? state.muK * N : Wx; // si no desliza, equilibra completamente
     const accWhenSliding = slides ? g * (Math.sin(angle) - state.muK * Math.cos(angle)) : 0;
-    const stateText = slides ? `DESLIZA (usa μc) — a = ${accWhenSliding.toFixed(3)} m/s²`
-                             : `EN EQUILIBRIO (usa μe)`;
+    const stateText = slides ? `DESLIZA (usa μc)` : `EN EQUILIBRIO (usa μe)`;
 
     // Aceleración "ahora" (depende de vAlong)
     const moving = Math.abs(state.vAlong) > 1e-6;
@@ -477,12 +478,21 @@
 
     s = clamp(s + ds, 0, Lpx);
 
-    // parar si extremos
+    // Parada si llega a extremos
     if (s <= 0 || s >= Lpx){
       state.vAlong = 0;
       state.sDown = s;
       state.playing = false;
-      renderAll(); // actualización final
+      renderAll();
+      return;
+    }
+
+    // Condición de equilibrio estático: velocidad casi cero y no supera fricción estática
+    if (Math.abs(v) < 1e-6 && Math.abs(Wx) <= state.muS * N + 1e-9) {
+      state.vAlong = 0;
+      state.sDown = s;
+      state.playing = false;
+      renderAll();
       return;
     }
 
@@ -509,7 +519,7 @@
     const P = state.phys;
 
     // UI Estado
-    el.stateText.textContent = P.stateText;
+    el.stateText.textContent = P.stateText + (P.slides ? ` — a = ${P.accWhenSliding.toFixed(3)} m/s²` : "");
     el.vNow.textContent = state.vAlong.toFixed(2);
     // aNow recalculada en computePhysics (depende de v)
     el.aNow.textContent = P.aNow.toFixed(2);
@@ -586,13 +596,11 @@
     const hy_screen = G.y0 - G.y2;
     const hlen = Math.hypot(hx_screen, hy_screen) || 1;
 
-    // ut (coordenadas matemáticas, y hacia arriba) → invertir y de pantalla
+    // ut (coordenadas matemáticas, y positiva hacia arriba) → invertir y de pantalla
     const ut = [ hx_screen / hlen, -(hy_screen / hlen) ];
     const un_raw = [-ut[1], ut[0]]; // +90º
 
     // Centro del bloque (punto de aplicación de fuerzas)
-    const nHat_screen = [ (G.x2 - G.x0)/state.Lpx, (G.y2 - G.y0)/state.Lpx ];
-    // ¡Ojo! nHat_screen es tangente; para normal exterior usamos [tHat.y, -tHat.x]
     const tHat = [ (G.x2 - G.x0)/state.Lpx, (G.y2 - G.y0)/state.Lpx ];
     const nHatOut = [ tHat[1], -tHat[0] ];
     const Fx0 = bx + nHatOut[0] * (bH/2);
@@ -611,7 +619,7 @@
     if (Math.abs(vAlong) > 1e-6){
       frSign = vAlong > 0 ? -1 : +1; // bajando ⇒ rozamiento arriba
     } else {
-      frSign = -1; // estático hacia arriba
+      frSign = -1; // estático: hacia arriba
     }
     const Ff_math = [ ut[0]*(frSign*P.frictionApplied), ut[1]*(frSign*P.frictionApplied) ];
 
@@ -687,3 +695,4 @@
 </script>
 </body>
 </html>
+
