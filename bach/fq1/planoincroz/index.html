@@ -622,212 +622,176 @@
     drawScene(G, P, fromAnim);
   }
 
-  function drawScene(G, P, fromAnim){
-    const svg = el.svg;
-    // Redefine defs including a grey arrow head for additional vectors
-    svg.innerHTML = `
-      <defs>
-        <marker id="arrowHead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="black"></path>
-        </marker>
-        <marker id="arrowHeadGrey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7280"></path>
-        </marker>
-      </defs>
-    `;
+  ffunction drawScene(G, P, fromAnim){
+  const svg = el.svg;
 
-    // Plano
-    const plane = svgElem("polygon", {
-      points: `${G.x0},${G.y0} ${G.x1},${G.y1} ${G.x2},${G.y2}`,
-      fill:"#dbeafe", stroke:"#334155", "stroke-width":"2"
-    });
-    svg.appendChild(plane);
+  // Defs (incluye punta gris para p∥ y p⊥)
+  svg.innerHTML = `
+    <defs>
+      <marker id="arrowHead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="black"></path>
+      </marker>
+      <marker id="arrowHeadGrey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7280"></path>
+      </marker>
+    </defs>
+  `;
 
-    // Hipotenusa guía
-    const hypo = svgElem("line", {
-      x1:G.x0, y1:G.y0, x2:G.x2, y2:G.y2,
-      stroke:"#94a3b8", "stroke-dasharray":"4 4"
-    });
-    svg.appendChild(hypo);
+  // Plano
+  svg.appendChild(svgElem("polygon", {
+    points: `${G.x0},${G.y0} ${G.x1},${G.y1} ${G.x2},${G.y2}`,
+    fill:"#dbeafe", stroke:"#334155", "stroke-width":"2"
+  }));
 
-    // Arco y etiqueta del ángulo
-    if (G.showAngleArc){
-      const arc = svgElem("path", { d:G.arcPath, fill:"none", stroke:"#334155", "stroke-width":"2" });
-      svg.appendChild(arc);
-      const label = svgElem("text", { x:G.tx, y:G.ty, "font-size":"12", fill:"#0f172a" });
-      // Mostrar el ángulo con un decimal (0,5°) para coincidir con la precisión del slider
-      label.textContent = `θ = ${state.theta.toFixed(1)}°`;
-      svg.appendChild(label);
-    }
+  // Hipotenusa guía
+  svg.appendChild(svgElem("line", {
+    x1:G.x0, y1:G.y0, x2:G.x2, y2:G.y2,
+    stroke:"#94a3b8", "stroke-dasharray":"4 4"
+  }));
 
-    // Posición sobre hipotenusa
-    const tDown = clamp(state.sDown / state.Lpx, 0, 1);
-    const bx = G.x2 + (G.x0 - G.x2) * tDown;
-    const by = G.y2 + (G.y0 - G.y2) * tDown;
+  // Arco + etiqueta de ángulo con 1 decimal
+  if (G.showAngleArc){
+    svg.appendChild(svgElem("path", { d:G.arcPath, fill:"none", stroke:"#334155", "stroke-width":"2" }));
+    const label = svgElem("text", { x:G.tx, y:G.ty, "font-size":"12", fill:"#0f172a" });
+    label.textContent = `θ = ${state.theta.toFixed(1)}°`;
+    svg.appendChild(label);
+  }
 
-    // Tamaño del bloque
-    const { w:bW, h:bH } = blockSizeFromM(state.m);
+  // Posición del bloque sobre la hipotenusa
+  const tDown = clamp(state.sDown / state.Lpx, 0, 1);
+  const bx = G.x2 + (G.x0 - G.x2) * tDown;
+  const by = G.y2 + (G.y0 - G.y2) * tDown;
 
-    // Vector tangente (pantalla) a lo largo de la hipotenusa (arriba→abajo)
-    const hx_screen = G.x0 - G.x2;
-    const hy_screen = G.y0 - G.y2;
-    const hlen = Math.hypot(hx_screen, hy_screen) || 1;
+  // Tamaño del bloque
+  const { w:bW, h:bH } = blockSizeFromM(state.m);
 
-    // ut (coordenadas matemáticas, y positiva hacia arriba) → invertir y de pantalla
-    const ut = [ hx_screen / hlen, -(hy_screen / hlen) ];
-    const un_raw = [-ut[1], ut[0]]; // +90º
+  // Tangente/normal en coordenadas de pantalla
+  const hx_screen = G.x0 - G.x2;
+  const hy_screen = G.y0 - G.y2;
+  const hlen = Math.hypot(hx_screen, hy_screen) || 1;
 
-    // Centro del bloque (punto de aplicación de fuerzas)
-    const tHat = [ (G.x2 - G.x0)/state.Lpx, (G.y2 - G.y0)/state.Lpx ];
-    const nHatOut = [ tHat[1], -tHat[0] ];
-    const Fx0 = bx + nHatOut[0] * (bH/2);
-    const Fy0 = by + nHatOut[1] * (bH/2);
+  // ut (coords matemáticas: y hacia arriba)
+  const ut = [ hx_screen / hlen, -(hy_screen / hlen) ];
+  const un_raw = [-ut[1], ut[0]]; // +90°
 
-    // Fuerzas en coords matemáticas (y positiva hacia arriba)
-    const W = state.m * g; // módulo del peso
-    const W_vec = [0, -W];
+  // Centro del bloque (punto de aplicación de fuerzas)
+  const tHat = [ (G.x2 - G.x0)/state.Lpx, (G.y2 - G.y0)/state.Lpx ];
+  const nHatOut = [ tHat[1], -tHat[0] ];
+  const Fx0 = bx + nHatOut[0] * (bH/2);
+  const Fy0 = by + nHatOut[1] * (bH/2);
 
-    // Normal (apunta hacia el bloque)
-    const Fn_math = [ -un_raw[0]*P.N, -un_raw[1]*P.N ];
+  // Fuerzas (coords matemáticas)
+  const W = state.m * g;
+  const W_vec = [0, -W]; // peso total
+  const Fn_math = [ -un_raw[0]*P.N, -un_raw[1]*P.N ];
 
-    // Rozamiento (paralela al plano, sentido opuesto al movimiento o hacia arriba en reposo)
-    let frSign;
-    const vAlong = state.vAlong;
-    if (Math.abs(vAlong) > 1e-6){
-      frSign = vAlong > 0 ? -1 : +1; // bajando ⇒ rozamiento arriba
-    } else {
-      frSign = -1; // estático: hacia arriba
-    }
-    const Ff_math = [ ut[0]*(frSign*P.frictionApplied), ut[1]*(frSign*P.frictionApplied) ];
+  // Rozamiento (signo según movimiento; si reposo, hacia arriba del plano)
+  let frSign;
+  const vAlong = state.vAlong;
+  if (Math.abs(vAlong) > 1e-6){
+    frSign = vAlong > 0 ? -1 : +1; // bajando ⇒ rozamiento arriba
+  } else {
+    frSign = -1; // estático: hacia arriba
+  }
+  const Ff_math = [ ut[0]*(frSign*P.frictionApplied), ut[1]*(frSign*P.frictionApplied) ];
 
-    // Escala a SVG
-    const targetLen = G.h * 0.3;
-    const k = Math.min(6, targetLen / (state.m * g));
-    const toSvg = (Fx, Fy) => [ Fx * k, -Fy * k ];
-    const [dW_X, dW_Y]  = toSvg(W_vec[0],   W_vec[1]);
-    const [dN_X, dN_Y]  = toSvg(Fn_math[0], Fn_math[1]);
-    // Escala adicional para destacar el vector de rozamiento en pantalla.  Un factor >1
-    // hará que la flecha de la fricción sea más visible respecto al peso y la normal.
-    // Aumentamos este valor porque el rozamiento suele ser menor que el peso y
-    // quedaba demasiado pequeño; con 4x se hace más visible sin exagerar.
-    const frictionDisplayScale = 4;
-    const [dFr_X,dFr_Y] = toSvg(Ff_math[0] * frictionDisplayScale, Ff_math[1] * frictionDisplayScale);
+  // Escala fuerzas a SVG
+  const targetLen = G.h * 0.3;
+  const k = Math.min(6, targetLen / (state.m * g));
+  const toSvg = (Fx, Fy) => [ Fx * k, -Fy * k ];
+  const [dW_X, dW_Y]  = toSvg(W_vec[0],   W_vec[1]);
+  const [dN_X, dN_Y]  = toSvg(Fn_math[0], Fn_math[1]);
 
-    // Bloque (centrado en hipotenusa, girado -θ)
-    const gBlock = svgElem("g", { transform:`translate(${bx},${by}) rotate(${-state.theta})` });
-    const rect = svgElem("rect", { x: -bW/2, y: -bH, width:bW, height:bH, rx:6, fill:"#cbd5e1", stroke:"#334155" });
-    gBlock.appendChild(rect);
-    svg.appendChild(gBlock);
+  // Escala visual extra para Fr (para que no se vea diminuta)
+  const frictionDisplayScale = 4;
+  const [dFr_X, dFr_Y] = toSvg(Ff_math[0] * frictionDisplayScale, Ff_math[1] * frictionDisplayScale);
 
-    // Centro
-    const center = svgElem("circle", { cx:Fx0, cy:Fy0, r:3, fill:"#111827" });
-    svg.appendChild(center);
+  // Bloque
+  const gBlock = svgElem("g", { transform:`translate(${bx},${by}) rotate(${-state.theta})` });
+  gBlock.appendChild(svgElem("rect", { x:-bW/2, y:-bH, width:bW, height:bH, rx:6, fill:"#cbd5e1", stroke:"#334155" }));
+  svg.appendChild(gBlock);
 
-    // Peso p
+  // Centro de fuerzas
+  svg.appendChild(svgElem("circle", { cx:Fx0, cy:Fy0, r:3, fill:"#111827" }));
+
+  // p
+  svg.appendChild(svgElem("line", {
+    x1:Fx0, y1:Fy0, x2:Fx0 + dW_X, y2:Fy0 + dW_Y,
+    stroke:"black", "stroke-width":"2", "marker-end":"url(#arrowHead)"
+  }));
+  const pLab = svgElem("text", { x:Fx0 - 8, y:Fy0 + dW_Y + 16, "font-size":"14" });
+  pLab.textContent = "p";
+  svg.appendChild(pLab);
+
+  // N
+  svg.appendChild(svgElem("line", {
+    x1:Fx0, y1:Fy0, x2:Fx0 + dN_X, y2:Fy0 + dN_Y,
+    stroke:"black", "stroke-width":"2", "marker-end":"url(#arrowHead)"
+  }));
+  const nLab = svgElem("text", { x:Fx0 + dN_X + 6, y:Fy0 + dN_Y, "font-size":"14" });
+  nLab.textContent = "N";
+  svg.appendChild(nLab);
+
+  // Fr (solo si no es ~0)
+  const FR_THRESHOLD = 1e-4;
+  if (Math.abs(P.frictionApplied) > FR_THRESHOLD) {
     svg.appendChild(svgElem("line", {
-      x1:Fx0, y1:Fy0, x2:Fx0 + dW_X, y2:Fy0 + dW_Y,
+      x1:Fx0, y1:Fy0, x2:Fx0 + dFr_X, y2:Fy0 + dFr_Y,
       stroke:"black", "stroke-width":"2", "marker-end":"url(#arrowHead)"
     }));
-    const pLab = svgElem("text", { x:Fx0 - 8, y:Fy0 + dW_Y + 16, "font-size":"14" });
-    pLab.textContent = "p";
-    svg.appendChild(pLab);
+    const frLab = svgElem("text", { x:Fx0 + dFr_X + 6, y:Fy0 + dFr_Y, "font-size":"14" });
+    frLab.appendChild(tspan("F"));
+    const subr = tspan("r"); subr.setAttribute("baseline-shift","sub"); subr.setAttribute("font-size","11");
+    frLab.appendChild(subr);
+    const subm = tspan(P.frModeSub); subm.setAttribute("baseline-shift","sub"); subm.setAttribute("font-size","11");
+    frLab.appendChild(subm);
+    svg.appendChild(frLab);
+  }
 
-    // Normal N
-    svg.appendChild(svgElem("line", {
-      x1:Fx0, y1:Fy0, x2:Fx0 + dN_X, y2:Fy0 + dN_Y,
-      stroke:"black", "stroke-width":"2", "marker-end":"url(#arrowHead)"
-    }));
-    const nLab = svgElem("text", { x:Fx0 + dN_X + 6, y:Fy0 + dN_Y, "font-size":"14" });
-    nLab.textContent = "N";
-    svg.appendChild(nLab);
+  // Componentes del peso (opcional)
+  if (state.showComponents){
+    const EPS = 1e-6;
+    const Wpar = P.Wx;         // m·g·sinθ (0 si θ=0°)
+    const Wper = P.Wy;         // m·g·cosθ
+    const Wpar_vec = [ ut[0]*Wpar,      ut[1]*Wpar ];
+    const Wper_vec = [ -un_raw[0]*Wper, -un_raw[1]*Wper ];
+    const [dWp_X, dWp_Y] = toSvg(Wpar_vec[0], Wpar_vec[1]);
+    const [dWn_X, dWn_Y] = toSvg(Wper_vec[0], Wper_vec[1]);
+    const vecStroke  = "#6b7280";
+    const dashStroke = "#9ca3af";
 
-    // Rozamiento Fr (con subíndices). Si la magnitud de la fricción aplicada es prácticamente cero,
-    // se omite completamente el vector de fricción y su etiqueta.  Un umbral algo más alto
-    // (1e-4 N) ayuda a evitar que se dibuje una flecha cuando la fricción es nula pero aparecen
-    // pequeños errores numéricos.  El valor 1e-4 es insignificante comparado con pesos de decenas
-    // de newtons pero suficiente para suprimir vectores residuales.
-    const FR_THRESHOLD = 1e-4;
-    if (Math.abs(P.frictionApplied) > FR_THRESHOLD) {
+    // p∥ (oculto si |p∥|≈0, ej. θ=0°)
+    if (Math.abs(Wpar) > EPS){
       svg.appendChild(svgElem("line", {
-        x1:Fx0, y1:Fy0, x2:Fx0 + dFr_X, y2:Fy0 + dFr_Y,
-        stroke:"black", "stroke-width":"2", "marker-end":"url(#arrowHead)"
+        x1:Fx0, y1:Fy0, x2:Fx0 + dWp_X, y2:Fy0 + dWp_Y,
+        stroke:vecStroke, "stroke-width":"2", "marker-end":"url(#arrowHeadGrey)"
       }));
-      const frLab = svgElem("text", { x:Fx0 + dFr_X + 6, y:Fy0 + dFr_Y, "font-size":"14" });
-      frLab.appendChild(tspan("F"));
-      const subr = tspan("r"); subr.setAttribute("baseline-shift","sub"); subr.setAttribute("font-size","11");
-      frLab.appendChild(subr);
-      const subm = tspan(P.frModeSub); subm.setAttribute("baseline-shift","sub"); subm.setAttribute("font-size","11");
-      frLab.appendChild(subm);
-      svg.appendChild(frLab);
+      const labWp = svgElem("text", { x:Fx0 + dWp_X + 6, y:Fy0 + dWp_Y, "font-size":"14", fill:vecStroke });
+      labWp.textContent = "p∥";
+      svg.appendChild(labWp);
+      svg.appendChild(svgElem("line", {
+        x1:Fx0 + dWp_X, y1:Fy0 + dWp_Y, x2:Fx0 + dW_X, y2:Fy0 + dW_Y,
+        stroke:dashStroke, "stroke-width":"1.5", "stroke-dasharray":"4 4"
+      }));
     }
 
-    // === Componentes del peso (solo si están activas) ===
-if (state.showComponents) {
-  const EPS = 1e-6; // umbral para evitar dibujar vectores nulos o residuales
-
-  // ut: tangente (hacia abajo del plano, coords matemáticas), un_raw: normal unitaria
-  // (estos dos ya los tienes calculados antes en drawScene)
-  // const ut = [...];   // tangente en coords matemáticas
-  // const un_raw = [...]; // normal unitaria (antes de orientar)
-
-  // Módulos de las componentes (puedes reutilizar lo que ya calculas):
-  // P.Wx = m*g*sin(theta)  (paralela)
-  // P.Wy = m*g*cos(theta)  (perpendicular)
-  const Wpar = P.Wx; // puede ser 0 si theta=0
-  const Wper = P.Wy;
-
-  // Vectores en coords matemáticas (misma convención que el resto de fuerzas)
-  // p∥ apunta "cuesta abajo" (dirección de ut); p⊥ hacia el bloque (opuesta a un_raw)
-  const Wpar_vec = [ ut[0] * Wpar, ut[1] * Wpar ];
-  const Wper_vec = [ -un_raw[0] * Wper, -un_raw[1] * Wper ];
-
-  // A SVG con tu misma escala k / toSvg
-  const [dWp_X, dWp_Y] = toSvg(Wpar_vec[0], Wpar_vec[1]);
-  const [dWn_X, dWn_Y] = toSvg(Wper_vec[0], Wper_vec[1]);
-
-  // Estilo gris para vectores y punteadas
-  const vecStroke = "#6b7280";     // gris
-  const dashStroke = "#9ca3af";    // gris claro
-
-  // Solo dibuja p∥ si su módulo NO es ~0  (esto oculta p∥ a 0°)
-  if (Math.abs(Wpar) > EPS) {
-    // Flecha p∥
-    svg.appendChild(svgElem("line", {
-      x1: Fx0, y1: Fy0, x2: Fx0 + dWp_X, y2: Fy0 + dWp_Y,
-      stroke: vecStroke, "stroke-width": "2", "marker-end": "url(#arrowHeadGrey)"
-    }));
-    // Etiqueta p∥
-    const labWp = svgElem("text", { x: Fx0 + dWp_X + 6, y: Fy0 + dWp_Y, "font-size": "14", fill: vecStroke });
-    labWp.textContent = "p∥";
-    svg.appendChild(labWp);
-
-    // Punteada desde la punta de p∥ hasta la punta de p
-    svg.appendChild(svgElem("line", {
-      x1: Fx0 + dWp_X, y1: Fy0 + dWp_Y, x2: Fx0 + dW_X, y2: Fy0 + dW_Y,
-      stroke: dashStroke, "stroke-width": "1.5", "stroke-dasharray": "4 4"
-    }));
+    // p⊥
+    if (Math.abs(Wper) > EPS){
+      svg.appendChild(svgElem("line", {
+        x1:Fx0, y1:Fy0, x2:Fx0 + dWn_X, y2:Fy0 + dWn_Y,
+        stroke:vecStroke, "stroke-width":"2", "marker-end":"url(#arrowHeadGrey)"
+      }));
+      const labWn = svgElem("text", { x:Fx0 + dWn_X + 6, y:Fy0 + dWn_Y, "font-size":"14", fill:vecStroke });
+      labWn.textContent = "p⊥";
+      svg.appendChild(labWn);
+      svg.appendChild(svgElem("line", {
+        x1:Fx0 + dWn_X, y1:Fy0 + dWn_Y, x2:Fx0 + dW_X, y2:Fy0 + dW_Y,
+        stroke:dashStroke, "stroke-width":"1.5", "stroke-dasharray":"4 4"
+      }));
+    }
   }
+} // <-- cierre correcto de drawScene
 
-  // Solo dibuja p⊥ si su módulo NO es ~0
-  if (Math.abs(Wper) > EPS) {
-    // Flecha p⊥
-    svg.appendChild(svgElem("line", {
-      x1: Fx0, y1: Fy0, x2: Fx0 + dWn_X, y2: Fy0 + dWn_Y,
-      stroke: vecStroke, "stroke-width": "2", "marker-end": "url(#arrowHeadGrey)"
-    }));
-    // Etiqueta p⊥
-    const labWn = svgElem("text", { x: Fx0 + dWn_X + 6, y: Fy0 + dWn_Y, "font-size": "14", fill: vecStroke });
-    labWn.textContent = "p⊥";
-    svg.appendChild(labWn);
-
-    // Punteada desde la punta de p⊥ hasta la punta de p
-    svg.appendChild(svgElem("line", {
-      x1: Fx0 + dWn_X, y1: Fy0 + dWn_Y, x2: Fx0 + dW_X, y2: Fy0 + dW_Y,
-      stroke: dashStroke, "stroke-width": "1.5", "stroke-dasharray": "4 4"
-    }));
-  }
-}
-}  // <-- cierre de drawScene
 
 function svgElem(name, attrs){
   const e = document.createElementNS("http://www.w3.org/2000/svg", name);
