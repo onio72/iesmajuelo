@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -414,33 +413,68 @@
 
   // ===== Física =====
   function computePhysics(){
+    /*
+      Calcula magnitudes físicas y el estado de fricción del bloque.
+      Se tienen en cuenta tanto el valor de la componente del peso en la dirección del plano
+      como si el bloque se encuentra actualmente en movimiento (vAlong). La fricción aplicada
+      es cinética si el bloque se mueve o si el peso paralelo supera la fricción estática máxima.
+    */
     const { m } = state;
     const { angle } = state.geom;
 
-    const W = m * g;
+    // Peso total y sus componentes
+    const W  = m * g;
     const Wx = W * Math.sin(angle);
     const Wy = W * Math.cos(angle);
     const N  = Wy;
 
+    // Fricción máxima estática
     const fMaxStatic = state.muS * N;
-    // condición estricta de deslizamiento: solo si supera la fricción estática
-    const slides = Wx > fMaxStatic;
-    const frictionApplied = slides ? state.muK * N : Wx; // si no desliza, equilibra completamente
+    // ¿Se está moviendo actualmente? (vAlong ≠ 0)
+    // Consideramos que velocidades muy pequeñas equivalen a reposo para evitar
+    // oscilaciones numéricas. El umbral se fija en 1e-3 m/s (0.001 m/s).
+    const moving = Math.abs(state.vAlong) > 1e-3;
+    // ¿La componente del peso es suficiente para superar la fricción estática? (sin considerar si ya se mueve)
+    const slidesStatic = Wx > fMaxStatic;
+    // Determina si se aplica fricción cinética: cuando se mueve o cuando supera la fricción estática
+    const slides = moving || slidesStatic;
+
+    // Magnitud de la fuerza de rozamiento aplicada
+    // - Si hay deslizamiento (v ≠ 0 o Wx > fMaxStatic): μc·N
+    // - Si no, se equilibra exactamente la componente paralela Wx
+    const frictionApplied = slides ? state.muK * N : Wx;
+
+    // Aceleración que tendría durante el deslizamiento sin cambiar de signo
     const accWhenSliding = slides ? g * (Math.sin(angle) - state.muK * Math.cos(angle)) : 0;
+
+    // Texto descriptivo del estado
     const stateText = slides ? `DESLIZA (usa μc)` : `EN EQUILIBRIO (usa μe)`;
 
-    // Aceleración "ahora" (depende de vAlong)
-    const moving = Math.abs(state.vAlong) > 1e-6;
-    const willSlideFromRest = !moving && Wx > state.muS * N;
-    const aNow = moving
-      ? g * (Math.sin(angle) - state.muK * Math.cos(angle) * Math.sign(state.vAlong))
-      : willSlideFromRest
-      ? g * (Math.sin(angle) - state.muK * Math.cos(angle))
-      : 0;
+    // Aceleración instantánea dependiente del signo de la velocidad
+    let aNow;
+    if (moving) {
+      // Si el bloque se mueve, la fricción cinética se opone a su movimiento
+      aNow = g * (Math.sin(angle) - state.muK * Math.cos(angle) * Math.sign(state.vAlong));
+    } else if (slidesStatic) {
+      // Si no se mueve pero supera la fricción estática, empezará a deslizarse hacia abajo
+      aNow = g * (Math.sin(angle) - state.muK * Math.cos(angle));
+    } else {
+      // Equilibrio estático
+      aNow = 0;
+    }
 
+    // Subíndice para indicar fricción cinética (c) o estática (e)
     const frModeSub = slides ? "c" : "e";
 
-    return { W, Wx, Wy, N, slides, frictionApplied, accWhenSliding, stateText, aNow, frModeSub };
+    return {
+      W, Wx, Wy, N,
+      slides,
+      frictionApplied,
+      accWhenSliding,
+      stateText,
+      aNow,
+      frModeSub
+    };
   }
 
   function accelFromV(v, s, Lpx, angle, muS, muK, N, Wx){
@@ -472,7 +506,9 @@
     let s = state.sDown;
     let v = state.vAlong;
 
+    // Calcula la aceleración y actualiza la velocidad (v) y la posición sobre el plano (s)
     const a = accelFromV(v, s, Lpx, angle, muS, muK, N, Wx);
+    const prevV = v;
     v += a * dt;
     const ds = v * dt * pxPerMeter;
 
@@ -487,8 +523,17 @@
       return;
     }
 
-    // Condición de equilibrio estático: velocidad casi cero y no supera fricción estática
-    if (Math.abs(v) < 1e-6 && Math.abs(Wx) <= state.muS * N + 1e-9) {
+    // Condición de equilibrio estático o cambio de signo:
+    // Si la velocidad cambia de dirección (signo) o se hace casi cero, y la componente del peso
+    // no supera la fricción estática máxima, se detiene la simulación para evitar oscilaciones.
+    const staticMax = state.muS * N;
+    const changedSign = (prevV > 0 && v <= 0) || (prevV < 0 && v >= 0);
+    // Consideramos que velocidades inferiores a 1e-3 son prácticamente cero para
+    // anular la aceleración y frenar la animación. Un umbral pequeño puede causar
+    // oscilaciones.
+    const nearZero = Math.abs(v) < 1e-3;
+    if ((changedSign || nearZero) && Math.abs(Wx) <= staticMax + 1e-9) {
+      // Fija posición y velocidad, detiene animación
       state.vAlong = 0;
       state.sDown = s;
       state.playing = false;
@@ -496,6 +541,7 @@
       return;
     }
 
+    // Actualiza el estado con los valores calculados
     state.vAlong = v;
     if (s !== state.sDown) state.sDown = s;
 
@@ -629,7 +675,12 @@
     const toSvg = (Fx, Fy) => [ Fx * k, -Fy * k ];
     const [dW_X, dW_Y]  = toSvg(W_vec[0],   W_vec[1]);
     const [dN_X, dN_Y]  = toSvg(Fn_math[0], Fn_math[1]);
-    const [dFr_X,dFr_Y] = toSvg(Ff_math[0], Ff_math[1]);
+    // Escala adicional para destacar el vector de rozamiento en pantalla.  Un factor >1
+    // hará que la flecha de la fricción sea más visible respecto al peso y la normal.
+    // Aumentamos este valor porque el rozamiento suele ser menor que el peso y
+    // quedaba demasiado pequeño; con 4x se hace más visible sin exagerar.
+    const frictionDisplayScale = 4;
+    const [dFr_X,dFr_Y] = toSvg(Ff_math[0] * frictionDisplayScale, Ff_math[1] * frictionDisplayScale);
 
     // Bloque (centrado en hipotenusa, girado -θ)
     const gBlock = svgElem("g", { transform:`translate(${bx},${by}) rotate(${-state.theta})` });
@@ -695,4 +746,3 @@
 </script>
 </body>
 </html>
-
