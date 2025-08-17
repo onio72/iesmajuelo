@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -828,25 +827,24 @@ if (state.showComponents) {
     }));
   }
 }
+}  // <-- cierre de drawScene
 
+function svgElem(name, attrs){
+  const e = document.createElementNS("http://www.w3.org/2000/svg", name);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function tspan(text){
+  const e = document.createElementNS("http://www.w3.org/2000/svg","tspan");
+  e.textContent = text;
+  return e;
+}
 
-  function svgElem(name, attrs){
-    const e = document.createElementNS("http://www.w3.org/2000/svg", name);
-    for (const k in attrs) e.setAttribute(k, attrs[k]);
-    return e;
-  }
-  function tspan(text){
-    const e = document.createElementNS("http://www.w3.org/2000/svg","tspan");
-    e.textContent = text;
-    return e;
-  }
-
-  // ===== Inicio =====
-  // Dimensiones iniciales y sDown centrado
-  fitWidth();
-  state.geom = computeGeometry();
-  state.sDown = state.Lpx / 2;
-  renderAll();
+// ===== Inicio =====
+fitWidth();
+state.geom = computeGeometry();
+state.sDown = state.Lpx / 2;
+renderAll();
 
 })();
 </script>
