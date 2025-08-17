@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -121,6 +122,14 @@
           <button id="btnReset" title="Recoloca el bloque en el centro de la hipotenusa">Reiniciar posición</button>
         </div>
 
+        <!-- Checkbox para mostrar/ocultar componentes del peso -->
+        <div class="box">
+          <label style="display:flex; align-items:center; gap:6px; font-size:14px; cursor:pointer">
+            <input id="showComponents" type="checkbox" style="margin:0" />
+            Mostrar componentes del peso
+          </label>
+        </div>
+
         <div class="box">
           <table>
             <tbody>
@@ -197,6 +206,8 @@
     // Caches de dibujo
     geom: null,
     phys: null
+
+    ,showComponents: false // control para mostrar/ocultar componentes de la fuerza peso
   };
 
   // ===== Referencias DOM =====
@@ -213,6 +224,7 @@
     stateText: byId("stateText"),
     sceneBox: byId("sceneBox"), svg: byId("svg"),
     vNow: byId("vNow"), aNow: byId("aNow")
+    ,showComponents: byId("showComponents")
   };
 
   // Rellena select materiales
@@ -250,7 +262,15 @@
   el.v0.addEventListener("input", e => {
     state.v0 = parseFloat(e.target.value);
     el.v0Val.textContent = state.v0.toFixed(1);
-    el.v0Hint.textContent = state.v0 < 0 ? "↓ (baja)" : state.v0 > 0 ? "↑ (sube)" : "";
+    // Muestra una pista de dirección según el ángulo: si θ≈0° se interpreta
+    // movimiento horizontal (←/→); en otro caso utiliza bajada/subida.
+    let hint = "";
+    if (Math.abs(state.theta) < 1e-3) {
+      hint = state.v0 < 0 ? "← (izq.)" : state.v0 > 0 ? "→ (der.)" : "";
+    } else {
+      hint = state.v0 < 0 ? "↓ (baja)" : state.v0 > 0 ? "↑ (sube)" : "";
+    }
+    el.v0Hint.textContent = hint;
     // No arrancamos aún; se aplica al pulsar Play
     renderAll();
   });
@@ -323,6 +343,13 @@
     state.sDown = state.Lpx / 2;
     state.vAlong = 0;
     state.lastT = 0;
+    renderAll();
+  });
+
+  // Mostrar/ocultar componentes del peso
+  el.showComponents.addEventListener("change", e => {
+    state.showComponents = e.target.checked;
+    // No se reinicia la animación; simplemente redibuja con o sin componentes
     renderAll();
   });
 
@@ -598,10 +625,14 @@
 
   function drawScene(G, P, fromAnim){
     const svg = el.svg;
+    // Redefine defs including a grey arrow head for additional vectors
     svg.innerHTML = `
       <defs>
         <marker id="arrowHead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
           <path d="M 0 0 L 10 5 L 0 10 z" fill="black"></path>
+        </marker>
+        <marker id="arrowHeadGrey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7280"></path>
         </marker>
       </defs>
     `;
@@ -625,7 +656,8 @@
       const arc = svgElem("path", { d:G.arcPath, fill:"none", stroke:"#334155", "stroke-width":"2" });
       svg.appendChild(arc);
       const label = svgElem("text", { x:G.tx, y:G.ty, "font-size":"12", fill:"#0f172a" });
-      label.textContent = `θ = ${state.theta.toFixed(0)}°`;
+      // Mostrar el ángulo con un decimal (0,5°) para coincidir con la precisión del slider
+      label.textContent = `θ = ${state.theta.toFixed(1)}°`;
       svg.appendChild(label);
     }
 
@@ -710,18 +742,72 @@
     nLab.textContent = "N";
     svg.appendChild(nLab);
 
-    // Rozamiento Fr (con subíndices)
-    svg.appendChild(svgElem("line", {
-      x1:Fx0, y1:Fy0, x2:Fx0 + dFr_X, y2:Fy0 + dFr_Y,
-      stroke:"black", "stroke-width":"2", "marker-end":"url(#arrowHead)"
-    }));
-    const frLab = svgElem("text", { x:Fx0 + dFr_X + 6, y:Fy0 + dFr_Y, "font-size":"14" });
-    frLab.appendChild(tspan("F"));
-    const subr = tspan("r"); subr.setAttribute("baseline-shift","sub"); subr.setAttribute("font-size","11");
-    frLab.appendChild(subr);
-    const subm = tspan(P.frModeSub); subm.setAttribute("baseline-shift","sub"); subm.setAttribute("font-size","11");
-    frLab.appendChild(subm);
-    svg.appendChild(frLab);
+    // Rozamiento Fr (con subíndices). Si la magnitud de la fricción aplicada es prácticamente cero,
+    // se omite completamente el vector de fricción y su etiqueta.  Un umbral algo más alto
+    // (1e-4 N) ayuda a evitar que se dibuje una flecha cuando la fricción es nula pero aparecen
+    // pequeños errores numéricos.  El valor 1e-4 es insignificante comparado con pesos de decenas
+    // de newtons pero suficiente para suprimir vectores residuales.
+    const FR_THRESHOLD = 1e-4;
+    if (Math.abs(P.frictionApplied) > FR_THRESHOLD) {
+      svg.appendChild(svgElem("line", {
+        x1:Fx0, y1:Fy0, x2:Fx0 + dFr_X, y2:Fy0 + dFr_Y,
+        stroke:"black", "stroke-width":"2", "marker-end":"url(#arrowHead)"
+      }));
+      const frLab = svgElem("text", { x:Fx0 + dFr_X + 6, y:Fy0 + dFr_Y, "font-size":"14" });
+      frLab.appendChild(tspan("F"));
+      const subr = tspan("r"); subr.setAttribute("baseline-shift","sub"); subr.setAttribute("font-size","11");
+      frLab.appendChild(subr);
+      const subm = tspan(P.frModeSub); subm.setAttribute("baseline-shift","sub"); subm.setAttribute("font-size","11");
+      frLab.appendChild(subm);
+      svg.appendChild(frLab);
+    }
+
+    // Componentes del peso (paralela y perpendicular) y líneas punteadas si está habilitado
+    if (state.showComponents) {
+      // Proyección del vector de peso sobre la tangente ut y sobre la normal un_raw
+      const dot_t = W_vec[0] * ut[0] + W_vec[1] * ut[1];
+      const dot_n = W_vec[0] * un_raw[0] + W_vec[1] * un_raw[1];
+      const Wp_math = [ dot_t * ut[0], dot_t * ut[1] ];
+      const Wn_math = [ dot_n * un_raw[0], dot_n * un_raw[1] ];
+      const [dWp_X, dWp_Y] = toSvg(Wp_math[0], Wp_math[1]);
+      const [dWn_X, dWn_Y] = toSvg(Wn_math[0], Wn_math[1]);
+      const WpEnd_x = Fx0 + dWp_X;
+      const WpEnd_y = Fy0 + dWp_Y;
+      const WnEnd_x = Fx0 + dWn_X;
+      const WnEnd_y = Fy0 + dWn_Y;
+
+      // Flecha componente paralela (p∥), en gris
+      svg.appendChild(svgElem("line", {
+        x1:Fx0, y1:Fy0, x2:WpEnd_x, y2:WpEnd_y,
+        stroke:"#6b7280", "stroke-width":"2", "marker-end":"url(#arrowHeadGrey)"
+      }));
+      const parLabel = svgElem("text", { x:WpEnd_x + 6, y:WpEnd_y, "font-size":"14", fill:"#374151" });
+      parLabel.textContent = "p∥";
+      svg.appendChild(parLabel);
+
+      // Flecha componente perpendicular (p⊥), en gris
+      svg.appendChild(svgElem("line", {
+        x1:Fx0, y1:Fy0, x2:WnEnd_x, y2:WnEnd_y,
+        stroke:"#6b7280", "stroke-width":"2", "marker-end":"url(#arrowHeadGrey)"
+      }));
+      const perpLabel = svgElem("text", { x:WnEnd_x + 6, y:WnEnd_y, "font-size":"14", fill:"#374151" });
+      perpLabel.textContent = "p⊥";
+      svg.appendChild(perpLabel);
+
+      // Coordenadas del extremo del peso para líneas punteadas
+      const W_end_x = Fx0 + dW_X;
+      const W_end_y = Fy0 + dW_Y;
+      // Línea punteada hacia componente paralela
+      svg.appendChild(svgElem("line", {
+        x1:W_end_x, y1:W_end_y, x2:WpEnd_x, y2:WpEnd_y,
+        stroke:"#9ca3af", "stroke-width":"1", "stroke-dasharray":"4 4"
+      }));
+      // Línea punteada hacia componente perpendicular
+      svg.appendChild(svgElem("line", {
+        x1:W_end_x, y1:W_end_y, x2:WnEnd_x, y2:WnEnd_y,
+        stroke:"#9ca3af", "stroke-width":"1", "stroke-dasharray":"4 4"
+      }));
+    }
   }
 
   function svgElem(name, attrs){
