@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <title>Calculadora de Tiro Parabólico – 1º Bach</title>
+  <style>
+    /* Tema claro por defecto */
+    :root{
+      --bg:#ffffff; --panel:#f8fafc; --muted:#64748b; --text:#0f172a; --accent:#2563eb; --ok:#16a34a; --ko:#dc2626;
+      --line:#cbd5e1; --grid:#e2e8f0; --traj:#2563eb; --ball:#ef4444; --vcol:#16a34a; --acol:#ef4444;
+    }
+    /* Tema oscuro opcional */
+    :root[data-theme="dark"]{
+      --bg:#0b1220; --panel:#121a2b; --muted:#b6c2e1; --text:#e6edf7; --accent:#4cc9f0; --ok:#22c55e; --ko:#ef4444;
+      --line:#1f2a41; --grid:#15203a; --traj:#6aa4ff; --ball:#e2e8f0; --vcol:#22c55e; --acol:#fca5a5;
+    }
+
+    *{box-sizing:border-box}
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif; color:var(--text); background:var(--bg);}    
+    header{padding:18px 20px; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:2; background:var(--panel)}
+    h1{margin:0; font-weight:700; font-size:1.15rem; letter-spacing:0.2px}
+    .theme-toggle{cursor:pointer; padding:6px 10px; border:1px solid var(--line); border-radius:10px; background:var(--panel); color:var(--text); font-weight:600}
+
+    .wrap{max-width:1400px; margin:20px auto; padding:0 16px;}
+    .grid{display:grid; grid-template-columns: 320px 1fr; gap:16px}
+
+    .card{background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:0 6px 18px rgba(0,0,0,.06);}    
+    .card h2{font-size:.95rem; margin:0 0 8px 0; color:var(--text)}
+    .card .content{padding:14px 14px 16px}
+
+    .row-2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    .row-1{display:grid; grid-template-columns:1fr; gap:10px}
+
+    label{font-size:.82rem; color:var(--muted)}
+    input[type="number"]{width:100%; margin-top:6px; padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:#fff; color:var(--text)}
+    :root[data-theme="dark"] input[type="number"]{background:#0e1730}
+    input[type="number"]:invalid{outline:1px solid var(--ko)}
+
+    .controls{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+    button{appearance:none; border:1px solid var(--line); background:#fff; color:var(--text); padding:8px 12px; border-radius:12px; cursor:pointer; font-weight:600}
+    :root[data-theme="dark"] button{background:#101a34}
+    .primary{background:var(--accent); color:#fff; border:none}
+    button[disabled]{opacity:.5; cursor:not-allowed}
+
+    .io-section{margin-top:14px}
+    .kv{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+    .kv .stat{background:#ffffff; border:1px solid var(--line); border-radius:10px; padding:8px}
+    :root[data-theme="dark"] .kv .stat{background:#0d162d}
+    .kv b{display:block; font-size:.72rem; color:var(--muted); font-weight:700}
+    .kv span{font-feature-settings:"tnum" 1,"lnum" 1; font-variant-numeric:tabular-nums; font-size:.95rem}
+    .hide{display:none !important}
+
+    .canvas-card{position:relative}
+    .canvas-wrap{position:relative; aspect-ratio: 16/9; max-height:70vh;}
+    canvas{position:absolute; inset:0; width:100%; height:100%; border-radius:14px; background:#ffffff; border:1px solid var(--line)}
+    :root[data-theme="dark"] canvas{background:#0a1022}
+
+    .legend{display:flex; gap:12px; align-items:center; margin-top:10px; color:var(--muted); font-size:.85rem}
+    .dot{width:10px; height:10px; border-radius:50%}
+
+    footer{max-width:1200px; margin:16px auto 40px; padding:0 16px; color:var(--muted); font-size:.85rem}
+
+    @media (max-width: 820px){ .grid{grid-template-columns: 1fr} .wrap{max-width:100%} }
+  </style>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+  <header>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <h1 style="margin:0">Calculadora de Tiro Parabólico</h1>
+      <button id="themeToggle" class="theme-toggle" title="Cambiar tema">Modo oscuro</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="grid">
+      <!-- Panel izquierdo: Parámetros de entrada y control -->
+      <section class="card">
+        <div class="content">
+          <h2>Parámetros de entrada</h2>
+          <!-- Orden solicitado: Masa, Gravedad / Altura, Velocidad / Ángulo -->
+          <div class="row-2">
+            <label><b>m (kg)</b>
+              <input id="mass" type="number" step="0.1" min="0.1" value="1">
+            </label>
+            <label><b>g (m/s²)</b>
+              <input id="g" type="number" step="0.01" min="0.01" value="9.81">
+            </label>
+          </div>
+          <div class="row-2">
+            <label><b>h₀ (m)</b>
+              <input id="h0" type="number" step="0.1" min="0" value="1.5">
+            </label>
+            <label><b>v₀ (m/s)</b>
+              <input id="v0" type="number" step="0.1" min="0" value="20">
+            </label>
+          </div>
+          <div class="row-1">
+            <label><b>θ (°)</b>
+              <input id="angle" type="number" step="0.1" min="0.1" max="89.9" value="45">
+            </label>
+          </div>
+
+          <div class="controls">
+            <button id="play" class="primary" title="Iniciar" aria-label="Iniciar">▶</button>
+            <button id="pause" style="display:none" title="Pausar" aria-label="Pausar">⏸</button>
+            <button id="reset" title="Reiniciar" aria-label="Reiniciar">⟲</button>
+            <button id="prev" title="Punto anterior" aria-label="Punto anterior" disabled>⏮</button>
+            <button id="next" title="Siguiente punto" aria-label="Siguiente punto" disabled>⏭</button>
+          </div>
+
+          <!-- Parámetros de salida, disposición solicitada -->
+          <div class="io-section">
+            <h2>Parámetros de salida</h2>
+            <div class="kv">
+              <div class="stat"><b>Tiempo (s)</b><span id="tOut">–</span></div>
+              <div class="stat hide"><b>—</b><span style="opacity:.0">—</span></div>
+              <div class="stat"><b>Posición X (m)</b><span id="xOut">–</span></div>
+              <div class="stat"><b>Posición Y (m)</b><span id="yOut">–</span></div>
+              <div class="stat"><b>Velocidad X (m/s)</b><span id="vxOut">–</span></div>
+              <div class="stat"><b>Velocidad Y (m/s)</b><span id="vyOut">–</span></div>
+              <div class="stat"><b>Aceleración X (m/s²)</b><span id="axOut">–</span></div>
+              <div class="stat"><b>Aceleración Y (m/s²)</b><span id="ayOut">–</span></div>
+              <div class="stat"><b>Alcance (m)</b><span id="rangeOut">–</span></div>
+              <div class="stat"><b>Altura máxima (m)</b><span id="hmaxOut">–</span></div>
+              <div class="stat"><b>Tiempo de vuelo (s)</b><span id="tfOut">–</span></div>
+              <div class="stat hide"><b>—</b><span style="opacity:.0">—</span></div>
+            </div>
+          </div>
+          <div class="legend">
+  <span style="display:inline-flex;align-items:center;gap:8px">
+    <span style="display:inline-block;width:22px;height:3px;background:var(--vcol);"></span>
+    <span class="katex">\(\vec{v}\)</span>
+  </span>
+  <span style="display:inline-flex;align-items:center;gap:8px;margin-left:20px">
+    <span style="display:inline-block;width:22px;height:3px;background:var(--acol);"></span>
+    <span class="katex">\(\vec{a}\)</span>
+  </span>
+</div>
+      </section>
+
+      <!-- Panel derecho: Canvas -->
+      <section class="card canvas-card">
+        <div class="content">
+          <h2>Animación</h2>
+          <div class="canvas-wrap">
+            <!-- Canvas agrandado -->
+            <canvas id="cv" width="1440" height="900" aria-label="Lienzo de animación del tiro parabólico"></canvas>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <footer class="wrap">
+    <!-- Sin textos de validación ni mensajes sobre dibujar t=0 -->
+  </footer>
+
+  <script>
+    // Utilidades
+    const rad = d => d * Math.PI / 180;
+    const r4  = n => Number.parseFloat(Number(n).toFixed(4));
+    const r2  = n => Number.parseFloat(Number(n).toFixed(2));
+
+    // Estado global
+    let playing = false, rafId = null, sim = null, iAnim = 0, paused = false;
+
+    // DOM helpers
+    const el = id => document.getElementById(id);
+    const massEl = el('mass'), gEl = el('g'), h0El = el('h0'), v0El = el('v0'), angEl = el('angle');
+    const playBtn = el('play'), pauseBtn = el('pause'), resetBtn = el('reset');
+    const prevBtn = el('prev'), nextBtn = el('next');
+    const tOut = el('tOut'), xOut = el('xOut'), yOut = el('yOut'), vxOut = el('vxOut'), vyOut = el('vyOut'), axOut = el('axOut'), ayOut = el('ayOut');
+    const rangeOut = el('rangeOut'), hmaxOut = el('hmaxOut'), tfOut = el('tfOut');
+    const cv = el('cv'), ctx = cv.getContext('2d');
+    const themeToggle = el('themeToggle');
+
+    // Padding del canvas
+    const PAD = {l:60, r:30, t:30, b:60};
+
+    function validateInputs(){
+      const h0 = Number(h0El.value), mass = Number(massEl.value), g = Number(gEl.value), ang = Number(angEl.value), v0 = Number(v0El.value);
+      if (!(Number.isFinite(h0) && h0 >= 0)) return {valid:false, error:'Altura inicial debe ser ≥ 0.'};
+      if (!(Number.isFinite(mass) && mass > 0)) return {valid:false, error:'La masa debe ser > 0.'};
+      if (!(Number.isFinite(g) && g > 0)) return {valid:false, error:'La gravedad debe ser > 0.'};
+      if (!(Number.isFinite(ang) && ang > 0 && ang < 90)) return {valid:false, error:'El ángulo debe cumplir 0 < θ < 90°.'};
+      if (!(Number.isFinite(v0) && v0 >= 0)) return {valid:false, error:'La velocidad inicial debe ser ≥ 0.'};
+      return {valid:true, input:{h0, mass, g, ang, v0}};
+    }
+
+    function flightTime(h0, v0y, g){ return (v0y + Math.sqrt(v0y*v0y + 2*g*h0)) / g; }
+
+    function prepareSimulation(){
+      const v = validateInputs();
+      if(!v.valid){ clearCanvasBase({sx:(cv.width-PAD.l-PAD.r)/10, sy:(cv.height-PAD.t-PAD.b)/10}); return null; }
+      const {h0, g, ang, v0} = v.input;
+      const th = rad(ang);
+      const v0x = v0 * Math.cos(th), v0y = v0 * Math.sin(th);
+      const tf = flightTime(h0, v0y, g);
+      const range = v0x * tf;
+      const hmax = h0 + (v0y*v0y)/(2*g);
+      const dt = 0.02;
+      const series = [];
+      for(let t=0; t<tf; t += dt){
+        const x = v0x * t;
+        const y = h0 + v0y * t - 0.5 * g * t * t;
+        const vx = v0x;
+        const vy = v0y - g * t;
+        series.push({ t:r4(t), x:r4(Math.max(0,x)), y:r4(Math.max(0,y)), vx:r4(vx), vy:r4(vy), ax:0, ay:-r4(g) });
+      }
+      series.push({ t:r4(tf), x:r4(v0x*tf), y:0, vx:r4(v0x), vy:r4(v0y-g*tf), ax:0, ay:-r4(g) });
+
+      const extX = Math.max(range, 1);
+      const extY = Math.max(hmax, h0, 1);
+      const sx = (cv.width - PAD.l - PAD.r) / (extX * 1.08 + 1e-6);
+      const sy = (cv.height - PAD.t - PAD.b) / (extY * 1.15 + 1e-6);
+      return {series, tf, range, hmax, scale:{sx,sy}, g, v0x, v0y};
+    }
+
+    function worldToScreen(x,y, scale){
+      const X0 = PAD.l, Y0 = cv.height - PAD.b; return { x: X0 + x * scale.sx, y: Y0 - y * scale.sy };
+    }
+
+    function clearCanvasBase(scale){
+      ctx.clearRect(0,0,cv.width,cv.height);
+      // grid
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid');
+      ctx.lineWidth = 1;
+      const stepX = Math.max(1, Math.pow(10, Math.floor(Math.log10(10/scale.sx))));
+      const stepY = Math.max(1, Math.pow(10, Math.floor(Math.log10(10/scale.sy))));
+      for(let x=0; x<=cv.width-PAD.l-PAD.r; x += stepX * scale.sx){ ctx.beginPath(); ctx.moveTo(PAD.l + x, PAD.t); ctx.lineTo(PAD.l + x, cv.height - PAD.b); ctx.stroke(); }
+      for(let y=0; y<=cv.height-PAD.t-PAD.b; y += stepY * scale.sy){ ctx.beginPath(); ctx.moveTo(PAD.l, cv.height - PAD.b - y); ctx.lineTo(cv.width - PAD.r, cv.height - PAD.b - y); ctx.stroke(); }
+      // axes
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--line');
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(PAD.l, cv.height-PAD.b); ctx.lineTo(cv.width-PAD.r, cv.height-PAD.b); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(PAD.l, cv.height-PAD.b); ctx.lineTo(PAD.l, PAD.t); ctx.stroke();
+      // labels
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--muted');
+      ctx.font = '14px ui-monospace, monospace';
+      ctx.fillText('x (m)', cv.width - PAD.r - 40, cv.height - PAD.b - 8);
+      ctx.fillText('y (m)', PAD.l + 8, PAD.t + 12);
+    }
+
+    function drawTrajectory(series, scale){
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--traj');
+      ctx.lineWidth = 2.2; ctx.beginPath();
+      for(let k=0;k<series.length;k++){
+        const p = worldToScreen(series[k].x, series[k].y, scale);
+        if(k===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);
+      }
+      ctx.stroke();
+    }
+
+    function drawArrow(x1,y1,x2,y2,color){
+      ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+      const ang = Math.atan2(y2-y1, x2-x1); const ah = 8, aw = 6;
+      ctx.beginPath(); ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - ah*Math.cos(ang) + aw*Math.sin(ang), y2 - ah*Math.sin(ang) - aw*Math.cos(ang));
+      ctx.lineTo(x2 - ah*Math.cos(ang) - aw*Math.sin(ang), y2 - ah*Math.sin(ang) + aw*Math.cos(ang));
+      ctx.closePath(); ctx.fill();
+    }
+
+    function drawBallAndVectors(state, scale){
+      const {x,y,vx,vy,ax,ay} = state; const p = worldToScreen(x,y, scale);
+      // bola
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--ball');
+      ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI*2); ctx.fill();
+      // Vectores en dirección TANGENTE/real: convertir a espacio de pantalla (anisotrópico), normalizar y escalar a longitud fija
+      const sx = scale.sx, sy = scale.sy;
+      // Velocidad → tangente
+      let dvx = vx * sx, dvy = -vy * sy; // signo en y invertido por pantalla
+      let dvm = Math.hypot(dvx, dvy) || 1; dvx = dvx / dvm * 56; dvy = dvy / dvm * 56; // 56 px
+      drawArrow(p.x, p.y, p.x + dvx, p.y + dvy, getComputedStyle(document.documentElement).getPropertyValue('--vcol'));
+      // Aceleración
+      let dax = ax * sx, day = -ay * sy;
+      let dam = Math.hypot(dax, day) || 1; dax = dax / dam * 50; day = day / dam * 50; // 50 px
+      drawArrow(p.x, p.y, p.x + dax, p.y + day, getComputedStyle(document.documentElement).getPropertyValue('--acol'));
+    }
+
+    function updateInstant(s){
+      tOut.textContent  = (s.t ?? 0).toFixed(2);
+      xOut.textContent  = (s.x ?? 0).toFixed(2);
+      yOut.textContent  = (s.y ?? 0).toFixed(2);
+      vxOut.textContent = (s.vx ?? 0).toFixed(2);
+      vyOut.textContent = (s.vy ?? 0).toFixed(2);
+      axOut.textContent = (s.ax ?? 0).toFixed(2);
+      ayOut.textContent = (s.ay ?? 0).toFixed(2);
+    }
+
+    function clearOutputs(){
+      [tOut,xOut,yOut,vxOut,vyOut,axOut,ayOut,rangeOut,hmaxOut,tfOut].forEach(n=> n.textContent='–');
+    }
+
+    function animate(){
+      if(!playing || !sim || paused) return;
+      const {series, scale} = sim; const state = series[iAnim];
+      clearCanvasBase(scale); drawTrajectory(series, scale); drawBallAndVectors(state, scale); updateInstant(state);
+      if(iAnim < series.length - 1){ iAnim++; rafId = requestAnimationFrame(animate); }
+      else { // final
+        playing = false; rafId = null; paused = false;
+        // Mostrar solo alcance, altura máxima y tiempo de vuelo al concluir
+        rangeOut.textContent = r2(sim.range);
+        hmaxOut.textContent  = r2(sim.hmax);
+        tfOut.textContent    = r2(sim.tf);
+        // desactivar stepping
+        prevBtn.disabled = true; nextBtn.disabled = true;
+        toggleButtons('idle');
+      }
+    }
+
+    // Controles
+    function start(){
+      // Si está pausado, Play reanuda
+      if(sim && paused){
+        paused = false;
+        prevBtn.disabled = true; nextBtn.disabled = true;
+        toggleButtons('playing');
+        animate();
+        return;
+      }
+      if(playing && !paused) return; // ya reproduciendo
+      // Iniciar desde el principio
+      sim = prepareSimulation(); if(!sim) return;
+      clearOutputs(); updateInstant({t:0,x:0,y:0,vx:0,vy:0,ax:0,ay:0});
+      cancelAnimationFrame(rafId); iAnim = 0; playing = true; paused = false;
+      prevBtn.disabled = true; nextBtn.disabled = true;
+      toggleButtons('playing');
+      animate();
+    }
+
+    function pause(){
+      if(!sim) return;
+      paused = true; playing = true;
+      cancelAnimationFrame(rafId);
+      prevBtn.disabled = false; nextBtn.disabled = false; // stepping activo en pausa
+      toggleButtons('paused');
+    }
+
+    function step(delta){
+      if(!sim || !paused) return;
+      iAnim = Math.max(0, Math.min(sim.series.length-1, iAnim + delta));
+      const s = sim.series[iAnim];
+      clearCanvasBase(sim.scale); drawTrajectory(sim.series, sim.scale); drawBallAndVectors(s, sim.scale); updateInstant(s);
+    }
+
+    function reset(){
+      cancelAnimationFrame(rafId);
+      playing = false; paused = false; iAnim = 0;
+      sim = prepareSimulation();
+      const scale = sim ? sim.scale : {sx:(cv.width-PAD.l-PAD.r)/10, sy:(cv.height-PAD.t-PAD.b)/10};
+      clearCanvasBase(scale);
+      clearOutputs();
+      prevBtn.disabled = true; nextBtn.disabled = true;
+      toggleButtons('idle');
+    }
+
+    // Eventos UI
+    playBtn.addEventListener('click', start);
+    pauseBtn.addEventListener('click', pause);
+    
+    resetBtn.addEventListener('click', reset);
+    prevBtn.addEventListener('click', ()=> step(-1));
+    nextBtn.addEventListener('click', ()=> step(1));
+
+    // Cambios de parámetros: no dibujar bola ni resultados (solo limpiar)
+    [massEl, gEl, h0El, v0El, angEl].forEach(inp => inp.addEventListener('input', reset));
+
+    // Tema claro/oscuro (sin persistencia)
+    themeToggle.addEventListener('click', ()=>{
+      const root = document.documentElement; const dark = root.getAttribute('data-theme') === 'dark';
+      root.setAttribute('data-theme', dark ? 'light' : 'dark');
+      themeToggle.textContent = dark ? 'Modo oscuro' : 'Modo claro';
+      // Redibujar base
+      const scale = sim ? sim.scale : {sx:(cv.width-PAD.l-PAD.r)/10, sy:(cv.height-PAD.t-PAD.b)/10};
+      clearCanvasBase(scale);
+    });
+
+    // Resize simple
+    const ro = new ResizeObserver(()=>{ const scale = sim ? sim.scale : {sx:(cv.width-PAD.l-PAD.r)/10, sy:(cv.height-PAD.t-PAD.b)/10}; clearCanvasBase(scale); });
+    ro.observe(cv);
+
+    // Inicial
+    function toggleButtons(state){
+      if(state==='playing'){
+        playBtn.style.display='none';
+        pauseBtn.style.display='inline-block';
+      }else{
+        playBtn.style.display='inline-block';
+        pauseBtn.style.display='none';
+      }
+    }
+    reset();
+  </script>
+  <script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "\\(", right: "\\)", display: false},
+        {left: "\\[", right: "\\]", display: true}
+      ]
+    });
+  });
+</script>
+
+</body>
+</html>
