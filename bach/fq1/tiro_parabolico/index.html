@@ -40,11 +40,16 @@
     :root[data-theme="dark"] input[type="number"]{background:#0e1730}
     input[type="number"]:invalid{outline:1px solid var(--ko)}
 
-    .controls{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
-    button{appearance:none; border:1px solid var(--line); background:#fff; color:var(--text); padding:8px 12px; border-radius:12px; cursor:pointer; font-weight:600}
+    .controls{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; align-items: center;}
+    button{appearance:none; border:1px solid var(--line); background:var(--panel); padding:8px; border-radius:50%; width:40px; height:40px; cursor:pointer; font-weight:600; display:flex; align-items:center; justify-content:center;}
     :root[data-theme="dark"] button{background:#101a34}
     .primary{background:var(--accent); color:#fff; border:none}
     button[disabled]{opacity:.5; cursor:not-allowed}
+    button img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
 
     .io-section{margin-top:14px}
     .kv{display:grid; grid-template-columns:1fr 1fr; gap:8px}
@@ -106,11 +111,11 @@
           </div>
 
           <div class="controls">
-            <button id="play" class="primary" title="Iniciar" aria-label="Iniciar">▶</button>
-            <button id="pause" style="display:none" title="Pausar" aria-label="Pausar">⏸</button>
-            <button id="reset" title="Reiniciar" aria-label="Reiniciar">⟲</button>
-            <button id="prev" title="Punto anterior" aria-label="Punto anterior" disabled>⏮</button>
-            <button id="next" title="Siguiente punto" aria-label="Siguiente punto" disabled>⏭</button>
+            <button id="reset" title="Reiniciar" aria-label="Reiniciar"><img src="images/reset-light.png" alt="Reiniciar" class="button-icon"></button>
+            <button id="prev" title="Punto anterior" aria-label="Punto anterior" disabled><img src="images/prev-light.png" alt="Punto anterior" class="button-icon"></button>
+            <button id="play" class="primary" title="Iniciar" aria-label="Iniciar"><img src="images/play-light.png" alt="Iniciar" class="button-icon"></button>
+            <button id="pause" style="display:none" title="Pausar" aria-label="Pausar"><img src="images/pause-light.png" alt="Pausar" class="button-icon"></button>
+            <button id="next" title="Siguiente punto" aria-label="Siguiente punto" disabled><img src="images/next-light.png" alt="Siguiente punto" class="button-icon"></button>
           </div>
 
           <!-- Parámetros de salida, disposición solicitada -->
@@ -371,27 +376,39 @@
     // Cambios de parámetros: no dibujar bola ni resultados (solo limpiar)
     [massEl, gEl, h0El, v0El, angEl].forEach(inp => inp.addEventListener('input', reset));
 
-    // Tema claro/oscuro (sin persistencia)
-    themeToggle.addEventListener('click', ()=>{
-      const root = document.documentElement; const dark = root.getAttribute('data-theme') === 'dark';
+    // Tema claro/oscuro con cambio de imágenes
+    themeToggle.addEventListener('click', () => {
+      const root = document.documentElement;
+      const dark = root.getAttribute('data-theme') === 'dark';
       root.setAttribute('data-theme', dark ? 'light' : 'dark');
       themeToggle.textContent = dark ? 'Modo oscuro' : 'Modo claro';
+
+      const isDark = !dark; // Invertimos para usar true cuando es modo oscuro
+      [playBtn, pauseBtn, resetBtn, prevBtn, nextBtn].forEach(btn => {
+        const img = btn.querySelector('img');
+        const baseName = img.alt.toLowerCase().replace(' ', '-');
+        img.src = `images/${baseName}-${isDark ? 'dark' : 'light'}.png`;
+      });
+
       // Redibujar base
       const scale = sim ? sim.scale : {sx:(cv.width-PAD.l-PAD.r)/10, sy:(cv.height-PAD.t-PAD.b)/10};
       clearCanvasBase(scale);
     });
 
     // Resize simple
-    const ro = new ResizeObserver(()=>{ const scale = sim ? sim.scale : {sx:(cv.width-PAD.l-PAD.r)/10, sy:(cv.height-PAD.t-PAD.b)/10}; clearCanvasBase(scale); });
+    const ro = new ResizeObserver(() => {
+      const scale = sim ? sim.scale : {sx:(cv.width-PAD.l-PAD.r)/10, sy:(cv.height-PAD.t-PAD.b)/10};
+      clearCanvasBase(scale);
+    });
     ro.observe(cv);
 
     // Inicial
     function toggleButtons(state){
       if(state==='playing'){
         playBtn.style.display='none';
-        pauseBtn.style.display='inline-block';
+        pauseBtn.style.display='flex';
       }else{
-        playBtn.style.display='inline-block';
+        playBtn.style.display='flex';
         pauseBtn.style.display='none';
       }
     }
