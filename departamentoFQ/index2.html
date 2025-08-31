@@ -63,11 +63,18 @@ Miguel, 18</textarea>
 1º BACH M A, 4, Cualquiera
 1º BACH M B, 4, Cualquiera
 1º BACH T A, 4, Cualquiera
-2º BACH M FIS, 4, Cualquiera
+2º BACH M FIS, 4, Antonio
 2º BACH M QUIM, 4, Cualquiera
 2º BACH T QUIM, 4, Cualquiera
 FPB, 8, Cualquiera</textarea>
       <p class="instructions"><strong>Tareas:</strong> introduce cada tarea con su nombre y duración (<span class="kbd">Nombre, horas</span>). Si una tarea debe asignarse obligatoriamente a alguien, añade la persona tras otra coma (<span class="kbd">Nombre, horas, Persona</span>). Utiliza <span class="kbd">Cualquiera</span> para tareas sin asignación fija. Añade <span class="kbd">+TUT</span> al nombre para marcar una tutoría.</p>
+    </div>
+    
+    <!-- Campo para condiciones extra -->
+    <div style="grid-column: span 2;">
+      <h3>Condiciones adicionales</h3>
+      <textarea id="conditionsInput" placeholder="Una condición por línea"></textarea>
+      <p class="instructions"><strong>Condiciones:</strong> puedes prohibir asignaciones y marcar preferencias. Para prohibir que una tarea vaya a un profesor concreto, escribe <span class="kbd">No asignar: tarea, profesor</span>. Para indicar una preferencia, escribe <span class="kbd">Prefiere: profesor, tarea</span>. Usa una línea por condición.</p>
     </div>
   </div>
 
@@ -137,6 +144,44 @@ FPB, 8, Cualquiera</textarea>
     return arr;
   }
 
+  /**
+   * Parsea las condiciones extras introducidas por el usuario. Admite líneas que
+   * comiencen por "No" o "No asignar" para prohibir una combinación de tarea y profesor,
+   * y líneas que comiencen por "Prefiere" para indicar preferencias.
+   * El formato es:
+   *   No asignar: tarea, profesor
+   *   Prefiere: profesor, tarea
+   */
+  function parseConditions(text) {
+    const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    const forbids = [];
+    const prefs = [];
+    for (const line of lines) {
+      const lower = line.toLowerCase();
+      let rest = line;
+      if (lower.startsWith('no asignar') || lower.startsWith('no:') || lower.startsWith('no ')) {
+        const idx = line.indexOf(':');
+        rest = idx >= 0 ? line.slice(idx+1) : line;
+        const parts = rest.split(',').map(s => s.trim()).filter(Boolean);
+        if (parts.length >= 2) {
+          const tarea = parts[0];
+          const prof = parts[1];
+          forbids.push({ task: tarea, professor: prof });
+        }
+      } else if (lower.startsWith('prefiere') || lower.startsWith('prefers')) {
+        const idx = line.indexOf(':');
+        rest = idx >= 0 ? line.slice(idx+1) : line;
+        const parts = rest.split(',').map(s => s.trim()).filter(Boolean);
+        if (parts.length >= 2) {
+          const prof = parts[0];
+          const tarea = parts[1];
+          prefs.push({ professor: prof, task: tarea });
+        }
+      }
+    }
+    return { forbids, prefs };
+  }
+
   function sum(arr, fn) { return arr.reduce((a,b)=>a+fn(b),0); }
 
   function combinations(items, k) {
@@ -156,7 +201,7 @@ FPB, 8, Cualquiera</textarea>
     return res;
   }
 
-  function enumerateAssignments(people, tasks, limit=50) {
+  function enumerateAssignments(people, tasks, limit=50, forbidMap=null, prefsList=[]) {
     // capacities base y exceso según suma de tareas
     const totalTasks = sum(tasks, t => t.hours);
     const baseTotal = sum(people, p => p.base);
@@ -175,6 +220,13 @@ FPB, 8, Cualquiera</textarea>
       return caps;
     });
 
+    // construir mapa de preferencias por tarea para saber si una tarea tiene preferencia
+    const prefsMap = {};
+    prefsList.forEach(({ task }) => {
+      const key = (task || '').toLowerCase();
+      if (!prefsMap[key]) prefsMap[key] = true;
+    });
+
     // preaplicar obligatorias y validar
     function applyForced(caps) {
       const cap = caps.slice();
@@ -185,6 +237,13 @@ FPB, 8, Cualquiera</textarea>
         const i = people.findIndex(p => p.name.toLowerCase() === t.assigned.toLowerCase());
         if (i < 0) return null; // asignado no existe
         if (cap[i] < t.hours) return null;
+        // prohibición explícita: si la tarea está en forbidMap y contiene este profesor, no es válido
+        if (forbidMap) {
+          const forbProfs = forbidMap[t.name.toLowerCase()];
+          if (forbProfs && forbProfs.has(people[i].name.toLowerCase())) {
+            return null;
+          }
+        }
         // incompatibilidad entre Jefatura y tutoría
         if (t.isChief && tutOwner[i]) return null;
         if (t.isTut && jefOwner[i]) return null;
@@ -208,17 +267,21 @@ FPB, 8, Cualquiera</textarea>
     // conjunto de claves canónicas para eliminar soluciones idénticas bajo permutaciones
     const seenKeys = new Set();
 
-    // genera una clave que agrupa tareas libres con características idénticas (horas, tutoría, jefatura)
-    // e ignora su nombre concreto; ordena las personas asignadas dentro de cada grupo para evitar
-    // considerar como diferentes aquellas soluciones que solo permutan tareas equivalentes.
+    // genera una clave que agrupa tareas libres con características idénticas (horas, tutoría, jefatura,
+    // presencia de prohibiciones o preferencias) e ignora su nombre concreto; ordena las personas asignadas
+    // dentro de cada grupo para evitar considerar como diferentes aquellas soluciones que solo permutan
+    // tareas equivalentes. Si una tarea tiene prohibiciones o preferencias, se considera distinta de otra
+    // con las mismas horas pero sin ellas.
     function canonicalKey(assign) {
       const groups = {};
       for (const t of tasks) {
-        // solo consideramos tareas libres (sin asignación obligatoria)
         if (!t.assigned) {
-          const gk = `${t.hours}-${t.isTut}-${t.isChief}`;
+          // clave de características extendida
+          const forbSet = forbidMap ? forbidMap[t.name.toLowerCase()] : null;
+          const forbKey = forbSet ? Array.from(forbSet).sort().join(',') : '';
+          const prefFlag = prefsMap[t.name.toLowerCase()] ? 'P' : '';
+          const gk = `${t.hours}-${t.isTut}-${t.isChief}-${forbKey}-${prefFlag}`;
           if (!groups[gk]) groups[gk] = [];
-          // persona asignada en esta solución para esta tarea
           const who = assign[t.name];
           groups[gk].push(who || "");
         }
@@ -251,7 +314,10 @@ FPB, 8, Cualquiera</textarea>
       if (totalCap < remaining) return;
 
       // clave de grupo para tareas equivalentes (horas, tutoría, jefatura)
-      const gkey = `${t.hours}-${t.isTut}-${t.isChief}`;
+      const forbSet = forbidMap ? forbidMap[t.name.toLowerCase()] : null;
+      const forbKey = forbSet ? Array.from(forbSet).sort().join(',') : '';
+      const prefFlag = prefsMap[t.name.toLowerCase()] ? 'P' : '';
+      const gkey = `${t.hours}-${t.isTut}-${t.isChief}-${forbKey}-${prefFlag}`;
       const lastAssigned = lastIdxMap[gkey];
 
       for (let i=0; i<people.length; i++) {
@@ -261,6 +327,13 @@ FPB, 8, Cualquiera</textarea>
         // incompatibilidad: no TUT si ya tiene Jefatura, ni viceversa
         if (t.isTut && jefOwner[i]) continue;
         if (t.isChief && tutOwner[i]) continue;
+        // prohibiciones explícitas: si existe forbidMap y esta combinación está prohibida, continuar
+        if (forbidMap) {
+          const forbProfs = forbidMap[t.name.toLowerCase()];
+          if (forbProfs && forbProfs.has(people[i].name.toLowerCase())) {
+            continue;
+          }
+        }
         // evitar permutaciones entre tareas equivalentes:
         // si ya se asignó una tarea de este grupo, solo permitir personas con índice >= último asignado
         if (lastAssigned !== undefined && i < lastAssigned) continue;
@@ -506,10 +579,47 @@ FPB, 8, Cualquiera</textarea>
       p.color = COLOR_PALETTE[idx % COLOR_PALETTE.length];
     });
     const tasks  = parseTasks($("#tasksInput").value);
+    const conditionsText = $("#conditionsInput").value || "";
+    const { forbids, prefs } = parseConditions(conditionsText);
+    // construir mapa de prohibiciones: clave tarea en minúsculas -> Set de profesores en minúsculas
+    const forbidMap = {};
+    forbids.forEach(({ task, professor }) => {
+      const tKey = (task || "").toLowerCase();
+      const pKey = (professor || "").toLowerCase();
+      if (!tKey || !pKey) return;
+      if (!forbidMap[tKey]) forbidMap[tKey] = new Set();
+      forbidMap[tKey].add(pKey);
+    });
     const st = $("#status");
     st.textContent = "Calculando...";
     setTimeout(() => {
-      const sols = enumerateAssignments(people, tasks, 50);
+      const rawSolutions = enumerateAssignments(people, tasks, 50, forbidMap, prefs);
+      // ordenar soluciones por número de preferencias satisfechas
+      const withScores = rawSolutions.map((assign, idx) => {
+        let score = 0;
+        prefs.forEach(({ professor, task }) => {
+          const tKey = (task || "").toLowerCase();
+          const pKey = (professor || "").toLowerCase();
+          // encontrar coincidencia de tarea en tasks (puede haber diferencias en mayúsculas)
+          // compararemos por nombre exacto: si assign[t.name] coincide (minúsculas) con pKey, incrementamos
+          // buscaremos la tarea real en tasks para obtener el nombre exacto
+          for (const t of tasks) {
+            if (t.name.toLowerCase() === tKey) {
+              const who = assign[t.name] || t.assigned;
+              if (who && who.toLowerCase() === pKey) {
+                score++;
+              }
+              break;
+            }
+          }
+        });
+        return { assign, score, idx };
+      });
+      withScores.sort((a,b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return a.idx - b.idx; // estabilidad
+      });
+      const sols = withScores.map(x => x.assign);
       // render resumen antes de soluciones
       renderSummary(people, tasks, sols);
       renderSolutions(people, tasks, sols);
