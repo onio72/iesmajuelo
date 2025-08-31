@@ -1,0 +1,374 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Asignación de tareas (cliente JS)</title>
+<style>
+  :root { --bg:#fff; --ink:#111; --muted:#6b7280; --accent:#2563eb; --line:#e5e7eb; }
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color:var(--ink); background:var(--bg); margin:24px; }
+  h1 { font-size: 1.25rem; margin: 0 0 12px; }
+  .grid { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+  textarea { width: 100%; height: 200px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; padding: 8px; border:1px solid var(--line); border-radius: 8px; }
+  .row { display:flex; gap:10px; align-items:center; margin-top:8px; }
+  button { background:var(--accent); color:#fff; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .note { color:var(--muted); font-size: .9rem; }
+  .solutions { margin-top: 18px; }
+  .summary-table { margin-bottom: 20px; }
+  .card { border:1px solid var(--line); border-radius:12px; padding: 12px; margin-bottom: 14px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  th, td { border-bottom:1px solid var(--line); padding:6px 8px; text-align:left; font-size: 14px; }
+  th.sortable { cursor: pointer; }
+  .totals { display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; font-size: 13px; }
+  .pill { padding:4px 8px; border-radius:999px; background:#f1f5f9; border:1px solid var(--line); }
+  .kbd { font-family: ui-monospace, SFMono-Regular, monospace; background:#f3f4f6; border:1px solid #e5e7eb; padding:2px 6px; border-radius:6px; }
+</style>
+</head>
+<body>
+  <h1>Asignación de tareas indivisibles</h1>
+  <p class="note">Introduce profesores y tareas, y pulsa <span class="kbd">Calcular asignaciones</span>. Se listarán hasta 50 soluciones factibles.</p>
+
+  <div class="grid">
+    <div>
+      <h3>Profesores y horas totales</h3>
+      <textarea id="peopleInput">Antonio, 18
+Julia, 18
+Rafa, 18
+Miguel, 18</textarea>
+      <p class="note">Formato: <span class="kbd">Nombre, horas</span> (una línea por profesor)</p>
+    </div>
+
+    <div>
+      <h3>Tareas (nombre, horas, asignación obligatoria opcional)</h3>
+      <textarea id="tasksInput">Jefatura, 3, Julia
+2ºESO A +TUT, 5, Cualquiera
+2ºESO B, 3, Cualquiera
+2ºESO C, 3, Cualquiera
+2ºESO D, 3, Cualquiera
+3ºESO A +TUT, 5, Cualquiera
+3ºESO B, 3, Cualquiera
+3ºESO C, 3, Cualquiera
+3ºESO D, 3, Cualquiera
+3ºESO E, 3, Cualquiera
+4ºESO A, 3, Cualquiera
+4ºESO B, 3, Cualquiera
+4ºESO C, 3, Cualquiera
+1º BACH M A, 4, Cualquiera
+1º BACH M B, 4, Cualquiera
+1º BACH T A, 4, Cualquiera
+2º BACH M FIS, 4, Antonio
+2º BACH M QUIM, 4, Cualquiera
+2º BACH T QUIM, 4, Cualquiera
+FPB, 8, Cualquiera</textarea>
+      <p class="note">Formato: <span class="kbd">Nombre, horas</span> o <span class="kbd">Nombre, horas, Persona|Cualquiera</span>. “+TUT” marca tutoría.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <button id="runBtn">Calcular asignaciones</button>
+    <span class="note" id="status"></span>
+  </div>
+
+  <div class="solutions" id="solutions"></div>
+
+<script>
+(function() {
+  const $ = (sel) => document.querySelector(sel);
+
+  function parsePeople(text) {
+    const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    const arr = [];
+    for (const line of lines) {
+      const [nameRaw, hoursRaw] = line.split(",").map(s => (s||"").trim());
+      if (!nameRaw || !hoursRaw) continue;
+      const hours = Number(hoursRaw);
+      if (!Number.isFinite(hours)) continue;
+      arr.push({ name: nameRaw, base: hours });
+    }
+    return arr;
+  }
+
+  function parseTasks(text) {
+    const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    const arr = [];
+    for (const line of lines) {
+      const parts = line.split(",").map(s => (s||"").trim());
+      const name = parts[0];
+      const hours = Number(parts[1]);
+      const assigned = (parts[2] && parts[2].toLowerCase() !== "cualquiera") ? parts[2] : null;
+      if (!name || !Number.isFinite(hours)) continue;
+      const isTut = /\+TUT\b/i.test(name);
+      arr.push({ name, hours, assigned, isTut });
+    }
+    return arr;
+  }
+
+  function sum(arr, fn) { return arr.reduce((a,b) => a+fn(b),0); }
+
+  function combinations(items, k) {
+    const res = [];
+    const n = items.length;
+    function rec(start, comb) {
+      if (comb.length === k) { res.push(comb.slice()); return; }
+      for (let i=start; i<n; i++) {
+        comb.push(items[i]);
+        rec(i+1, comb);
+        comb.pop();
+      }
+    }
+    if (k === 0) return [[]];
+    if (k > 0 && k <= items.length) rec(0, []);
+    return res;
+  }
+
+  function enumerateAssignments(people, tasks, limit=50) {
+    const totalTasks = sum(tasks, t => t.hours);
+    const baseTotal = sum(people, p => p.base);
+    const excess = Math.max(0, totalTasks - baseTotal);
+    if (excess > people.length) return [];
+    const forcedTasks = tasks.filter(t => t.assigned);
+    const freeTasks   = tasks.filter(t => !t.assigned);
+    const idx = people.map((_,i)=>i);
+    const capsOptions = combinations(idx, excess).map(indices => {
+      const caps = people.map(p => p.base);
+      for (const i of indices) caps[i] = people[i].base + 1;
+      return caps;
+    });
+    function applyForced(caps) {
+      const cap = caps.slice();
+      const tutOwner = {};
+      const assign = {};
+      for (const t of forcedTasks) {
+        const i = people.findIndex(p => p.name.toLowerCase() === t.assigned.toLowerCase());
+        if (i < 0) return null;
+        if (cap[i] < t.hours) return null;
+        if (t.isTut) {
+          if (tutOwner[i]) return null;
+          tutOwner[i] = true;
+        }
+        cap[i] -= t.hours;
+        assign[t.name] = people[i].name;
+      }
+      return { cap, tutOwner, assign };
+    }
+    freeTasks.sort((a,b) => (b.hours - a.hours) || (b.isTut?1:0) - (a.isTut?1:0));
+    const results = [];
+    function backtrack(taskIdx, cap, tutOwner, assign) {
+      if (results.length >= limit) return;
+      if (taskIdx === freeTasks.length) {
+        results.push({...assign});
+        return;
+      }
+      const t = freeTasks[taskIdx];
+      const remaining = freeTasks.slice(taskIdx).reduce((a,b)=>a+b.hours,0);
+      const totalCap = cap.reduce((a,b)=>a+b,0);
+      if (totalCap < remaining) return;
+      for (let i=0; i<people.length; i++) {
+        if (cap[i] < t.hours) continue;
+        if (t.isTut && tutOwner[i]) continue;
+        cap[i] -= t.hours;
+        const prevTut = tutOwner[i] || false;
+        if (t.isTut) tutOwner[i] = true;
+        assign[t.name] = people[i].name;
+        backtrack(taskIdx+1, cap, tutOwner, assign);
+        delete assign[t.name];
+        if (t.isTut && !prevTut) delete tutOwner[i];
+        cap[i] += t.hours;
+        if (results.length >= limit) return;
+      }
+    }
+    for (const caps of capsOptions) {
+      const prep = applyForced(caps);
+      if (!prep) continue;
+      backtrack(0, prep.cap.slice(), {...prep.tutOwner}, {...prep.assign});
+      if (results.length >= limit) break;
+    }
+    return results;
+  }
+
+  // Helper to make a table sortable by clicking header cells
+  function makeTableSortable(tbl) {
+    const ths = tbl.querySelectorAll('thead th');
+    ths.forEach((th, idx) => {
+      // Sort only first two columns: tarea (0) and persona (1)
+      if (idx > 1) return;
+      th.classList.add('sortable');
+      th.addEventListener('click', () => {
+        const tbody = tbl.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const dir = th.dataset.sortDir === 'asc' ? 'desc' : 'asc';
+        th.dataset.sortDir = dir;
+        rows.sort((a,b) => {
+          const aText = a.children[idx].textContent.trim().toLowerCase();
+          const bText = b.children[idx].textContent.trim().toLowerCase();
+          if (aText < bText) return dir === 'asc' ? -1 : 1;
+          if (aText > bText) return dir === 'asc' ? 1 : -1;
+          return 0;
+        });
+        // Remove old rows and reappend in sorted order
+        rows.forEach(r => tbody.appendChild(r));
+      });
+    });
+  }
+
+  function renderSolutions(people, tasks, sols) {
+    const host = $("#solutions");
+    host.innerHTML = "";
+    // If there are no solutions, show a message and exit
+    if (!sols || sols.length === 0) {
+      const d = document.createElement('div');
+      d.className = 'note';
+      d.textContent = "No se han encontrado soluciones con los datos y restricciones actuales.";
+      host.appendChild(d);
+      return;
+    }
+    // Compute summary statistics for tasks across solutions
+    const taskSummary = {};
+    tasks.forEach(t => {
+      taskSummary[t.name] = {};
+      people.forEach(p => taskSummary[t.name][p.name] = 0);
+    });
+    sols.forEach(sol => {
+      tasks.forEach(t => {
+        const who = sol[t.name] || t.assigned;
+        if (who) {
+          taskSummary[t.name][who]++;
+        }
+      });
+    });
+    const totalSols = sols.length;
+    // Build array of summary rows with max percentage for sorting
+    const summaryRows = tasks.map(t => {
+      const counts = taskSummary[t.name];
+      const percentages = {};
+      let maxP = 0;
+      Object.keys(counts).forEach(name => {
+        const p = (counts[name] / totalSols) * 100;
+        percentages[name] = p;
+        if (p > maxP) maxP = p;
+      });
+      return { name: t.name, percentages, maxP };
+    });
+    // Sort tasks by descending max percentage, then alphabetically
+    summaryRows.sort((a,b) => {
+      if (b.maxP !== a.maxP) return b.maxP - a.maxP;
+      return a.name.localeCompare(b.name);
+    });
+    // Create summary table
+    const summaryContainer = document.createElement('div');
+    summaryContainer.className = 'summary-table';
+    const summaryTable = document.createElement('table');
+    const thead = document.createElement('thead');
+    const headRow = document.createElement('tr');
+    headRow.appendChild(Object.assign(document.createElement('th'), { textContent: 'Tarea' }));
+    people.forEach(p => {
+      const th = document.createElement('th');
+      th.textContent = `${p.name} (%)`;
+      headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+    summaryTable.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    summaryRows.forEach(row => {
+      const tr = document.createElement('tr');
+      const tdName = document.createElement('td');
+      tdName.textContent = row.name;
+      tr.appendChild(tdName);
+      people.forEach(p => {
+        const td = document.createElement('td');
+        const perc = row.percentages[p.name] || 0;
+        td.textContent = perc.toFixed(1);
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    summaryTable.appendChild(tbody);
+    summaryContainer.appendChild(summaryTable);
+    host.appendChild(summaryContainer);
+
+    // Summary note
+    const note = document.createElement('div');
+    note.className = 'note';
+    const totalTasksHours = sum(tasks, t=>t.hours);
+    const totalBase = sum(people, p=>p.base);
+    const excess = Math.max(0, totalTasksHours - totalBase);
+    note.textContent = `Encontradas ${sols.length} soluciones. Carga total: ${totalTasksHours} h. Capacidad base: ${totalBase} h. Exceso distribuido: ${excess} h.`;
+    host.appendChild(note);
+
+    // Create cards for each solution
+    sols.forEach((assign, idx) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      const h = document.createElement('h3');
+      h.textContent = `Solución ${idx+1}`;
+      card.appendChild(h);
+      // totals per person
+      const hoursBy = Object.fromEntries(people.map(p=>[p.name,0]));
+      tasks.forEach(t => {
+        const who = assign[t.name] || t.assigned;
+        if (who) hoursBy[who] = (hoursBy[who] || 0) + t.hours;
+      });
+      const totalsDiv = document.createElement('div');
+      totalsDiv.className = 'totals';
+      people.forEach(p => {
+        const pill = document.createElement('span');
+        pill.className = 'pill';
+        pill.textContent = `${p.name}: ${hoursBy[p.name] || 0} h`;
+        totalsDiv.appendChild(pill);
+      });
+      card.appendChild(totalsDiv);
+      // table of tasks for this solution
+      const tbl = document.createElement('table');
+      const thd = document.createElement('thead');
+      const thRow = document.createElement('tr');
+      const th1 = document.createElement('th');
+      th1.textContent = 'Tarea';
+      thRow.appendChild(th1);
+      const th2 = document.createElement('th');
+      th2.textContent = 'Asignado a';
+      thRow.appendChild(th2);
+      const th3 = document.createElement('th');
+      th3.textContent = 'Horas';
+      thRow.appendChild(th3);
+      thd.appendChild(thRow);
+      tbl.appendChild(thd);
+      const tbd = document.createElement('tbody');
+      tasks.forEach(t => {
+        const tr = document.createElement('tr');
+        const tdName = document.createElement('td');
+        tdName.textContent = t.name;
+        tr.appendChild(tdName);
+        const tdWho = document.createElement('td');
+        const who = assign[t.name] || t.assigned || '—';
+        tdWho.textContent = who;
+        tr.appendChild(tdWho);
+        const tdHours = document.createElement('td');
+        tdHours.textContent = t.hours;
+        tr.appendChild(tdHours);
+        tbd.appendChild(tr);
+      });
+      tbl.appendChild(tbd);
+      card.appendChild(tbl);
+      // make sortable
+      makeTableSortable(tbl);
+      host.appendChild(card);
+    });
+  }
+
+  $('#runBtn').addEventListener('click', () => {
+    const people = parsePeople($('#peopleInput').value);
+    const tasks  = parseTasks($('#tasksInput').value);
+    const st = $('#status');
+    st.textContent = 'Calculando...';
+    setTimeout(() => {
+      const sols = enumerateAssignments(people, tasks, 50);
+      renderSolutions(people, tasks, sols);
+      st.textContent = 'Listo.';
+    }, 10);
+  });
+})();
+</script>
+</body>
+</html>
