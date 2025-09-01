@@ -46,28 +46,28 @@ Miguel, 18</textarea>
     </div>
 
     <div>
-      <h3>Tareas (nombre, horas, asignación obligatoria opcional)</h3>
-      <textarea id="tasksInput">Jefatura, 3, Julia
-2ºESO A +TUT, 5, Cualquiera
-2ºESO B, 3, Cualquiera
-2ºESO C, 3, Cualquiera
-2ºESO D, 3, Cualquiera
-3ºESO A +TUT, 5, Cualquiera
-3ºESO B, 3, Cualquiera
-3ºESO C, 3, Cualquiera
-3ºESO D, 3, Cualquiera
-3ºESO E, 3, Cualquiera
-4ºESO A, 3, Cualquiera
-4ºESO B, 3, Cualquiera
-4ºESO C, 3, Cualquiera
-1º BACH M A, 4, Cualquiera
-1º BACH M B, 4, Cualquiera
-1º BACH T A, 4, Cualquiera
-2º BACH M FIS, 4, Antonio
-2º BACH M QUIM, 4, Cualquiera
-2º BACH T QUIM, 4, Cualquiera
-FPB, 8, Cualquiera</textarea>
-      <p class="instructions"><strong>Tareas:</strong> introduce cada tarea con su nombre y duración (<span class="kbd">Nombre, horas</span>). Si una tarea debe asignarse obligatoriamente a alguien, añade la persona tras otra coma (<span class="kbd">Nombre, horas, Persona</span>). Utiliza <span class="kbd">Cualquiera</span> para tareas sin asignación fija. Añade <span class="kbd">+TUT</span> al nombre para marcar una tutoría.</p>
+    <h3>Tareas (nombre, horas, asignación obligatoria opcional, nivel)</h3>
+      <textarea id="tasksInput">Jefatura, 3, Julia, 0
+2ºESO A +TUT, 5, Cualquiera, 1
+2ºESO B, 3, Cualquiera, 1
+2ºESO C, 3, Cualquiera, 1
+2ºESO D, 3, Cualquiera, 1
+3ºESO A +TUT, 5, Cualquiera, 2
+3ºESO B, 3, Cualquiera, 2
+3ºESO C, 3, Cualquiera, 2
+3ºESO D, 3, Cualquiera, 2
+3ºESO E, 3, Cualquiera, 2
+4ºESO A, 3, Cualquiera, 3
+4ºESO B, 3, Cualquiera, 3
+4ºESO C, 3, Cualquiera, 3
+1º BACH M A, 4, Cualquiera, 4
+1º BACH M B, 4, Cualquiera, 4
+1º BACH T A, 4, Cualquiera, 4
+2º BACH M FIS, 4, Antonio, 5
+2º BACH M QUIM, 4, Cualquiera, 5
+2º BACH T QUIM, 4, Cualquiera, 5
+FPB, 8, Cualquiera, 6</textarea>
+      <p class="instructions"><strong>Tareas:</strong> introduce cada tarea con su nombre y duración (<span class="kbd">Nombre, horas</span>). Si una tarea debe asignarse obligatoriamente a alguien, añade la persona tras otra coma (<span class="kbd">Nombre, horas, Persona</span>). Finalmente, puedes añadir el <em>nivel</em> al que pertenece la materia con un cuarto valor (<span class="kbd">Nombre, horas, Persona|Cualquiera, nivel</span>). Usa <span class="kbd">0</span> para las tareas que no cuentan como nivel (por ejemplo, la Jefatura). Utiliza <span class="kbd">Cualquiera</span> para tareas sin asignación fija y añade <span class="kbd">+TUT</span> al nombre para marcar una tutoría.</p>
     </div>
     
     <!-- Campo para condiciones extra -->
@@ -85,7 +85,7 @@ FPB, 8, Cualquiera</textarea>
 
   <!-- Instrucciones generales sobre restricciones y funcionamiento -->
   <p class="instructions">
-    <strong>Restricciones:</strong> las tareas se asignan de forma indivisible respetando las horas disponibles de cada profesor. Las tutorías (marcadas con <span class="kbd">+TUT</span>) son incompatibles con la Jefatura y cada profesor solo puede tener una tutoría. Si una tarea tiene un profesor asignado obligatoriamente, indícalo; de lo contrario utiliza <span class="kbd">Cualquiera</span>.
+    <strong>Restricciones:</strong> las tareas se asignan de forma indivisible respetando las horas disponibles de cada profesor. Las tutorías (marcadas con <span class="kbd">+TUT</span>) son incompatibles con la Jefatura y cada profesor solo puede tener una tutoría. Si una tarea tiene un profesor asignado obligatoriamente, indícalo; de lo contrario utiliza <span class="kbd">Cualquiera</span>. Cada tarea puede tener un <em>nivel</em>: los niveles se utilizan únicamente para contar cuántos niveles diferentes imparte cada profesor. La Jefatura y las tareas de nivel 0 no se cuentan como nivel impartido.
   </p>
   <p class="instructions">
     Haz clic en <span class="kbd">Calcular asignaciones</span> para obtener hasta 50 soluciones distintas. A continuación se mostrará un resumen de asignaciones y todas las soluciones encontradas.
@@ -96,7 +96,7 @@ FPB, 8, Cualquiera</textarea>
   <p class="instructions"><strong>Resumen de asignaciones:</strong> para cada tarea se muestra una barra con los colores de los profesores. La anchura de cada segmento es proporcional al porcentaje de soluciones en las que esa tarea se asigna a cada profesor. El nombre y el porcentaje aparecen en la barra.</p>
   <div class="solutions" id="summary"></div>
   <!-- Explicación de las soluciones -->
-  <p class="instructions"><strong>Soluciones:</strong> se listan todas las asignaciones válidas. Cada tarjeta muestra la carga de horas por profesor y una tabla de tareas asignadas. Puedes ordenar la tabla haciendo clic en los encabezados. Las filas están coloreadas según el profesor asignado.</p>
+  <p class="instructions"><strong>Soluciones:</strong> se listan todas las asignaciones válidas. Cada tarjeta muestra la carga de horas por profesor y el número de niveles distintos que imparte (ignorando la Jefatura y las materias de nivel 0). Además incluye una tabla de tareas asignadas. Puedes ordenar la tabla haciendo clic en los encabezados. Las filas están coloreadas según el profesor asignado.</p>
   <div class="solutions" id="solutions"></div>
 
 <script>
@@ -136,10 +136,18 @@ FPB, 8, Cualquiera</textarea>
       const name = parts[0];
       const hours = Number(parts[1]);
       const assigned = (parts[2] && parts[2].toLowerCase() !== "cualquiera") ? parts[2] : null;
+      let level = 0;
+      if (parts.length >= 4) {
+        const lvlRaw = parts[3];
+        const lvlNum = Number(lvlRaw);
+        if (Number.isFinite(lvlNum)) {
+          level = lvlNum;
+        }
+      }
       if (!name || !Number.isFinite(hours)) continue;
       const isTut = /\+TUT\b/i.test(name);
       const isChief = /\bJefatura\b/i.test(name);
-      arr.push({ name, hours, assigned, isTut, isChief });
+      arr.push({ name, hours, assigned, isTut, isChief, level });
     }
     return arr;
   }
@@ -280,7 +288,8 @@ FPB, 8, Cualquiera</textarea>
           const forbSet = forbidMap ? forbidMap[t.name.toLowerCase()] : null;
           const forbKey = forbSet ? Array.from(forbSet).sort().join(',') : '';
           const prefFlag = prefsMap[t.name.toLowerCase()] ? 'P' : '';
-          const gk = `${t.hours}-${t.isTut}-${t.isChief}-${forbKey}-${prefFlag}`;
+          const lvl = (t.level != null ? t.level : 0);
+          const gk = `${t.hours}-${t.isTut}-${t.isChief}-${lvl}-${forbKey}-${prefFlag}`;
           if (!groups[gk]) groups[gk] = [];
           const who = assign[t.name];
           groups[gk].push(who || "");
@@ -317,7 +326,8 @@ FPB, 8, Cualquiera</textarea>
       const forbSet = forbidMap ? forbidMap[t.name.toLowerCase()] : null;
       const forbKey = forbSet ? Array.from(forbSet).sort().join(',') : '';
       const prefFlag = prefsMap[t.name.toLowerCase()] ? 'P' : '';
-      const gkey = `${t.hours}-${t.isTut}-${t.isChief}-${forbKey}-${prefFlag}`;
+      const lvl = (t.level != null ? t.level : 0);
+      const gkey = `${t.hours}-${t.isTut}-${t.isChief}-${lvl}-${forbKey}-${prefFlag}`;
       const lastAssigned = lastIdxMap[gkey];
 
       for (let i=0; i<people.length; i++) {
@@ -475,18 +485,27 @@ FPB, 8, Cualquiera</textarea>
       h.textContent = `Solución ${idx+1}`;
       card.appendChild(h);
 
-      // totales por persona
+      // totales por persona y número de niveles impartidos
       const hoursBy = Object.fromEntries(people.map(p=>[p.name,0]));
+      const levelsBy = Object.fromEntries(people.map(p=>[p.name,new Set()]));
       tasks.forEach(t => {
         const who = assign[t.name] || t.assigned; // por si fue forzada
-        if (who) hoursBy[who] = (hoursBy[who] || 0) + t.hours;
+        if (who) {
+          hoursBy[who] = (hoursBy[who] || 0) + t.hours;
+          // contar niveles: ignorar jefatura o nivel 0
+          if (!t.isChief && t.level && t.level > 0) {
+            levelsBy[who].add(t.level);
+          }
+        }
       });
       const totals = document.createElement("div");
       totals.className = "totals";
       for (const p of people) {
         const pill = document.createElement("span");
         pill.className = "pill";
-        pill.textContent = `${p.name}: ${hoursBy[p.name] || 0} h`;
+        const hrs = hoursBy[p.name] || 0;
+        const lvlCount = levelsBy[p.name] ? levelsBy[p.name].size : 0;
+        pill.textContent = `${p.name}: ${hrs} h` + (lvlCount > 0 ? ` — ${lvlCount} niveles` : "");
         totals.appendChild(pill);
       }
       card.appendChild(totals);
