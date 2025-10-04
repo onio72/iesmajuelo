@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -59,22 +60,28 @@
         <div class="w-full mb-6">
             <div class="card">
                 <div class="h-full flex flex-col">
-                    <div class="flex items-center justify-between mb-4">
+                    <div class="flex flex-wrap items-center justify-between mb-4">
                         <h2 class="text-lg font-semibold text-text-primary">Cuadrícula Interactiva</h2>
-                        <div class="flex items-center space-x-4 text-sm text-secondary-600">
-                            <span>Arrastra masas para moverlas | Rueda del ratón para zoom</span>
-                            <button id="resetZoom" class="btn-secondary text-xs">
-                                <i class="fas fa-search-minus mr-1"></i>
-                                Reset Zoom
-                            </button>
+                        <div class="flex flex-wrap items-center space-x-4 text-sm text-secondary-600">
+                            <!-- Eliminado: texto de zoom y botón Reset Zoom -->
+                            <span>Arrastra masas para moverlas</span>
+                            <!-- Selector de unidad de longitud -->
+                            <div class="flex items-center">
+                                <label for="distanceUnit" class="mr-2">Unidad</label>
+                                <select id="distanceUnit" class="input-field text-sm">
+                                    <option value="km">km</option>
+                                    <option value="m">m</option>
+                                    <option value="cm">cm</option>
+                                    <option value="mm" selected>mm</option>
+                                    <option value="um">μm</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Enhanced Grid Container with Zoom Controls -->
+                    <!-- Enhanced Grid Container -->
                     <div class="relative bg-secondary-50 rounded-lg border-2 border-secondary-200 overflow-hidden" style="height: 500px;">
-                        <div id="zoomInfo" class="absolute top-4 right-4 bg-surface px-3 py-2 rounded-lg shadow-subtle border border-secondary-200 text-sm font-mono z-10">
-                            Zoom: <span id="zoomLevel">100%</span>
-                        </div>
+                        <!-- Eliminado: zoomInfo -->
                         
                         <svg id="electricFieldGrid" class="w-full h-full cursor-crosshair"
                              viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
@@ -442,8 +449,8 @@
                         <p>Haz clic en la cuadrícula para colocar masas o usa los campos de coordenadas para posicionarlas exactamente. Arrastra las masas para moverlas interactivamente.</p>
                     </div>
                     <div>
-                        <h3 class="font-semibold text-text-primary mb-2">2. Navegación y Zoom</h3>
-                        <p>Usa la rueda del ratón para hacer zoom. Los ejes están centrados con numeración completa hasta los bordes visibles.</p>
+                        <h3 class="font-semibold text-text-primary mb-2">2. Navegación</h3>
+                        <p>Las masas pueden ser arrastradas libremente para cambiar su posición. Puedes seleccionar la unidad de longitud deseada en el cuadro de selección.</p>
                     </div>
                     <div>
                         <h3 class="font-semibold text-text-primary mb-2">3. Cálculo del Campo</h3>
@@ -488,8 +495,7 @@
                 
                 this.initializeEventListeners();
                 this.showInstructions();
-                // Aplicar el zoom inicial centrado
-                this.updateZoom();
+                // No aplicar zoom inicial (zoom eliminado)
                 updateQ1Display();
             }
 
@@ -508,8 +514,7 @@
                     });
                 });
                 
-                // Zoom functionality
-                this.svg.addEventListener('wheel', (e) => this.handleZoom(e));
+                // Zoom functionality eliminado: no se agrega evento de rueda
                 
                 // Mouse move for coordinate display
                 this.svg.addEventListener('mousemove', (e) => this.updateCoordinateDisplay(e));
@@ -528,6 +533,12 @@ document.getElementById(id).addEventListener('change', () => this.updateCalculat
                         el.addEventListener('change', () => this.updateCalculations());
                     }
                 });
+
+                // Escuchar cambios en la unidad de longitud para recalcular
+                const distSelect = document.getElementById('distanceUnit');
+                if (distSelect) {
+                    distSelect.addEventListener('change', () => this.updateCalculations());
+                }
 
                 // Forzar que q1Value y q2Value nunca queden negativos
                 ['q1Value','q2Value'].forEach(id => {
@@ -554,7 +565,7 @@ el.addEventListener('input', () => {
                 // Enhanced buttons
                 document.getElementById('clearAll').addEventListener('click', () => this.clearAll());
                 document.getElementById('autoPlace').addEventListener('click', () => this.autoPlaceCharges());
-                document.getElementById('resetZoom').addEventListener('click', () => this.resetZoom());
+                // Eliminado: botón resetZoom (no existe)
 
                 // Instructions modal
                 document.querySelector('[title="Ayuda"]').addEventListener('click', () => this.showInstructions());
@@ -632,45 +643,7 @@ el.addEventListener('input', () => {
                 document.getElementById('coordinateDisplay').style.opacity = '0';
             }
 
-            handleZoom(e) {
-                e.preventDefault();
-                
-                const delta = e.deltaY > 0 ? -0.1 : 0.1;
-                const newZoom = Math.max(this.zoomMin, Math.min(this.zoomMax, this.zoomLevel + delta));
-                
-                if (newZoom !== this.zoomLevel) {
-                    this.zoomLevel = newZoom;
-                    this.updateZoom();
-                }
-            }
-
-            updateZoom() {
-    const bbox = this.svg.viewBox.baseVal;
-    const cx = bbox.width / 2;
-    const cy = bbox.height / 2;
-
-    const z = this.zoomLevel;
-
-    // Escalado centrado en el centro visual del SVG
-    const translateX = cx * (1 - z);
-    const translateY = cy * (1 - z);
-
-    this.zoomGroup.setAttribute('transform', `translate(${translateX}, ${translateY}) scale(${z})`);
-
-    // Actualizar porcentaje de zoom visible
-    document.getElementById('zoomLevel').textContent = `${Math.round(z * 100)}%`;
-
-    // Mostrar/ocultar cuadrícula fina según nivel de zoom
-    const fineGrid = this.svg.querySelector('rect[fill="url(#gridFine)"]');
-    if (fineGrid) fineGrid.setAttribute('opacity', z > 1.5 ? '1' : '0');
-}
-
-
-            resetZoom() {
-                this.zoomLevel = 1;
-                this.updateZoom();
-            
-            }
+            // Eliminado: handleZoom. Zoom desactivado.
 
             getCoordinatesFromEvent(e) {
                 const pt = this.svg.createSVGPoint();
@@ -841,13 +814,47 @@ el.addEventListener('input', () => {
                     y: this.charges.q2.y - this.testPoint.y
                 };
 
-                // Magnitudes (en mm)
+                // Magnitudes (en unidades de usuario)
 const r1Mag = Math.sqrt(r1.x * r1.x + r1.y * r1.y);
 const r2Mag = Math.sqrt(r2.x * r2.x + r2.y * r2.y);
 
-// Convertir a metros
-const r1Mag_m = r1Mag / 1000;
-const r2Mag_m = r2Mag / 1000;
+// Determinar factor de conversión de unidades de longitud a metros y etiqueta de unidad
+let factor = 0.001; // predeterminado mm -> m
+let unitLatex = '\\\\mathrm{mm}';
+const distSelect = document.getElementById('distanceUnit');
+if (distSelect) {
+    const selected = distSelect.value;
+    switch (selected) {
+        case 'km':
+            factor = 1000;
+            unitLatex = '\\\\mathrm{km}';
+            break;
+        case 'm':
+            factor = 1;
+            unitLatex = '\\\\mathrm{m}';
+            break;
+        case 'cm':
+            factor = 0.01;
+            unitLatex = '\\\\mathrm{cm}';
+            break;
+        case 'mm':
+            factor = 0.001;
+            unitLatex = '\\\\mathrm{mm}';
+            break;
+        case 'um':
+            factor = 1e-6;
+            unitLatex = '\\\\mu\\\\mathrm{m}';
+            break;
+        default:
+            factor = 0.001;
+            unitLatex = '\\\\mathrm{mm}';
+            break;
+    }
+}
+
+// Convertir a metros usando factor
+const r1Mag_m = r1Mag * factor;
+const r2Mag_m = r2Mag * factor;
 
 // Vectores unitarios apuntando hacia las masas
 const u1 = { x: r1.x / r1Mag, y: r1.y / r1Mag };
@@ -876,36 +883,76 @@ function formatLatexScientific(value, digits = 2) {
     if (exponent === 0) {
         return `${mantissa}`;
     }
-    return `${mantissa}\\cdot 10^{${exponent}}`;
+    return `${mantissa}\\\\cdot 10^{${exponent}}`;
 }
 
-// Mostrar vectores de posición y magnitudes
-renderTex('r1Vector', `\\vec{r}_1=( ${r1.x.toFixed(2)},\\; ${r1.y.toFixed(2)} )\\,\\mathrm{mm}`);
-renderTex('r2Vector', `\\vec{r}_2=( ${r2.x.toFixed(2)},\\; ${r2.y.toFixed(2)} )\\,\\mathrm{mm}`);
-renderTex('r1Magnitude', `|\\vec{r}_1|=${r1Mag.toFixed(2)}\\,\\mathrm{mm}`);
-renderTex('r2Magnitude', `|\\vec{r}_2|=${r2Mag.toFixed(2)}\\,\\mathrm{mm}`);
+// Mostrar vectores de posición y magnitudes con unidad seleccionada
+renderTex('r1Vector', `\\\\vec{r}_1=( ${r1.x.toFixed(2)},\\\\; ${r1.y.toFixed(2)} )\\\\,${unitLatex}`);
+renderTex('r2Vector', `\\\\vec{r}_2=( ${r2.x.toFixed(2)},\\\\; ${r2.y.toFixed(2)} )\\\\,${unitLatex}`);
+renderTex('r1Magnitude', `|\\\\vec{r}_1|=${r1Mag.toFixed(2)}\\\\,${unitLatex}`);
+renderTex('r2Magnitude', `|\\\\vec{r}_2|=${r2Mag.toFixed(2)}\\\\,${unitLatex}`);
 
 // Separador
 document.getElementById('espacioEntreBloques').innerHTML = '<hr style="margin: 12px 0; border: none; border-top: 1px solid #ddd;">';
 
 // Mostrar vectores unitarios
-renderTex('u1Vector', `\\hat{u}_1=( ${u1.x.toFixed(3)},\\; ${u1.y.toFixed(3)} )`);
-renderTex('u2Vector', `\\hat{u}_2=( ${u2.x.toFixed(3)},\\; ${u2.y.toFixed(3)} )`);
+renderTex('u1Vector', `\\\\hat{u}_1=( ${u1.x.toFixed(3)},\\\\; ${u1.y.toFixed(3)} )`);
+renderTex('u2Vector', `\\\\hat{u}_2=( ${u2.x.toFixed(3)},\\\\; ${u2.y.toFixed(3)} )`);
 
 // Mostrar fuerzas parciales
-renderTex('f1Magnitude', `|\\vec{F}_1|=${formatLatexScientific(f1Mag)}\\,\\mathrm{N}`);
-renderTex('f2Magnitude', `|\\vec{F}_2|=${formatLatexScientific(f2Mag)}\\,\\mathrm{N}`);
-renderTex('f1Vector', `\\vec{F}_1=( ${formatLatexScientific(f1.x)},\\; ${formatLatexScientific(f1.y)} )\\,\\mathrm{N}`);
-renderTex('f2Vector', `\\vec{F}_2=( ${formatLatexScientific(f2.x)},\\; ${formatLatexScientific(f2.y)} )\\,\\mathrm{N}`);
+renderTex('f1Magnitude', `|\\\\vec{F}_1|=${formatLatexScientific(f1Mag)}\\\\,\\\\mathrm{N}`);
+renderTex('f2Magnitude', `|\\\\vec{F}_2|=${formatLatexScientific(f2Mag)}\\\\,\\\\mathrm{N}`);
+renderTex('f1Vector', `\\\\vec{F}_1=( ${formatLatexScientific(f1.x)},\\\\; ${formatLatexScientific(f1.y)} )\\\\,\\\\mathrm{N}`);
+renderTex('f2Vector', `\\\\vec{F}_2=( ${formatLatexScientific(f2.x)},\\\\; ${formatLatexScientific(f2.y)} )\\\\,\\\\mathrm{N}`);
 
 // Mostrar fuerza total
-renderTex('fTotalVector', `\\vec{F}_{\\mathrm{total}}=( ${formatLatexScientific(fTotal.x)},\\; ${formatLatexScientific(fTotal.y)} )\\,\\mathrm{N}`);
-renderTex('fTotalMagnitude', `|\\vec{F}_{\\mathrm{total}}|=${formatLatexScientific(fTotalMag)}\\,\\mathrm{N}`);
+renderTex('fTotalVector', `\\\\vec{F}_{\\\\mathrm{total}}=( ${formatLatexScientific(fTotal.x)},\\\\; ${formatLatexScientific(fTotal.y)} )\\\\,\\\\mathrm{N}`);
+renderTex('fTotalMagnitude', `|\\\\vec{F}_{\\\\mathrm{total}}|=${formatLatexScientific(fTotalMag)}\\\\,\\\\mathrm{N}`);
 const angleDeg2 = Math.atan2(fTotal.y, fTotal.x) * (180 / Math.PI);
-renderTex('fTotalAngle', `\\theta = ${angleDeg2.toFixed(1)}^\\circ`);
+renderTex('fTotalAngle', `\\\\theta = ${angleDeg2.toFixed(1)}^\\\\circ`);
 
-// Dibujar los vectores de fuerza en el SVG
-this.updateVectorVisuals(f1, f2, fTotal);
+        // Dibujar los vectores de fuerza en el SVG
+        this.updateVectorVisuals(f1, f2, fTotal);
+
+        // Vuelve a renderizar los textos con una sola barra invertida para KaTeX
+        // Crear un formateador local para notación científica que utilice una sola barra invertida
+        const formatSci = (value, digits = 2) => {
+            if (value === 0) return value.toFixed(digits);
+            const exponent = Math.floor(Math.log10(Math.abs(value)));
+            const mantissa = (value / Math.pow(10, exponent)).toFixed(digits);
+            if (exponent === 0) {
+                return `${mantissa}`;
+            }
+            // Usar una única barra invertida en la salida de KaTeX
+            return `${mantissa} \cdot 10^{${exponent}}`;
+        };
+        const r1VectorLatex  = `\vec{r}_1=( ${r1.x.toFixed(2)},\; ${r1.y.toFixed(2)} )\,${unitLatex}`;
+        const r2VectorLatex  = `\vec{r}_2=( ${r2.x.toFixed(2)},\; ${r2.y.toFixed(2)} )\,${unitLatex}`;
+        const r1MagLatex     = `|\vec{r}_1|=${r1Mag.toFixed(2)}\,${unitLatex}`;
+        const r2MagLatex     = `|\vec{r}_2|=${r2Mag.toFixed(2)}\,${unitLatex}`;
+        const u1Latex        = `\hat{u}_1=( ${u1.x.toFixed(3)},\; ${u1.y.toFixed(3)} )`;
+        const u2Latex        = `\hat{u}_2=( ${u2.x.toFixed(3)},\; ${u2.y.toFixed(3)} )`;
+        const f1MagLatex     = `|\vec{F}_1|=${formatSci(f1Mag)}\,\mathrm{N}`;
+        const f2MagLatex     = `|\vec{F}_2|=${formatSci(f2Mag)}\,\mathrm{N}`;
+        const f1VecLatex     = `\vec{F}_1=( ${formatSci(f1.x)},\; ${formatSci(f1.y)} )\,\mathrm{N}`;
+        const f2VecLatex     = `\vec{F}_2=( ${formatSci(f2.x)},\; ${formatSci(f2.y)} )\,\mathrm{N}`;
+        const fTotalVecLatex = `\vec{F}_{\mathrm{total}}=( ${formatSci(fTotal.x)},\; ${formatSci(fTotal.y)} )\,\mathrm{N}`;
+        const fTotalMagLatex = `|\vec{F}_{\mathrm{total}}|=${formatSci(fTotalMag)}\,\mathrm{N}`;
+        const fTotalAngleLatex = `\theta = ${angleDeg2.toFixed(1)}^\circ`;
+
+        renderTex('r1Vector', r1VectorLatex);
+        renderTex('r2Vector', r2VectorLatex);
+        renderTex('r1Magnitude', r1MagLatex);
+        renderTex('r2Magnitude', r2MagLatex);
+        renderTex('u1Vector', u1Latex);
+        renderTex('u2Vector', u2Latex);
+        renderTex('f1Magnitude', f1MagLatex);
+        renderTex('f2Magnitude', f2MagLatex);
+        renderTex('f1Vector', f1VecLatex);
+        renderTex('f2Vector', f2VecLatex);
+        renderTex('fTotalVector', fTotalVecLatex);
+        renderTex('fTotalMagnitude', fTotalMagLatex);
+        renderTex('fTotalAngle', fTotalAngleLatex);
 
 
 
@@ -1194,4 +1241,3 @@ document.getElementById('m3Value').addEventListener('input', (e) => {
     <!-- Eliminado: script propio de Rocket (no existe en GitHub Pages) -->
 </body>
 </html>
-
