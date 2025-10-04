@@ -114,15 +114,40 @@
                                 <text x="305" y="15" fill="#475569" font-size="14" font-weight="500">Y</text>
                                 <!-- Grid Coordinates (shortened) -->
                                 <g id="gridCoordinates">
+                                    <!-- Positive X-axis markers (extended) -->
                                     <text x="330" y="195" fill="#64748B" font-size="10">1</text>
                                     <text x="360" y="195" fill="#64748B" font-size="10">2</text>
                                     <text x="390" y="195" fill="#64748B" font-size="10">3</text>
+                                    <text x="420" y="195" fill="#64748B" font-size="10">4</text>
+                                    <text x="450" y="195" fill="#64748B" font-size="10">5</text>
+                                    <text x="480" y="195" fill="#64748B" font-size="10">6</text>
+                                    <text x="510" y="195" fill="#64748B" font-size="10">7</text>
+                                    <text x="540" y="195" fill="#64748B" font-size="10">8</text>
+                                    <text x="570" y="195" fill="#64748B" font-size="10">9</text>
+                                    <!-- Negative X-axis markers (extended) -->
+                                    <text x="270" y="195" fill="#64748B" font-size="10">-1</text>
                                     <text x="240" y="195" fill="#64748B" font-size="10">-2</text>
                                     <text x="210" y="195" fill="#64748B" font-size="10">-3</text>
+                                    <text x="180" y="195" fill="#64748B" font-size="10">-4</text>
+                                    <text x="150" y="195" fill="#64748B" font-size="10">-5</text>
+                                    <text x="120" y="195" fill="#64748B" font-size="10">-6</text>
+                                    <text x="90"  y="195" fill="#64748B" font-size="10">-7</text>
+                                    <text x="60"  y="195" fill="#64748B" font-size="10">-8</text>
+                                    <text x="30"  y="195" fill="#64748B" font-size="10">-9</text>
+                                    <!-- Positive Y-axis markers (extended) -->
                                     <text x="305" y="170" fill="#64748B" font-size="10">1</text>
                                     <text x="305" y="140" fill="#64748B" font-size="10">2</text>
+                                    <text x="305" y="110" fill="#64748B" font-size="10">3</text>
+                                    <text x="305" y="80"  fill="#64748B" font-size="10">4</text>
+                                    <text x="305" y="50"  fill="#64748B" font-size="10">5</text>
+                                    <text x="305" y="20"  fill="#64748B" font-size="10">6</text>
+                                    <!-- Negative Y-axis markers (extended) -->
                                     <text x="305" y="230" fill="#64748B" font-size="10">-1</text>
                                     <text x="305" y="260" fill="#64748B" font-size="10">-2</text>
+                                    <text x="305" y="290" fill="#64748B" font-size="10">-3</text>
+                                    <text x="305" y="320" fill="#64748B" font-size="10">-4</text>
+                                    <text x="305" y="350" fill="#64748B" font-size="10">-5</text>
+                                    <text x="305" y="380" fill="#64748B" font-size="10">-6</text>
                                 </g>
                                 <!-- Interactive Elements -->
                                 <g id="charges"></g>
@@ -755,9 +780,11 @@
                 const dy = vec.y * scaleFactor;
                 this.drawVector(svgGroup, sx, sy, dx, -dy, color, label);
             };
+            // Etiquetas de los vectores de fuerza con subíndices
             drawScaledVector(f1, '#F97316', 'F₁');
             drawScaledVector(f2, '#F97316', 'F₂');
-            drawScaledVector(fTotal, '#16A34A', 'Fₜ');
+            // Para la fuerza total, usar etiqueta sin subíndice no soportado
+            drawScaledVector(fTotal, '#16A34A', 'F_t');
         }
         
         drawVector(group, x0, y0, dx, dy, color = '#333', label = '') {
