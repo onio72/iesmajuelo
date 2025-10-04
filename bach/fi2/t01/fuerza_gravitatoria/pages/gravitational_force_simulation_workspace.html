@@ -915,7 +915,10 @@ renderTex('fTotalAngle', `\\\\theta = ${angleDeg2.toFixed(1)}^\\\\circ`);
         this.updateVectorVisuals(f1, f2, fTotal);
 
         // Vuelve a renderizar los textos con una sola barra invertida para KaTeX
+        // Desactivar el bloque de re-renderizado adicional
+        if (false) {
         // Crear un formateador local para notación científica que utilice una sola barra invertida
+        // Formateador local para notación científica con doble barra invertida para \\cdot
         const formatSci = (value, digits = 2) => {
             if (value === 0) return value.toFixed(digits);
             const exponent = Math.floor(Math.log10(Math.abs(value)));
@@ -923,22 +926,24 @@ renderTex('fTotalAngle', `\\\\theta = ${angleDeg2.toFixed(1)}^\\\\circ`);
             if (exponent === 0) {
                 return `${mantissa}`;
             }
-            // Usar una única barra invertida en la salida de KaTeX
-            return `${mantissa} \cdot 10^{${exponent}}`;
+            // Utilizar dos barras invertidas para escapar correctamente en la cadena JavaScript
+            return `${mantissa} \\cdot 10^{${exponent}}`;
         };
-        const r1VectorLatex  = `\vec{r}_1=( ${r1.x.toFixed(2)},\; ${r1.y.toFixed(2)} )\,${unitLatex}`;
-        const r2VectorLatex  = `\vec{r}_2=( ${r2.x.toFixed(2)},\; ${r2.y.toFixed(2)} )\,${unitLatex}`;
-        const r1MagLatex     = `|\vec{r}_1|=${r1Mag.toFixed(2)}\,${unitLatex}`;
-        const r2MagLatex     = `|\vec{r}_2|=${r2Mag.toFixed(2)}\,${unitLatex}`;
-        const u1Latex        = `\hat{u}_1=( ${u1.x.toFixed(3)},\; ${u1.y.toFixed(3)} )`;
-        const u2Latex        = `\hat{u}_2=( ${u2.x.toFixed(3)},\; ${u2.y.toFixed(3)} )`;
-        const f1MagLatex     = `|\vec{F}_1|=${formatSci(f1Mag)}\,\mathrm{N}`;
-        const f2MagLatex     = `|\vec{F}_2|=${formatSci(f2Mag)}\,\mathrm{N}`;
-        const f1VecLatex     = `\vec{F}_1=( ${formatSci(f1.x)},\; ${formatSci(f1.y)} )\,\mathrm{N}`;
-        const f2VecLatex     = `\vec{F}_2=( ${formatSci(f2.x)},\; ${formatSci(f2.y)} )\,\mathrm{N}`;
-        const fTotalVecLatex = `\vec{F}_{\mathrm{total}}=( ${formatSci(fTotal.x)},\; ${formatSci(fTotal.y)} )\,\mathrm{N}`;
-        const fTotalMagLatex = `|\vec{F}_{\mathrm{total}}|=${formatSci(fTotalMag)}\,\mathrm{N}`;
-        const fTotalAngleLatex = `\theta = ${angleDeg2.toFixed(1)}^\circ`;
+
+        // Construir todas las expresiones LaTeX usando doble barra invertida (\\) para que KaTeX las interprete correctamente
+        const r1VectorLatex  = `\\vec{r}_1=( ${r1.x.toFixed(2)},\\; ${r1.y.toFixed(2)} )\\,${unitLatex}`;
+        const r2VectorLatex  = `\\vec{r}_2=( ${r2.x.toFixed(2)},\\; ${r2.y.toFixed(2)} )\\,${unitLatex}`;
+        const r1MagLatex     = `|\\vec{r}_1|=${r1Mag.toFixed(2)}\\,${unitLatex}`;
+        const r2MagLatex     = `|\\vec{r}_2|=${r2Mag.toFixed(2)}\\,${unitLatex}`;
+        const u1Latex        = `\\hat{u}_1=( ${u1.x.toFixed(3)},\\; ${u1.y.toFixed(3)} )`;
+        const u2Latex        = `\\hat{u}_2=( ${u2.x.toFixed(3)},\\; ${u2.y.toFixed(3)} )`;
+        const f1MagLatex     = `|\\vec{F}_1|=${formatSci(f1Mag)}\\,\\mathrm{N}`;
+        const f2MagLatex     = `|\\vec{F}_2|=${formatSci(f2Mag)}\\,\\mathrm{N}`;
+        const f1VecLatex     = `\\vec{F}_1=( ${formatSci(f1.x)},\\; ${formatSci(f1.y)} )\\,\\mathrm{N}`;
+        const f2VecLatex     = `\\vec{F}_2=( ${formatSci(f2.x)},\\; ${formatSci(f2.y)} )\\,\\mathrm{N}`;
+        const fTotalVecLatex = `\\vec{F}_{\\mathrm{total}}=( ${formatSci(fTotal.x)},\\; ${formatSci(fTotal.y)} )\\,\\mathrm{N}`;
+        const fTotalMagLatex = `|\\vec{F}_{\\mathrm{total}}|=${formatSci(fTotalMag)}\\,\\mathrm{N}`;
+        const fTotalAngleLatex = `\\theta = ${angleDeg2.toFixed(1)}^\\circ`;
 
         renderTex('r1Vector', r1VectorLatex);
         renderTex('r2Vector', r2VectorLatex);
@@ -953,6 +958,8 @@ renderTex('fTotalAngle', `\\\\theta = ${angleDeg2.toFixed(1)}^\\\\circ`);
         renderTex('fTotalVector', fTotalVecLatex);
         renderTex('fTotalMagnitude', fTotalMagLatex);
         renderTex('fTotalAngle', fTotalAngleLatex);
+
+        }
 
 
 
