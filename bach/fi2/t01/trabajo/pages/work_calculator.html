@@ -881,6 +881,8 @@
     }
     document.addEventListener('DOMContentLoaded', () => {
         new GravitationalWorkCalculator();
+        // Renderizar la fórmula del trabajo con KaTeX una vez cargada la página
+        renderTex('workFormula', 'W = U_{3}^{i} - U_{3}^{f}');
     });
     // Funciones de actualización de texto de masa
     function updateQ1Display() {
