@@ -1,0 +1,492 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Magnitudes y prefijos — Exponente de 10</title>
+<style>
+  :root{
+    --fg:#1d1d1f; --muted:#666; --ok:#0a7c2f; --ko:#b00020; --brand:#2563eb;
+    --ring:#e5e7eb; --card:#ffffff; --bg:#f6f7f9;
+    --okSoft:#eaf8f0; --koSoft:#fdeeee;
+  }
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial;}
+  .wrap{max-width:880px;margin:34px auto;padding:16px;}
+  .card{background:var(--card);border:1px solid var(--ring);border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.05);overflow:hidden}
+  .banner{background:#fff;border-bottom:1px solid var(--ring); display:flex; align-items:center; justify-content:center; height:220px;}
+  .big{font-family: "Georgia", "Times New Roman", serif; font-size:110px; letter-spacing:2px;}
+  .content{padding:22px 26px 28px;}
+  .row{margin:12px 0; display:flex; flex-direction:column; gap:6px;}
+  .label{font-weight:700;}
+  select{appearance:none; -webkit-appearance:none; -moz-appearance:none;
+    padding:10px 12px; border:1px solid var(--ring); border-radius:10px; background:#fff; font-size:16px; transition:background .2s ease;}
+  .line{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .line select{min-width:180px;}
+  .eq{font-size:36px; text-align:center; margin:16px 0 8px;}
+  .supbox{display:inline-block; vertical-align:top; position:relative;}
+  .supbox input{
+    width:84px; font-size:20px; text-align:center; padding:6px 8px;
+    border:1px solid var(--ring); border-radius:9px; background:#fff;
+    position:relative; top:-6px; transform: translateY(-4px);
+    transition:background .2s ease;
+  }
+  .hidden{display:none !important;}
+  .btns{display:flex; gap:12px; justify-content:center; margin-top:14px; flex-wrap:wrap;}
+  .btn{background:var(--brand); color:#fff; border:0; border-radius:10px; padding:10px 16px; font-weight:700; cursor:pointer}
+  .btn.secondary{background:#eef2ff; color:#1f3bb3;}
+  .btn:disabled{opacity:.6; cursor:not-allowed;}
+  .score{margin-top:14px; text-align:center; font-size:18px; font-weight:800;}
+  .score.ok{color:#0a7c2f;} .score.ko{color:#b00020;}
+  .help{margin-top:6px; text-align:center; font-size:13px; color:var(--muted);}
+  .tagline{margin-top:2px; text-align:center; font-size:13px; color:var(--muted);}
+  .okField{ background: var(--okSoft) !important; }
+  .koField{ background: var(--koSoft) !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="banner"><div id="symbol" class="big">cm</div></div>
+    <div class="content">
+
+      <!-- 1) MAGNITUD (solo nombres, barajado SIEMPRE con TODAS) -->
+      <div class="row">
+        <label for="selMag" class="label">¿De qué magnitud física se trata?</label>
+        <select id="selMag"></select>
+      </div>
+
+      <!-- 2) TIPO -->
+      <div class="row">
+        <label for="selTipo" class="label">¿Magnitud fundamental o derivada?</label>
+        <select id="selTipo">
+          <option value="" selected disabled>— Selecciona —</option>
+          <option value="Fundamental">Fundamental</option>
+          <option value="Derivada">Derivada</option>
+        </select>
+      </div>
+
+      <!-- 3) MULTIPLO/SUBMULTIPLO (se oculta para Velocidad/Densidad) -->
+      <div class="row" id="rowMS">
+        <label for="selMS" class="label">¿Es un múltiplo o un submúltiplo?</label>
+        <select id="selMS">
+          <option value="" selected disabled>— Selecciona —</option>
+          <option value="multiple">Múltiplo de la unidad</option>
+          <option value="submultiple">Submúltiplo de la unidad</option>
+        </select>
+      </div>
+
+      <!-- ¿Cómo se lee? NORMAL -->
+      <div class="row" id="rowReadNormal">
+        <span class="label">¿Cómo se lee?</span>
+        <div class="line">
+          <select id="selPref" disabled title="Prefijo">
+            <option value="" selected disabled>— Primero elige múltiplo/submúltiplo —</option>
+          </select>
+          <select id="selBase" title="Unidad base">
+            <option value="" selected disabled>— Unidad base —</option>
+            <option value="m">metro</option>
+            <option value="m2">metro cuadrado</option>
+            <option value="m3">metro cúbico</option>
+            <option value="L">litro</option>
+            <option value="s">segundo</option>
+            <option value="g">gramo</option>
+            <option value="ºC">grado centígrado</option>
+            <option value="A">amperio</option>
+            <option value="K">kelvin</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ¿Cómo se lee? ESPECIAL (Velocidad / Densidad) → 4 desplegables -->
+      <div class="row hidden" id="rowReadSpecial">
+        <span class="label">¿Cómo se lee?</span>
+        <div class="line">
+          <select id="selPrefNum" title="Prefijo numerador"></select>
+          <select id="selBaseNum" title="Unidad numerador"></select>
+          <span>por</span>
+          <select id="selPrefDen" title="Prefijo denominador"></select>
+          <select id="selBaseDen" title="Unidad denominador"></select>
+        </div>
+      </div>
+
+      <!-- ECUACIÓN (oculta en Velocidad/Densidad) -->
+      <div class="eq" id="equation">
+        1 cm = 10<sup class="supbox"><input id="exp" type="number" step="1" inputmode="numeric" /></sup> m
+      </div>
+
+      <div class="btns">
+        <button id="btnCheck" class="btn">Corregir</button>
+        <button id="btnNext" class="btn secondary">Otro ejercicio</button>
+      </div>
+      <div id="score" class="score">Puntuación: 0.0</div>
+      <div class="tagline" id="tries">Intentos: 0</div>
+      <div id="msg" class="help"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ========= SCORM mínimo (1.2) ========= */
+(function(){
+  function findAPI(win){ var n=0;
+    while(!win.API && win.parent && win.parent!=win){ n++; if(n>10) break; win = win.parent; }
+    if(!win.API && window.opener) return window.opener.API;
+    return win.API || null;
+  }
+  window.SCORM = {
+    api: null, inited:false,
+    init(){ try{ this.api = findAPI(window); if(this.api){ this.inited = this.api.LMSInitialize("") === "true"; } }catch(e){} },
+    set(k,v){ try{ if(this.api && this.inited){ this.api.LMSSetValue(k,String(v)); } }catch(e){} },
+    commit(){ try{ if(this.api && this.inited){ this.api.LMSCommit(""); } }catch(e){} },
+    finish(){ try{ if(this.api && this.inited){ this.api.LMSFinish(""); } }catch(e){} }
+  };
+  window.addEventListener("load", ()=>{ SCORM.init(); });
+  window.addEventListener("beforeunload", ()=>{ SCORM.finish(); });
+})();
+
+/* ========= Datos ========= */
+/* Prefijos por NOMBRE (sin Tera ni pico) */
+const PREFIX_BY_NAME = {
+  "Giga": {abbr:"G", exp: 9, group:"multiple"},
+  "Mega": {abbr:"M", exp: 6, group:"multiple"},
+  "kilo": {abbr:"k", exp: 3, group:"multiple"},
+  "hecto":{abbr:"h", exp: 2, group:"multiple"},
+  "deca": {abbr:"da",exp: 1, group:"multiple"},
+  "deci": {abbr:"d", exp:-1, group:"submultiple"},
+  "centi":{abbr:"c", exp:-2, group:"submultiple"},
+  "mili": {abbr:"m", exp:-3, group:"submultiple"},
+  "micro":{abbr:"µ", exp:-6, group:"submultiple"},
+  "nano": {abbr:"n", exp:-9, group:"submultiple"}
+};
+const PREFIX_LIST = Object.keys(PREFIX_BY_NAME);
+
+/* Magnitudes (TODAS) */
+const FUNDAMENTALES = [
+  {id:"longitud", label:"Longitud", base:"m", tipo:"Fundamental"},
+  {id:"masa", label:"Masa", base:"kg", tipo:"Fundamental"},
+  {id:"tiempo", label:"Tiempo", base:"s", tipo:"Fundamental"},
+  {id:"temperatura", label:"Temperatura", base:"K|ºC", tipo:"Fundamental"},
+  {id:"corriente", label:"Intensidad de corriente", base:"A", tipo:"Fundamental"}
+];
+const DERIVADAS = [
+  {id:"superficie", label:"Superficie", base:"m2", tipo:"Derivada", pow:2},
+  {id:"volumen", label:"Volumen", base:"m3|L", tipo:"Derivada"},
+  {id:"velocidad", label:"Velocidad", base:"m/s", tipo:"Derivada", velocity:true},
+  {id:"densidad", label:"Densidad", base:"kg/m3", tipo:"Derivada", density:true}
+];
+
+function allMagnitudes(){ return [...FUNDAMENTALES, ...DERIVADAS]; }
+
+/* ========= Utilidades ========= */
+function rint(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function shuffle(a){ const arr=a.slice(); for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+function choice(arr){ return arr[rint(0,arr.length-1)]; }
+function escapeHtml(s){ return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+function normalizeMu(s){ return s.replaceAll("µ","μ"); }
+const $ = (id)=>document.getElementById(id);
+
+/* ========= Estado / Variedad ========= */
+let score = 0.0, tries = 0, locked = false;
+let correctExp = 0, solMagId = "", solTipo = "", solGroup="", solPrefName="", solBase="";
+let solPrefNum="", solBaseNum="", solPrefDen="", solBaseDen="";
+let prevMagId = "", prevTipo = "", prevGroup = "";
+let specialNoExponent = false;
+
+/* Cool-downs */
+const COOL = 2;       // prefijos y bases individuales
+const COMBO_COOL = 4; // NO repetir combinación prefijo+unidad dentro de las 4 últimas preguntas
+let recentPrefixes = [];
+let recentBases    = [];
+let recentCombos   = [];
+
+/* Decks */
+let deckSelect = shuffle(allMagnitudes()); // SOLO para elegir la SOLUCIÓN (no para el menú)
+let deckPrefMultiple = shuffle(PREFIX_LIST.filter(n=>PREFIX_BY_NAME[n].group==="multiple"));
+let deckPrefSubmult  = shuffle(PREFIX_LIST.filter(n=>PREFIX_BY_NAME[n].group==="submultiple"));
+let deckPrefAll      = shuffle(PREFIX_LIST);
+
+/* Deck helpers */
+function drawFromDeck(deck, recentArr){
+  for(let i=0;i<deck.length;i++){
+    const v = deck[i];
+    if(!recentArr.includes(v)){
+      deck.splice(i,1);
+      if(deck.length===0) deck.push(...shuffle(PREFIX_LIST));
+      return v;
+    }
+  }
+  const first = deck.shift();
+  if(deck.length===0) deck.push(...shuffle(PREFIX_LIST));
+  return first;
+}
+function drawPrefix(group, allowAll=false){
+  if(allowAll){
+    if(deckPrefAll.length===0) deckPrefAll = shuffle(PREFIX_LIST);
+    return drawFromDeck(deckPrefAll, recentPrefixes);
+  }
+  if(group==="multiple"){
+    if(deckPrefMultiple.length===0) deckPrefMultiple = shuffle(PREFIX_LIST.filter(n=>PREFIX_BY_NAME[n].group==="multiple"));
+    return drawFromDeck(deckPrefMultiple, recentPrefixes);
+  }else{
+    if(deckPrefSubmult.length===0) deckPrefSubmult = shuffle(PREFIX_LIST.filter(n=>PREFIX_BY_NAME[n].group==="submultiple"));
+    return drawFromDeck(deckPrefSubmult, recentPrefixes);
+  }
+}
+
+/* Menú SIEMPRE con TODAS las magnitudes (barajado) */
+function populateMagnitudesShuffled(){
+  const order = shuffle(allMagnitudes());
+  $("selMag").innerHTML =
+    `<option value="" selected disabled>— Selecciona —</option>` +
+    order.map(m=>`<option value="${m.id}">${m.label}</option>`).join("");
+}
+
+/* UI helpers */
+function setEq(left, right){
+  $("equation").innerHTML =
+    `1 ${escapeHtml(left)} = 10<sup class="supbox"><input id="exp" type="number" step="1" inputmode="numeric" /></sup> ${escapeHtml(right)}`;
+}
+function clearFieldColors(){
+  ["selMag","selTipo","selMS","selPref","selBase","selPrefNum","selBaseNum","selPrefDen","selBaseDen"].forEach(id=>{
+    const el=$(id); if(el) el.classList.remove("okField","koField");
+  });
+  const expEl = $("exp"); if(expEl) expEl.classList.remove("okField","koField");
+}
+function colorize(el, ok){ if(el){ el.classList.toggle("okField", ok); el.classList.toggle("koField", !ok); } }
+function addCombo(abbr, base){
+  const tag = `${abbr}|${base}`;
+  recentCombos.unshift(tag);
+  if(recentCombos.length>COMBO_COOL) recentCombos.pop();
+}
+
+/* ========= Generación ========= */
+function genExercise(){
+  if(score >= 10) return;
+  locked = false; $("msg").textContent = ""; $("btnCheck").disabled = false; $("btnNext").disabled = false; clearFieldColors();
+
+  populateMagnitudesShuffled();
+
+  // Elegir magnitud desde deckSelect evitando repetir magnitud y tipo consecutivos
+  let attempts=0, mag=null;
+  while(attempts++<40){
+    if(deckSelect.length===0) deckSelect = shuffle(allMagnitudes());
+    const pick = deckSelect.shift();
+    if(pick.id!==prevMagId && pick.tipo!==prevTipo){ mag=pick; break; }
+    deckSelect.push(pick); // lo devolvemos al final si no nos sirve
+  }
+  if(!mag) mag = choice(allMagnitudes());
+  const isDeriv = (mag.tipo==="Derivada");
+
+  // Variantes de base
+  let baseVariant = mag.base;
+  if(mag.id === "temperatura"){ baseVariant = Math.random()<0.5 ? "K" : "ºC"; }
+  if(mag.id === "volumen"){ baseVariant = Math.random()<0.5 ? "m3" : "L"; }
+
+  specialNoExponent = !!(mag.velocity || mag.density);
+
+  let leftSymbol="", rightSymbol="", exp=0, baseValue="";
+  let prefixName="", group="";
+
+  // Bucle de seguridad para que nunca quede izquierda==derecha
+  let safeTries=0;
+  do{
+    safeTries++;
+
+    if(specialNoExponent){
+      // === VELOCIDAD / DENSIDAD (4 desplegables; sin exponente ni MS) ===
+      let prefNum, prefDen, comboNum, comboDen; let triesComb=0;
+      do{
+        prefNum = drawPrefix(null, true);
+        prefDen = drawPrefix(null, true);
+        const numUnit = (mag.velocity ? "m" : "g");
+        const denUnit = (mag.velocity ? "s" : "m3");
+        comboNum = PREFIX_BY_NAME[prefNum].abbr + "|" + numUnit;
+        comboDen = PREFIX_BY_NAME[prefDen].abbr + "|" + denUnit;
+        triesComb++;
+      } while ((recentCombos.includes(comboNum) || recentCombos.includes(comboDen)) && triesComb<60);
+
+      if(mag.velocity){
+        leftSymbol = `${PREFIX_BY_NAME[prefNum].abbr}m/${PREFIX_BY_NAME[prefDen].abbr}s`;
+        rightSymbol = "m/s";
+        solPrefNum=prefNum; solBaseNum="m"; solPrefDen=prefDen; solBaseDen="s"; baseValue="m/s";
+      }else{
+        leftSymbol = `${PREFIX_BY_NAME[prefNum].abbr}g/${PREFIX_BY_NAME[prefDen].abbr}m³`;
+        rightSymbol = "kg/m³";
+        solPrefNum=prefNum; solBaseNum="g"; solPrefDen=prefDen; solBaseDen="m3"; baseValue="kg/m3";
+      }
+      solMagId=mag.id; solTipo="Derivada"; solGroup=""; solPrefName=""; solBase=baseValue; exp=null;
+
+      // UI especial (4 menús con todos los prefijos y todas las bases)
+      $("rowMS").classList.add("hidden");
+      $("rowReadNormal").classList.add("hidden");
+      $("rowReadSpecial").classList.remove("hidden");
+      const prefOpts = shuffle(PREFIX_LIST).map(n=>`<option value="${n}">${n}</option>`).join("");
+      $("selPrefNum").innerHTML = `<option value="" selected disabled>— Prefijo —</option>${prefOpts}`;
+      $("selPrefDen").innerHTML = `<option value="" selected disabled>— Prefijo —</option>${prefOpts}`;
+      const BASE_OPTIONS = `
+        <option value="" selected disabled>— Unidad —</option>
+        <option value="m">metro</option>
+        <option value="m2">metro cuadrado</option>
+        <option value="m3">metro cúbico</option>
+        <option value="L">litro</option>
+        <option value="s">segundo</option>
+        <option value="g">gramo</option>
+        <option value="ºC">grado centígrado</option>
+        <option value="A">amperio</option>
+        <option value="K">kelvin</option>`;
+      $("selBaseNum").innerHTML = BASE_OPTIONS;
+      $("selBaseDen").innerHTML = BASE_OPTIONS;
+      $("equation").classList.add("hidden");
+
+      // combos recientes
+      addCombo(PREFIX_BY_NAME[prefNum].abbr, mag.velocity ? "m" : "g");
+      addCombo(PREFIX_BY_NAME[prefDen].abbr, mag.velocity ? "s" : "m3");
+
+    }else{
+      // === RESTO (con exponente y MS) ===
+      const desired = (Math.random()<0.5 ? "multiple" : "submultiple");
+      const groupUse = (desired===prevGroup ? (desired==="multiple"?"submultiple":"multiple") : desired);
+
+      // masa: evitar "kilo" porque k·g = kg (equivalencia consigo misma)
+      let names = PREFIX_LIST.filter(n=>PREFIX_BY_NAME[n].group===groupUse);
+      if(mag.id==="masa") names = names.filter(n=>n!=="kilo");
+      if(names.length===0){ names = PREFIX_LIST.filter(n=>PREFIX_BY_NAME[n].group!=="multiple"); }
+
+      prefixName = choice(names);
+      const pref = PREFIX_BY_NAME[prefixName]; group = pref.group;
+
+      if(isDeriv){
+        if(mag.id==="superficie"){ leftSymbol = pref.abbr+"m²"; rightSymbol="m²"; exp=pref.exp*2; baseValue="m2"; addCombo(pref.abbr,"m2"); }
+        else if(mag.id==="volumen"){
+          if(baseVariant==="m3"){ leftSymbol=pref.abbr+"m³"; rightSymbol="m³"; exp=pref.exp*3; baseValue="m3"; addCombo(pref.abbr,"m3"); }
+          else { leftSymbol=pref.abbr+"L"; rightSymbol="m³"; exp=pref.exp-3; baseValue="L"; addCombo(pref.abbr,"L"); }
+        }
+      }else{
+        switch(mag.id){
+          case "longitud": leftSymbol=pref.abbr+"m"; rightSymbol="m"; exp=pref.exp; baseValue="m"; addCombo(pref.abbr,"m"); break;
+          case "tiempo":   leftSymbol=pref.abbr+"s"; rightSymbol="s"; exp=pref.exp; baseValue="s"; addCombo(pref.abbr,"s"); break;
+          case "temperatura":
+            leftSymbol=pref.abbr+baseVariant; rightSymbol=baseVariant; exp=pref.exp; baseValue=baseVariant; addCombo(pref.abbr, baseVariant.replace("²","2").replace("³","3")); break;
+          case "corriente":leftSymbol=pref.abbr+"A"; rightSymbol="A"; exp=pref.exp; baseValue="A"; addCombo(pref.abbr,"A"); break;
+          case "masa":     leftSymbol=pref.abbr+"g"; rightSymbol="kg"; exp=pref.exp-3; baseValue="g"; addCombo(pref.abbr,"g"); break;
+        }
+      }
+
+      correctExp=exp; solMagId=mag.id; solTipo=isDeriv?"Derivada":"Fundamental"; solGroup=group; solPrefName=prefixName; solBase=baseValue;
+
+      $("rowMS").classList.remove("hidden");
+      $("rowReadNormal").classList.remove("hidden");
+      $("rowReadSpecial").classList.add("hidden");
+      $("selMS").value="";
+      const shuffled = shuffle(PREFIX_LIST.filter(n=>PREFIX_BY_NAME[n].group===group));
+      $("selPref").innerHTML = `<option value="" selected disabled>— Selecciona —</option>${shuffled.map(n=>`<option value="${n}">${n}</option>`).join("")}`;
+      $("selPref").disabled=false; $("selBase").value="";
+      $("equation").classList.remove("hidden");
+      setEq(leftSymbol, rightSymbol);
+
+      // recientes simples
+      recentPrefixes.unshift(solPrefName); if(recentPrefixes.length>COOL) recentPrefixes.pop();
+      recentBases.unshift(solBase); if(recentBases.length>COOL) recentBases.pop();
+    }
+
+  } while(leftSymbol.replace(/\s/g,'')===rightSymbol.replace(/\s/g,'') && safeTries<10);
+
+  $("symbol").textContent = normalizeMu(leftSymbol);
+  $("selMag").value=""; $("selTipo").value="";
+  prevMagId=solMagId; prevTipo=solTipo; prevGroup=solGroup;
+
+  setTimeout(()=>{ if(!specialNoExponent){ const e=$("exp"); if(e) e.focus(); } else { $("selPrefNum").focus(); } }, 0);
+}
+
+/* Prefijos por MS (solo normal) */
+$("selMS").addEventListener("change", ()=>{
+  if($("rowReadSpecial").classList.contains("hidden")){
+    const v = $("selMS").value;
+    let names = PREFIX_LIST.filter(n => PREFIX_BY_NAME[n].group===v);
+    if(solMagId==="masa") names = names.filter(n=>n!=="kilo"); // evitar kg=kg
+    const shuffled = shuffle(names);
+    $("selPref").innerHTML = `<option value="" selected disabled>— Selecciona —</option>${shuffled.map(n=>`<option value="${n}">${n}</option>`).join("")}`;
+    $("selPref").disabled = !v;
+  }
+});
+
+/* Corrección */
+function corregir(){
+  if(locked) return;
+  const selMag = $("selMag"), selTipo = $("selTipo");
+  let delta=0, msgs=[];
+
+  if(!selMag.value) msgs.push("Selecciona la magnitud.");
+  if(!selTipo.value) msgs.push("Selecciona si es fundamental o derivada.");
+
+  if($("rowReadSpecial").classList.contains("hidden")){
+    // ===== NORMAL =====
+    const selMS=$("selMS"), selPref=$("selPref"), selBase=$("selBase"), expEl=$("exp");
+    const expVal = Number(expEl && expEl.value.trim());
+    if(!selMS.value) msgs.push("Selecciona múltiplo o submúltiplo.");
+    if(!selPref.value) msgs.push("Selecciona un prefijo.");
+    if(!selBase.value) msgs.push("Selecciona la unidad base.");
+    if(!Number.isFinite(expVal) || !Number.isInteger(expVal)) msgs.push("Escribe un exponente entero.");
+    if(msgs.length){ $("msg").textContent = msgs.join(" "); return; }
+
+    const okMag = selMag.value===solMagId, okTipo=selTipo.value===solTipo, okMS=selMS.value===solGroup;
+    const okPref=selPref.value===solPrefName, okBase=selBase.value===solBase, okExp=(expVal===correctExp);
+    colorize(selMag,okMag); delta+=okMag?0.2:-0.2;
+    colorize(selTipo,okTipo); delta+=okTipo?0.2:-0.2;
+    colorize(selMS,okMS); delta+=okMS?0.2:-0.2;
+    colorize(selPref,okPref); delta+=okPref?0.2:-0.2;
+    colorize(selBase,okBase); delta+=okBase?0.2:-0.2;
+    colorize(expEl,okExp); delta+=okExp?0.2:-0.2;
+
+    $("msg").textContent=`Solución → Magnitud: ${solMagId}; Tipo: ${solTipo}; ${(solGroup==="multiple"?"Múltiplo; ":"Submúltiplo; ")}Prefijo: ${solPrefName}; Unidad: ${solBase}; Exponente: ${correctExp}.`;
+  }else{
+    // ===== ESPECIAL (Velocidad/Densidad) =====
+    const PN=$("selPrefNum"), BN=$("selBaseNum"), PD=$("selPrefDen"), BD=$("selBaseDen");
+    if(!PN.value) msgs.push("Selecciona prefijo del numerador.");
+    if(!BN.value) msgs.push("Selecciona unidad del numerador.");
+    if(!PD.value) msgs.push("Selecciona prefijo del denominador.");
+    if(!BD.value) msgs.push("Selecciona unidad del denominador.");
+    if(msgs.length){ $("msg").textContent = msgs.join(" "); return; }
+
+    const okMag=selMag.value===solMagId, okTipo=selTipo.value===solTipo;
+    const okPN=PN.value===solPrefNum, okBN=BN.value===solBaseNum, okPD=PD.value===solPrefDen, okBD=BD.value===solBaseDen;
+    colorize(selMag,okMag); delta+=okMag?0.2:-0.2;
+    colorize(selTipo,okTipo); delta+=okTipo?0.2:-0.2;
+    colorize(PN,okPN); delta+=okPN?0.2:-0.2;
+    colorize(BN,okBN); delta+=okBN?0.2:-0.2;
+    colorize(PD,okPD); delta+=okPD?0.2:-0.2;
+    colorize(BD,okBD); delta+=okBD?0.2:-0.2;
+
+    $("msg").textContent=`Solución → Magnitud: ${solMagId}; Tipo: ${solTipo}; Num: ${solPrefNum} ${solBaseNum}; Den: ${solPrefDen} ${solBaseDen}.`;
+  }
+
+  // puntuación y SCORM
+  score = +(Math.min(10, Math.max(0, score + delta))).toFixed(1);
+  $("score").textContent = `Puntuación: ${score}`;
+  $("score").classList.remove("ok","ko"); $("score").classList.add(score>=5?"ok":"ko");
+  tries += 1; $("tries").textContent = `Intentos: ${tries}`;
+
+  if(window.SCORM){
+    SCORM.set("cmi.core.score.raw", score);
+    SCORM.set("cmi.core.score.min", 0);
+    SCORM.set("cmi.core.score.max", 10);
+    SCORM.set("cmi.core.lesson_status", score>=10 ? "completed" : "incomplete");
+    SCORM.commit();
+  }
+  locked = true; $("btnCheck").disabled = true;
+  if(score>=10){ $("btnNext").disabled = true; $("msg").textContent += " Has alcanzado 10 puntos. Actividad completada."; }
+}
+
+$("btnCheck").addEventListener("click", corregir);
+$("btnNext").addEventListener("click", genExercise);
+document.addEventListener("keydown", (e)=>{
+  if(e.key==="Enter" && !e.ctrlKey){ e.preventDefault(); corregir(); }
+  if(e.key==="Enter" && e.ctrlKey){ e.preventDefault(); genExercise(); }
+});
+
+/* Inicialización */
+(function init(){ populateMagnitudesShuffled(); genExercise(); })();
+</script>
+</body>
+</html>
