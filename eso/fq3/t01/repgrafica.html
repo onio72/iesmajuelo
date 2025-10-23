@@ -1,0 +1,362 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Representa gráficamente los datos de la tabla</title>
+<style>
+  :root{
+    --bg:#f8fafc; --panel:#ffffff; --ink:#0f172a; --muted:#64748b;
+    --grid:#e2e8f0; --axis:#334155; --ok:#16a34a; --ko:#dc2626;
+    --pending:#94a3b8; --placed:#2563eb; --okSoft:#86efac; --koSoft:#fecaca;
+    --focus:#9333ea; --accent:#0ea5e9;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,"Helvetica Neue",Arial;
+       background:var(--bg);color:var(--ink);line-height:1.35}
+  header{padding:12px 16px;background:var(--panel);border-bottom:1px solid var(--grid);position:sticky;top:0;z-index:5}
+  header h1{font-size:18px;margin:0 0 4px}
+  header .meta{font-size:13px;color:var(--muted)}
+  header .meta strong{color:var(--ink)}
+  main{display:grid;gap:12px;padding:12px;max-width:1200px;margin:0 auto;grid-template-columns:1fr}
+  @media (min-width:900px){ main{grid-template-columns:340px 1fr;} }
+  .card{background:var(--panel);border:1px solid var(--grid);border-radius:12px;padding:12px;box-shadow:0 1px 0 rgba(0,0,0,.02)}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  button{border:1px solid var(--grid);background:#fff;padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:600}
+  button:hover{border-color:var(--accent)}
+  button:focus-visible, table:focus-visible, canvas:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+  .status{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;font-size:14px}
+  .score{padding:4px 8px;border-radius:999px;font-weight:700}
+  .score.ok{background:var(--okSoft);color:#065f46}
+  .score.ko{background:var(--koSoft);color:#7f1d1d}
+  .attempts{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;border:1px solid var(--grid);border-radius:10px;overflow:hidden}
+  th,td{padding:6px 8px;border-bottom:1px solid var(--grid);text-align:right;font-variant-numeric:tabular-nums}
+  th:first-child,td:first-child{text-align:center}
+  th{background:#f1f5f9;color:var(--axis)}
+  tr:last-child td{border-bottom:0}
+  caption{caption-side:bottom;padding-top:6px;color:var(--muted);font-size:12px}
+  .hint{font-size:13px;color:var(--muted)}
+  .legend{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:12px}
+  .dot{width:10px;height:10px;border-radius:999px;display:inline-block;vertical-align:middle;margin-right:4px;border:1px solid rgba(0,0,0,.15)}
+  .dot.pending{background:var(--pending)}
+  .dot.placed{background:var(--placed)}
+  .dot.ok{background:var(--ok)}
+  .dot.ko{background:var(--ko)}
+  .pill{display:inline-block;padding:2px 6px;border:1px solid var(--grid);border-radius:999px;background:#fff;font-size:12px}
+  .canvas-wrap{position:relative}
+  canvas{width:100%;height:100%;min-height:400px;background:#fff;border:1px solid var(--grid);border-radius:12px}
+  .tt{position:absolute;pointer-events:none;background:#111;color:#fff;font-size:12px;padding:4px 6px;border-radius:6px;transform:translate(10px,-8px);white-space:nowrap;opacity:0;transition:opacity .06s ease}
+  .crosshair{position:absolute;width:12px;height:12px;margin-left:-6px;margin-top:-6px;border:2px solid var(--accent);border-radius:50%;pointer-events:none;opacity:.8;display:none}
+  .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;font-size:12px;border:1px solid var(--grid);background:#fff;padding:1px 6px;border-radius:6px}
+  .kbd-help{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Representa gráficamente los datos de la tabla</h1>
+  <div class="meta">Par de magnitudes actual: <strong id="pairLabel">—</strong> · Escala auto con márgenes · Ticks legibles</div>
+</header>
+
+<main>
+  <section class="card">
+    <h2 style="font-size:16px;margin:0 0 8px">Datos del ejercicio</h2>
+    <table id="dataTable" tabindex="0" aria-label="Tabla de datos X e Y">
+      <thead><tr><th>#</th><th id="thX">X</th><th id="thY">Y</th></tr></thead>
+      <tbody id="tbody"></tbody>
+      <caption id="tblCap" class="note">Haz clic en el canvas para colocar el punto 1/5.</caption>
+    </table>
+    <div class="controls" style="margin-top:10px">
+      <button id="btnUndo" title="Backspace">Deshacer punto</button>
+      <button id="btnCheck" title="Enter">Corregir</button>
+      <button id="btnNew" title="Ctrl+Enter">Otro ejercicio</button>
+      <label class="toggle" style="display:inline-flex;align-items:center;gap:6px">
+        <input type="checkbox" id="chkJoin"> Unir puntos
+      </label>
+    </div>
+    <div class="status" aria-live="polite">
+      <div id="scoreBadge" class="score">Puntuación acumulada: 0.00 / 10</div>
+      <div class="attempts" id="attempts">Intentos: 0</div>
+      <div class="live" id="liveMsg" aria-live="polite"></div>
+    </div>
+    <div class="legend" id="legend">
+      <span><span class="dot pending"></span>Pendiente</span>
+      <span><span class="dot placed"></span>Colocado</span>
+      <span><span class="dot ok"></span>Correcto</span>
+      <span><span class="dot ko"></span>Incorrecto</span>
+    </div>
+    <p class="hint" style="margin-top:8px">
+      <span class="pill">Atajos</span>
+      <span class="kbd">Enter</span> Corregir ·
+      <span class="kbd">Ctrl</span>+<span class="kbd">Enter</span> Otro ·
+      <span class="kbd">Backspace</span> Deshacer ·
+      <span class="kbd">←</span><span class="kbd">→</span><span class="kbd">↑</span><span class="kbd">↓</span> mover mira ·
+      <span class="kbd">Espacio</span> colocar
+    </p>
+  </section>
+
+  <section class="card">
+    <div style="display:flex;align-items:center;justify-content:flex-end">
+      <span id="axisLabels" class="pill">X: — | Y: —</span>
+    </div>
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="cnv" width="960" height="560" aria-label="Lienzo interactivo"></canvas>
+      <div class="tt" id="tt"></div>
+      <div class="crosshair" id="cross"></div>
+    </div>
+    <p class="kbd-help">Coloca el punto <span id="pendingIdx">1</span>/<span id="nRows">5</span>. Pasa el ratón para ver las coordenadas. En móvil: toca para colocar.</p>
+  </section>
+</main>
+
+<script>
+/* ==== SCORM (igual) ==== */
+const SCORM=(function(){let a=null,i=false;function f(w){try{if(w.API)return w.API;if(w.parent&&w.parent!==w)return f(w.parent);if(w.opener)return f(w.opener)}catch(e){}return null}
+function init(){if(i)return true;a=f(window);if(!a)return false;const ok=a.LMSInitialize("");i=(ok==="true"||ok===true);if(i){a.LMSSetValue("cmi.core.score.min","0");a.LMSSetValue("cmi.core.score.max","10");a.LMSSetValue("cmi.core.lesson_status","incomplete");a.LMSCommit("")}return i}
+function setScore(r){if(!a)return;const c=Math.max(0,Math.min(10,r));a.LMSSetValue("cmi.core.score.raw",String(c.toFixed(2)));a.LMSSetValue("cmi.core.lesson_status",c>=10?"completed":"incomplete");a.LMSCommit("")}
+function finish(){if(!a)return;a.LMSCommit("");a.LMSFinish("")}
+return {init,setScore,finish}})();window.addEventListener("beforeunload",()=>SCORM.finish());window.addEventListener("load",()=>SCORM.init());
+
+/* ==== Utils ==== */
+function choice(a){return a[Math.floor(Math.random()*a.length)]}
+function round1(x){return Math.round(x*10)/10}
+
+/* ====== Ticks agradables + paso ====== */
+function niceTicks(min,max,target=6){
+  const span=Math.max(1e-12,max-min);
+  const rough=span/target;
+  const mag=Math.pow(10,Math.floor(Math.log10(rough)));
+  const steps=[1,2,2.5,5,10].map(s=>s*mag);
+  let bestStep=steps[0], best=1e9;
+  for(const st of steps){
+    const n=Math.ceil(span/st);
+    const diff=Math.abs(n-target);
+    if(n>=5 && n<=8 && diff<best){best=diff; bestStep=st;}
+  }
+  const step=(best===1e9)?rough:bestStep;
+  const niceMin=Math.floor(min/step)*step;
+  const niceMax=Math.ceil(max/step)*step;
+  const ticks=[];
+  for(let v=niceMin; v<=niceMax+step/2; v+=step){ticks.push(+v.toFixed(12))}
+  return {ticks, min:niceMin, max:niceMax, step};
+}
+
+/* Formateo ADAPTATIVO para evitar duplicados (coma decimal) */
+function formatTick(v, step){
+  const s=Math.abs(step);
+  let d=0;
+  if(s<1){ d=Math.min(3, Math.max(1, Math.ceil(-Math.log10(s))+0)); }
+  // evitar -0.0
+  const txt=(+v.toFixed(d)).toFixed(d).replace('.',',');
+  return txt;
+}
+
+/* ====== Pares ====== */
+const PAIRS=[
+  {x:{name:"Tiempo",unit:"s"},y:{name:"Posición",unit:"m"},kind:"pos_t"},
+  {x:{name:"Tiempo",unit:"s"},y:{name:"Velocidad",unit:"m/s"},kind:"vel_t"},
+  {x:{name:"Tiempo",unit:"s"},y:{name:"Aceleración",unit:"m/s²"},kind:"acc_t"},
+  {x:{name:"Volumen",unit:"mL"},y:{name:"Masa",unit:"g"},kind:"mass_vol"},
+  {x:{name:"Volumen",unit:"L"},y:{name:"Masa",unit:"kg"},kind:"mass_vol"},
+  {x:{name:"Tiempo",unit:"s"},y:{name:"Temperatura",unit:"°C"},kind:"temp_t"},
+  {x:{name:"Tiempo",unit:"min"},y:{name:"Temperatura",unit:"K"},kind:"temp_t"},
+  {x:{name:"Tiempo",unit:"s"},y:{name:"Intensidad de corriente",unit:"A"},kind:"I_t"},
+  {x:{name:"Tiempo",unit:"s"},y:{name:"Energía",unit:"J"},kind:"E_t"},
+  {x:{name:"Masa",unit:"kg"},y:{name:"Energía",unit:"J"},kind:"E_m"}
+];
+let lastKind=null; function nextPair(){const pool=PAIRS.filter(p=>p.kind!==lastKind);const p=pool[Math.floor(Math.random()*pool.length)];lastKind=p.kind;return JSON.parse(JSON.stringify(p));}
+
+/* ====== Estado y DOM ====== */
+const state={data:null,xmin:0,xmax:1,ymin:0,ymax:1,ticksX:[],ticksY:[],stepX:1,stepY:1,placed:[],attempt:0,join:false,cross:{visible:false},totalScore:0,checkedThisExercise:false};
+const thX=document.getElementById('thX'), thY=document.getElementById('thY'), tbody=document.getElementById('tbody'), tblCap=document.getElementById('tblCap');
+const axisLabels=document.getElementById('axisLabels'), pairLabel=document.getElementById('pairLabel');
+const btnCheck=document.getElementById('btnCheck'), btnNew=document.getElementById('btnNew'), btnUndo=document.getElementById('btnUndo'), chkJoin=document.getElementById('chkJoin');
+const scoreBadge=document.getElementById('scoreBadge'), attempts=document.getElementById('attempts'), liveMsg=document.getElementById('liveMsg');
+const cnv=document.getElementById('cnv'), ctx=cnv.getContext('2d'), tt=document.getElementById('tt'), cross=document.getElementById('cross');
+const MARGIN={l:70,r:24,t:24,b:64};
+
+/* ====== Datos ====== */
+function genData(){
+  const pair=nextPair(); const N=5;
+  let xs=[];
+  if(pair.x.name==="Tiempo"){
+    const end=pair.x.unit==="s"?choice([10,20,30,60]):choice([3,5,8,10]);
+    const step=Math.max(1,Math.round(end/(N-1)));
+    xs=Array.from({length:N},(_,i)=>round1(i*step));
+  }else if(pair.x.name==="Volumen"){
+    if(pair.x.unit==="mL"){ const end=choice([50,100,150,200]); const step=Math.round(end/(N-1)); xs=Array.from({length:N},(_,i)=>round1(i*step)); }
+    else{ const end=choice([0.5,1,2,3]); const step=+(end/(N-1)).toFixed(1); xs=Array.from({length:N},(_,i)=>round1(i*step)); }
+  }else if(pair.x.name==="Masa"){
+    const end=choice([1,2,5,10]); const step=+(end/(N-1)).toFixed(1); xs=Array.from({length:N},(_,i)=>round1(i*step));
+  }
+  let ys=[];
+  if(pair.kind==="pos_t"){ const a=(Math.random()*0.2-0.05),b=Math.random()*2+0.5,c=Math.random()*2; ys=xs.map(t=>round1(a*t*t+b*t+c+(Math.random()*0.3-0.15))); }
+  else if(pair.kind==="vel_t"){ const base=Math.random()*8+2; ys=xs.map((t,i)=>round1((i<2?base:i<4?base*0.6:base*1.1)+(Math.random()*0.3-0.15))); }
+  else if(pair.kind==="acc_t"){ const a0=(Math.random()*4-2),d=(Math.random()*0.2-0.1); ys=xs.map(t=>round1(a0+d*t+(Math.random()*0.3-0.15))); }
+  else if(pair.kind==="mass_vol"){ const rho=+(Math.random()*7.5+0.5).toFixed(2); const Xmax=Math.max(...xs)||1; ys=xs.map(v=>round1(rho*v+(Math.random()*0.05*rho*Xmax-0.025*rho*Xmax))); }
+  else if(pair.kind==="temp_t"){ if(pair.y.unit==="°C"){ const base=choice([18,20,22,25]),rise=choice([15,25,40,60]); const T=base+rise, maxx=Math.max(...xs)||1; ys=xs.map(t=>round1(base+(T-base)*(t/maxx)+(Math.random()*0.6-0.3))); }
+    else{ const base=choice([285,290,295,300]),rise=choice([10,20,30]); const T=base+rise, maxx=Math.max(...xs)||1; ys=xs.map(t=>round1(base+(T-base)*(t/maxx)+(Math.random()*0.6-0.3))); } }
+  else if(pair.kind==="I_t"){ const base=Math.random()*2+0.5,w=Math.random()*0.3; ys=xs.map(t=>round1(base+w*Math.sin(t/(2+Math.random()*2))+(Math.random()*0.1-0.05))); }
+  else if(pair.kind==="E_t"){ const p=Math.random()*50+10; ys=xs.map(t=>round1(p*t+(Math.random()*p*0.06-p*0.03))); }
+  else if(pair.kind==="E_m"){ const a=Math.random()*200+50,b=Math.random()*30; ys=xs.map(m=>round1(a*m+b*m*m+(Math.random()*a*0.05-a*0.025))); }
+  return {pair, rows: xs.map((x,i)=>({x,y:ys[i]}))};
+}
+
+/* ====== Escalado y dibujo ====== */
+function setCanvasSize(){ const r=cnv.parentElement.getBoundingClientRect(); let w=Math.max(640,Math.floor(r.width)), h=Math.max(400,Math.floor(r.width*0.58)); if(window.innerWidth<900){w=Math.max(360,Math.floor(r.width));h=Math.max(360,Math.floor(r.width*0.62));} cnv.width=w; cnv.height=h; }
+function computeScale(){
+  const xs=state.data.rows.map(r=>r.x), ys=state.data.rows.map(r=>r.y);
+  const xmin=Math.min(...xs), xmax=Math.max(...xs), ymin=Math.min(...ys), ymax=Math.max(...ys);
+  const padX=(xmax-xmin||1)*0.08, padY=(ymax-ymin||1)*0.12;
+  const nx=niceTicks(xmin-padX, xmax+padX, 6), ny=niceTicks(ymin-padY, ymax+padY, 6);
+  state.xmin=nx.min; state.xmax=nx.max; state.ymin=ny.min; state.ymax=ny.max;
+  state.ticksX=nx.ticks; state.ticksY=ny.ticks; state.stepX=nx.step; state.stepY=ny.step;
+}
+function x2px(x){ const W=cnv.width-MARGIN.l-MARGIN.r; return MARGIN.l+((x-state.xmin)/(state.xmax-state.xmin))*W; }
+function y2px(y){ const H=cnv.height-MARGIN.t-MARGIN.b; return cnv.height-MARGIN.b-((y-state.ymin)/(state.ymax-state.ymin))*H; }
+function px2x(px){ const W=cnv.width-MARGIN.l-MARGIN.r; return state.xmin+((px-MARGIN.l)/W)*(state.xmax-state.xmin); }
+function px2y(py){ const H=cnv.height-MARGIN.t-MARGIN.b; return state.ymin+((cnv.height-MARGIN.b-py)/H)*(state.ymax-state.ymin); }
+
+function drawGrid(){
+  ctx.clearRect(0,0,cnv.width,cnv.height);
+  ctx.save(); ctx.lineWidth=1; ctx.fillStyle="#fff"; ctx.fillRect(0,0,cnv.width,cnv.height);
+  const L=MARGIN.l,R=cnv.width-MARGIN.r,T=MARGIN.t,B=cnv.height-MARGIN.b;
+
+  ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--grid');
+  ctx.beginPath();
+  for(const t of state.ticksX){ const x=Math.round(x2px(t))+0.5; ctx.moveTo(x,T); ctx.lineTo(x,B); }
+  for(const t of state.ticksY){ const y=Math.round(y2px(t))+0.5; ctx.moveTo(L,y); ctx.lineTo(R,y); }
+  ctx.stroke();
+
+  ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--axis');
+  ctx.fillStyle=ctx.strokeStyle; ctx.lineWidth=1.5;
+
+  const y0=Math.min(Math.max(y2px(0),T),B);
+  ctx.beginPath(); ctx.moveTo(L-10,y0); ctx.lineTo(R+6,y0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(R+6,y0); ctx.lineTo(R-4,y0-4); ctx.lineTo(R-4,y0+4); ctx.closePath(); ctx.fill();
+
+  const x0=Math.min(Math.max(x2px(0),L),R);
+  ctx.beginPath(); ctx.moveTo(x0,B+10); ctx.lineTo(x0,T-6); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x0,T-6); ctx.lineTo(x0-4,T+4); ctx.lineTo(x0+4,T+4); ctx.closePath(); ctx.fill();
+
+  const muted=getComputedStyle(document.documentElement).getPropertyValue('--muted');
+  ctx.fillStyle=muted; ctx.font="12px system-ui,-apple-system,Segoe UI,Roboto";
+
+  // X labels
+  ctx.textAlign="center"; ctx.textBaseline="top";
+  for(const t of state.ticksX){
+    const x=Math.round(x2px(t))+0.5;
+    ctx.beginPath(); ctx.moveTo(x,y0-4); ctx.lineTo(x,y0+4); ctx.stroke();
+    ctx.fillText(formatTick(t,state.stepX), x, B+8);
+  }
+  // Y labels
+  ctx.textAlign="right"; ctx.textBaseline="middle";
+  for(const t of state.ticksY){
+    const y=Math.round(y2px(t))+0.5;
+    ctx.beginPath(); ctx.moveTo(x0-4,y); ctx.lineTo(x0+4,y); ctx.stroke();
+    ctx.fillText(formatTick(t,state.stepY), L-8, y);
+  }
+
+  // origen
+  ctx.fillStyle="#111"; const px0=Math.round(x0)+0.5, py0=Math.round(y0)+0.5;
+  ctx.beginPath(); ctx.arc(px0,py0,2.5,0,Math.PI*2); ctx.fill();
+
+  // etiquetas de ejes
+  ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--axis');
+  ctx.font="bold 14px system-ui,-apple-system,Segoe UI,Roboto";
+  ctx.textAlign="center"; ctx.textBaseline="bottom";
+  ctx.fillText(`${state.data.pair.x.name} (${state.data.pair.x.unit})`, (L+R)/2, cnv.height-8);
+  ctx.save(); ctx.translate(16,(T+B)/2); ctx.rotate(-Math.PI/2);
+  ctx.textAlign="center"; ctx.textBaseline="top";
+  ctx.fillText(`${state.data.pair.y.name} (${state.data.pair.y.unit})`, 0, 0);
+  ctx.restore();
+  ctx.restore();
+}
+
+function drawData(){
+  if(state.join && state.placed.filter(p=>p.xpx!==null).length>=2){
+    ctx.save(); ctx.beginPath();
+    state.placed.forEach((p,i)=>{ if(p.xpx!==null){ if(i===0) ctx.moveTo(p.xpx,p.ypx); else ctx.lineTo(p.xpx,p.ypx);} });
+    ctx.lineWidth=2; ctx.strokeStyle="#0ea5e9"; ctx.globalAlpha=0.9; ctx.stroke(); ctx.restore();
+  }
+  for(const p of state.placed){
+    if(p.xpx===null) continue;
+    ctx.beginPath();
+    let fill=getComputedStyle(document.documentElement).getPropertyValue('--placed');
+    if(p.status==="ok") fill=getComputedStyle(document.documentElement).getPropertyValue('--ok');
+    if(p.status==="ko") fill=getComputedStyle(document.documentElement).getPropertyValue('--ko');
+    ctx.fillStyle=fill; ctx.arc(p.xpx,p.ypx,5,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle="rgba(0,0,0,.2)"; ctx.stroke();
+  }
+}
+
+function render(){ setCanvasSize(); computeScale(); drawGrid(); drawData(); }
+
+/* ====== Tabla/UI ====== */
+function renderTable(){
+  thX.textContent=`${state.data.pair.x.name} (${state.data.pair.x.unit})`;
+  thY.textContent=`${state.data.pair.y.name} (${state.data.pair.y.unit})`;
+  axisLabels.textContent=`X: ${state.data.pair.x.name} (${state.data.pair.x.unit}) | Y: ${state.data.pair.y.name} (${state.data.pair.y.unit})`;
+  pairLabel.textContent=`${state.data.pair.y.name} (${state.data.pair.y.unit}) vs ${state.data.pair.x.name} (${state.data.pair.x.unit})`;
+  tbody.innerHTML="";
+  state.data.rows.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${i+1}</td><td>${r.x.toFixed(1).replace('.',',')}</td><td>${r.y.toFixed(1).replace('.',',')}</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('nRows').textContent=state.data.rows.length;
+  document.getElementById('pendingIdx').textContent=Math.max(1, state.placed.filter(p=>p.xpx!==null).length+1);
+  tblCap.textContent=`Haz clic en el canvas para colocar el punto ${Math.min(state.placed.filter(p=>p.xpx!==null).length+1,state.data.rows.length)}/${state.data.rows.length}.`;
+}
+function resetPlaced(){ state.placed=state.data.rows.map(()=>({xpx:null, ypx:null, status:'pending'})); }
+function newExercise(){ state.data=genData(); resetPlaced(); state.join=false; chkJoin.checked=false; state.checkedThisExercise=false; btnCheck.disabled=false; liveMsg.textContent=""; renderTable(); render(); }
+
+/* ====== Interacción ====== */
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+cnv.addEventListener('mousemove',e=>{const r=cnv.getBoundingClientRect(); const px=e.clientX-r.left, py=e.clientY-r.top; tt.textContent=`(${round1(px2x(px))} , ${round1(px2y(py))})`; tt.style.left=(px+12)+"px"; tt.style.top=(py-8)+"px"; tt.style.opacity=1;});
+cnv.addEventListener('mouseleave',()=>{tt.style.opacity=0;});
+function placePoint(px,py){const L=MARGIN.l,R=cnv.width-MARGIN.r,T=MARGIN.t,B=cnv.height-MARGIN.b; px=clamp(px,L,R); py=clamp(py,T,B); const idx=state.placed.findIndex(p=>p.xpx===null); if(idx===-1)return; state.placed[idx]={xpx:px, ypx:py, status:'placed'}; document.getElementById('pendingIdx').textContent=Math.min(idx+2,state.data.rows.length); tblCap.textContent=`Haz clic en el canvas para colocar el punto ${Math.min(idx+2,state.data.rows.length)}/${state.data.rows.length}.`; render();}
+cnv.addEventListener('click',e=>{const r=cnv.getBoundingClientRect(); placePoint(e.clientX-r.left,e.clientY-r.top);});
+btnUndo.addEventListener('click',()=>{for(let i=state.placed.length-1;i>=0;i--){if(state.placed[i].xpx!==null){state.placed[i]={xpx:null, ypx:null, status:'pending'};break;}} document.getElementById('pendingIdx').textContent=Math.max(1,state.placed.filter(p=>p.xpx!==null).length+1); tblCap.textContent=`Haz clic en el canvas para colocar el punto ${Math.min(state.placed.filter(p=>p.xpx!==null).length+1,state.data.rows.length)}/${state.data.rows.length}.`; render();});
+chkJoin.addEventListener('change',e=>{state.join=e.target.checked; render();});
+btnNew.addEventListener('click',()=>{if(btnNew.disabled)return; newExercise();});
+
+/* ====== Tolerancia por coordenada ====== */
+function coordOK(i, px, py){
+  const row=state.data.rows[i], rx=x2px(row.x), ry=y2px(row.y);
+  const dx=Math.abs(px-rx), dy=Math.abs(py-ry), d=Math.hypot(dx,dy);
+  const thrX=0.03*Math.abs(x2px(state.xmax)-x2px(state.xmin));
+  const thrY=0.03*Math.abs(y2px(state.ymin)-y2px(state.ymax));
+  return {okX:(dx<=thrX)||(d<=8), okY:(dy<=thrY)||(d<=8)};
+}
+function check(){
+  if(state.checkedThisExercise) return;
+  let good=0,bad=0;
+  for(let i=0;i<state.placed.length;i++){
+    const p=state.placed[i];
+    if(p.xpx===null){bad+=2; p.status='ko'; continue;}
+    const {okX,okY}=coordOK(i,p.xpx,p.ypx);
+    if(okX) good++; else bad++;
+    if(okY) good++; else bad++;
+    p.status=(okX&&okY)?'ok':'ko';
+  }
+  const delta=0.2*(good-bad);
+  state.totalScore=Math.max(0,Math.min(10,state.totalScore+delta));
+  state.attempt=(state.attempt||0)+1; state.checkedThisExercise=true; btnCheck.disabled=true;
+  const sign=delta>0?"+":""; scoreBadge.textContent=`Puntuación acumulada: ${state.totalScore.toFixed(2)} / 10 (Δ: ${sign}${delta.toFixed(2)})`;
+  scoreBadge.className="score "+(state.totalScore>=5?"ok":"ko");
+  attempts.textContent=`Intentos: ${state.attempt}`;
+  liveMsg.textContent=`Coordenadas correctas: ${good} · incorrectas: ${bad}.`;
+  render(); SCORM.setScore(state.totalScore);
+  if(state.totalScore>=10){ btnNew.disabled=true; btnNew.title="Actividad completada (SCORM: completed)"; liveMsg.textContent+=" ¡Excelente! Actividad completada."; }
+}
+btnCheck.addEventListener('click',check);
+
+/* ====== Init/resize ====== */
+new ResizeObserver(()=>render()).observe(document.getElementById('canvasWrap'));
+window.addEventListener('orientationchange',()=>setTimeout(render,150));
+(function init(){ state.data=genData(); resetPlaced(); renderTable(); render(); })();
+</script>
+</body>
+</html>
