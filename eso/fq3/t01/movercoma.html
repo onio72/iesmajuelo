@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Escala de unidades y coma decimal</title>
+<style>
+  :root{
+    --bg:#ffffff; --fg:#0b1220; --muted:#5b6573;
+    --accent:#0a7b83; --destino:#d93025; --grid:#e3e8ef; --cell:#f7f9fc;
+  }
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--fg);
+       font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial,"Apple Color Emoji","Segoe UI Emoji";
+       line-height:1.35;}
+  .wrap{max-width:1100px;margin-inline:auto;padding:clamp(12px,2.5vw,28px);}
+  header h1{font-size:clamp(1.6rem,3.6vw,2.4rem);margin:0 0 .25rem 0;}
+  header p{margin:.25rem 0 .75rem 0;color:var(--muted);font-size:clamp(1rem,2.2vw,1.1rem);}
+
+  .controls-top{display:flex;gap:.6rem;margin:.6rem 0 .9rem;flex-wrap:wrap}
+  button{
+    background:#f1f4f9;color:var(--fg);border:1px solid #cfd6e2;
+    padding:.55rem .9rem;border-radius:.6rem;font-size:clamp(1rem,2.2vw,1.05rem);cursor:pointer;
+  }
+  button:hover{background:#e8eef7}
+  button:focus-visible{outline:3px solid #7aa2ff;outline-offset:2px;}
+
+  .table-scroller{
+    overflow-x:hidden; overflow-y:auto;
+    border-radius:.8rem;border:1px solid var(--grid);background:#fff;margin-top:.25rem;
+  }
+  table{border-collapse:separate;border-spacing:0;width:100%;table-layout:fixed;}
+  thead th, tbody td{border-right:1px solid var(--grid)}
+  thead th:last-child, tbody td:last-child{border-right:0}
+
+  thead th{
+    background:#f4f7fb;color:#0b1c39;text-align:center;font-weight:700;
+    padding:.35rem .2rem;font-size:clamp(.78rem,1.4vw,.95rem);white-space:nowrap;
+  }
+  thead th.destino{color:var(--destino)}
+
+  tbody td{
+    background:var(--cell);text-align:center;height:clamp(56px,7.2vw,76px);
+    font-size:clamp(1.5rem,3.6vw,2.05rem);position:relative;vertical-align:middle;user-select:none;
+    padding:.1rem;
+  }
+  tbody td:focus-visible{outline:3px solid #7aa2ff;outline-offset:-3px;z-index:1}
+  .digit{display:inline-block;min-width:.6em}
+
+  .coma{
+    position:absolute;right:clamp(4px,.6vw,8px);top:50%;
+    transform:translateY(-55%);font-weight:800;color:var(--accent);
+    font-size:1em;line-height:1;user-select:none;pointer-events:none;
+  }
+
+  .controls-bottom{display:flex;justify-content:center;gap:.8rem;margin-top:.9rem;}
+  .arrow{font-weight:700;min-width:3rem}
+
+  .status{margin:.9rem 0 0 0;color:#3b4451;font-size:clamp(.95rem,2vw,1.05rem)}
+  .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Escala de unidades y coma decimal</h1>
+    <p>
+      Escribe dígitos (0–9) en la fila inferior. La coma se coloca <strong>detrás del último dígito escrito</strong>.
+      Usa las flechas para moverla. Al avanzar, las celdas vacías por las que pasas se rellenan con <strong>0</strong>.
+      <br>Importante: <strong>los ceros de relleno no se borran</strong> mientras sigas moviéndote en el mismo sentido;
+      se eliminan <strong>solo al cambiar de sentido</strong>, y de uno en uno al ir cruzándolos. Un cero entre dos dígitos no nulos nunca se borra.
+    </p>
+  </header>
+
+  <div class="controls-top" role="group" aria-label="Controles generales">
+    <button id="btnBorrar" type="button">Borrar todo</button>
+    <button id="btnReiniciar" type="button">Reiniciar</button>
+  </div>
+
+  <div class="table-scroller">
+    <table id="tabla" role="table" aria-label="Escala decimal de 10^9 a 10^-9">
+      <thead><tr id="filaHead" role="row"></tr></thead>
+      <tbody><tr id="filaBody" role="row"></tr></tbody>
+    </table>
+  </div>
+
+  <div class="controls-bottom" role="group" aria-label="Mover coma">
+    <button id="moveLeft"  type="button" class="arrow" aria-label="Mover coma a la izquierda">←</button>
+    <button id="moveRight" type="button" class="arrow" aria-label="Mover coma a la derecha">→</button>
+  </div>
+
+  <p class="status" aria-live="polite" id="statusMsg">Unidad actual: —</p>
+  <p class="sr-only" aria-live="polite" id="liveMsg"></p>
+</div>
+
+<script>
+(() => {
+  const EXP_MIN=-9, EXP_MAX=9, COLS=EXP_MAX-EXP_MIN+1;
+  const SI={"9":"Giga","6":"Mega","3":"kilo","2":"hecto","1":"deca","0":"unidad","-1":"deci","-2":"centi","-3":"mili","-6":"micro","-9":"nano"};
+
+  const filaHead=document.getElementById('filaHead');
+  const filaBody=document.getElementById('filaBody');
+  const btnLeft=document.getElementById('moveLeft');
+  const btnRight=document.getElementById('moveRight');
+  const btnBorrar=document.getElementById('btnBorrar');
+  const btnReiniciar=document.getElementById('btnReiniciar');
+  const statusMsg=document.getElementById('statusMsg');
+  const liveMsg=document.getElementById('liveMsg');
+
+  let digits   = Array(COLS).fill(null);   // 0..9 o null
+  let autoZero = Array(COLS).fill(false);  // cero creado automáticamente
+  let autoDir  = Array(COLS).fill(0);      // +1 si se creó moviendo a la derecha; -1 si a la izquierda
+  let commaCol = null;                     // índice 0..18
+
+  const indexFromExp = exp => EXP_MAX-exp;
+  const expFromIndex = idx => EXP_MAX-idx;
+  const cellAt = i => filaBody.children[i];
+  const headAt = i => filaHead.children[i];
+
+  function initTabla(){
+    filaHead.innerHTML='';
+    for(let exp=EXP_MAX;exp>=EXP_MIN;exp--){
+      const th=document.createElement('th');
+      th.setAttribute('data-exp',exp);
+      th.setAttribute('role','columnheader');
+      th.textContent = SI[String(exp)] || '';
+      filaHead.appendChild(th);
+    }
+    filaBody.innerHTML='';
+    for(let exp=EXP_MAX;exp>=EXP_MIN;exp--){
+      const td=document.createElement('td');
+      td.setAttribute('data-exp',exp);
+      td.setAttribute('role','gridcell');
+      td.setAttribute('tabindex','0');
+      const span=document.createElement('span'); span.className='digit'; span.textContent='';
+      td.appendChild(span);
+      td.addEventListener('click',()=>td.focus());
+      td.addEventListener('keydown',e=>onCellKey(e,td));
+      filaBody.appendChild(td);
+    }
+    marcarDestino(null); actualizarUnidad();
+  }
+
+  function onCellKey(e,td){
+    const idx=[...filaBody.children].indexOf(td);
+    const k=e.key;
+    if(k==='Backspace'||k==='Delete'){ e.preventDefault(); writeDigit(idx,null,true); return; }
+    if(/^[0-9]$/.test(k)){ e.preventDefault(); writeDigit(idx,Number(k),true); return; }
+    const ok=new Set(['Tab','ArrowLeft','ArrowRight','Home','End','Shift','Control','Alt','Meta']);
+    if(!ok.has(k) && k!=='Enter' && k!==' ') e.preventDefault();
+  }
+
+  function writeDigit(idx,val,userAction){
+    digits[idx]=(val===null?null:Math.min(9,Math.max(0,val)));
+    autoZero[idx]=false; autoDir[idx]=0;
+    cellAt(idx).querySelector('.digit').textContent=(digits[idx]===null?'':String(digits[idx]));
+    if(userAction && val!==null){ placeComma(idx); }
+    if(userAction && val===null && commaCol===idx){
+      const first=digits.findIndex(d=>d!==null);
+      if(first>=0) placeComma(first); else removeComma();
+    }
+  }
+
+  function placeComma(idx){
+    removeComma(false);
+    commaCol=idx;
+    const coma=document.createElement('span');
+    coma.className='coma'; coma.textContent=',';
+    coma.setAttribute('role','img'); coma.setAttribute('aria-label','coma decimal');
+    cellAt(idx).appendChild(coma);
+    marcarDestino(idx); actualizarUnidad();
+  }
+
+  function removeComma(clear=true){
+    const old=document.querySelector('.coma');
+    if(old && old.parentElement) old.parentElement.removeChild(old);
+    if(clear){ commaCol=null; marcarDestino(null); actualizarUnidad(); }
+  }
+
+  function zeroEsSignificativo(i){
+    const L=(i-1>=0)?digits[i-1]:null;
+    const R=(i+1<COLS)?digits[i+1]:null;
+    return (digits[i]===0)&&(L!==null && L!==0)&&(R!==null && R!==0);
+  }
+
+  function ensureZero(i,dir){
+    if(i<0||i>=COLS) return;
+    if(digits[i]===null){
+      digits[i]=0; autoZero[i]=true; autoDir[i]=dir;
+      cellAt(i).querySelector('.digit').textContent='0';
+    }
+  }
+
+  // Mover una columna. REGLA: solo se borra el cero que dejas atrás si cambiaste de sentido.
+  function move(step){
+    if(step===0) return;
+
+    // Sin coma todavía: colócala en el primer dígito o en 10^0
+    if(commaCol===null){
+      const first=digits.findIndex(d=>d!==null);
+      const target= first>=0? first : indexFromExp(0);
+      ensureZero(target, step>0?+1:-1); // por si estaba vacío
+      placeComma(target);
+      return;
+    }
+
+    const from=commaCol;
+    const to=Math.min(COLS-1,Math.max(0,from+step));
+    if(to===from) return;
+
+    // 1) destino vacío => cero de relleno con marca de dirección
+    if(digits[to]===null){ ensureZero(to, step>0?+1:-1); }
+
+    // 2) mover coma
+    placeComma(to);
+
+    // 3) borrar solo si se CAMBIÓ de sentido respecto al cero dejado atrás
+    //    (es decir, si el cero fue creado en la dirección opuesta a la actual)
+    const leftBehind=from;
+    if(digits[leftBehind]===0 && autoZero[leftBehind] && autoDir[leftBehind]=== (step>0?-1:+1) && !zeroEsSignificativo(leftBehind)){
+      digits[leftBehind]=null; autoZero[leftBehind]=false; autoDir[leftBehind]=0;
+      cellAt(leftBehind).querySelector('.digit').textContent='';
+    }
+  }
+
+  function marcarDestino(idx){
+    Array.from(filaHead.children).forEach(th=>th.classList.remove('destino'));
+    if(idx===null||idx===undefined) return;
+    const th=headAt(idx); if(th) th.classList.add('destino');
+  }
+  function unidadNombre(exp){ return SI[String(exp)] ? SI[String(exp)] : `10^${exp}`; }
+  function actualizarUnidad(){
+    if(commaCol===null){ statusMsg.textContent='Unidad actual: —'; return; }
+    const exp=expFromIndex(commaCol);
+    statusMsg.textContent='Unidad actual: '+unidadNombre(exp);
+  }
+
+  function limpiar(){
+    digits=Array(COLS).fill(null);
+    autoZero=Array(COLS).fill(false);
+    autoDir =Array(COLS).fill(0);
+    Array.from(filaBody.children).forEach(td=> td.querySelector('.digit').textContent='');
+    removeComma();
+  }
+  function reiniciar(){
+    limpiar();
+    const i0=indexFromExp(0);
+    writeDigit(i0,1,true);
+    writeDigit(i0+1,2,true); // coma detrás del 2
+  }
+
+  // Consola docente
+  window.getVectorDigitos=()=>digits.slice();
+  window.getUnidadDestino=()=> commaCol===null ? null : unidadNombre(expFromIndex(commaCol));
+  window.getCantidadComoTexto=()=>{
+    const partes=digits.map(d=> d===null ? '' : String(d));
+    if(commaCol===null){ const raw=partes.join(''); return raw?raw:'0'; }
+    const out=partes.map((ch,i)=> i===commaCol ? (ch||'')+',' : (ch||'') ).join('');
+    return out.replace(/^\s+|\s+$/g,'').replace(/,+$/,'') || '0';
+  };
+
+  // Eventos
+  btnLeft .addEventListener('click', ()=>move(-1));
+  btnRight.addEventListener('click', ()=>move( 1));
+  btnBorrar.addEventListener('click', ()=>{ limpiar(); liveMsg.textContent='Se borraron todas las cifras y la coma.'; });
+  btnReiniciar.addEventListener('click', ()=>{ reiniciar(); liveMsg.textContent='Estado inicial restaurado.'; });
+
+  document.addEventListener('keydown', e=>{
+    if(e.altKey||e.ctrlKey||e.metaKey) return;
+    if(e.key==='ArrowLeft'){ e.preventDefault(); move(-1); }
+    else if(e.key==='ArrowRight'){ e.preventDefault(); move(1); }
+  });
+
+  initTabla();
+  reiniciar();
+})();
+</script>
+</body>
+</html>
