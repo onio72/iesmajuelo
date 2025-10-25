@@ -1,0 +1,531 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Cambio de unidades de volumen — App</title>
+<style>
+  :root{
+    --bg:#f8fafc; --ink:#111827; --muted:#6b7280; --card:#ffffff;
+    --b:#e5e7eb; --b2:#eef2f7;
+    --blue:#2563eb; --green:#10b981; --amber:#f59e0b;
+    --origin:#8b5cf6; --dest:#f43f5e;
+
+    /* Cálculo (alineación perfecta) */
+    --rowH:32px;      /* altura filas top/bot */
+    --barH:2px;       /* grosor barra de fracción (fila 2) */
+    --gapX:12px;      /* separación horizontal banda */
+    --chipPadY:8px;   /* padding */
+    --chipPadX:10px;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial}
+  .wrap{max-width:1180px;margin:24px auto;padding:0 16px}
+  h1{margin:0 0 8px 0;font-size:26px;color:#6b7280}
+  .subtitle{font-weight:900;font-size:36px}
+
+  .area{background:#fff;border:1px solid var(--b2);border-radius:14px;padding:12px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+  .area+.area{margin-top:14px}
+
+  /* Canvas */
+  #stairs{width:100%;height:300px;display:block;border:1px solid var(--b2);border-radius:12px;background:#fff}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;color:var(--muted)}
+  .chip{display:flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .dot.o{background:var(--origin)} .dot.s1{background:var(--blue)}
+  .dot.br{background:var(--green)} .dot.s3{background:var(--amber)}
+  .dot.d{background:var(--dest)}
+
+  /* ====== BANDA DE CÁLCULO: GRID 3 FILAS ====== */
+  .area.calc{ display:flex; flex-direction:column; }
+  .toolbar{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:18px; /* espacio real bajo el título */
+  }
+
+  .calc-grid{
+    display:grid;
+    grid-auto-flow:column;
+    grid-auto-columns:max-content;
+    grid-template-rows: var(--rowH) var(--barH) var(--rowH); /* Fila 2 = barra común */
+    column-gap:var(--gapX);
+    align-items:center;
+  }
+  .frac{
+    display:grid;
+    grid-template-rows: var(--rowH) var(--barH) var(--rowH);
+    grid-row:1 / span 3;
+    padding:var(--chipPadY) var(--chipPadX);
+    border:1px solid var(--b); border-radius:12px; background:#fff; position:relative;
+  }
+  .top,.bot{display:inline-flex;align-items:center;gap:6px;height:var(--rowH);line-height:var(--rowH)}
+  .bar{grid-row:2;height:var(--barH);background:#d1d5db;align-self:stretch;min-width:76px;border-radius:1px}
+
+  .sep{grid-row:2}
+  .eq{grid-row:2}
+  .result{grid-row:2;height:var(--rowH);width:8ch;border:1px solid var(--b);border-radius:8px;padding:0 8px;background:#fff}
+  .result.ok{background:#d1fae5}      /* verde pastel */
+  .result.warn{background:#fef9c3}    /* amarillo pastel */
+  .result.bad{background:#fee2e2}     /* rojo pastel */
+  .unit{grid-row:2;align-self:center;background:#eef2ff;border:1px solid var(--b);border-radius:999px;padding:2px 8px;font-size:12px}
+
+  .frac input[type="text"], .frac select{
+    height:var(--rowH); border:1px solid var(--b); border-radius:8px; padding:0 8px; font-size:14px;
+  }
+  .frac input[type="text"]{width:8ch}
+  .frac .del{position:absolute;right:-10px;top:-10px;border:none;background:transparent;color:#dc2626;font-weight:900;font-size:16px;cursor:pointer}
+  .pref strong{font-weight:900}
+  .pref .bot{justify-content:center} /* 1 del prefactor centrado */
+
+  .mono{font-family:ui-monospace,Menlo,Monaco,Consolas,"Courier New",monospace}
+  button{border:1px solid var(--b);background:#111827;color:#fff;border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer}
+  button.secondary{background:#fff;color:#111827}
+
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;background:#eef2ff;border:1px solid #e5e7eb}
+  .ok{background:#d1fae5;border:1px solid #a7f3d0;padding:6px 8px;border-radius:8px}
+  .err{background:#fee2e2;border:1px solid #fecaca;padding:6px 8px;border-radius:8px}
+
+  .strike{position:relative;display:inline-block}
+  .strike::after{content:"";position:absolute;left:-2%;right:-2%;top:55%;height:2px;background:#ef4444;transform:rotate(-10deg)}
+  
+  /* Espacio bajo la banda de cálculo antes de la nota de ayuda */
+.calc .calc-grid{
+  margin-bottom: 12px;   /* prueba 10–14px según prefieras */
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Cambio de unidades de volumen usando factores de conversión</h1>
+  <div class="subtitle" id="subtitle"></div>
+
+  <!-- Escaleras -->
+  <section class="area">
+    <canvas id="stairs" width="1120" height="300"></canvas>
+    <div class="legend">
+      <span class="chip"><span class="dot o"></span> Origen</span>
+      <span class="chip"><span class="dot s1"></span> Tramo 1</span>
+      <span class="chip"><span class="dot br"></span> Puente 1 L = 1 dm³</span>
+      <span class="chip"><span class="dot s3"></span> Tramo 2</span>
+      <span class="chip"><span class="dot d"></span> Destino</span>
+    </div>
+  </section>
+
+  <!-- Cálculo -->
+  <section class="area calc">
+    <div class="toolbar">
+      <strong>Construye la cadena de factores:</strong>
+      <button class="secondary" id="btnAdd">+ Añadir factor</button>
+    </div>
+
+    <div class="calc-grid" id="grid">
+      <!-- Prefactor se inyecta en JS -->
+      <div class="sep mono">·</div>
+      <div class="eq mono">=</div>
+      <input class="result" id="finalValue" />
+      <span class="unit" id="finalUnit">…</span>
+    </div>
+
+    <div class="mono" style="color:#6b7280;margin-top:6px">
+      Puedes usar notación científica: 3.2e4, 5e-3…
+    </div>
+
+    <div class="row" style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap">
+      <button id="btnCheck">Corregir (⏎)</button>
+      <button id="btnNext" class="secondary">Otro ejercicio (Ctrl+⏎)</button>
+      <span class="badge">Intentos: <span id="attempts">0</span></span>
+      <span class="badge">Puntuación ejercicio: <span id="lastScore">0</span></span>
+      <span class="badge">Nota total: <span id="totalScore">0.0</span> / 10</span>
+    </div>
+
+    <div id="cancelViz" style="margin-top:12px"></div>
+    <div id="solution" style="border-top:1px dashed #e5e7eb;margin-top:12px;padding-top:10px;display:none"></div>
+  </section>
+</div>
+
+<script>
+/* ====== Utilidades y datos ====== */
+const VOL='VOL', CAP='CAP';
+const volumeUnits=['m³','dm³','cm³'], capacityUnits=['kL','hL','daL','L','dL','cL','mL'];
+const allUnits=[...volumeUnits,...capacityUnits];
+const colors={s1:getCSS('--blue'), br:getCSS('--green'), s3:getCSS('--amber'),
+              origin:getCSS('--origin'), dest:getCSS('--dest')};
+
+const capPow={kL:3,hL:2,daL:1,L:0,dL:-1,cL:-2,mL:-3};
+const volPow={'m³':3,'dm³':0,'cm³':-3};
+
+function getCSS(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+function rnd(a){return a[Math.floor(Math.random()*a.length)];}
+function parseSci(s){const t=(s||'').toString().replace(',','.').trim(); if(!t) return NaN;
+  if(/^\s*-?\d+(\.\d+)?\s*\/\s*-?\d+(\.\d+)?\s*$/.test(t)){const [n,d]=t.split('/').map(Number); return n/d;}
+  return Number(t);}
+function fmtNum(x){if(!isFinite(x))return'?';const ax=Math.abs(x);return (ax!==0&&(ax>=1e6||ax<1e-3))?x.toExponential(2):(Math.round(x*1e6)/1e6).toString();}
+function capFactor(a,b){return Math.pow(10, capPow[a]-capPow[b]);}
+function volFactor(a,b){return Math.pow(10, volPow[a]-volPow[b]);}
+function unitGroup(u){return volumeUnits.includes(u)?VOL:CAP;}
+function randomTwoSig(){
+  const min=0.001, max=1000; const r=min*Math.pow(max/min, Math.random()); // log-uniform
+  const e=Math.floor(Math.log10(r)); const scale=Math.pow(10,1-e);
+  return Math.round(r*scale)/scale;
+}
+
+/* ====== Ruta y factores correctos ====== */
+function routeSegments(originU,destU){
+  // Siempre puente L <-> dm³ entre tramo 1 y tramo 2
+  if(unitGroup(originU)===VOL && unitGroup(destU)===CAP){
+    return [
+      {color:colors.s1, from:originU, to:'dm³', factor:volFactor(originU,'dm³')},
+      {color:colors.br, from:'dm³', to:'L',    factor:1},
+      {color:colors.s3, from:'L',   to:destU, factor:capFactor('L',destU)},
+    ];
+  }else{
+    return [
+      {color:colors.s1, from:originU, to:'L',   factor:capFactor(originU,'L')},
+      {color:colors.br, from:'L',     to:'dm³', factor:1},
+      {color:colors.s3, from:'dm³',   to:destU, factor:volFactor('dm³',destU)},
+    ];
+  }
+}
+
+function niceFrac(seg){ // Opción A
+  if(seg.factor>=1){ return {num:fmtNum(seg.factor), nu:seg.to, den:'1', du:seg.from}; }
+  else{ return {num:'1', nu:seg.to, den:fmtNum(1/seg.factor), du:seg.from}; }
+}
+/* Opción B correcta: solo cambian los números, las UNIDADES se mantienen */
+function altFrac(seg){
+  if(seg.factor>=1){
+    // Ej.: k=1000 → B = 1·(to / (1/1000)·from) = 1 to / 0.001 from
+    return {num:'1', nu:seg.to, den:fmtNum(1/seg.factor), du:seg.from};
+  }else{
+    // Ej.: k=0.001 → B = 0.001·(to / 1·from)
+    return {num:fmtNum(seg.factor), nu:seg.to, den:'1', du:seg.from};
+  }
+}
+
+/* ====== Estado ====== */
+const state={attempts:0,totalScore:0,current:null,recentPairs:[]};
+
+/* ====== UI helpers ====== */
+function unitOptions(){return allUnits.map(u=>`<option value="${u}">${u}</option>`).join('');}
+function makeFracHTML(num,nu,den,du,editable=false,color=null,extraClass=''){
+  const style=color?`style="border-color:${color}"`:"";
+  const cls = `frac ${extraClass?extraClass:''}`;
+  if(editable){
+    return `
+    <div class="${cls} fac" ${style}>
+      <button class="del" title="Eliminar">×</button>
+      <div class="top"><input class="num" type="text" value="${num??''}"/><select class="unitNum">${unitOptions()}</select></div>
+      <div class="bar"></div>
+      <div class="bot"><input class="den" type="text" value="${den??''}"/><select class="unitDen">${unitOptions()}</select></div>
+    </div>`;
+  }else{
+    return `
+    <div class="${cls}" ${style}>
+      <div class="top"><span class="mono">${num}</span> <b>${nu}</b></div>
+      <div class="bar"></div>
+      <div class="bot"><span class="mono">${den}</span>${du?` <b>${du}</b>`:''}</div>
+    </div>`;
+  }
+}
+
+/* ====== Generar ejercicio ====== */
+function pickExercise(){
+  const fromGroup=Math.random()<0.5?VOL:CAP;
+  const volChoices=volumeUnits.filter(u=>u!=='dm³'), capChoices=capacityUnits.filter(u=>u!=='L');
+  const originU=fromGroup===VOL?rnd(volChoices):rnd(capChoices);
+  const destU=fromGroup===VOL?rnd(capChoices):rnd(volChoices);
+
+  const pair=originU+'→'+destU;
+  if(state.recentPairs.includes(pair)) return pickExercise(); // evita repetir últimos 4
+  state.recentPairs.push(pair); if(state.recentPairs.length>4) state.recentPairs.shift();
+
+  const value=randomTwoSig();
+  const segs=routeSegments(originU,destU);
+  const factor=segs.reduce((a,s)=>a*s.factor,1);
+  const final=value*factor;
+
+  state.current={originU,destU,value,segs,correctFactor:factor,correctFinal:final};
+
+  document.getElementById('subtitle').textContent=`Convierte ${value} ${originU} a ${destU}`;
+  document.getElementById('finalUnit').textContent=destU;
+  const resultBox=document.getElementById('finalValue');
+  resultBox.value=''; resultBox.classList.remove('ok','warn','bad');
+
+  // Construir banda
+  const grid=document.getElementById('grid');
+  grid.innerHTML=''; // limpia
+
+  // Prefactor (clase .pref para centrar el 1)
+  grid.insertAdjacentHTML('beforeend', makeFracHTML(fmtNum(value), originU, '1', '', false, null, 'pref'));
+
+  // punto tras prefactor
+  grid.insertAdjacentHTML('beforeend', `<div class="sep mono">·</div>`);
+
+  // factor 1 sugerido vacío
+  addFactorChip();
+
+  // “=” y destino
+  grid.insertAdjacentHTML('beforeend', `<div class="eq mono">=</div><input class="result" id="finalValue" /><span class="unit" id="finalUnit">${destU}</span>`);
+
+  drawStairsCanvas();
+  document.getElementById('cancelViz').innerHTML='';
+  const sol=document.getElementById('solution'); sol.style.display='none'; sol.innerHTML='';
+
+  // badges
+  document.getElementById('attempts').textContent=state.attempts;
+  document.getElementById('lastScore').textContent='0';
+  document.getElementById('totalScore').textContent=state.totalScore.toFixed(1);
+}
+
+/* ====== Canvas: escaleras + flechas ====== */
+function drawStairsCanvas(){
+  const c=document.getElementById('stairs'), ctx=c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+  const pad=120, yVol=95, yCap=215, x0=pad, x1=c.width-pad;
+  const vol=['m³','dm³','cm³'], cap=['kL','hL','daL','L','dL','cL','mL'];
+  const rect={};
+
+  drawRibbon(yVol, vol);
+  drawRibbon(yCap, cap);
+
+  highlight(state.current.originU, colors.origin);
+  highlight(state.current.destU, colors.dest);
+
+  const s1=state.current.segs[0], rFrom1=rect[s1.from], rTo1=rect[s1.to];
+  const startBlue=(rFrom1.cx<rTo1.cx)?edgeTopRight(rFrom1):edgeTopLeft(rFrom1);
+  const endBlue=(rFrom1.cx<rTo1.cx)?edgeTopLeft(rTo1):edgeTopRight(rTo1);
+  arrowCurve(startBlue, endBlue, colors.s1, -40);
+
+  const rDm3=rect['dm³'], rL=rect['L'];
+  if(unitGroup(state.current.originU)===VOL){
+    verticalBridgeDown(); // dm³ ↓ L
+  }else{
+    verticalBridgeUp();   // L ↑ dm³ (punta debajo de dm³)
+  }
+
+  const s3=state.current.segs[2], rFrom3=rect[s3.from], rTo3=rect[s3.to];
+  const startY=(rFrom3.cx<rTo3.cx)?edgeBotRight(rFrom3):edgeBotLeft(rFrom3);
+  const endY=(rFrom3.cx<rTo3.cx)?edgeBotLeft(rTo3):edgeBotRight(rTo3);
+  arrowCurve(startY, endY, colors.s3, +36);
+
+  // etiqueta puente
+  ctx.fillStyle=colors.br; ctx.font='bold 13px system-ui';
+  ctx.fillText('1 L = 1 dm³', (rL.cx+rDm3.cx)/2 + 12, (rL.y+rDm3.y+rDm3.h)/2 - 6);
+
+  function drawRibbon(y, labels){
+    const gap=(x1-x0)/(labels.length-1); ctx.font='14px system-ui';
+    for(let i=0;i<labels.length;i++){
+      const x=x0+i*gap, w=76, h=28, r=12;
+      roundRect(x-w/2,y-h/2,w,h,r,true,true);
+      ctx.fillStyle='#111827'; const txt=labels[i];
+      ctx.fillText(txt, x-ctx.measureText(txt).width/2, y+5);
+      rect[txt]={x:x-w/2,y:y-h/2,w,h,cx:x,cy:y};
+      if(i<labels.length-1){ctx.strokeStyle='#e5e7eb';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+w/2,y);ctx.lineTo(x+gap-w/2,y);ctx.stroke();}
+    }
+  }
+  function roundRect(x,y,w,h,r,fill,stroke){
+    ctx.fillStyle='#fff'; ctx.strokeStyle=getCSS('--b2'); ctx.lineWidth=2;
+    if(w<2*r)r=w/2; if(h<2*r)r=h/2;
+    ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+    if(fill) ctx.fill(); if(stroke) ctx.stroke();
+  }
+  function highlight(u,color){
+    const r=rect[u]; const pad=8, rad=14;
+    ctx.strokeStyle=color; ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.moveTo(r.x-pad+rad, r.y-pad);
+    ctx.arcTo(r.x-pad+r.w+2*pad, r.y-pad, r.x-pad+r.w+2*pad, r.y-pad+r.h+2*pad, rad);
+    ctx.arcTo(r.x-pad+r.w+2*pad, r.y-pad+r.h+2*pad, r.x-pad, r.y-pad+r.h+2*pad, rad);
+    ctx.arcTo(r.x-pad, r.y-pad+r.h+2*pad, r.x-pad, r.y-pad, rad);
+    ctx.arcTo(r.x-pad, r.y-pad, r.x-pad+r.w+2*pad, r.y-pad, rad);
+    ctx.stroke();
+  }
+  function edgeTopLeft(r){return {x:r.x+2,y:r.y+2};}
+  function edgeTopRight(r){return {x:r.x+r.w-2,y:r.y+2};}
+  function edgeBotLeft(r){return {x:r.x+2,y:r.y+r.h-2};}
+  function edgeBotRight(r){return {x:r.x+r.w-2,y:r.y+r.h-2};}
+
+  function arrowCurve(A,B,color,bulge){
+    const cx=(A.x+B.x)/2, cy=(A.y+B.y)/2+bulge;
+    ctx.strokeStyle=color; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(A.x,A.y); ctx.quadraticCurveTo(cx,cy,B.x,B.y); ctx.stroke();
+    arrowHead(B,{x:cx,y:cy},color);
+  }
+  function arrowHead(tip,ref,color){
+    const ang=Math.atan2(tip.y-ref.y, tip.x-ref.x), L=9;
+    ctx.strokeStyle=color;
+    ctx.beginPath();
+    ctx.moveTo(tip.x,tip.y);
+    ctx.lineTo(tip.x-L*Math.cos(ang-Math.PI/6), tip.y-L*Math.sin(ang-Math.PI/6));
+    ctx.moveTo(tip.x,tip.y);
+    ctx.lineTo(tip.x-L*Math.cos(ang+Math.PI/6), tip.y-L*Math.sin(ang+Math.PI/6));
+    ctx.stroke();
+  }
+  function verticalBridgeDown(){ // dm³ ↓ L
+    const rDm3=rect['dm³'], rL=rect['L'];
+    const x=rDm3.cx, start=rDm3.y+rDm3.h+2, tip=rL.y-8;
+    ctx.strokeStyle=colors.br; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(x,start); ctx.lineTo(x,tip); ctx.stroke();
+    arrowHead({x, y: tip}, {x, y:tip-20}, colors.br);
+  }
+  function verticalBridgeUp(){   // L ↑ dm³ (punta debajo de dm³)
+    const rDm3=rect['dm³'], rL=rect['L'];
+    const x=rL.cx;
+    const gapTip=6;
+    const tipY=rDm3.y+rDm3.h+gapTip; // punta debajo de dm³
+    const startY=rL.y-8;
+    ctx.strokeStyle=colors.br; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(x,startY); ctx.lineTo(x,tipY); ctx.stroke();
+    arrowHead({x, y: tipY}, {x, y: tipY+20}, colors.br); // cabeza hacia ARRIBA
+  }
+}
+
+/* ====== Constructor de factores ====== */
+function addFactorChip(){
+  const g=document.getElementById('grid');
+  const eqIndex=[...g.children].findIndex(el=>el.classList && el.classList.contains('eq'));
+  const insertBefore = eqIndex>=0 ? g.children[eqIndex] : null;
+
+  // si ya hay un factor, añade punto
+  const already=[...g.children].some(el=>el.classList && el.classList.contains('fac'));
+  if(already){
+    const sep=document.createElement('div'); sep.className='sep mono'; sep.textContent='·';
+    g.insertBefore(sep, insertBefore);
+  }
+  const f=document.createElement('div'); f.className='frac fac';
+  f.innerHTML=`<button class="del" title="Eliminar">×</button>
+    <div class="top"><input class="num" type="text"/><select class="unitNum">${unitOptions()}</select></div>
+    <div class="bar"></div>
+    <div class="bot"><input class="den" type="text"/><select class="unitDen">${unitOptions()}</select></div>`;
+  f.querySelector('.del').onclick=()=>{
+    const prev=f.previousElementSibling, next=f.nextElementSibling;
+    if(prev && prev.classList.contains('sep')) prev.remove();
+    else if(next && next.classList.contains('sep')) next.remove();
+    f.remove();
+  };
+  g.insertBefore(f, insertBefore);
+}
+function gatherChips(){
+  return [...document.querySelectorAll('.fac')].map(ch=>{
+    return {
+      num: parseSci(ch.querySelector('.num').value),
+      den: parseSci(ch.querySelector('.den').value),
+      uN:  ch.querySelector('.unitNum').value,
+      uD:  ch.querySelector('.unitDen').value
+    };
+  });
+}
+
+/* ====== Corrección ====== */
+function checkUnitsCancel(entries, originU, destU){
+  const count={}; const add=(u,s)=>count[u]=(count[u]||0)+s;
+  add(originU,+1); entries.forEach(e=>{add(e.uN,+1); add(e.uD,-1)}); add(destU,-1);
+  return {ok:Object.values(count).every(v=>Math.abs(v)<=1e-9), count};
+}
+function cancelVisualization(entries,uCheck){
+  const zero=new Set(Object.entries(uCheck.count).filter(([u,v])=>Math.abs(v)<=1e-9).map(([u])=>u));
+  const s=state.current;
+  let html = makeFracHTML(fmtNum(s.value), s.originU, '1', '', false, null, 'pref');
+  if(entries.length) html += `<div class="sep mono">·</div>`;
+  html += entries.map((e,i)=>`
+    ${i?'<div class="sep mono">·</div>':''}
+    <div class="frac">
+      <div class="top"><span class="${zero.has(e.uN)?'strike':''} mono">${isFinite(e.num)?fmtNum(e.num):''}</span> <b class="${zero.has(e.uN)?'strike':''}">${e.uN}</b></div>
+      <div class="bar"></div>
+      <div class="bot"><span class="${zero.has(e.uD)?'strike':''} mono">${isFinite(e.den)?fmtNum(e.den):''}</span> <b class="${zero.has(e.uD)?'strike':''}">${e.uD}</b></div>
+    </div>`).join('');
+  return html;
+}
+
+function onCheck(){
+  const s=state.current;
+  const entries=gatherChips();
+  const resultBox=document.getElementById('finalValue');
+  resultBox.classList.remove('ok','warn','bad');
+
+  if(entries.length===0){alert('Añade al menos un factor.');return;}
+  if(entries.some(e=>!isFinite(e.num)||!isFinite(e.den)||e.den===0)){alert('Revisa valores numéricos.');return;}
+
+  // Unidades
+  const uC=checkUnitsCancel(entries, s.originU, s.destU);
+  document.getElementById('cancelViz').innerHTML =
+    `<div><strong>Cancelación de unidades:</strong></div>
+     <div style="margin-top:8px;display:grid;grid-auto-flow:column;grid-auto-columns:max-content;grid-template-rows:var(--rowH) var(--barH) var(--rowH);gap:10px;align-items:center">
+       ${cancelVisualization(entries,uC)}
+     </div>` +
+     (uC.ok? `<div class="ok" style="margin-top:8px">Las unidades se cancelan correctamente y queda <b>${s.destU}</b>.</div>`
+            : `<div class="err" style="margin-top:8px">Aún quedan unidades sin cancelar.</div>`);
+
+  // Factor total del alumno
+  const userFactor = entries.reduce((acc,e)=> acc * (e.num/e.den), 1);
+  const userFinal  = s.value * userFactor;
+  const correct    = s.correctFinal;
+  const relErr = Math.abs(userFinal - correct) / Math.max(1e-15, Math.abs(correct));
+
+  // Coloreado de la caja resultado si el texto coincide (opcional)
+  const typed = parseSci(resultBox.value);
+  if(isFinite(typed)){
+    const relErrTyped = Math.abs(typed - correct) / Math.max(1e-15, Math.abs(correct));
+    if(relErrTyped<=0.001) resultBox.classList.add('ok');
+    else if(relErrTyped<=0.02) resultBox.classList.add('warn');
+    else resultBox.classList.add('bad');
+  }
+
+  // Puntuación
+  let delta=0;
+  if(relErr<=0.001){ delta=+1.0; }
+  else if(relErr<=0.02){ delta=+0.5; }
+  else { delta=-0.5; }
+  state.attempts++; state.totalScore=Math.max(0, Math.min(10, state.totalScore + delta));
+  document.getElementById('attempts').textContent=state.attempts;
+  document.getElementById('lastScore').textContent=delta.toFixed(1);
+  document.getElementById('totalScore').textContent=state.totalScore.toFixed(1);
+
+  // Mostrar soluciones
+  showSolution();
+}
+
+function showSolution(){
+  const s=state.current, segs=s.segs;
+
+  const prefHTML = makeFracHTML(fmtNum(s.value), s.originU, '1', '', false, null, 'pref');
+
+  // Opción A
+  const chainA = segs.map(seg=>{
+    const f=niceFrac(seg);
+    return makeFracHTML(f.num, f.nu, f.den, f.du, false, seg.color);
+  }).join('<div class="sep mono">·</div>');
+
+  // Opción B correcta (equivalente)
+  const chainB = segs.map(seg=>{
+    const f=altFrac(seg);
+    return makeFracHTML(f.num, f.nu, f.den, f.du, false, seg.color);
+  }).join('<div class="sep mono">·</div>');
+
+  const sol=document.getElementById('solution');
+  sol.style.display='block';
+  sol.innerHTML = `
+    <div><strong>Solución →</strong></div>
+    <div style="margin-top:6px"><em>Opción A:</em></div>
+    <div class="calc-grid" style="gap:12px;margin-top:6px">${prefHTML}<div class="sep mono">·</div>${chainA}</div>
+    <div style="margin-top:10px"><em>Opción B (equivalente):</em></div>
+    <div class="calc-grid" style="gap:12px;margin-top:6px">${prefHTML}<div class="sep mono">·</div>${chainB}</div>`;
+}
+
+/* ====== Eventos ====== */
+document.getElementById('btnAdd').addEventListener('click',addFactorChip);
+document.getElementById('btnCheck').addEventListener('click',onCheck);
+document.getElementById('btnNext').addEventListener('click',pickExercise);
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.ctrlKey){e.preventDefault();onCheck();}
+  if(e.key==='Enter'&&e.ctrlKey){e.preventDefault();pickExercise();}
+});
+
+/* ====== Inicio ====== */
+pickExercise();
+</script>
+</body>
+</html>
