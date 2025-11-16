@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Movimiento Armónico Simple</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #111827; /* gray-900 */
+      color: #f9fafb;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      height: 100vh;
+      /* NO ocultamos overflow por si faltan un par de píxeles */
+      overflow-y: auto;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .panel {
+      background-color: #1f2937; /* gray-800 */
+      padding: 0.75rem 1rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.4rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .controls-wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+
+    .sliders-row {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .card {
+      background-color: #374151; /* gray-700 */
+      padding: 0.65rem;
+      border-radius: 0.5rem;
+      flex: 1;
+    }
+
+    .card-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.35rem;
+      font-weight: 600;
+      color: #f9fafb;
+      font-size: 0.9rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      appearance: none;
+      height: 0.35rem;
+      border-radius: 9999px;
+      background-color: #4b5563; /* gray-600 */
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: #fb7185; /* rose-400 */
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: #fb7185;
+      cursor: pointer;
+      border: none;
+    }
+
+    .buttons-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.5rem;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.7rem;
+      font-size: 1rem;
+      font-weight: 700;
+      background-color: #fb7185; /* rose-400 */
+      color: #f9fafb;
+      cursor: pointer;
+      transition: background-color 0.15s ease-in-out, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+
+    .btn:hover {
+      background-color: #f97373; /* rose-500-ish */
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn:disabled {
+      background-color: #4b5563; /* gray-600 */
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .hint {
+      margin-top: 0.35rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+
+    /* Zona de canvas + checkboxes */
+    .canvas-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      /* El alto total disponible = 100vh - (alto aproximado del panel) */
+      padding-top: 0.15rem;
+    }
+
+    /* Envoltorio del canvas: ocupa casi todo el espacio de la parte baja,
+       dejando sitio para la fila de checkboxes. */
+    .canvas-wrapper {
+      flex: 1;
+      margin: 0 1rem;
+      background-color: #111827;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background-color: #111827;
+    }
+
+    .checkbox-bar {
+      background-color: #111827;
+      padding: 0.25rem 1.5rem 0.4rem;
+    }
+
+    .checkbox-row {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 0.25rem;
+      font-size: 0.8rem;
+      color: #e5e7eb;
+    }
+
+    .checkbox-item {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+    }
+
+    .checkbox-item input[type="checkbox"] {
+      width: 12px;
+      height: 12px;
+      accent-color: #fb7185; /* rose-400 */
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="panel">
+      <h1>Movimiento Armónico Simple</h1>
+
+      <div class="controls-wrapper">
+        <!-- Sliders en la misma fila -->
+        <div class="sliders-row">
+          <!-- Slider amplitud -->
+          <div class="card">
+            <div class="card-label">
+              <span>Amplitud: <span id="ampLabel">100</span></span>
+            </div>
+            <input
+              type="range"
+              id="ampSlider"
+              min="20"
+              max="200"
+              value="100"
+            />
+          </div>
+
+          <!-- Slider período -->
+          <div class="card">
+            <div class="card-label">
+              <span>Período: <span id="periodLabel">2.0</span> s</span>
+            </div>
+            <input
+              type="range"
+              id="periodSlider"
+              min="0.5"
+              max="5"
+              step="0.1"
+              value="2"
+            />
+          </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="buttons-grid">
+          <button class="btn" id="btnBack" title="Retroceder T/16">
+            ⏮
+          </button>
+          <button class="btn" id="btnPlay" title="Play">
+            ▶
+          </button>
+          <button class="btn" id="btnPause" title="Pausa">
+            ⏸
+          </button>
+          <button class="btn" id="btnForward" title="Avanzar T/16">
+            ⏭
+          </button>
+          <button class="btn" id="btnReset" title="Reiniciar a t=0">
+            ↻
+          </button>
+        </div>
+
+        <p class="hint">
+          Desfases iniciales mostrados debajo de cada bola en múltiplos de π radianes.
+          Los botones ⏮ y ⏭ solo funcionan en pausa.
+        </p>
+      </div>
+    </div>
+
+    <!-- Canvas + fila de checkboxes alineada -->
+    <div class="canvas-container">
+      <div class="canvas-wrapper" id="canvasWrapper">
+        <canvas id="masCanvas"></canvas>
+      </div>
+      <div class="checkbox-bar">
+        <div class="checkbox-row" id="checkboxContainer">
+          <!-- Rellenado por JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---- Estado ----
+    let amplitude = 100;
+    let period = 2.0;
+    let isPlaying = true;
+    let visibleBalls = new Array(9).fill(true);
+
+    let time = 0; // tiempo acumulado (s)
+    let lastTimestamp = performance.now();
+
+    // ---- Referencias DOM ----
+    const canvas = document.getElementById('masCanvas');
+    const canvasWrapper = document.getElementById('canvasWrapper');
+
+    const ampSlider = document.getElementById('ampSlider');
+    const ampLabel = document.getElementById('ampLabel');
+    const periodSlider = document.getElementById('periodSlider');
+    const periodLabel = document.getElementById('periodLabel');
+
+    const btnBack = document.getElementById('btnBack');
+    const btnPlay = document.getElementById('btnPlay');
+    const btnPause = document.getElementById('btnPause');
+    const btnForward = document.getElementById('btnForward');
+    const btnReset = document.getElementById('btnReset');
+
+    const checkboxContainer = document.getElementById('checkboxContainer');
+
+    const ctx = canvas.getContext('2d');
+
+    // ---- Función para las etiquetas de fase ----
+    function getPhaseLabel(i) {
+      if (i === 0) return '0';
+      if (i === 4) return 'π';
+      if (i === 8) return '2π';
+      if (i === 2) return 'π/2';
+      if (i === 6) return '3π/2';
+      if (i === 1) return 'π/4';
+      return i + 'π/4'; // 3π/4, 5π/4, 7π/4
+    }
+
+    // ---- Crear checkboxes (1 fila, alineados con las bolas) ----
+    function createCheckboxes() {
+      for (let i = 0; i < 9; i++) {
+        const label = document.createElement('label');
+        label.className = 'checkbox-item';
+
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.checked = true;
+        input.dataset.index = i;
+
+        input.addEventListener('change', (e) => {
+          const idx = parseInt(e.target.dataset.index, 10);
+          visibleBalls[idx] = e.target.checked;
+        });
+
+        const span = document.createElement('span');
+        span.textContent = getPhaseLabel(i);
+
+        label.appendChild(input);
+        label.appendChild(span);
+        checkboxContainer.appendChild(label);
+      }
+    }
+
+    createCheckboxes();
+
+    // ---- Redimensionar canvas para aprovechar espacio ----
+    function resizeCanvas() {
+      const rect = canvasWrapper.getBoundingClientRect();
+      canvas.width = rect.width;
+      // Altura: aprox. 55% de la ventana o el alto del wrapper, lo que sea menor
+      const targetHeight = Math.min(rect.height, window.innerHeight * 0.55);
+      canvas.height = targetHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // ---- Actualizar estado de botones ----
+    function updateButtons() {
+      // ⏮ y ⏭ solo activos en pausa
+      btnBack.disabled = isPlaying;
+      btnForward.disabled = isPlaying;
+
+      // ▶ solo activo si está en pausa
+      btnPlay.disabled = isPlaying;
+
+      // ⏸ solo activo si está en play
+      btnPause.disabled = !isPlaying;
+    }
+
+    updateButtons();
+
+    // ---- Listeners sliders ----
+    ampSlider.addEventListener('input', (e) => {
+      amplitude = Number(e.target.value);
+      ampLabel.textContent = amplitude.toString();
+    });
+
+    periodSlider.addEventListener('input', (e) => {
+      period = Number(e.target.value);
+      periodLabel.textContent = period.toFixed(1);
+    });
+
+    // ---- Listeners botones ----
+    btnPlay.addEventListener('click', () => {
+      isPlaying = true;
+      updateButtons();
+    });
+
+    btnPause.addEventListener('click', () => {
+      isPlaying = false;
+      updateButtons();
+    });
+
+    btnReset.addEventListener('click', () => {
+      time = 0;
+      isPlaying = false;
+      updateButtons();
+    });
+
+    btnForward.addEventListener('click', () => {
+      if (!isPlaying) {
+        time += period / 16;
+      }
+    });
+
+    btnBack.addEventListener('click', () => {
+      if (!isPlaying) {
+        time -= period / 16;
+        if (time < 0) time = 0;
+      }
+    });
+
+    // ---- Bucle de animación ----
+    function animate(timestamp) {
+      const delta = (timestamp - lastTimestamp) / 1000; // s
+      lastTimestamp = timestamp;
+
+      if (isPlaying) {
+        time += delta;
+      }
+
+      drawScene();
+      requestAnimationFrame(animate);
+    }
+
+    // ---- Dibujar escena ----
+    function drawScene() {
+      const width = canvas.width;
+      const height = canvas.height;
+
+      if (width === 0 || height === 0) return;
+
+      // Centramos la parte útil un poco MÁS arriba para reducir el hueco:
+      // margen superior 20 px, margen inferior 40 px (para texto de desfase).
+      const topMargin = 20;
+      const bottomMargin = 40;
+      const usableHeight = height - topMargin - bottomMargin;
+
+      // La amplitud no puede ocupar más de la mitad de la altura útil
+      const A = Math.min(amplitude, usableHeight / 2);
+      const centerY = topMargin + usableHeight / 2;
+
+      // Fondo
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillRect(0, 0, width, height);
+
+      // Cuadrícula horizontal
+      const gridLevels = [
+        { value: A, label: '+A' },
+        { value: A / 2, label: '+A/2' },
+        { value: 0, label: '0' },
+        { value: -A / 2, label: '-A/2' },
+        { value: -A, label: '-A' }
+      ];
+
+      ctx.font = '14px Arial';
+      ctx.textAlign = 'left';
+
+      gridLevels.forEach((level) => {
+        const y = centerY - level.value;
+        ctx.strokeStyle = level.value === 0 ? '#555555' : '#333333';
+        ctx.lineWidth = level.value === 0 ? 2 : 1;
+
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+
+        ctx.fillStyle = '#888888';
+        ctx.fillText(level.label, 10, y - 5);
+      });
+
+      const numBalls = 9;
+      const ballRadius = 15;
+      const omega = (2 * Math.PI) / period;
+
+      for (let i = 0; i < numBalls; i++) {
+        // x centrado en 9 columnas: alinea con checkboxes
+        const x = (width / numBalls) * (i + 0.5);
+        const phase = (2 * Math.PI * i) / 8;
+
+        const y = centerY - A * Math.sin(omega * time + phase);
+
+        // Trayectoria vertical
+        ctx.strokeStyle = 'rgba(255, 71, 87, 0.15)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x, centerY - A);
+        ctx.lineTo(x, centerY + A);
+        ctx.stroke();
+
+        // Bola si es visible
+        if (visibleBalls[i]) {
+          ctx.save();
+          ctx.fillStyle = '#ff4757';
+          ctx.shadowColor = 'rgba(255, 71, 87, 0.5)';
+          ctx.shadowBlur = 10;
+          ctx.beginPath();
+          ctx.arc(x, y, ballRadius, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Etiqueta de fase dentro del canvas, justo encima del borde inferior
+        const phaseText = getPhaseLabel(i);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(phaseText, x, height - 10);
+      }
+    }
+
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
