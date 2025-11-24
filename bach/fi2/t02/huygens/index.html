@@ -1,1 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Refracción - Ondas v6 (Huygens)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f3f4f6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        canvas {
+            display: block;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .controls-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(4px);
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .bottom-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-top: 1px solid #e5e7eb;
+        }
+        input[type=range] {
+            accent-color: #3b82f6;
+        }
+        /* Estilos botones */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-play { background-color: #10b981; }
+        .btn-play:hover { background-color: #059669; }
+        
+        .btn-pause { background-color: #f59e0b; }
+        .btn-pause:hover { background-color: #d97706; }
+        
+        .btn-reset { background-color: #6366f1; }
+        .btn-reset:hover { background-color: #4f46e5; }
 
+        .btn-slow { background-color: #8b5cf6; }
+        .btn-slow:hover { background-color: #7c3aed; }
+        .btn-slow.active { 
+            background-color: #5b21b6; 
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Checkboxes personalizados */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.5rem 0.8rem;
+            border-radius: 0.5rem;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+        }
+        .checkbox-wrapper:hover {
+            background-color: #f3f4f6;
+        }
+        .checkbox-wrapper input {
+            width: 1.1rem;
+            height: 1.1rem;
+            cursor: pointer;
+        }
+        .cb-red input { accent-color: #ef4444; }
+        .cb-blue input { accent-color: #2563eb; }
+        .cb-green input { accent-color: #16a34a; }
+        .cb-magenta input { accent-color: #d946ef; } /* Nuevo para Huygens */
+
+    </style>
+</head>
+<body class="flex flex-col h-screen">
+
+    <!-- Panel de Controles Superior -->
+    <div class="controls-panel p-4 shadow-md z-10 flex flex-col items-center flex-shrink-0">
+        <h1 class="text-xl font-bold text-gray-800 mb-2">Simulación de Refracción v6 (Principio de Huygens)</h1>
+        
+        <div class="flex flex-wrap justify-center gap-6 max-w-6xl w-full mb-4">
+            <!-- Control Medio 1 -->
+            <div class="flex flex-col w-48">
+                <label class="text-xs font-semibold text-gray-600 mb-1 flex justify-between">
+                    <span>n₁ (Incidente)</span>
+                    <span id="val-n1" class="text-blue-600">1.00</span>
+                </label>
+                <input type="range" id="slider-n1" min="1.00" max="3.00" step="0.01" value="1.00" class="h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <!-- Control Medio 2 -->
+            <div class="flex flex-col w-48">
+                <label class="text-xs font-semibold text-gray-600 mb-1 flex justify-between">
+                    <span>n₂ (Refractado)</span>
+                    <span id="val-n2" class="text-blue-600">1.50</span>
+                </label>
+                <input type="range" id="slider-n2" min="1.00" max="3.00" step="0.01" value="1.50" class="h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <!-- Control Ángulo -->
+            <div class="flex flex-col w-48">
+                <label class="text-xs font-semibold text-gray-600 mb-1 flex justify-between">
+                    <span>Ángulo Incidente</span>
+                    <span id="val-angle" class="text-blue-600">45°</span>
+                </label>
+                <input type="range" id="slider-angle" min="0" max="89" step="1" value="45" class="h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+            </div>
+        </div>
+
+        <!-- Controles de Animación -->
+        <div class="flex gap-4">
+            <button id="btn-play" class="btn btn-play">▶ Play</button>
+            <button id="btn-pause" class="btn btn-pause">⏸ Pause</button>
+            <button id="btn-slow" class="btn btn-slow">Cámara Lenta</button>
+            <button id="btn-reset" class="btn btn-reset">↺ Reiniciar</button>
+        </div>
+    </div>
+
+    <!-- Área del Canvas -->
+    <div class="flex-grow relative bg-gray-100 flex items-center justify-center overflow-hidden">
+        <canvas id="simCanvas"></canvas>
+        
+        <div id="tir-warning" class="absolute top-4 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded hidden shadow-lg animate-pulse pointer-events-none">
+            ⚠️ Reflexión Interna Total
+        </div>
+    </div>
+
+    <!-- Panel Inferior (Switches) -->
+    <div class="bottom-panel p-3 flex flex-wrap justify-center gap-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-10 flex-shrink-0">
+        <label class="checkbox-wrapper cb-red">
+            <input type="checkbox" id="check-incident" checked>
+            <span class="font-semibold text-gray-700">Frente Incidente</span>
+        </label>
+        
+        <label class="checkbox-wrapper cb-magenta bg-fuchsia-50 border border-fuchsia-100">
+            <input type="checkbox" id="check-huygens" checked>
+            <span class="font-bold text-fuchsia-700">Principio de Huygens</span>
+        </label>
+
+        <label class="checkbox-wrapper cb-blue">
+            <input type="checkbox" id="check-reflected" checked>
+            <span class="font-semibold text-gray-700">Frente Reflejado</span>
+        </label>
+        
+        <label class="checkbox-wrapper cb-green">
+            <input type="checkbox" id="check-refracted" checked>
+            <span class="font-semibold text-gray-700">Frente Refractado</span>
+        </label>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Elementos del DOM
+        const sliderN1 = document.getElementById('slider-n1');
+        const sliderN2 = document.getElementById('slider-n2');
+        const sliderAngle = document.getElementById('slider-angle');
+        const labelN1 = document.getElementById('val-n1');
+        const labelN2 = document.getElementById('val-n2');
+        const labelAngle = document.getElementById('val-angle');
+        const tirWarning = document.getElementById('tir-warning');
+        
+        const btnPlay = document.getElementById('btn-play');
+        const btnPause = document.getElementById('btn-pause');
+        const btnReset = document.getElementById('btn-reset');
+        const btnSlow = document.getElementById('btn-slow');
+
+        // Checkboxes
+        const checkIncident = document.getElementById('check-incident');
+        const checkReflected = document.getElementById('check-reflected');
+        const checkRefracted = document.getElementById('check-refracted');
+        const checkHuygens = document.getElementById('check-huygens');
+
+        // Estado de la simulación física
+        let n1 = 1.00;
+        let n2 = 1.50;
+        let incidentAngleDeg = 45;
+
+        // Estado de visualización
+        let showIncident = true;
+        let showReflected = true;
+        let showRefracted = true;
+        let showHuygens = true;
+
+        // Estado de la animación
+        let waveProgress = 0; 
+        let isPlaying = false;
+        let isSlowMotion = false;
+        
+        const normalSpeed = 0.004; // Velocidad reducida (antes 0.008)
+        const slowSpeed = 0.0008;  // Muy lento (antes 0.002)
+        let currentSpeed = normalSpeed;
+
+        // Configuración visual
+        const colorMedium1 = '#e0f2fe';
+        const colorMedium2 = '#dcfce7';
+        
+        // Colores
+        const colIncident = '#ef4444'; // Rojo
+        const colReflect = '#2563eb';  // Azul
+        const colRefract = '#16a34a';  // Verde
+        const colHuygensPoint = '#d946ef'; // Magenta
+        
+        const rayWidth = 3;
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            draw();
+        }
+
+        function updateValues() {
+            n1 = parseFloat(sliderN1.value);
+            n2 = parseFloat(sliderN2.value);
+            incidentAngleDeg = parseFloat(sliderAngle.value);
+
+            labelN1.textContent = n1.toFixed(2);
+            labelN2.textContent = n2.toFixed(2);
+            labelAngle.textContent = incidentAngleDeg + '°';
+
+            draw();
+        }
+
+        function animate(timestamp) {
+            if (isPlaying) {
+                waveProgress += currentSpeed;
+                if (waveProgress > 3.0) { 
+                    waveProgress = 0;
+                }
+                draw();
+            }
+            requestAnimationFrame(animate);
+        }
+
+        // --- Listeners ---
+        btnPlay.addEventListener('click', () => isPlaying = true);
+        btnPause.addEventListener('click', () => isPlaying = false);
+        btnSlow.addEventListener('click', () => {
+            isSlowMotion = !isSlowMotion;
+            currentSpeed = isSlowMotion ? slowSpeed : normalSpeed;
+            // El icono del caracol solo aparece si está activo el modo lento
+            btnSlow.textContent = isSlowMotion ? "🐌 Lento: ON" : "Cámara Lenta";
+            btnSlow.classList.toggle('active', isSlowMotion);
+        });
+        btnReset.addEventListener('click', () => {
+            isPlaying = false;
+            waveProgress = 0;
+            draw();
+        });
+
+        [checkIncident, checkReflected, checkRefracted, checkHuygens].forEach(cb => {
+            cb.addEventListener('change', () => {
+                showIncident = checkIncident.checked;
+                showReflected = checkReflected.checked;
+                showRefracted = checkRefracted.checked;
+                showHuygens = checkHuygens.checked;
+                draw();
+            });
+        });
+        
+        sliderN1.addEventListener('input', updateValues);
+        sliderN2.addEventListener('input', updateValues);
+        sliderAngle.addEventListener('input', updateValues);
+        window.addEventListener('resize', resizeCanvas);
+
+
+        // ---------------------------------------------------------------------
+        // DIBUJO HUYGENS
+        // ---------------------------------------------------------------------
+        function drawHuygens(ctx, rayLen, theta1, theta2, isTIR) {
+            // Generar puntos equiespaciados a lo largo de la frontera (Eje X en sistema transformado)
+            // Espaciado en píxeles
+            const spacing = 40; 
+            const halfWidth = Math.max(canvas.width, canvas.height); // Cubrir de sobra
+            
+            // Calculamos el tiempo de activación para cada punto.
+            // El frente de onda incidente toca el origen (0,0) en waveProgress = 1.0.
+            // El frente de onda se mueve a velocidad constante V = rayLen (unidades de espacio por unidad de progreso 0->1).
+            // La ecuación del frente de onda (recta) es: x*sin(theta1) + y*cos(theta1) = -rayLen * (1 - waveProgress).
+            // En la frontera, y = 0.
+            // x*sin(theta1) = -rayLen + rayLen*waveProgress
+            // waveProgress_activacion = (x*sin(theta1) + rayLen) / rayLen
+            // waveProgress_activacion = (x/rayLen)*sin(theta1) + 1
+            
+            // Iteramos desde -halfWidth hasta +halfWidth
+            for (let x = -halfWidth; x <= halfWidth; x += spacing) {
+                
+                // 1. Dibujar punto (emisor secundario)
+                ctx.beginPath();
+                ctx.arc(x, 0, 3, 0, Math.PI * 2);
+                ctx.fillStyle = colHuygensPoint;
+                ctx.fill();
+
+                // 2. Calcular si la onda ya pasó por aquí
+                const activationTime = (x / rayLen) * Math.sin(theta1) + 1;
+                
+                // Si la animación ya superó el tiempo de activación, dibujar ondas
+                if (waveProgress > activationTime) {
+                    const deltaTime = waveProgress - activationTime;
+                    
+                    // Radio base: distancia que ha recorrido la luz en ese deltaTime
+                    // En Medio 1, la luz recorre 'rayLen' distancia por cada 1.0 de tiempo
+                    const radius1 = deltaTime * rayLen;
+                    
+                    // --- Onda Reflejada (Medio 1 - Arriba - Azul) ---
+                    // Dibujamos semicírculo superior
+                    if(showReflected) {
+                        ctx.beginPath();
+                        ctx.arc(x, 0, radius1, Math.PI, 0); // Semicírculo de PI a 0 (Antihorario por defecto va 0->PI abajo, aqui definimos start PI end 0)
+                        ctx.strokeStyle = 'rgba(37, 99, 235, 0.5)'; // Azul semi-transparente
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+
+                    // --- Onda Refractada (Medio 2 - Abajo - Verde) ---
+                    if (!isTIR && showRefracted) {
+                        // Velocidad en medio 2 cambia segun n1/n2
+                        // v2 = v1 * (n1/n2)
+                        const radius2 = radius1 * (n1 / n2);
+                        
+                        ctx.beginPath();
+                        ctx.arc(x, 0, radius2, 0, Math.PI); // Semicírculo de 0 a PI (Abajo)
+                        ctx.strokeStyle = 'rgba(22, 163, 74, 0.5)'; // Verde semi-transparente
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+
+        // ---------------------------------------------------------------------
+        // DIBUJO GENERAL
+        // ---------------------------------------------------------------------
+        function draw() {
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Fondos
+            ctx.fillStyle = colorMedium1;
+            ctx.fillRect(0, 0, width, centerY);
+            ctx.fillStyle = colorMedium2;
+            ctx.fillRect(0, centerY, width, height / 2);
+
+            // Textos
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillStyle = '#64748b';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Medio 1 (n = ${n1})`, 20, 40);
+            ctx.fillText(`Medio 2 (n = ${n2})`, 20, height - 20);
+
+            // Guías
+            ctx.beginPath(); ctx.moveTo(0, centerY); ctx.lineTo(width, centerY);
+            ctx.strokeStyle = '#000000'; ctx.lineWidth = 2; ctx.stroke();
+            
+            ctx.beginPath(); ctx.moveTo(centerX, 0); ctx.lineTo(centerX, height);
+            ctx.strokeStyle = '#6b7280'; ctx.lineWidth = 1.5; ctx.setLineDash([10, 5]); ctx.stroke(); ctx.setLineDash([]);
+
+            // Física
+            const theta1 = incidentAngleDeg * (Math.PI / 180);
+            const sinTheta2 = (n1 / n2) * Math.sin(theta1);
+            let theta2 = 0;
+            let isTIR = false;
+            if (Math.abs(sinTheta2) > 1) {
+                isTIR = true;
+                tirWarning.classList.remove('hidden');
+            } else {
+                theta2 = Math.asin(sinTheta2);
+                tirWarning.classList.add('hidden');
+            }
+
+            // Dimensiones para cálculos
+            // Usamos un "rayLength" virtual muy grande para los cálculos de ondas infinitas
+            const rayLength = Math.max(width, height) * 1.5; 
+            const arrowDist = 120;
+
+            ctx.save();
+            ctx.translate(centerX, centerY);
+
+            // --- Principio de Huygens ---
+            if (showHuygens && waveProgress > 0) {
+                drawHuygens(ctx, rayLength, theta1, theta2, isTIR);
+            }
+
+            // --- Rayos y Ángulos ---
+            const startX = -Math.sin(theta1) * rayLength;
+            const startY = -Math.cos(theta1) * rayLength;
+
+            // Incidente
+            ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(0, 0);
+            ctx.strokeStyle = colIncident; ctx.lineWidth = rayWidth; ctx.stroke();
+            drawArrow(ctx, -Math.sin(theta1) * arrowDist, -Math.cos(theta1) * arrowDist, Math.atan2(Math.cos(theta1), Math.sin(theta1)), colIncident);
+            drawAngleArc(ctx, theta1, true, colIncident);
+
+            // Reflejado
+            const reflectX = Math.sin(theta1) * rayLength;
+            const reflectY = -Math.cos(theta1) * rayLength;
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(reflectX, reflectY);
+            ctx.strokeStyle = colReflect; ctx.lineWidth = 2; ctx.stroke();
+            drawArrow(ctx, Math.sin(theta1) * arrowDist, -Math.cos(theta1) * arrowDist, Math.atan2(-Math.cos(theta1), Math.sin(theta1)), colReflect);
+            drawAngleArcReflected(ctx, theta1, colReflect);
+
+            // Refractado
+            if (!isTIR) {
+                const refractX = Math.sin(theta2) * rayLength;
+                const refractY = Math.cos(theta2) * rayLength;
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(refractX, refractY);
+                ctx.strokeStyle = colRefract; ctx.lineWidth = rayWidth; ctx.stroke();
+                drawArrow(ctx, Math.sin(theta2) * arrowDist, Math.cos(theta2) * arrowDist, Math.atan2(Math.cos(theta2), Math.sin(theta2)), colRefract);
+                drawAngleArc(ctx, theta2, false, colRefract);
+            }
+
+            // --- Frentes de Onda Planos (Tangentes) ---
+            if (waveProgress > 0) {
+                const currentIncX = startX * (1 - waveProgress);
+                const currentIncY = startY * (1 - waveProgress);
+                const waveInfiniteLen = rayLength * 4; // Muy largo para parecer infinito
+
+                // Frente Incidente
+                if (showIncident) {
+                    const incDirX = Math.cos(theta1), incDirY = -Math.sin(theta1);
+                    drawClippedLine(ctx, 
+                        {x: currentIncX + incDirX * waveInfiniteLen, y: currentIncY + incDirY * waveInfiniteLen},
+                        {x: currentIncX - incDirX * waveInfiniteLen, y: currentIncY - incDirY * waveInfiniteLen},
+                        colIncident, -1);
+                }
+
+                // Cálculo intersección para Reflejado/Refractado
+                // Donde el frente incidente corta y=0
+                // s = -Cy / Dy
+                const incDirY = -Math.sin(theta1);
+                let intersectX = 0;
+                let hasInt = false;
+                if (Math.abs(incDirY) > 1e-4) {
+                    const s = -currentIncY / incDirY;
+                    intersectX = currentIncX + s * Math.cos(theta1);
+                    hasInt = true;
+                }
+
+                if (hasInt) {
+                    // Frente Reflejado
+                    if (showReflected) {
+                        const refDirX = Math.cos(theta1), refDirY = Math.sin(theta1);
+                        drawClippedLine(ctx,
+                            {x: intersectX + refDirX * waveInfiniteLen, y: refDirY * waveInfiniteLen},
+                            {x: intersectX - refDirX * waveInfiniteLen, y: -refDirY * waveInfiniteLen},
+                            colReflect, -1);
+                    }
+                    // Frente Refractado
+                    if (showRefracted && !isTIR) {
+                        const refrDirX = Math.cos(theta2), refrDirY = -Math.sin(theta2);
+                        drawClippedLine(ctx,
+                            {x: intersectX + refrDirX * waveInfiniteLen, y: refrDirY * waveInfiniteLen},
+                            {x: intersectX - refrDirX * waveInfiniteLen, y: -refrDirY * waveInfiniteLen},
+                            colRefract, 1);
+                    }
+                }
+            }
+            ctx.restore();
+        }
+
+        // --- Helpers de Dibujo ---
+        function drawClippedLine(ctx, p1, p2, color, clipSide) {
+            let x1 = p1.x, y1 = p1.y, x2 = p2.x, y2 = p2.y;
+            const in1 = (clipSide === -1) ? y1 <= 0 : y1 >= 0;
+            const in2 = (clipSide === -1) ? y2 <= 0 : y2 >= 0;
+            if (!in1 && !in2) return;
+            if (in1 && in2) {
+                ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+                ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.stroke();
+                return;
+            }
+            if (!in1) { [x1, x2] = [x2, x1]; [y1, y2] = [y2, y1]; }
+            const t = -y1 / (y2 - y1);
+            ctx.beginPath(); ctx.moveTo(x1, y1); 
+            ctx.lineTo(x1 + t*(x2-x1), 0);
+            ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.stroke();
+        }
+
+        function drawArrow(ctx, x, y, angle, color) {
+            ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
+            ctx.beginPath(); ctx.moveTo(-10, -10); ctx.lineTo(0, 0); ctx.lineTo(-10, 10);
+            ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+        }
+        function drawAngleArc(ctx, a, isInc, col) {
+            const r = 40, start = isInc ? -Math.PI/2 : Math.PI/2, end = start - a;
+            ctx.beginPath(); ctx.arc(0, 0, r, start, end, true);
+            ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke();
+            const mid = (start+end)/2, lr = r+20;
+            ctx.fillStyle = col; ctx.font = '12px sans-serif'; ctx.textAlign='center';
+            ctx.fillText((a*180/Math.PI).toFixed(1)+'°', Math.cos(mid)*lr, Math.sin(mid)*lr);
+        }
+        function drawAngleArcReflected(ctx, a, col) {
+            const r = 40, start = -Math.PI/2, end = start + a;
+            ctx.beginPath(); ctx.arc(0, 0, r, start, end, false);
+            ctx.strokeStyle = col; ctx.stroke();
+            const mid = (start+end)/2, lr = r+20;
+            ctx.fillStyle = col; ctx.fillText((a*180/Math.PI).toFixed(1)+'°', Math.cos(mid)*lr, Math.sin(mid)*lr);
+        }
+
+        resizeCanvas();
+        requestAnimationFrame(animate);
+
+    </script>
+</body>
+</html>
