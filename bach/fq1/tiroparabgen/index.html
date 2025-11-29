@@ -1,1 +1,799 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de problemas de tiro parabólico (tipo 1)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- MathJax -->
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .latex-content { font-size: 1.05rem; line-height: 1.8; }
+        .latex-step { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px dashed #e2e8f0; }
+        .blur-content { filter: blur(6px); pointer-events: none; user-select: none; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-indigo-900 text-white p-3 shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <h1 class="text-xl font-bold flex items-center gap-2">
+                <i class="fa-solid fa-atom text-yellow-400"></i> Generador de problemas de tiro parabólico (tipo 1)
+            </h1>
+            
+            <!-- Student Controls -->
+            <div class="flex flex-wrap items-center gap-2 bg-indigo-800/50 p-1.5 rounded-lg border border-indigo-600">
+                <span class="text-xs font-bold text-indigo-200 uppercase px-2">ID Problema:</span>
+                <input type="number" id="problemIdInput" class="w-20 px-2 py-1 text-slate-900 font-mono font-bold rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" placeholder="0000">
+                <button onclick="app.loadSpecificProblem()" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-1 rounded text-sm font-bold transition border border-indigo-400">
+                    Cargar
+                </button>
+                <div class="h-6 w-px bg-indigo-600 mx-1 hidden md:block"></div>
+                <button onclick="app.generateRandomProblem()" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded text-sm font-bold transition flex items-center gap-1 shadow">
+                    <i class="fa-solid fa-dice"></i> Nuevo
+                </button>
+            </div>
+
+            <div class="flex gap-2">
+                <!-- Play Button -->
+                <button onclick="app.togglePlay()" id="playPauseBtn" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1.5 rounded-full font-bold transition shadow-md flex items-center gap-2 text-sm">
+                    <span id="playIcon">▶</span> Simular
+                </button>
+                
+                <!-- Teacher Button -->
+                <button onclick="teacherApp.openLogin()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-full font-bold transition shadow-md flex items-center gap-2 text-xs border border-slate-500">
+                    <i class="fa-solid fa-user-tie"></i> Área Profesor
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow w-full">
+        
+        <!-- Left: Visualization -->
+        <div class="flex flex-col gap-4">
+            <!-- Problem Statement -->
+            <div class="bg-white rounded-xl shadow-md border-l-4 border-indigo-500 overflow-hidden">
+                <div class="bg-indigo-50 p-3 border-b border-indigo-100 flex justify-between items-center">
+                    <h2 class="font-bold text-indigo-900 uppercase tracking-wide text-xs">Enunciado</h2>
+                    <span id="displayProblemId" class="bg-white text-indigo-700 px-2 py-0.5 rounded text-xs font-mono font-bold border border-indigo-200">ID: ----</span>
+                </div>
+                <div class="p-5">
+                    <div id="problemStatement" class="text-base text-slate-800">
+                        Cargando sistema...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canvas -->
+            <div class="bg-white rounded-xl shadow-lg p-1 relative overflow-hidden border border-slate-200 group">
+                <canvas id="simulationCanvas" class="w-full h-[320px] md:h-[400px] bg-slate-50 cursor-crosshair"></canvas>
+                
+                <!-- Stats Overlay (Moved to Top Right) -->
+                <div class="absolute top-4 right-4 bg-slate-900/90 text-white p-3 rounded-lg font-mono text-sm pointer-events-none border border-slate-600 shadow-xl min-w-[180px] z-10">
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+                        <div>t: <span id="statTime" class="text-yellow-400 font-bold">---</span> s</div>
+                        <div>v: <span id="statV" class="text-green-400 font-bold">---</span></div>
+                        <div>x: <span id="statX" class="font-bold">---</span> m</div>
+                        <div>y: <span id="statY" class="font-bold">---</span> m</div>
+                    </div>
+                    <div id="lockedHint" class="text-[10px] text-red-300 mt-2 border-t border-slate-600 pt-1 flex items-center gap-1">
+                        <i class="fa-solid fa-lock"></i> Datos Ocultos
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Solution (Locked) -->
+        <div class="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-[600px] lg:h-auto relative overflow-hidden">
+            <div class="p-3 bg-slate-100 border-b border-slate-200 font-bold text-slate-700 flex justify-between items-center">
+                <span class="flex items-center gap-2 text-sm"><i class="fa-solid fa-calculator"></i> Resolución Paso a Paso</span>
+                <div id="lockStatusBadge" class="text-xs bg-red-100 text-red-700 border border-red-200 px-3 py-1 rounded-full flex items-center gap-1 font-bold">
+                    <i class="fa-solid fa-lock"></i> Bloqueado
+                </div>
+            </div>
+            
+            <div class="relative flex-1 overflow-hidden">
+                <!-- Content (Blurred) -->
+                <div id="solutionContainer" class="p-6 overflow-y-auto h-full latex-content transition-all duration-500 blur-content bg-white"></div>
+
+                <!-- Lock Screen Overlay -->
+                <div id="lockOverlay" class="absolute inset-0 flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm z-20">
+                    <div class="bg-white p-8 rounded-2xl shadow-2xl border border-indigo-100 text-center max-w-sm mx-4 transform transition-all hover:scale-105">
+                        <div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Solución Encriptada</h3>
+                        <p class="text-slate-500 mb-6 text-sm">
+                            Entrega la solución al profesor con el ID 
+                            <span id="overlayIdDisplay" class="font-mono font-bold bg-slate-100 px-1 rounded">----</span>. 
+                            Él te dará el código único para desbloquear este ejercicio.
+                        </p>
+                        <button onclick="app.requestUnlock()" class="bg-indigo-600 hover:bg-indigo-700 text-white w-full py-3 rounded-xl font-bold shadow-lg transition flex justify-center items-center gap-2">
+                            <i class="fa-solid fa-key"></i> Introducir Código
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TEACHER INTERFACE MODAL -->
+    <div id="teacherModal" class="fixed inset-0 bg-slate-900/90 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
+            <button onclick="teacherApp.close()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            
+            <!-- Header -->
+            <div class="bg-slate-800 p-6 text-white text-center">
+                <h2 class="text-2xl font-bold flex justify-center items-center gap-2">
+                    <i class="fa-solid fa-user-graduate"></i> Panel del Profesor
+                </h2>
+                <p class="text-slate-400 text-sm mt-1">Generador de Claves de Corrección</p>
+            </div>
+
+            <!-- Body -->
+            <div class="p-8">
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">1. ID del Alumno</label>
+                        <input type="number" id="teacherInputId" oninput="teacherApp.calcCode()" class="w-full text-center text-2xl font-mono font-bold border-2 border-slate-200 rounded-lg p-3 focus:border-indigo-500 focus:outline-none transition" placeholder="0000">
+                    </div>
+
+                    <div class="flex justify-center text-slate-300">
+                        <i class="fa-solid fa-arrow-down"></i>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-emerald-600 uppercase mb-2">2. Código de Desbloqueo (Permutación)</label>
+                        <div id="teacherOutputCode" class="w-full bg-emerald-50 text-emerald-700 text-center text-3xl font-mono font-bold border-2 border-emerald-200 rounded-lg p-4 select-all cursor-pointer" onclick="document.execCommand('copy')">
+                            ----
+                        </div>
+                        <p class="text-center text-xs text-slate-400 mt-2">Haz clic para copiar</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-slate-50 p-4 text-center border-t border-slate-100">
+                <button onclick="teacherApp.close()" class="text-slate-500 hover:text-slate-800 font-bold text-sm">Cerrar Panel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================
+        // 1. CRYPTOGRAPHY ENGINE (The Core Logic)
+        // =========================================================
+        const CryptoEngine = {
+            // -------------------------------------------------------------------------
+            // PASO DE CONFIGURACIÓN:
+            // 1. Deja esto vacío al principio: ""
+            // 2. Abre la app en el navegador y pulsa "Área Profesor"
+            // 3. Introduce tu contraseña (ej: 19722013)
+            // 4. Copia el hash largo que aparecerá y pégalo entre las comillas de abajo.
+            // -------------------------------------------------------------------------
+            MASTER_HASH: "7f61a2916466a76481bf53dc50dc925102bb38f4fae6bd878291a789952db6aa", 
+
+            // Función asíncrona para generar hash (SHA-256)
+            async hashString(str) {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(str);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            },
+
+            // Verificar contraseña
+            async checkPassword(input) {
+                const inputHash = await this.hashString(input);
+                return inputHash === this.MASTER_HASH;
+            },
+
+            generateUnlockCode: function(idString) {
+                let id = idString.toString().padStart(4, '0');
+                let chars = id.split('');
+                let seed = parseInt(idString);
+                
+                const seededRandom = () => {
+                    var t = seed += 0x6D2B79F5;
+                    t = Math.imul(t ^ (t >>> 15), t | 1);
+                    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+                };
+
+                for (let i = chars.length - 1; i > 0; i--) {
+                    const j = Math.floor(seededRandom() * (i + 1));
+                    [chars[i], chars[j]] = [chars[j], chars[i]];
+                }
+                
+                let result = chars.join('');
+                if (result === idString.toString()) {
+                    result = chars.map(d => (parseInt(d) + 5) % 10).join('');
+                }
+                return result;
+            },
+
+            generateValidProblemID: function() {
+                let id;
+                let isValid = false;
+                while (!isValid) {
+                    id = Math.floor(Math.random() * 9000) + 1000;
+                    const s = id.toString();
+                    const uniqueDigits = new Set(s.split('')).size;
+                    if (uniqueDigits >= 3) isValid = true;
+                }
+                return id;
+            }
+        };
+
+        // =========================================================
+        // 2. TEACHER INTERFACE LOGIC
+        // =========================================================
+        const teacherApp = {
+            openLogin: function() {
+                // MODO CONFIGURACIÓN INICIAL
+                if (!CryptoEngine.MASTER_HASH) {
+                    Swal.fire({
+                        title: '⚙️ Configuración Inicial',
+                        text: 'No hay contraseña definida. Introduce tu contraseña maestra para generar el hash de seguridad.',
+                        input: 'text',
+                        inputPlaceholder: 'Ej: 19722013',
+                        confirmButtonText: 'Generar Hash',
+                        confirmButtonColor: '#059669'
+                    }).then(async (result) => {
+                        if (result.isConfirmed && result.value) {
+                            const hash = await CryptoEngine.hashString(result.value);
+                            Swal.fire({
+                                title: 'Hash Generado',
+                                html: `
+                                    <p class="text-sm text-slate-600 mb-2">Copia este código y pégalo en la variable <code>MASTER_HASH</code> del archivo HTML:</p>
+                                    <div class="bg-slate-100 p-2 rounded border font-mono text-xs break-all select-all text-slate-800 border-slate-300">
+                                        ${hash}
+                                    </div>
+                                    <p class="text-xs text-red-500 mt-2 font-bold">¡No pierdas este código!</p>
+                                `,
+                                icon: 'success'
+                            });
+                        }
+                    });
+                    return;
+                }
+
+                // MODO NORMAL (LOGIN)
+                Swal.fire({
+                    title: 'Acceso Profesor',
+                    text: 'Introduce la Clave Maestra del Centro',
+                    input: 'password',
+                    inputPlaceholder: 'Clave Maestra',
+                    confirmButtonColor: '#3730a3',
+                    showCancelButton: true,
+                    cancelButtonText: 'Cancelar'
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        const isValid = await CryptoEngine.checkPassword(result.value);
+                        if (isValid) {
+                            this.showPanel();
+                        } else {
+                            Swal.fire('Acceso Denegado', 'Clave Maestra Incorrecta', 'error');
+                        }
+                    }
+                });
+            },
+
+            showPanel: function() {
+                document.getElementById('teacherModal').classList.remove('hidden');
+                document.getElementById('teacherInputId').value = '';
+                document.getElementById('teacherOutputCode').innerText = '----';
+                document.getElementById('teacherInputId').focus();
+            },
+
+            close: function() {
+                document.getElementById('teacherModal').classList.add('hidden');
+            },
+
+            calcCode: function() {
+                const input = document.getElementById('teacherInputId').value;
+                const display = document.getElementById('teacherOutputCode');
+                
+                if (input.length >= 3) {
+                    const code = CryptoEngine.generateUnlockCode(input);
+                    display.innerText = code;
+                    display.classList.add('bg-emerald-100');
+                    setTimeout(() => display.classList.remove('bg-emerald-100'), 200);
+                } else {
+                    display.innerText = '----';
+                }
+            }
+        };
+
+        // =========================================================
+        // 3. PHYSICS & APP LOGIC
+        // =========================================================
+        
+        class SeededRandom {
+            constructor(seed) { this.seed = seed; }
+            next() {
+                var t = this.seed += 0x6D2B79F5;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            }
+            range(min, max) { return Math.floor(this.next() * (max - min + 1)) + min; }
+            floatRange(min, max) { return this.next() * (max - min) + min; }
+        }
+
+        class PhysicsProblem {
+            constructor(id) {
+                this.id = id;
+                this.rng = new SeededRandom(id);
+                this.g = 9.8; 
+                this.generateValues();
+            }
+
+            generateValues() {
+                const objects = ["una pelota de tenis", "una pelota de golf", "un balón de baloncesto", "una piedra", "una pelota de béisbol"];
+                this.objectName = objects[this.rng.range(0, objects.length - 1)];
+                this.v0_kmh = this.rng.range(10, 120);
+                this.angle_deg = this.rng.range(10, 80); 
+                this.y0 = this.rng.next() < 0.5 ? 0 : this.rng.range(5, 100); 
+
+                this.v0 = this.v0_kmh / 3.6;
+                this.angle_rad = this.angle_deg * (Math.PI / 180);
+                this.v0x = this.v0 * Math.cos(this.angle_rad);
+                this.v0y = this.v0 * Math.sin(this.angle_rad);
+
+                const a = -0.5 * this.g;
+                const b = this.v0y;
+                const c = this.y0;
+                const discriminant = Math.sqrt(b*b - 4*a*c);
+                this.t_flight = (-b - discriminant) / (2 * a);
+                this.t_max_h = this.v0y / this.g;
+                this.max_h = this.y0 + (this.v0y * this.t_max_h) - (0.5 * this.g * Math.pow(this.t_max_h, 2));
+                this.range = this.v0x * this.t_flight;
+
+                this.t_random = this.rng.floatRange(0.1, this.t_flight * 0.9);
+                this.pos_t_x = this.v0x * this.t_random;
+                this.pos_t_y = this.y0 + (this.v0y * this.t_random) - (0.5 * this.g * Math.pow(this.t_random, 2));
+
+                this.v_impact_y = this.v0y - (this.g * this.t_flight);
+                this.v_impact_mod = Math.sqrt(Math.pow(this.v0x, 2) + Math.pow(this.v_impact_y, 2));
+                
+                // Cálculo del ángulo de impacto con la horizontal
+                this.angle_impact_deg = Math.atan(Math.abs(this.v_impact_y) / this.v0x) * (180 / Math.PI);
+            }
+
+            getStatement() {
+                const heightText = this.y0 === 0 ? "desde el suelo" : `desde una altura de ${this.y0} m`;
+                return `Se lanza ${this.objectName} ${heightText} con un ángulo de <strong>${this.angle_deg}$^{\\circ}$</strong> y velocidad inicial de <strong>${this.v0_kmh} km/h</strong>.<br><br>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    <div>a) Altura máx ($y_{max}$).</div>
+                    <div>b) Tiempo de vuelo.</div>
+                    <div>c) Alcance ($x_{max}$).</div>
+                    <div>d) Posición en t=${this.t_random.toFixed(2)}s.</div>
+                    <div>e) Velocidad impacto.</div>
+                    <div>f) Ángulo de impacto.</div>
+                </div>`;
+            }
+
+            getSolutionHTML() {
+                const f = (n) => n.toFixed(2);
+                const angle = this.angle_deg;
+                
+                // Cálculos auxiliares para mostrar paso a paso en el apartado b
+                const discVal = Math.sqrt(Math.pow(this.v0y, 2) - 4 * -4.9 * this.y0);
+                const t1 = (-this.v0y + discVal) / -9.8; // Solución 1
+                const t2 = (-this.v0y - discVal) / -9.8; // Solución 2 (la positiva grande)
+
+                // Lógica de descarte personalizada
+                let discardReason = "";
+                let validT = 0;
+                
+                if (this.y0 === 0) {
+                     // Caso suelo: t1 es ~0
+                     discardReason = `Descartamos $t_1 \\approx 0$ s porque corresponde al instante del lanzamiento.`;
+                     validT = t2;
+                } else {
+                     // Caso altura: t1 es negativo
+                     discardReason = `Descartamos $t_1$ por ser negativo (carece de sentido físico, tiempo anterior al lanzamiento).`;
+                     validT = t2;
+                }
+
+                return `
+                    <div class="latex-step">
+                        <h4 class="font-bold text-indigo-700 border-b border-indigo-100 pb-1 mb-2">1. Identificación del Movimiento y Ecuaciones Generales</h4>
+                        <p class="text-sm mb-2 text-slate-600">Este problema se resuelve descomponiendo el movimiento en dos ejes independientes:</p>
+                        <ul class="list-disc ml-5 mb-3 text-sm">
+                            <li><strong>Eje X:</strong> Movimiento Rectilíneo Uniforme (MRU) $\\rightarrow a_x = 0$</li>
+                            <li><strong>Eje Y:</strong> Movimiento Rectilíneo Uniformemente Acelerado (MRUA) $\\rightarrow a_y = -g = -9.8 \\, m/s^2$</li>
+                        </ul>
+                        <p class="text-sm font-semibold mb-1">Ecuaciones Generales:</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-slate-50 p-2 rounded border border-slate-200">
+                                <span class="text-xs font-bold text-slate-500 block mb-1">Eje X (MRU)</span>
+                                $$ x(t) = x_0 + v_{0x} \\cdot t $$
+                                $$ v_x(t) = v_{0x} $$
+                            </div>
+                            <div class="bg-slate-50 p-2 rounded border border-slate-200">
+                                <span class="text-xs font-bold text-slate-500 block mb-1">Eje Y (MRUA)</span>
+                                $$ y(t) = y_0 + v_{0y} \\cdot t - \\frac{1}{2} g t^2 $$
+                                $$ v_y(t) = v_{0y} - g \\cdot t $$
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="latex-step">
+                        <h4 class="font-bold text-indigo-700">2. Conversión S.I. y Descomposición Vectorial</h4>
+                        <p class="text-sm">Pasamos la velocidad inicial a Sistema Internacional usando factores de conversión:</p>
+                        $$ v_0 = ${this.v0_kmh} \\frac{km}{h} \\cdot \\frac{1000 \\, m}{1 \\, km} \\cdot \\frac{1 \\, h}{3600 \\, s} = ${f(this.v0)} \\, m/s $$
+                        
+                        <p class="text-sm mt-2">Calculamos las componentes iniciales:</p>
+                        $$ v_{0x} = v_0 \\cdot \\cos(${angle}^{\\circ}) = ${f(this.v0)} \\cdot ${f(Math.cos(this.angle_rad))} = \\mathbf{${f(this.v0x)} \\, m/s} $$
+                        $$ v_{0y} = v_0 \\cdot \\sin(${angle}^{\\circ}) = ${f(this.v0)} \\cdot ${f(Math.sin(this.angle_rad))} = \\mathbf{${f(this.v0y)} \\, m/s} $$
+                    </div>
+
+                    <div class="latex-step">
+                        <h4 class="font-bold text-indigo-700">3. Ecuaciones Particulares</h4>
+                        <p class="text-sm mb-2">Sustituimos $g=9.8$, $x_0=0$, $y_0=${this.y0}$ y las componentes de velocidad:</p>
+                        
+                        <p class="text-sm font-semibold text-indigo-600 mt-2">Eje X:</p>
+                        $$ x(t) = ${f(this.v0x)} t $$
+                        $$ v_x(t) = ${f(this.v0x)} $$
+                        
+                        <p class="text-sm font-semibold text-indigo-600 mt-2">Eje Y:</p>
+                        $$ y(t) = ${this.y0} + ${f(this.v0y)} t - 4.9 t^2 $$
+                        $$ v_y(t) = ${f(this.v0y)} - 9.8 t $$
+                    </div>
+
+                    <div class="latex-step">
+                        <h4 class="font-bold text-indigo-700">a) Altura Máxima ($y_{max}$)</h4>
+                        <p class="text-sm">Condición: La velocidad vertical se anula ($v_y = 0$).</p>
+                        $$ 0 = ${f(this.v0y)} - 9.8 t \\Rightarrow t = \\frac{${f(this.v0y)}}{9.8} = ${f(this.t_max_h)} \\, s $$
+                        <p class="text-sm">Sustituimos $t$ en la ecuación de posición $y(t)$:</p>
+                        $$ y(${f(this.t_max_h)}) = ${this.y0} + ${f(this.v0y)}(${f(this.t_max_h)}) - 4.9(${f(this.t_max_h)})^2 $$
+                        <div class="bg-indigo-50 border-l-4 border-indigo-500 p-2 my-2 text-center">
+                            $$ y_{max} = \\mathbf{${f(this.max_h)} \\, m} $$
+                        </div>
+                    </div>
+
+                    <div class="latex-step">
+                        <h4 class="font-bold text-indigo-700">b) Tiempo de Vuelo ($t_{vuelo}$)</h4>
+                        <p class="text-sm">Condición: El objeto llega al suelo ($y = 0$). Resolvemos la ecuación de segundo grado $ay^2 + by + c = 0$:</p>
+                        $$ 0 = ${this.y0} + ${f(this.v0y)} t - 4.9 t^2 $$
+                        <p class="text-sm">Aplicamos la fórmula cuadrática:</p>
+                        $$ t = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a} = \\frac{-${f(this.v0y)} \\pm \\sqrt{(${f(this.v0y)})^2 - 4(-4.9)(${this.y0})}}{2(-4.9)} $$
+                        <p class="text-sm">Calculando el discriminante ($\\Delta = ${f(Math.pow(this.v0y, 2))} + ${f(19.6 * this.y0)} = ${f(Math.pow(discVal, 2))}$):</p>
+                        $$ t = \\frac{-${f(this.v0y)} \\pm \\sqrt{${f(Math.pow(discVal, 2))}}}{-9.8} = \\frac{-${f(this.v0y)} \\pm ${f(discVal)}}{-9.8} $$
+                        
+                        <p class="text-sm mt-2 font-bold text-slate-600">Obtenemos dos soluciones matemáticas:</p>
+                        $$ t_1 = \\frac{-${f(this.v0y)} + ${f(discVal)}}{-9.8} = \\mathbf{${f(t1)} \\, s} $$
+                        $$ t_2 = \\frac{-${f(this.v0y)} - ${f(discVal)}}{-9.8} = \\mathbf{${f(t2)} \\, s} $$
+                        
+                        <p class="text-sm mt-2 text-red-600 italic">${discardReason}</p>
+                        
+                        <div class="bg-indigo-50 border-l-4 border-indigo-500 p-2 my-2 text-center">
+                            $$ t_{vuelo} = t_2 = \\mathbf{${f(validT)} \\, s} $$
+                        </div>
+                    </div>
+
+                    <div class="latex-step">
+                        <h4 class="font-bold text-indigo-700">c) Alcance Horizontal ($x_{max}$)</h4>
+                        <p class="text-sm">Sustituimos el tiempo de vuelo en la ecuación $x(t)$:</p>
+                        $$ x(${f(this.t_flight)}) = ${f(this.v0x)} \\cdot ${f(this.t_flight)} $$
+                        <div class="bg-indigo-50 border-l-4 border-indigo-500 p-2 my-2 text-center">
+                            $$ x_{max} = \\mathbf{${f(this.range)} \\, m} $$
+                        </div>
+                    </div>
+
+                    <div class="latex-step">
+                        <h4 class="font-bold text-indigo-700">d) Posición en el instante t = ${f(this.t_random)} s</h4>
+                        $$ x(${f(this.t_random)}) = ${f(this.v0x)} \\cdot ${f(this.t_random)} = ${f(this.pos_t_x)} \\, m $$
+                        $$ y(${f(this.t_random)}) = ${this.y0} + ${f(this.v0y)}(${f(this.t_random)}) - 4.9(${f(this.t_random)})^2 = ${f(this.pos_t_y)} \\, m $$
+                        <p class="text-sm font-semibold mt-1">Vector Posición:</p>
+                        $$ \\vec{r} = (${f(this.pos_t_x)} \\vec{i} + ${f(this.pos_t_y)} \\vec{j}) \\, m $$
+                    </div>
+
+                    <div class="latex-step">
+                        <h4 class="font-bold text-indigo-700">e) Velocidad de Impacto</h4>
+                        <p class="text-sm">Calculamos componentes en $t=${f(this.t_flight)} s$:</p>
+                        $$ v_x = ${f(this.v0x)} \\, m/s $$
+                        $$ v_y = ${f(this.v0y)} - 9.8(${f(this.t_flight)}) = ${f(this.v_impact_y)} \\, m/s $$
+                        
+                        <p class="text-sm font-semibold mt-2">Vector Velocidad:</p>
+                        $$ \\vec{v} = (${f(this.v0x)} \\vec{i} ${this.v_impact_y >= 0 ? '+' : ''}${f(this.v_impact_y)} \\vec{j}) \\, m/s $$
+                        
+                        <p class="text-sm font-semibold mt-2">Módulo:</p>
+                        $$ |\\vec{v}| = \\sqrt{(${f(this.v0x)})^2 + (${f(this.v_impact_y)})^2} $$
+                        <div class="bg-indigo-50 border-l-4 border-indigo-500 p-2 my-2 text-center">
+                            $$ |\\vec{v}| = \\mathbf{${f(this.v_impact_mod)} \\, m/s} $$
+                        </div>
+                    </div>
+
+                    <div class="latex-step">
+                        <h4 class="font-bold text-indigo-700">f) Ángulo de Impacto</h4>
+                        <p class="text-sm mb-2">Calculamos el ángulo $\\alpha$ que forma el vector velocidad con la horizontal (suelo) en el momento del impacto:</p>
+                        
+                        <!-- Dynamic SVG Diagram for Velocity Vector -->
+                        <div class="flex justify-center my-4">
+                            <svg width="220" height="180" viewBox="0 0 220 180" class="bg-white border border-slate-200 rounded shadow-sm">
+                                <defs>
+                                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                        <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626" />
+                                    </marker>
+                                </defs>
+                                <!-- Axes (Origin at 20, 20) -->
+                                <line x1="20" y1="20" x2="200" y2="20" stroke="#94a3b8" stroke-width="1.5" /> <!-- X axis -->
+                                <line x1="20" y1="20" x2="20" y2="160" stroke="#94a3b8" stroke-width="1.5" /> <!-- Y axis (downwards) -->
+                                <text x="190" y="35" font-size="10" fill="#64748b">X</text>
+                                <text x="10" y="160" font-size="10" fill="#64748b">Y</text>
+
+                                <!-- Vector -->
+                                <line x1="20" y1="20" x2="160" y2="120" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrowhead)" />
+                                <text x="100" y="70" font-size="12" font-weight="bold" fill="#dc2626">v</text>
+
+                                <!-- Components -->
+                                <line x1="20" y1="20" x2="160" y2="20" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4" />
+                                <text x="90" y="15" font-size="11" fill="#3b82f6">vx = ${f(this.v0x)}</text>
+                                
+                                <line x1="160" y1="20" x2="160" y2="120" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4" />
+                                <text x="165" y="80" font-size="11" fill="#3b82f6">vy = ${f(Math.abs(this.v_impact_y))}</text>
+
+                                <!-- Angle Arc -->
+                                <path d="M 50 20 A 30 30 0 0 1 47 40" stroke="#ea580c" fill="none" />
+                                <text x="55" y="45" font-size="12" fill="#ea580c">α</text>
+                            </svg>
+                        </div>
+
+                        $$ \\tan \\alpha = \\left| \\frac{v_y}{v_x} \\right| = \\left| \\frac{${f(this.v_impact_y)}}{${f(this.v0x)}} \\right| $$
+                        $$ \\alpha = \\arctan(${f(Math.abs(this.v_impact_y)/this.v0x)}) $$
+                        <div class="bg-indigo-50 border-l-4 border-indigo-500 p-2 my-2 text-center">
+                            $$ \\alpha = \\mathbf{${f(this.angle_impact_deg)}^{\\circ}} $$
+                        </div>
+                    </div>
+                `;
+            }
+
+            getPositionAtTime(t) {
+                if (t < 0) return { x: 0, y: this.y0, vx: 0, vy: 0 };
+                if (t > this.t_flight) t = this.t_flight;
+                return {
+                    x: this.v0x * t,
+                    y: this.y0 + (this.v0y * t) - (0.5 * this.g * t * t),
+                    vx: this.v0x,
+                    vy: this.v0y - (this.g * t),
+                    t: t
+                };
+            }
+        }
+
+        // =========================================================
+        // 4. CANVAS RENDERER
+        // =========================================================
+        class CanvasRenderer {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+            }
+
+            resize() {
+                this.canvas.width = this.canvas.parentElement.clientWidth;
+                this.canvas.height = this.canvas.parentElement.clientHeight;
+                if (app.problem) this.draw(app.problem, app.currentTime || 0); // Correct argument passing
+            }
+
+            drawAxes(originX, originY) {
+                const ctx = this.ctx;
+                ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 2; 
+                ctx.beginPath();
+                ctx.moveTo(originX, originY); ctx.lineTo(originX, 20); // Y
+                ctx.moveTo(originX, originY); ctx.lineTo(this.canvas.width - 20, originY); // X
+                ctx.stroke();
+                ctx.font = "bold 12px sans-serif"; ctx.fillStyle = "#64748b";
+                ctx.fillText("Y", originX - 15, 30); ctx.fillText("X", this.canvas.width - 30, originY + 20);
+            }
+
+            draw(problem, time) {
+                if (!problem) return; // Guard clause
+                const ctx = this.ctx;
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+                ctx.clearRect(0, 0, w, h);
+
+                // Auto Scale
+                const maxX = problem.range * 1.1;
+                const maxY = Math.max(problem.max_h * 1.2, 15);
+                const scaleX = (w - 60) / maxX;
+                const scaleY = (h - 60) / maxY;
+                const scale = Math.min(scaleX, scaleY);
+                const originX = 40;
+                const originY = h - 30;
+
+                const toX = (x) => originX + x * scale;
+                const toY = (y) => originY - y * scale;
+
+                this.drawAxes(originX, originY);
+
+                // Trajectory
+                ctx.beginPath(); ctx.strokeStyle = "#cbd5e1"; ctx.setLineDash([4, 4]); ctx.lineWidth = 2;
+                ctx.moveTo(toX(0), toY(problem.y0));
+                for(let i=1; i<=50; i++) {
+                    const t_step = (i/50) * problem.t_flight;
+                    const pos = problem.getPositionAtTime(t_step);
+                    ctx.lineTo(toX(pos.x), toY(pos.y));
+                }
+                ctx.stroke(); ctx.setLineDash([]);
+
+                // Object
+                const pos = problem.getPositionAtTime(time);
+                ctx.beginPath(); ctx.fillStyle = "#4f46e5";
+                ctx.arc(toX(pos.x), toY(pos.y), 6, 0, Math.PI * 2); ctx.fill();
+
+                // Stats Update
+                const isLocked = app.isLocked;
+                const fmt = (v) => isLocked ? "???" : v;
+                
+                document.getElementById('statTime').innerText = fmt(pos.t.toFixed(2));
+                document.getElementById('statX').innerText = fmt(pos.x.toFixed(1));
+                document.getElementById('statY').innerText = fmt(pos.y.toFixed(1));
+                const vMag = Math.sqrt(pos.vx**2 + pos.vy**2).toFixed(1);
+                document.getElementById('statV').innerText = fmt(vMag) + (isLocked ? "" : " m/s");
+                
+                // Hint display
+                const hint = document.getElementById('lockedHint');
+                if (hint) {
+                    hint.style.display = isLocked ? 'flex' : 'none';
+                }
+            }
+        }
+
+        // =========================================================
+        // 5. MAIN CONTROLLER
+        // =========================================================
+        const app = {
+            problem: null,
+            renderer: null,
+            isLocked: true,
+            currentTime: 0,
+            isPlaying: false,
+            animationId: null,
+
+            init: function() {
+                this.renderer = new CanvasRenderer('simulationCanvas');
+                this.generateRandomProblem();
+                
+                document.getElementById('problemIdInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') app.loadSpecificProblem();
+                });
+            },
+
+            generateRandomProblem: function() {
+                // Use CryptoEngine to get a valid ID (not 1111)
+                const id = CryptoEngine.generateValidProblemID();
+                this.loadProblem(id);
+            },
+
+            loadSpecificProblem: function() {
+                const id = parseInt(document.getElementById('problemIdInput').value);
+                if (id > 0) this.loadProblem(id);
+                else Swal.fire('Error', 'ID inválido', 'error');
+            },
+
+            loadProblem: function(id) {
+                this.problem = new PhysicsProblem(id);
+                this.lockUI();
+                
+                document.getElementById('displayProblemId').innerText = `ID: ${id}`;
+                document.getElementById('overlayIdDisplay').innerText = id;
+                document.getElementById('problemIdInput').value = id;
+                document.getElementById('problemStatement').innerHTML = this.problem.getStatement();
+                document.getElementById('solutionContainer').innerHTML = this.problem.getSolutionHTML();
+                
+                this.currentTime = 0;
+                this.renderer.draw(this.problem, 0);
+                if (window.MathJax && window.MathJax.typesetPromise) { // Safe MathJax call
+                     MathJax.typesetPromise();
+                }
+            },
+
+            togglePlay: function() {
+                if (!this.problem) return;
+                this.isPlaying = !this.isPlaying;
+                const btn = document.getElementById('playPauseBtn');
+                const icon = document.getElementById('playIcon');
+                
+                if (this.isPlaying) {
+                    if (this.currentTime >= this.problem.t_flight) this.currentTime = 0;
+                    btn.classList.replace('bg-orange-500', 'bg-red-500');
+                    btn.classList.replace('hover:bg-orange-600', 'hover:bg-red-600');
+                    icon.innerText = "⏸";
+                    this.animate();
+                } else {
+                    btn.classList.replace('bg-red-500', 'bg-orange-500');
+                    btn.classList.replace('hover:bg-red-600', 'hover:bg-orange-600');
+                    icon.innerText = "▶";
+                    cancelAnimationFrame(this.animationId);
+                }
+            },
+
+            animate: function() {
+                if (!this.isPlaying) return;
+                this.currentTime += 0.05;
+                if (this.currentTime >= this.problem.t_flight) {
+                    this.currentTime = this.problem.t_flight;
+                    this.togglePlay();
+                }
+                this.renderer.draw(this.problem, this.currentTime);
+                this.animationId = requestAnimationFrame(() => this.animate());
+            },
+
+            lockUI: function() {
+                this.isLocked = true;
+                const badge = document.getElementById('lockStatusBadge');
+                badge.className = "text-xs bg-red-100 text-red-700 border border-red-200 px-3 py-1 rounded-full flex items-center gap-1 font-bold";
+                badge.innerHTML = '<i class="fa-solid fa-lock"></i> Bloqueado';
+                
+                document.getElementById('solutionContainer').classList.add('blur-content');
+                document.getElementById('lockOverlay').classList.remove('hidden');
+                document.getElementById('lockOverlay').style.display = 'flex';
+                this.renderer.draw(this.problem, this.currentTime); // Redraw to hide stats
+            },
+
+            unlockUI: function() {
+                this.isLocked = false;
+                const badge = document.getElementById('lockStatusBadge');
+                badge.className = "text-xs bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-full flex items-center gap-1 font-bold";
+                badge.innerHTML = '<i class="fa-solid fa-lock-open"></i> Visible';
+
+                document.getElementById('solutionContainer').classList.remove('blur-content');
+                document.getElementById('lockOverlay').style.display = 'none';
+                this.renderer.draw(this.problem, this.currentTime); // Redraw to show stats
+            },
+
+            requestUnlock: function() {
+                // Get the CORRECT code for the current problem
+                const correctCode = CryptoEngine.generateUnlockCode(this.problem.id);
+
+                Swal.fire({
+                    title: 'Desbloquear Solución',
+                    text: `Introduce el código proporcionado por el profesor para el ID ${this.problem.id}`,
+                    input: 'text',
+                    inputPlaceholder: '4 dígitos...',
+                    confirmButtonText: 'Verificar',
+                    showCancelButton: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        if (result.value === correctCode) {
+                            Swal.fire('¡Correcto!', 'Has desbloqueado la solución.', 'success');
+                            this.unlockUI();
+                        } else {
+                            Swal.fire('Error', 'Código incorrecto. Pídeselo a tu profesor.', 'error');
+                        }
+                    }
+                });
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => app.init());
+    </script>
+</body>
+</html>
