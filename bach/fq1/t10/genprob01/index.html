@@ -1,1 +1,536 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tema 10: Generador de problemas tipo 1 (Momento lineal)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <!-- SweetAlert2 for beautiful alerts and modals -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- MathJax for rendering LaTeX formulas -->
+    <!-- Configuración de MathJax para evitar problemas de re-renderizado -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        /* Configuración de fuentes y estilos base */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+        }
+        /* Estilos para el modo Alumno (Bloqueado) */
+        .blur-solution {
+            filter: blur(5px);
+            transition: filter 0.5s ease;
+        }
+        .blur-solution:hover {
+            filter: blur(2px); /* Un pequeño hint de que hay algo detrás */
+        }
+        /* Estilos para MathJax para asegurar el renderizado correcto */
+        #solucionContent {
+            min-height: 200px; /* Evita CLS al cargar la solución */
+        }
+        /* Ajuste de estilo para el enunciado, asegurar que MathJax renderice correctamente */
+        #enunciadoProblema {
+            display: block; 
+            overflow-x: auto; /* Permite scroll horizontal si la fórmula es muy larga */
+        }
+        /* Alineación izquierda forzada para los datos de la solución */
+        #solucionContent .text-left {
+            text-align: left;
+        }
+    </style>
+
+    <script>
+        // =================================================================================================
+        // CONFIGURACIÓN DE LA APLICACIÓN Y VARIABLES GLOBALES
+        // =================================================================================================
+        const PROBLEMAS = [
+            "Pelota de tenis", "Pelota de golf", "Baloncesto", "Camión de carga", "Coche deportivo",
+            "Motocicleta con motorista", "Avión de pasajeros", "Tren de mercancías", "Drone de carreras",
+            "Proyectil de cañón"
+        ];
+        
+        let currentProblem = {
+            id: 0,
+            objeto: '',
+            naturalStart: '', // Nueva propiedad para un enunciado más natural
+            v0_kmh: 0,
+            angle_deg: 0,
+            mass_kg: 0,
+            v0_ms: 0,
+            v0x: 0,
+            v0y: 0,
+            px: 0,
+            py: 0,
+            p_mod: 0
+        };
+
+        let isProfessorMode = false; // El modo por defecto es oculto
+        
+        // =================================================================================================
+        // GENERADOR DE NÚMEROS PSEUDOALEATORIOS (PRNG) CON SEMILLA
+        // =================================================================================================
+        let seed = 1;
+
+        function setSeed(s) {
+            seed = s % 2147483647; 
+            if (seed <= 0) seed += 2147483646;
+        }
+
+        function seededRandom() {
+            seed = (seed * 1103515245 + 12345) % 2147483647;
+            return seed / 2147483647;
+        }
+
+        function randomInt(min, max) {
+            return Math.floor(seededRandom() * (max - min + 1)) + min;
+        }
+
+        function randomFloat(min, max) {
+            return seededRandom() * (max - min) + min;
+        }
+
+        // =================================================================================================
+        // LÓGICA DE FÍSICA Y GENERACIÓN DE PROBLEMAS
+        // =================================================================================================
+
+        function calculateSolution() {
+            const v0_kmh = currentProblem.v0_kmh;
+            const angle_rad = currentProblem.angle_deg * Math.PI / 180;
+            
+            // a) Conversión de velocidad: km/h a m/s
+            currentProblem.v0_ms = v0_kmh * (1000 / 3600);
+            
+            // b) Descomposición de la velocidad inicial (v0x, v0y)
+            currentProblem.v0x = currentProblem.v0_ms * Math.cos(angle_rad);
+            currentProblem.v0y = currentProblem.v0_ms * Math.sin(angle_rad);
+            
+            // c) Cálculo del momento lineal (p = m * v)
+            currentProblem.px = currentProblem.mass_kg * currentProblem.v0x;
+            currentProblem.py = currentProblem.mass_kg * currentProblem.v0y;
+            
+            // d) Módulo del momento lineal
+            currentProblem.p_mod = Math.sqrt(currentProblem.px**2 + currentProblem.py**2);
+        }
+        
+        // =================================================================================================
+        // LÓGICA DE LA INTERFAZ DE USUARIO (UI) Y VISTAS
+        // Se definen las funciones antes de window.onload para evitar ReferenceError
+        // =================================================================================================
+        
+        /**
+         * Genera el texto de la solución paso a paso en formato LaTeX/MathJax para el navegador.
+         */
+        function createStepByStepSolution() {
+            // Resultados finales redondeados a 2 decimales (centésima)
+            const m = currentProblem.mass_kg.toFixed(2);
+            const v0_kmh = currentProblem.v0_kmh;
+            const angle_deg = currentProblem.angle_deg;
+            
+            // Valores intermedios para mayor precisión en cálculos
+            const v0_ms_int = currentProblem.v0_ms.toFixed(3);
+            const v0x_int = currentProblem.v0x.toFixed(3);
+            const v0y_int = currentProblem.v0y.toFixed(3);
+            
+            // Resultados de momento lineal redondeados a 2 decimales
+            const px_final = currentProblem.px.toFixed(2);
+            const py_final = currentProblem.py.toFixed(2);
+            const p_mod_final = currentProblem.p_mod.toFixed(2);
+            
+            let solution = `
+                <h4 class="font-medium text-gray-600 mt-4">1. Datos del problema (S.I.)</h4>
+                <!-- Alineación de datos usando LaTeX align* -->
+                <div class="text-left">
+                    $$
+                    \\begin{aligned}
+                    &\\text{Masa del objeto } (m): & ${m} \\text{ kg} \\\\
+                    &\\text{Velocidad Inicial } (v_0): & ${v0_kmh} \\text{ km/h} \\\\
+                    &\\text{Ángulo } (\\theta): & ${angle_deg}^\\circ
+                    \\end{aligned}
+                    $$
+                </div>
+                
+                <h4 class="font-medium text-gray-600 mt-4">2. Definición de momento lineal</h4>
+                <p>El momento lineal ($\\mathbf{p}$) de un objeto es el producto de su masa por su vector velocidad:</p>
+                $$ \\mathbf{p} = m \\cdot \\mathbf{v} $$
+                
+                <h4 class="font-medium text-gray-600 mt-4">3. Conversión de velocidad a S.I. (m/s)</h4>
+                <p>Convertimos $v_0$ de $\\frac{\\text{km}}{\\text{h}}$ a $\\frac{\\text{m}}{\\text{s}}$:</p>
+                $$ v_0 = ${v0_kmh} \\frac{\\text{km}}{\\text{h}} \\cdot \\left( \\frac{1000 \\text{ m}}{1 \\text{ km}} \\right) \\cdot \\left( \\frac{1 \\text{ h}}{3600 \\text{ s}} \\right) \\approx ${v0_ms_int} \\frac{\\text{m}}{\\text{s}} $$
+                
+                <h4 class="font-medium text-gray-600 mt-4">4. Descomposición de la velocidad inicial ($\\mathbf{v}_0$)</h4>
+                <p>Calculamos las componentes rectangulares de $v_0$:</p>
+                $$ v_{0x} = v_0 \\cdot \\cos(\\theta) = ${v0_ms_int} \\cdot \\cos(${angle_deg}^\\circ) \\approx ${v0x_int} \\frac{\\text{m}}{\\text{s}} $$
+                $$ v_{0y} = v_0 \\cdot \\sin(\\theta) = ${v0_ms_int} \\cdot \\sin(${angle_deg}^\\circ) \\approx ${v0y_int} \\frac{\\text{m}}{\\text{s}} $$
+
+                <h4 class="font-medium text-gray-600 mt-4">5. Cálculo del vector momento lineal ($\\mathbf{p}$)</h4>
+                <p>Aplicamos $\\mathbf{p} = m \\cdot \\mathbf{v}_0$ (usando los valores de $v_{0x}$ y $v_{0y}$ con mayor precisión):</p>
+                $$ p_x = m \\cdot v_{0x} = ${m} \\cdot ${v0x_int} \\approx ${px_final} \\frac{\\text{kg} \\cdot \\text{m}}{\\text{s}} $$
+                $$ p_y = m \\cdot v_{0y} = ${m} \\cdot ${v0y_int} \\approx ${py_final} \\frac{\\text{kg} \\cdot \\text{m}}{\\text{s}} $$
+                <p>Vector redondeado a la centésima:</p>
+                $$ \\mathbf{p} = ( ${px_final} \\mathbf{i} + ${py_final} \\mathbf{j} ) \\frac{\\text{kg} \\cdot \\text{m}}{\\text{s}} $$
+                
+                <h4 class="font-medium text-gray-600 mt-4">6. Módulo del momento lineal ($|\\mathbf{p}|$)</h4>
+                <p>Calculamos el módulo de $\\mathbf{p}$ (redondeado a la centésima):</p>
+                $$ |\\mathbf{p}| = \\sqrt{p_x^2 + p_y^2} \\approx ${p_mod_final} \\frac{\\text{kg} \\cdot \\text{m}}{\\text{s}} $$
+                
+                <h4 class="font-medium text-gray-600 mt-4 text-green-700">Respuesta Final:</h4>
+                <p>El momento lineal inicial del objeto es $\\mathbf{p} = ( ${px_final} \\mathbf{i} + ${py_final} \\mathbf{j} ) \\frac{\\text{kg} \\cdot \\text{m}}{\\text{s}}$, con un módulo de $|\\mathbf{p}| = ${p_mod_final} \\frac{\\text{kg} \\cdot \\text{m}}{\\text{s}}$.</p>
+            `;
+            return solution;
+        }
+        
+        /**
+         * Actualiza todos los elementos de la interfaz: enunciado, datos y solución.
+         */
+        function updateUI() {
+            // Actualizar ID en el input y en el título
+            document.getElementById('currentProblemId').textContent = currentProblem.id;
+            document.getElementById('problemIdInput').value = currentProblem.id; // Actualiza el input para reflejar el ID actual
+            
+            // Actualizar Enunciado
+            const enunciado = `${currentProblem.naturalStart} de masa $${currentProblem.mass_kg.toFixed(2)} \\text{ kg}$ tiene una velocidad inicial de $${currentProblem.v0_kmh} \\frac{\\text{km}}{\\text{h}}$ que forma un ángulo de $${currentProblem.angle_deg}^\\circ$ con el eje X. Determina su momento lineal en el instante inicial.`;
+            document.getElementById('enunciadoProblema').innerHTML = enunciado;
+            
+            // Actualizar Caja de Datos
+            const datosContainer = document.getElementById('datosProblemaContent');
+            const dataBlurClass = isProfessorMode ? '' : 'blur-solution';
+            const hiddenValue = '---';
+
+            datosContainer.innerHTML = `
+                <div class="${dataBlurClass} p-3 bg-gray-50 rounded-lg shadow-inner">
+                    <p><i class="fas fa-cube text-indigo-500"></i> Objeto: <span class="font-semibold">${currentProblem.objeto}</span></p>
+                    <p><i class="fas fa-weight-hanging text-indigo-500"></i> Masa (m): <span class="font-semibold">${isProfessorMode ? currentProblem.mass_kg.toFixed(2) + ' kg' : hiddenValue}</span></p>
+                    <p><i class="fas fa-tachometer-alt text-indigo-500"></i> Velocidad Inicial (v₀): <span class="font-semibold">${currentProblem.v0_kmh} km/h</span></p>
+                    <p><i class="fas fa-angle-up text-indigo-500"></i> Ángulo (θ): <span class="font-semibold">${currentProblem.angle_deg}°</span></p>
+                </div>
+            `;
+            
+            // Actualizar Solución (renderizado MathJax)
+            const solutionContainer = document.getElementById('solucionContent');
+            solutionContainer.classList.toggle('blur-solution', !isProfessorMode);
+            solutionContainer.innerHTML = createStepByStepSolution();
+            
+            // Re-renderizar MathJax en el Enunciado y la Solución
+            MathJax.typesetPromise([document.getElementById('enunciadoProblema'), document.getElementById('solucionContent')]).catch((err) => console.error("MathJax error:", err));
+            
+            // Estado de botones y visualización
+            document.getElementById('downloadSolutionBtn').disabled = !isProfessorMode;
+            document.getElementById('downloadSolutionBtn').classList.toggle('opacity-50', !isProfessorMode);
+
+            // Actualizar texto del botón de toggle
+            document.getElementById('toggleSolutionBtn').innerHTML = isProfessorMode ? 
+                '<i class="fas fa-eye-slash mr-2"></i> Ocultar solución' : 
+                '<i class="fas fa-eye mr-2"></i> Mostrar solución';
+        }
+
+        /**
+         * Maneja el cambio de modo de visualización (Mostrar/Ocultar solución).
+         */
+        function toggleViewMode() {
+            isProfessorMode = !isProfessorMode;
+            updateUI();
+            
+            const action = isProfessorMode ? 'mostrada' : 'ocultada';
+            Swal.fire({
+                icon: 'info',
+                title: `Solución ${action}`,
+                text: `La solución ha sido ${action} con éxito.`,
+                timer: 1500,
+                showConfirmButton: false,
+                customClass: {
+                    container: 'z-[9999]'
+                }
+            });
+        }
+
+        /**
+         * Genera un problema de tiro parabólico basado en el ID proporcionado o uno nuevo aleatorio.
+         * @param {number | null} problemId - ID numérico (semilla) del problema. Si es nulo, genera uno aleatorio.
+         */
+        function generateProblem(problemId = null) {
+            let id;
+            if (problemId) {
+                id = parseInt(problemId) || randomInt(10000, 999999);
+            } else {
+                id = randomInt(10000, 999999);
+            }
+            
+            setSeed(id);
+            currentProblem.id = id;
+            
+            // 1. Generar variables aleatorias con semilla
+            currentProblem.objeto = PROBLEMAS[randomInt(0, PROBLEMAS.length - 1)];
+            currentProblem.v0_kmh = randomInt(10, 120); // V0 entre 10 y 120 km/h
+            currentProblem.angle_deg = randomInt(0, 359); // Ángulo entre 0º y 359º
+            
+            // Natural start for the problem statement
+            const objectName = currentProblem.objeto;
+            if (objectName.startsWith("Pelota")) {
+                currentProblem.naturalStart = `Una ${objectName.toLowerCase()}`;
+            } else if (objectName.startsWith("Motocicleta")) {
+                 currentProblem.naturalStart = `Una ${objectName.toLowerCase()}`;
+            } else {
+                currentProblem.naturalStart = `Un ${objectName.toLowerCase()}`;
+            }
+
+            // Determinar un rango de masa basado en el objeto para mayor realismo
+            let minMass = 1, maxMass = 10;
+            if (currentProblem.objeto.includes("Camión") || currentProblem.objeto.includes("Tren")) {
+                minMass = 500; maxMass = 5000;
+            } else if (currentProblem.objeto.includes("Coche") || currentProblem.objeto.includes("Avión")) {
+                minMass = 100; maxMass = 2000;
+            } else if (currentProblem.objeto.includes("Motocicleta")) {
+                minMass = 80; maxMass = 300;
+            } else { // Objetos pequeños como pelotas
+                minMass = 0.05; maxMass = 5;
+            }
+            // Generar masa con dos decimales de precisión
+            currentProblem.mass_kg = parseFloat(randomFloat(minMass, maxMass).toFixed(2));
+            
+            // 2. Cálculo de la solución (Momento Lineal)
+            calculateSolution();
+
+            // 3. Actualizar la interfaz
+            updateUI();
+        }
+
+        /**
+         * Genera un documento LaTeX completo y compilable (.tex) para descargar.
+         */
+        function createLatexDocumentForExport() {
+            const m = currentProblem.mass_kg.toFixed(2);
+            const v0_kmh = currentProblem.v0_kmh;
+            const angle_deg = currentProblem.angle_deg;
+            
+            const v0_ms_int = currentProblem.v0_ms.toFixed(3);
+            const v0x_int = currentProblem.v0x.toFixed(3);
+            const v0y_int = currentProblem.v0y.toFixed(3);
+            
+            const px_final = currentProblem.px.toFixed(2);
+            const py_final = currentProblem.py.toFixed(2);
+            const p_mod_final = currentProblem.p_mod.toFixed(2);
+            
+            // Enunciado con la adición de espacios en LaTeX para evitar la unión de palabras
+            const enunciado_txt = `${currentProblem.naturalStart} \\text{ de masa } $${currentProblem.mass_kg.toFixed(2)} \\text{ kg}$ \\text{ tiene una velocidad inicial de } $${currentProblem.v0_kmh} \\frac{\\text{km}}{\\text{h}}$ \\text{ que forma un ángulo de } $${currentProblem.angle_deg}^\\circ$ \\text{ con el eje X. Determina su momento lineal en el instante inicial.}`;
+
+
+            const latexContent = `
+\\documentclass[12pt, a4paper]{article}
+\\usepackage[utf8]{inputenc}
+\\usepackage[T1]{fontenc}
+\\usepackage[spanish]{babel}
+\\usepackage{amsmath} % Para \\text, \\mathbf, \\begin{aligned}
+\\usepackage{amssymb} % Para símbolos matemáticos
+
+\\title{Tema 10: Problema Tipo 1 - Momento Lineal}
+\\author{Generador Automático de Problemas (ID: ${currentProblem.id})}
+\\date{\\today}
+
+\\begin{document}
+
+\\maketitle
+\\thispagestyle{empty}
+
+\\section*{Enunciado}
+\\noindent
+\\textbf{ID del Problema:} ${currentProblem.id}
+
+\\vspace{0.3cm}
+\\noindent
+${enunciado_txt}
+
+\\hrule
+\\section*{Solución}
+
+\\subsection*{1. Datos del problema (S.I.)}
+\\begin{align*}
+\\text{Masa del objeto } (m): & ${m} \\text{ kg} \\\\
+\\text{Velocidad Inicial } (v_0): & ${v0_kmh} \\text{ km/h} \\\\
+\\text{Ángulo } (\\theta): & ${angle_deg}^\\circ
+\\end{align*}
+
+\\subsection*{2. Definición de momento lineal}
+El momento lineal ($\\mathbf{p}$) de un objeto se define como el producto de su masa ($m$) por su vector velocidad ($\\mathbf{v}$).
+$$ \\mathbf{p} = m \\cdot \\mathbf{v} $$
+
+\\subsection*{3. Conversión de velocidad a S.I. (m/s)}
+Convertimos $v_0$ de $\\frac{\\text{km}}{\\text{h}}$ a $\\frac{\\text{m}}{\\text{s}}$:
+$$ v_0 = ${v0_kmh} \\frac{\\text{km}}{\\text{h}} \\cdot \\left( \\frac{1000 \\text{ m}}{1 \\text{ km}} \\right) \\cdot \\left( \\frac{1 \\text{ h}}{3600 \\text{ s}} \\right) \\approx ${v0_ms_int} \\frac{\\text{m}}{\\text{s}} $$
+
+\\subsection*{4. Descomposición de la velocidad inicial ($\\mathbf{v}_0$)}
+Calculamos las componentes rectangulares de $v_0$:
+$$ v_{0x} = v_0 \\cdot \\cos(\\theta) = ${v0_ms_int} \\cdot \\cos(${angle_deg}^\\circ) \\approx ${v0x_int} \\frac{\\text{m}}{\\text{s}} $$
+$$ v_{0y} = v_0 \\cdot \\sin(\\theta) = ${v0_ms_int} \\cdot \\sin(${angle_deg}^\\circ) \\approx ${v0y_int} \\frac{\\text{m}}{\\text{s}} $$
+
+\\subsection*{5. Cálculo del vector momento lineal ($\\mathbf{p}$)}
+Aplicamos $\\mathbf{p} = m \\cdot \\mathbf{v}_0$ (usando los valores de $v_{0x}$ y $v_{0y}$ con mayor precisión):
+\\begin{align*}
+p_x &= m \\cdot v_{0x} = ${m} \\cdot ${v0x_int} \\approx ${px_final} \\frac{\\text{kg} \\cdot \\text{m}}{\\text{s}} \\\\
+p_y &= m \\cdot v_{0y} = ${m} \\cdot ${v0y_int} \\approx ${py_final} \\frac{\\text{kg} \\cdot \\text{m}}{\\text{s}}
+\\end{align*}
+\\textbf{Vector redondeado a la centésima:}
+$$ \\mathbf{p} = ( ${px_final} \\mathbf{i} + ${py_final} \\mathbf{j} ) \\frac{\\text{kg} \\cdot \\text{m}}{\\text{s}} $$
+
+\\subsection*{6. Módulo del momento lineal ($|\\mathbf{p}|$) }
+Calculamos el módulo de $\\mathbf{p}$ (redondeado a la centésima):
+$$ |\\mathbf{p}| = \\sqrt{p_x^2 + p_y^2} \\approx ${p_mod_final} \\frac{\\text{kg} \\cdot \\text{m}}{\\text{s}} $$
+
+\\section*{Respuesta Final}
+El momento lineal inicial del objeto es $\\mathbf{p} = ( ${px_final} \\mathbf{i} + ${py_final} \\mathbf{j} ) \\frac{\\text{kg} \\cdot \\text{m}}{\\text{s}}$, con un módulo de $|\\mathbf{p}| = ${p_mod_final} \\frac{\\text{kg} \\cdot \\text{m}}{\\text{s}}$.
+
+\\end{document}
+            `.trim();
+            return latexContent;
+        }
+
+        /**
+         * Exporta el enunciado y la solución como un archivo LaTeX (.tex) completo.
+         */
+        function exportSolution() {
+            if (!isProfessorMode) {
+                Swal.fire('Acceso Denegado', 'Debes mostrar la solución para poder descargarla.', 'warning');
+                return;
+            }
+
+            const content = createLatexDocumentForExport();
+
+            const filename = `Problema_Momento_Lineal_ID_${currentProblem.id}.tex`;
+            
+            // Crear Blob y descargar
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            Swal.fire('Descarga Completa', `El archivo ${filename} se ha descargado. Es un documento LaTeX completo y compilable.`, 'success');
+        }
+
+
+        // ... resto del código sin cambios ...
+    </script>
+</head>
+
+<body class="bg-gray-100 p-4 md:p-8">
+
+    <main class="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-2xl">
+        
+        <!-- Título Principal -->
+        <header class="text-center mb-8 border-b pb-4">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-indigo-700">
+                <i class="fas fa-microscope mr-2"></i> Tema 10: Generador de problemas tipo 1 (Momento lineal)
+            </h1>
+        </header>
+
+        <!-- Controles -->
+        <section class="mb-8 p-4 bg-indigo-50 rounded-xl shadow-md flex flex-wrap items-center justify-between gap-4">
+            
+            <!-- Controles unificados: ID Input y botón Generar/Aleatorio -->
+            <div class="flex items-center space-x-2 w-full">
+                <label for="problemIdInput" class="text-indigo-700 font-semibold">ID:</label>
+                <input type="number" id="problemIdInput" placeholder="ID (Semilla)" required
+                    class="p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 w-full sm:w-36 text-center" />
+                
+                <!-- Botón unificado para Generar (si se introduce ID) o Aleatorio (si el input está vacío) -->
+                <button id="unifiedGenerateBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-lg font-semibold transition duration-150 shadow-md flex items-center flex-grow sm:flex-grow-0">
+                    <i class="fas fa-sync-alt mr-2"></i> Generar Problema / Aleatorio
+                </button>
+            </div>
+
+            <!-- Botón de Toggle (Movido para mantener el layout) -->
+            <div class="flex space-x-3 w-full md:w-auto justify-end mt-4 md:mt-0">
+                <button id="toggleSolutionBtn" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg font-semibold transition duration-150 shadow-md flex items-center">
+                    <!-- El texto se actualizará en JavaScript -->
+                    <i class="fas fa-eye mr-2"></i> Mostrar solución 
+                </button>
+            </div>
+        </section>
+
+        <!-- Contenido principal: Enunciado (75%) y Datos (25%) -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+            
+            <!-- Enunciado (75% - 3/4) -->
+            <div class="lg:col-span-3 p-5 bg-white rounded-xl shadow-lg border border-gray-200">
+                <!-- Se elimina la cabecera ID del enunciado, se deja solo "Enunciado" -->
+                <h2 class="text-xl font-bold text-gray-800 mb-3"><i class="fas fa-file-alt mr-2"></i> Enunciado</h2>
+                <p class="text-gray-500 text-sm mb-3">ID actual: <span id="currentProblemId" class="text-indigo-600 font-semibold">---</span></p>
+                <p id="enunciadoProblema" class="text-gray-700 text-lg"></p>
+            </div>
+
+            <!-- Datos del problema (25% - 1/4) -->
+            <div class="lg:col-span-1 space-y-4">
+                <div class="p-5 bg-white rounded-xl shadow-lg border border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800 mb-3"><i class="fas fa-info-circle mr-2"></i> Datos del problema</h2>
+                    <!-- Los datos se inyectan aquí, se ocultan si la solución está oculta -->
+                    <div id="datosProblemaContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Solución (100% - debajo de la sección superior) -->
+        <div class="p-5 bg-white rounded-xl shadow-2xl border-4 border-dashed border-red-200 mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center border-b pb-2"><i class="fas fa-cogs mr-2"></i> Solución</h2>
+            <!-- La solución se inyecta y se desenfoca si está oculta -->
+            <div id="solucionContent" class="p-4 bg-gray-50 rounded-lg text-sm text-gray-800 transition duration-500">
+                <p class="text-center font-semibold text-lg text-gray-500">Pulsa "Generar Problema / Aleatorio" para comenzar.</p>
+            </div>
+        </div>
+        
+        <!-- Botón de Descarga (Movido al final y centrado) -->
+        <div class="flex justify-center">
+            <button id="downloadSolutionBtn" class="bg-green-600 hover:bg-green-700 text-white p-3 rounded-xl font-bold w-full max-w-lg transition duration-150 shadow-lg disabled:opacity-50">
+                <i class="fas fa-file-download mr-2"></i> Descargar Enunciado y Solución (Archivo LaTeX .tex)
+            </button>
+        </div>
+
+    </main>
+    
+    <script>
+        // Lógica de generación unificada
+        window.onload = function() {
+            // Generar un problema inicial al cargar
+            generateProblem(randomInt(10000, 999999));
+            
+            // Listener para el botón unificado
+            document.getElementById('unifiedGenerateBtn').addEventListener('click', function() {
+                const problemIdInput = document.getElementById('problemIdInput');
+                const problemId = problemIdInput.value.trim();
+                
+                if (problemId === "" || problemId === "0") {
+                    // Si está vacío, genera uno aleatorio (la función generateProblem ya maneja esto si se le pasa null)
+                    generateProblem(null);
+                } else {
+                    // Si tiene un valor, genera el problema usando ese ID
+                    generateProblem(problemId);
+                }
+            });
+
+            // Listener para toggle de modo
+            document.getElementById('toggleSolutionBtn').addEventListener('click', toggleViewMode);
+            
+            // Listener para descarga
+            document.getElementById('downloadSolutionBtn').addEventListener('click', exportSolution);
+        };
+
+    </script>
+</body>
+</html>
