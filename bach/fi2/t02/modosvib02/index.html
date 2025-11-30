@@ -1,1 +1,522 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador modos de vibración (Extremos Fijos)</title>
+    <!-- Carga de Tailwind CSS para un diseño moderno y responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fuente y estilos generales */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Fondo gris claro */
+        }
+        /* Estilos específicos para el canvas */
+        #waveCanvas {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba= (0, 0, 0, 0.1);
+            border: 2px solid #3b82f6; /* Borde azul */
+        }
 
+        /* Estilo para el contenedor del deslizador que permite dibujar los ticks */
+        .slider-container {
+            position: relative;
+        }
+
+        /* Estilo para el input del deslizador (z-index alto para capturar el click) */
+        #frequencySlider {
+            z-index: 20; /* Asegura que el slider esté por encima de los ticks */
+            position: relative; /* Necesario para que z-index funcione */
+        }
+
+        /* Contenedor de ticks: permite que los eventos pasen a través de él */
+        #frequencyTicks {
+            pointer-events: none; 
+            z-index: 10;
+        }
+
+        /* Estilo para los puntos de las frecuencias resonantes (ticks) */
+        .frequency-tick {
+            position: absolute;
+            width: 2px; /* Ancho de línea vertical */
+            height: 100%; /* Cubre toda la altura del slider */
+            /* Los colores se asignan en JS para distinguir entre n par/impar */
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div class="max-w-4xl mx-auto bg-white p-6 md:p-10 rounded-xl shadow-2xl">
+        <h1 class="text-3xl font-extrabold text-red-700 mb-2">Simulador modos de vibración (Extremos Fijos)</h1>
+        <p class="text-gray-600 mb-6">Cuerda fija en ambos extremos (x=0 y x=L).</p>
+
+        <!-- Controles de la Simulación -->
+        <div class="space-y-4 mb-8 p-4 bg-red-50 rounded-lg">
+            
+            <div class="flex flex-col md:flex-row md:items-center md:space-x-6">
+                <!-- Parámetros Fijos -->
+                <div class="md:w-1/2">
+                    <p class="font-semibold text-gray-800">Longitud de la cuerda (L): <span id="lengthDisplay" class="text-red-600 font-mono">10.0 m</span></p>
+                    <p class="font-semibold text-gray-800">Velocidad de onda (v): <span id="speedDisplay" class="text-red-600 font-mono">2.0 m/s</span></p>
+                </div>
+
+                <!-- Slider de Frecuencia con Ticks -->
+                <div class="md:w-1/2 mt-4 md:mt-0">
+                    <label for="frequencySlider" class="block text-sm font-medium text-gray-700">
+                        Frecuencia del vibrador (f): <span id="frequencyValue" class="text-xl font-bold text-red-600">0.100</span> Hz
+                    </label>
+                    <div class="slider-container">
+                        <!-- LÍMITES ACTUALIZADOS: min=0.01, max=1.65 (1.1 * f_15) -->
+                        <input type="range" id="frequencySlider" min="0.01" max="1.65" step="0.001" value="0.10" 
+                               class="w-full h-2 bg-red-200 rounded-lg appearance-none cursor-pointer range-lg mt-1"
+                               oninput="updateFrequency()">
+                        <div id="frequencyTicks" class="absolute inset-0 h-full">
+                            <!-- Los ticks se insertarán aquí mediante JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Indicador de Modo de Vibración -->
+            <div id="modeIndicator" class="mt-4 p-3 rounded-md text-center font-bold transition-all duration-300 shadow-inner">
+                <!-- Se llenará con el estado de resonancia -->
+            </div>
+        </div>
+
+        <!-- Área de Dibujo (Canvas) -->
+        <canvas id="waveCanvas" class="w-full" width="800" height="400"></canvas>
+
+        <!-- Leyenda de la Gráfica -->
+        <div class="mt-6 text-sm text-gray-700 flex flex-wrap justify-center space-x-4">
+            <span class="flex items-center"><span class="w-4 h-2 inline-block mr-2 rounded-full" style="background-color: #1e40af;"></span> Onda Estacionaria (Resultado)</span>
+            <span class="flex items-center"><span class="w-4 h-2 inline-block mr-2 rounded-full" style="background-color: #fbbf24;"></span> Puntos Cerca del Equilibrio (Fuera de Resonancia)</span>
+            <span class="flex items-center"><span class="w-4 h-2 inline-block mr-2 rounded-full" style="border: 2px solid #f97316;"></span> Marcador \u03BB/2 (Nodos Resonantes) desde el extremo fijo</span>
+        </div>
+
+    </div>
+
+    <script type="module">
+        // Parámetros Fijos de la Simulación
+        const L = 10.0; // Longitud de la cuerda (metros)
+        const v = 2.0;  // Velocidad de propagación (m/s)
+        const A = 1.0;  // Amplitud de la onda (arbitraria)
+        
+        // Elementos del DOM
+        const canvas = document.getElementById('waveCanvas');
+        const ctx = canvas.getContext('2d');
+        const frequencySlider = document.getElementById('frequencySlider');
+        const frequencyValueDisplay = document.getElementById('frequencyValue');
+        const modeIndicator = document.getElementById('modeIndicator');
+        const frequencyTicksContainer = document.getElementById('frequencyTicks');
+
+
+        let f = parseFloat(frequencySlider.value); // Frecuencia inicial
+        let t = 0; // Tiempo de la simulación
+
+        // Frecuencia fundamental (n=1) para EXTREMOS FIJOS
+        // f_n = n * v / (2 * L). F_FUNDAMENTAL (n=1) = v / (2L)
+        const F_FUNDAMENTAL = v / (2 * L); // 0.10 Hz
+        const N_MODES = 15; // Máximo modo (ahora todos los enteros)
+
+        // ----------------------------------------------------
+        // FUNCIONES DE UTILIDAD PARA EL SLIDER Y TICKS
+        // ----------------------------------------------------
+
+        /**
+         * Calculates the percentage position of a frequency within the slider's range.
+         */
+        function calculateSliderPosition(frequency) {
+            const min = parseFloat(frequencySlider.min);
+            const max = parseFloat(frequencySlider.max);
+            if (max <= min) return 0;
+            return ((frequency - min) / (max - min)) * 100;
+        }
+
+        /**
+         * Generates and draws the vertical lines (ticks) of the resonant frequencies on the slider.
+         * Now uses n = 1, 2, 3, ... (all integers)
+         */
+        function drawFrequencyTicks() {
+            frequencyTicksContainer.innerHTML = '';
+            
+            for (let n = 1; n <= N_MODES; n += 1) { // n=1, 2, 3, 4...
+                const fn = n * F_FUNDAMENTAL;
+                const position = calculateSliderPosition(fn);
+                
+                // Ensure the tick is within the visible range of the slider (0% to 100%)
+                if (position >= 0 && position <= 100) {
+                    const tick = document.createElement('div');
+                    tick.className = 'frequency-tick';
+                    tick.style.left = `${position}%`;
+                    tick.title = `Modo n=${n}: ${fn.toFixed(3)} Hz`;
+                    // Cambiar el color del tick si es par o impar para mejor distinción visual
+                    if (n % 2 === 0) {
+                         tick.style.backgroundColor = '#f97316'; // Naranja para pares
+                    } else {
+                         tick.style.backgroundColor = '#10b981'; // Verde para impares
+                    }
+                    frequencyTicksContainer.appendChild(tick);
+                }
+            }
+        }
+
+        // Función para actualizar la frecuencia desde el slider
+        window.updateFrequency = function() {
+            f = parseFloat(frequencySlider.value);
+            frequencyValueDisplay.textContent = f.toFixed(3); // Show more decimals for precision
+            updateModeIndicator();
+        }
+
+        // ----------------------------------------------------
+        // FÍSICA Y DIBUJO DE ONDAS
+        // ----------------------------------------------------
+
+        /**
+         * Calculates the vertical displacement of the Standing Wave (Fixed-Fixed).
+         * Formula: y(x, t) = 2A * sin(kx) * cos(omega*t)
+         */
+        function calculateTotalWave(x, time, amplitude, frequency, speed) {
+            const omega = 2 * Math.PI * frequency;
+            const k = omega / speed;
+            
+            // Fixed-Fixed Standing Wave Equation
+            // This equation ensures y(0, t) = 0 and y(L, t) = 0 for resonant modes.
+            return 2 * amplitude * Math.sin(k * x) * Math.cos(omega * time);
+        }
+        
+        /**
+         * Draws a wave on the canvas.
+         */
+        function drawWave(waveFunction, color, lineWidth) {
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+
+            // Center Y coordinate of the canvas
+            const centerY = canvas.height / 2;
+            const xStep = 1; // Increment in pixels
+            const scaleX = canvas.width / L; // Scale factor for length
+            
+            // Scale factor: scales the maximum amplitude (2A) to half canvas (centerY)
+            const scaleY = (canvas.height / 2) / (2 * A); 
+
+            for (let px = 0; px <= canvas.width; px += xStep) {
+                // Map pixel coordinate (px) to physics coordinate (x)
+                const x = px / scaleX;
+                
+                // Calculate amplitude and scale it to the canvas
+                const amplitude = waveFunction(x, t);
+                const py = centerY - (amplitude * scaleY);
+
+                if (px === 0) {
+                    ctx.moveTo(px, py);
+                } else {
+                    ctx.lineTo(px, py);
+                }
+            }
+            ctx.stroke();
+        }
+
+        /**
+         * Draws small vertical markers every lambda/2, which are the node positions.
+         * For Fixed-Fixed, nodes occur at x = m * (lambda / 2), m = 0, 1, 2, ...
+         */
+        function drawLambdaHalfMarkers(lambda, L, canvasWidth, canvasHeight, scaleX) {
+            const centerY = canvasHeight / 2;
+            const lambda_half = lambda / 2;
+            
+            ctx.strokeStyle = '#f97316'; // Color naranja para las marcas
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([]); // Línea sólida
+
+            // Empezamos desde x = 0
+            let x_pos = 0; 
+
+            // Dibuja las marcas hasta x=L
+            while (x_pos <= L + 0.001) { 
+                const px = x_pos * scaleX;
+                
+                ctx.beginPath();
+                // Dibuja una pequeña marca vertical cerca de la línea de equilibrio
+                ctx.moveTo(px, centerY - 10); 
+                ctx.lineTo(px, centerY + 10); 
+                ctx.stroke();
+
+                x_pos += lambda_half;
+            }
+        }
+
+        /**
+         * Checks if the current frequency is a resonant mode (L = n * lambda/2, n integer).
+         */
+        function isResonant(frequency) {
+            const n_float = frequency / F_FUNDAMENTAL;
+            
+            // Strict tolerance: 0.02
+            const tolerance = 0.02;
+
+            // Check if it's close to any integer (1, 2, 3, 4, 5, ...)
+            let n_mode = 0;
+            for (let n = 1; n <= N_MODES; n++) {
+                if (Math.abs(n_float - n) < tolerance) {
+                    n_mode = n;
+                    return { isMode: true, n: n_mode };
+                }
+            }
+
+            return { isMode: false, n: n_float };
+        }
+        
+        // Updates the vibration mode indicator
+        function updateModeIndicator() {
+            const { isMode, n } = isResonant(f);
+            const lambda = v / f;
+            
+            // Use Unicode characters for lambda (λ) and simple mathematical operators
+            modeIndicator.innerHTML = `**Longitud de Onda (\u03BB):** ${lambda.toFixed(2)} m.`;
+
+            if (isMode) {
+                modeIndicator.classList.remove('bg-red-100', 'text-red-700');
+                modeIndicator.classList.add('bg-green-100', 'text-green-700', 'border-2', 'border-green-500');
+                modeIndicator.innerHTML = `
+                    <span class="text-xl">🎉 MODO ESTACIONARIO ACTIVADO (n=${n}) 🎉</span>
+                    <span class="block text-sm font-normal mt-1">
+                        La longitud de onda (\u03BB = ${lambda.toFixed(2)} m) cumple que 
+                        L = n * (\u03BB/2), con n entero.
+                    </span>
+                `;
+            } else {
+                modeIndicator.classList.remove('bg-green-100', 'text-green-700', 'border-2', 'border-green-500');
+                modeIndicator.classList.add('bg-red-100', 'text-red-700');
+                modeIndicator.innerHTML = `
+                    <span class="text-xl">⚠️ ONDA COMPLEJA PREDOMINANTE ⚠️</span>
+                    <span class="block text-sm font-normal mt-1">
+                        La frecuencia no coincide con un modo de resonancia. 
+                        No se genera una onda estacionaria estable.
+                    </span>
+                `;
+            }
+        }
+
+        /**
+         * Draws the reference grid (continuous light gray horizontal and vertical lines).
+         */
+        function drawGrid(L, A) {
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const centerY = canvasHeight / 2;
+            const scaleX = canvasWidth / L;
+            // scaleY is the scale for amplitude, where 2*A (maximum amplitude) equals centerY (200px)
+            const scaleY = centerY / (2 * A); 
+
+            ctx.strokeStyle = '#e5e7eb'; // Continuous light gray
+            ctx.lineWidth = 1;
+            ctx.setLineDash([]); // Continuous line
+
+            // --- Vertical Lines (Position in meters) ---
+            // Divisions every 0.2 meters (0, 0.2, 0.4, ..., 10.0)
+            const xStepMeters = 0.2; // Spacing of 0.2 m
+            for (let x_m = 0; x_m <= L; x_m += xStepMeters) {
+                // Correct for floating point error near 10.0
+                if (x_m > L + 0.01) break; 
+
+                const px = x_m * scaleX;
+                
+                ctx.beginPath();
+                ctx.moveTo(px, 0); 
+                ctx.lineTo(px, canvasHeight);
+                ctx.stroke();
+            }
+
+            // --- Horizontal Lines (Amplitude in A units) ---
+            // Divisions every 0.2 amplitude units (e.g., -2.0, -1.8, ..., 1.8, 2.0)
+            const yStepAmplitude = 0.2; // Spacing of 0.2 in amplitude
+            // Amplitude ranges from -2*A to +2*A.
+            for (let amp_unit = -2 * A; amp_unit <= 2 * A; amp_unit += yStepAmplitude) {
+                // Avoid drawing over the equilibrium line (already drawn in animate)
+                if (Math.abs(amp_unit) < 0.01) continue; 
+                
+                // py = centerY - (physical amplitude * scale factor)
+                const py = centerY - (amp_unit * scaleY);
+                
+                ctx.beginPath();
+                ctx.moveTo(0, py);
+                ctx.lineTo(canvasWidth, py);
+                ctx.lineTo(canvasWidth, py);
+                ctx.stroke();
+            }
+        }
+
+        /**
+         * Draws discontinuous vertical lines at the node positions (only for resonant modes).
+         * For Fixed-Fixed, nodes occur at x = m * (lambda / 2), m = 0, 1, 2, ...
+         */
+        function drawNodes(lambda, L, canvasWidth, canvasHeight, scaleX) {
+            const centerY = canvasHeight / 2;
+            const lambda_half = lambda / 2;
+
+            ctx.strokeStyle = '#9ca3af'; // Gray
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]); // Discontinuous line
+
+            // Nodes occur at x = m * (lambda / 2)
+            let m = 0;
+            let x_node = m * lambda_half;
+
+            // Loop to draw nodes from the first one (x=0) up to the L limit
+            while (x_node <= L + 0.001) { 
+                const px = x_node * scaleX;
+                
+                // Skip the end points (x=0 and x=L) as they have fixed visual supports
+                if (x_node > 0.01 && x_node < L - 0.01) { 
+                    ctx.beginPath();
+                    ctx.moveTo(px, 0); // From top
+                    ctx.lineTo(px, canvasHeight); // To bottom
+                    ctx.stroke();
+                }
+
+                m += 1;
+                x_node = m * lambda_half;
+            }
+
+            ctx.setLineDash([]); // Restore to solid line
+        }
+
+        /**
+         * Main animation loop.
+         */
+        function animate() {
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // ------------------------------------------
+            // DRAW REFERENCE GRID
+            // ------------------------------------------
+            drawGrid(L, A);
+
+
+            // Draw the equilibrium line (x-axis)
+            ctx.strokeStyle = '#9ca3af';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+            
+            const lambda = v / f;
+            const scaleX = canvas.width / L;
+            const centerY = canvas.height / 2;
+
+            // ------------------------------------------
+            // DRAW LAMBDA/2 MARKERS (NODES)
+            // ------------------------------------------
+            drawLambdaHalfMarkers(lambda, L, canvas.width, canvas.height, scaleX);
+
+
+            // ------------------------------------------
+            // Draw Nodes (Discontinuous Lines) if it is a resonant mode
+            // ------------------------------------------
+            const { isMode } = isResonant(f);
+            if (isMode) {
+                drawNodes(lambda, L, canvas.width, canvas.height, scaleX);
+            }
+            
+            // ------------------------------------------
+            // 1. Draw the Standing Wave (RESULTADO)
+            // ------------------------------------------
+            drawWave((x, t) => calculateTotalWave(x, t, A, f, v), '#1e40af', 3); // Dark blue and thicker
+
+            // ------------------------------------------
+            // 2. Draw Pseudo-Nodes (Points near equilibrium, if NOT resonant)
+            // ------------------------------------------
+            const tolerance = 0.05 * A; // Amplitude tolerance (5% of A)
+            if (!isMode) {
+                ctx.fillStyle = '#fbbf24'; // Yellow/Amber
+                const xStep = 5; // Larger increment to avoid point saturation
+                const scaleY = (canvas.height / 2) / (2 * A); 
+
+                for (let px = 0; px <= canvas.width; px += xStep) {
+                    const x = px / scaleX;
+                    
+                    const y_total = calculateTotalWave(x, t, A, f, v);
+                    
+                    // If the total displacement is very close to zero, draw the point.
+                    if (Math.abs(y_total) < tolerance) {
+                        const py = centerY - (y_total * scaleY);
+                        ctx.beginPath();
+                        ctx.arc(px, py, 4, 0, 2 * Math.PI);
+                        ctx.fill();
+                    }
+                }
+            }
+
+
+            // ------------------------------------------
+            // Draw the ends of the string (Fixed Walls)
+            // ------------------------------------------
+            
+            const wallColor = '#3b82f6';
+            const anchorSize = 8;
+            
+            // Left End (Fixed Wall) - x=0
+            ctx.strokeStyle = wallColor; 
+            ctx.lineWidth = 4;
+            // Draw the vertical wall line
+            ctx.beginPath();
+            ctx.moveTo(0, centerY - 20); 
+            ctx.lineTo(0, centerY + 20); 
+            ctx.stroke();
+            // Draw the anchor bracket (small square)
+            ctx.fillStyle = wallColor;
+            // Usa fillRect para dibujar un cuadrado ancla
+            ctx.fillRect(0 - anchorSize / 2, centerY - anchorSize / 2, anchorSize, anchorSize);
+
+
+            // Right End (Fixed Wall) - x=L
+            ctx.strokeStyle = wallColor; 
+            ctx.lineWidth = 4;
+            // Draw the vertical wall line
+            ctx.beginPath();
+            ctx.moveTo(canvas.width, centerY - 20); 
+            ctx.lineTo(canvas.width, centerY + 20); 
+            ctx.stroke();
+            // Draw the anchor bracket (small square)
+            ctx.fillStyle = wallColor;
+            // Usa fillRect para dibujar un cuadrado ancla
+            ctx.fillRect(canvas.width - anchorSize / 2, centerY - anchorSize / 2, anchorSize, anchorSize);
+
+            // ------------------------------------------
+            // Update time and loop
+            // ------------------------------------------
+            t += 0.05; 
+
+            // Use requestAnimationFrame for a smooth animation loop
+            requestAnimationFrame(animate);
+        }
+
+        // Initialization on page load
+        window.onload = function () {
+            // Ensure the canvas is responsive
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                canvas.width = container.clientWidth;
+                canvas.height = 400; // Fixed height
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            // Draw ticks once on load
+            drawFrequencyTicks();
+
+            // Start the animation
+            animate();
+            
+            // Initialize the indicator
+            updateFrequency();
+        }
+    </script>
+</body>
+</html>
