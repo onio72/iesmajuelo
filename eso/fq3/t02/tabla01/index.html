@@ -1,1 +1,648 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla Periódica Interactiva</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        .periodic-grid {
+            display: grid;
+            grid-template-columns: 30px repeat(18, minmax(32px, 50px));
+            grid-template-rows: 30px repeat(7, auto);
+            gap: 4px;
+            width: max-content;
+        }
+
+        @media (max-width: 768px) {
+            .periodic-grid {
+                grid-template-columns: 20px repeat(18, minmax(20px, 30px));
+                gap: 2px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800">
+
+    <div id="app" class="w-full flex flex-col items-center min-h-screen"></div>
+
+    <script>
+        // --- DATOS DE LOS ELEMENTOS ---
+        const elementsData = [
+            // Periodo 1
+            { number: 1, symbol: 'H', name: 'Hidrógeno', mass: 1.008, group: 1, period: 1, col: 1, row: 1, type: 'no metal' },
+            { number: 2, symbol: 'He', name: 'Helio', mass: 4.003, group: 18, period: 1, col: 18, row: 1, type: 'gas noble' },
+            // Periodo 2
+            { number: 3, symbol: 'Li', name: 'Litio', mass: 6.94, group: 1, period: 2, col: 1, row: 2, type: 'metal' },
+            { number: 4, symbol: 'Be', name: 'Berilio', mass: 9.012, group: 2, period: 2, col: 2, row: 2, type: 'metal' },
+            { number: 5, symbol: 'B', name: 'Boro', mass: 10.81, group: 13, period: 2, col: 13, row: 2, type: 'semimetal' },
+            { number: 6, symbol: 'C', name: 'Carbono', mass: 12.01, group: 14, period: 2, col: 14, row: 2, type: 'no metal' },
+            { number: 7, symbol: 'N', name: 'Nitrógeno', mass: 14.01, group: 15, period: 2, col: 15, row: 2, type: 'no metal' },
+            { number: 8, symbol: 'O', name: 'Oxígeno', mass: 16.00, group: 16, period: 2, col: 16, row: 2, type: 'no metal' },
+            { number: 9, symbol: 'F', name: 'Flúor', mass: 19.00, group: 17, period: 2, col: 17, row: 2, type: 'no metal' },
+            { number: 10, symbol: 'Ne', name: 'Neón', mass: 20.18, group: 18, period: 2, col: 18, row: 2, type: 'gas noble' },
+            // Periodo 3
+            { number: 11, symbol: 'Na', name: 'Sodio', mass: 22.99, group: 1, period: 3, col: 1, row: 3, type: 'metal' },
+            { number: 12, symbol: 'Mg', name: 'Magnesio', mass: 24.31, group: 2, period: 3, col: 2, row: 3, type: 'metal' },
+            { number: 13, symbol: 'Al', name: 'Aluminio', mass: 26.98, group: 13, period: 3, col: 13, row: 3, type: 'metal' },
+            { number: 14, symbol: 'Si', name: 'Silicio', mass: 28.09, group: 14, period: 3, col: 14, row: 3, type: 'semimetal' },
+            { number: 15, symbol: 'P', name: 'Fósforo', mass: 30.97, group: 15, period: 3, col: 15, row: 3, type: 'no metal' },
+            { number: 16, symbol: 'S', name: 'Azufre', mass: 32.06, group: 16, period: 3, col: 16, row: 3, type: 'no metal' },
+            { number: 17, symbol: 'Cl', name: 'Cloro', mass: 35.45, group: 17, period: 3, col: 17, row: 3, type: 'no metal' },
+            { number: 18, symbol: 'Ar', name: 'Argón', mass: 39.95, group: 18, period: 3, col: 18, row: 3, type: 'gas noble' },
+            // Periodo 4
+            { number: 19, symbol: 'K', name: 'Potasio', mass: 39.10, group: 1, period: 4, col: 1, row: 4, type: 'metal' },
+            { number: 20, symbol: 'Ca', name: 'Calcio', mass: 40.08, group: 2, period: 4, col: 2, row: 4, type: 'metal' },
+            { number: 26, symbol: 'Fe', name: 'Hierro', mass: 55.85, group: 8, period: 4, col: 8, row: 4, type: 'metal' },
+            { number: 27, symbol: 'Co', name: 'Cobalto', mass: 58.93, group: 9, period: 4, col: 9, row: 4, type: 'metal' },
+            { number: 28, symbol: 'Ni', name: 'Níquel', mass: 58.69, group: 10, period: 4, col: 10, row: 4, type: 'metal' },
+            { number: 29, symbol: 'Cu', name: 'Cobre', mass: 63.55, group: 11, period: 4, col: 11, row: 4, type: 'metal' },
+            { number: 30, symbol: 'Zn', name: 'Cinc', mass: 65.38, group: 12, period: 4, col: 12, row: 4, type: 'metal' },
+            { number: 31, symbol: 'Ga', name: 'Galio', mass: 69.72, group: 13, period: 4, col: 13, row: 4, type: 'metal' },
+            { number: 32, symbol: 'Ge', name: 'Germanio', mass: 72.63, group: 14, period: 4, col: 14, row: 4, type: 'semimetal' },
+            { number: 33, symbol: 'As', name: 'Arsénico', mass: 74.92, group: 15, period: 4, col: 15, row: 4, type: 'semimetal' },
+            { number: 34, symbol: 'Se', name: 'Selenio', mass: 78.96, group: 16, period: 4, col: 16, row: 4, type: 'no metal' },
+            { number: 35, symbol: 'Br', name: 'Bromo', mass: 79.90, group: 17, period: 4, col: 17, row: 4, type: 'no metal' },
+            { number: 36, symbol: 'Kr', name: 'Kriptón', mass: 83.80, group: 18, period: 4, col: 18, row: 4, type: 'gas noble' },
+            // Periodo 5
+            { number: 37, symbol: 'Rb', name: 'Rubidio', mass: 85.47, group: 1, period: 5, col: 1, row: 5, type: 'metal' },
+            { number: 38, symbol: 'Sr', name: 'Estroncio', mass: 87.62, group: 2, period: 5, col: 2, row: 5, type: 'metal' },
+            { number: 46, symbol: 'Pd', name: 'Paladio', mass: 106.42, group: 10, period: 5, col: 10, row: 5, type: 'metal' },
+            { number: 47, symbol: 'Ag', name: 'Plata', mass: 107.87, group: 11, period: 5, col: 11, row: 5, type: 'metal' },
+            { number: 48, symbol: 'Cd', name: 'Cadmio', mass: 112.41, group: 12, period: 5, col: 12, row: 5, type: 'metal' },
+            { number: 49, symbol: 'In', name: 'Indio', mass: 114.82, group: 13, period: 5, col: 13, row: 5, type: 'metal' },
+            { number: 50, symbol: 'Sn', name: 'Estaño', mass: 118.71, group: 14, period: 5, col: 14, row: 5, type: 'metal' },
+            { number: 51, symbol: 'Sb', name: 'Antimonio', mass: 121.76, group: 15, period: 5, col: 15, row: 5, type: 'semimetal' },
+            { number: 52, symbol: 'Te', name: 'Teluro', mass: 127.60, group: 16, period: 5, col: 16, row: 5, type: 'semimetal' },
+            { number: 53, symbol: 'I', name: 'Yodo', mass: 126.90, group: 17, period: 5, col: 17, row: 5, type: 'no metal' },
+            { number: 54, symbol: 'Xe', name: 'Xenón', mass: 131.29, group: 18, period: 5, col: 18, row: 5, type: 'gas noble' },
+            // Periodo 6
+            { number: 55, symbol: 'Cs', name: 'Cesio', mass: 132.91, group: 1, period: 6, col: 1, row: 6, type: 'metal' },
+            { number: 56, symbol: 'Ba', name: 'Bario', mass: 137.33, group: 2, period: 6, col: 2, row: 6, type: 'metal' },
+            { number: 78, symbol: 'Pt', name: 'Platino', mass: 195.08, group: 10, period: 6, col: 10, row: 6, type: 'metal' },
+            { number: 79, symbol: 'Au', name: 'Oro', mass: 196.97, group: 11, period: 6, col: 11, row: 6, type: 'metal' },
+            { number: 80, symbol: 'Hg', name: 'Mercurio', mass: 200.59, group: 12, period: 6, col: 12, row: 6, type: 'metal' },
+            { number: 81, symbol: 'Tl', name: 'Talio', mass: 204.38, group: 13, period: 6, col: 13, row: 6, type: 'metal' },
+            { number: 82, symbol: 'Pb', name: 'Plomo', mass: 207.20, group: 14, period: 6, col: 14, row: 6, type: 'metal' },
+            { number: 83, symbol: 'Bi', name: 'Bismuto', mass: 208.98, group: 15, period: 6, col: 15, row: 6, type: 'metal' },
+            { number: 84, symbol: 'Po', name: 'Polonio', mass: 209.00, group: 16, period: 6, col: 16, row: 6, type: 'semimetal' },
+            { number: 85, symbol: 'At', name: 'Astato', mass: 210.00, group: 17, period: 6, col: 17, row: 6, type: 'no metal' },
+            { number: 86, symbol: 'Rn', name: 'Radón', mass: 222.00, group: 18, period: 6, col: 18, row: 6, type: 'gas noble' },
+            // Periodo 7
+            { number: 87, symbol: 'Fr', name: 'Francio', mass: 223.00, group: 1, period: 7, col: 1, row: 7, type: 'metal' },
+            { number: 88, symbol: 'Ra', name: 'Radio', mass: 226.00, group: 2, period: 7, col: 2, row: 7, type: 'metal' },
+        ];
+
+        // --- ESTADO ---
+        let currentState = {
+            view: 'init', 
+            selectedElement: null,
+            randoms: null,
+            answers: {},
+            results: null,
+            showSolution: false // Nuevo estado para debug
+        };
+
+        // --- UTILIDADES ---
+        const shuffleArray = (array) => {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        };
+
+        const normalizeStr = (str) => {
+            return str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
+        };
+
+        // --- PARSEO NUMÉRICO ROBUSTO ---
+        // Normaliza un string numérico para que:
+        // - ignore espacios y separadores de miles (., , o ')
+        // - detecte automáticamente si el separador decimal es . o ,
+        //   usando una heurística simple basada en la última aparición
+        const normalizeNumericString = (raw) => {
+            if (raw === null || raw === undefined) return null;
+            let s = raw.toString().trim();
+            if (!s) return null;
+
+            // Quitar espacios y apóstrofes (1 234, 1'234, etc.)
+            s = s.replace(/[\s']/g, '');
+
+            const lastDot = s.lastIndexOf('.');
+            const lastComma = s.lastIndexOf(',');
+
+            let decimalSep = null;
+            let thousandSep = null;
+
+            if (lastDot !== -1 && lastComma !== -1) {
+                // Si hay punto y coma, el último suele ser el decimal
+                if (lastDot > lastComma) {
+                    decimalSep = '.';
+                    thousandSep = ',';
+                } else {
+                    decimalSep = ',';
+                    thousandSep = '.';
+                }
+            } else if (lastComma !== -1) {
+                // Solo hay comas
+                const digitsAfter = s.length - lastComma - 1;
+                if (digitsAfter === 3 && /[0-9]{3}$/.test(s)) {
+                    // Formato tipo 114,820 → coma como miles
+                    thousandSep = ',';
+                } else {
+                    // Formato tipo 114,82 → coma decimal
+                    decimalSep = ',';
+                }
+            } else if (lastDot !== -1) {
+                // Solo hay puntos
+                const digitsAfter = s.length - lastDot - 1;
+                if (digitsAfter === 3 && /[0-9]{3}$/.test(s)) {
+                    // Formato tipo 114.820 → punto como miles
+                    thousandSep = '.';
+                } else {
+                    // Formato tipo 114.82 → punto decimal
+                    decimalSep = '.';
+                }
+            }
+
+            if (thousandSep) {
+                const re = new RegExp('\\' + thousandSep, 'g');
+                s = s.replace(re, '');
+            }
+            if (decimalSep && decimalSep !== '.') {
+                s = s.replace(decimalSep, '.');
+            }
+
+            return s;
+        };
+
+        // Función genérica de validación con tolerancia relativa
+        const checkAnswer = (inputVal, targetVal, tolerancePercent = 0.05) => {
+            const target = Number(targetVal);
+            if (!Number.isFinite(target)) return false;
+
+            if (inputVal === null || inputVal === undefined || inputVal === '') return false;
+
+            const norm = normalizeNumericString(inputVal);
+            if (norm === null) return false;
+
+            const parsed = Number(norm);
+            if (!Number.isFinite(parsed)) return false;
+
+            if (target === 0) {
+                // Caso extremo que en este cuestionario no se da, pero por seguridad
+                return Math.abs(parsed) <= tolerancePercent;
+            }
+
+            const relError = Math.abs(parsed - target) / Math.abs(target);
+            return relError <= tolerancePercent;
+        };
+
+        // Por compatibilidad con el resto del código
+        const checkFlexibleNumber = (inputVal, targetVal, tolerancePercent = 0.05) => {
+            return checkAnswer(inputVal, targetVal, tolerancePercent);
+        };
+
+        const pickRandomElement = () => {
+            const idx = Math.floor(Math.random() * elementsData.length);
+            return elementsData[idx];
+        };
+
+        const generateRandoms = () => {
+            return {
+                n1: Math.floor(Math.random() * 10) * 10 + 10,
+                n2: Math.floor(Math.random() * 19) * 500 + 1000,
+                y: (Math.floor(Math.random() * 199) + 1) / 10,
+                q4UnitOpts: shuffleArray(['u', 'g', 'kg']),
+                q7UnitOpts: shuffleArray(['u', 'u/mol', 'g', 'g/mol', 'kg', 'kg/mol']),
+                q9Opts: shuffleArray(['Metal', 'No metal', 'Semimetal', 'Gas Noble'])
+            };
+        };
+
+        // --- RENDERIZADO ---
+        const app = document.getElementById('app');
+
+        function render() {
+            app.innerHTML = '';
+            
+            if (currentState.view === 'init') {
+                renderTable(true);
+            } else if (currentState.view === 'quiz') {
+                renderQuiz();
+            } else if (currentState.view === 'consulting') {
+                renderTable(false);
+            }
+        }
+
+        function renderTable(isIntro) {
+            const header = document.createElement('header');
+            header.className = 'mb-4 text-center mt-8 animate-fade-in px-4';
+            
+            if (isIntro) {
+                header.innerHTML = `
+                    <h1 class="text-3xl font-bold text-green-700 mb-4">Tabla Periódica Interactiva</h1>
+                    <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded shadow-md max-w-xl mx-auto">
+                        <p class="font-bold text-lg">Te voy a hacer algunas preguntas sobre un elemento...</p>
+                        <p class="text-sm mt-1 animate-pulse">Seleccionando elemento al azar...</p>
+                    </div>
+                `;
+            } else {
+                header.innerHTML = `
+                    <h1 class="text-2xl font-bold text-gray-700 mb-2">Consulta de Tabla</h1>
+                    <button onclick="goToQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow transition-colors flex items-center gap-2 mx-auto">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
+                        Volver al Cuestionario
+                    </button>
+                `;
+            }
+            app.appendChild(header);
+
+            const container = document.createElement('div');
+            container.className = 'overflow-x-auto w-full flex justify-center pb-8 px-2 animate-fade-in';
+            
+            const grid = document.createElement('div');
+            grid.className = 'periodic-grid bg-white p-4 rounded shadow-xl border border-gray-300 relative';
+            
+            for(let i=1; i<=18; i++) {
+                const label = document.createElement('div');
+                label.innerText = i;
+                label.className = 'flex items-center justify-center font-bold text-xs text-gray-500';
+                label.style.gridColumn = i + 1;
+                label.style.gridRow = 1;
+                grid.appendChild(label);
+            }
+
+            for(let i=1; i<=7; i++) {
+                const label = document.createElement('div');
+                label.innerText = i;
+                label.className = 'flex items-center justify-center font-bold text-xs text-gray-500';
+                label.style.gridColumn = 1;
+                label.style.gridRow = i + 1;
+                grid.appendChild(label);
+            }
+
+            elementsData.forEach(el => {
+                const tile = document.createElement('div');
+                tile.className = `bg-green-300 border-2 border-white rounded flex flex-col items-center justify-center p-1 shadow-sm ${isIntro ? 'opacity-80' : ''}`;
+                tile.style.gridColumn = el.col + 1;
+                tile.style.gridRow = el.row + 1;
+                tile.style.aspectRatio = '1/1';
+                tile.innerHTML = `
+                    <span class="text-[10px] md:text-xs font-semibold self-start ml-1 leading-none">${el.number}</span>
+                    <span class="text-sm md:text-lg font-bold leading-none">${el.symbol}</span>
+                `;
+                grid.appendChild(tile);
+            });
+
+            container.appendChild(grid);
+            app.appendChild(container);
+        }
+
+        function renderQuiz() {
+            const el = currentState.selectedElement;
+            const r = currentState.randoms;
+            const res = currentState.results;
+
+            const container = document.createElement('div');
+            container.className = 'max-w-4xl w-full mx-auto p-4 md:p-8 animate-fade-in';
+
+            const topBar = document.createElement('div');
+            topBar.className = 'flex justify-between items-center mb-6';
+            
+            const consultBtn = document.createElement('button');
+            consultBtn.className = 'text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 bg-white px-3 py-2 rounded shadow border border-blue-100 hover:bg-blue-50';
+            consultBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                Consultar Tabla
+            `;
+            consultBtn.onclick = () => {
+                currentState.view = 'consulting';
+                render();
+            };
+            topBar.appendChild(consultBtn);
+            container.appendChild(topBar);
+
+            const grid = document.createElement('div');
+            grid.className = 'grid md:grid-cols-3 gap-8';
+
+            const leftCol = document.createElement('div');
+            leftCol.className = 'md:col-span-1 flex flex-col items-center';
+            leftCol.innerHTML = `
+                <div class="sticky top-4 w-full flex flex-col items-center">
+                    <h2 class="text-xl font-bold mb-4 text-center text-gray-700">Elemento Seleccionado</h2>
+                    <div class="w-48 h-56 bg-white border-4 border-gray-300 shadow-xl rounded-lg flex flex-col p-4 relative mx-auto">
+                        <div class="absolute top-2 left-2 text-2xl text-gray-600 font-sans">${el.number}</div>
+                        <div class="flex-grow flex items-center justify-center">
+                            <span class="text-7xl font-bold text-gray-800">${el.symbol}</span>
+                        </div>
+                        <div class="text-center border-t-2 border-gray-200 pt-2">
+                            <span class="text-xl font-mono text-gray-700">${el.mass.toFixed(2)}</span>
+                        </div>
+                    </div>
+                    ${res ? `
+                        <div class="mt-6 p-4 bg-white rounded-lg shadow border-t-4 border-blue-500 text-center w-full animate-fade-in">
+                            <div class="text-sm text-gray-500 uppercase tracking-wide">Puntuación Final</div>
+                            <div class="text-5xl font-bold text-blue-600">${res.score} / 11</div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            grid.appendChild(leftCol);
+
+            const rightCol = document.createElement('div');
+            rightCol.className = 'md:col-span-2 bg-white p-6 rounded-lg shadow-md border border-gray-200';
+            
+            const title = document.createElement('h1');
+            title.className = 'text-2xl font-bold mb-6 text-gray-800 border-b pb-2';
+            title.innerText = `Cuestionario: ${el.symbol}`;
+            rightCol.appendChild(title);
+
+            const form = document.createElement('div');
+            form.className = 'space-y-6';
+
+            // Helpers
+            const createInputGroup = (label, id, type = 'text', suffix = '', placeholder = '') => {
+                const div = document.createElement('div');
+                div.innerHTML = `<label class="block font-semibold mb-1 text-gray-700">${label}</label>`;
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = 'flex items-center gap-2';
+                
+                const input = document.createElement('input');
+                input.type = type;
+                if(placeholder) input.placeholder = placeholder;
+                input.className = 'w-full border p-2 rounded focus:ring-2 focus:ring-green-400 outline-none disabled:bg-gray-100 transition-shadow';
+                input.disabled = !!res;
+                input.value = currentState.answers[id] || '';
+                input.oninput = (e) => currentState.answers[id] = e.target.value;
+                
+                wrapper.appendChild(input);
+                if (suffix) {
+                    const span = document.createElement('span');
+                    span.className = 'text-gray-500 font-bold';
+                    span.textContent = suffix;
+                    wrapper.appendChild(span);
+                }
+                div.appendChild(wrapper);
+                
+                // FEEDBACK
+                if (res) {
+                    const fb = res.feedback[id];
+                    if(fb) {
+                        const fbDiv = document.createElement('div');
+                        if (!fb.correct) {
+                            fbDiv.className = 'mt-1 text-sm text-red-600 flex flex-col gap-1 font-medium bg-red-50 p-2 rounded';
+                            fbDiv.innerHTML = `
+                                <span>✗ Incorrecto.</span>
+                                <span class="text-gray-700 text-xs">Valor esperado aprox: <strong>${fb.answer}</strong></span>
+                            `;
+                        } else {
+                            fbDiv.className = 'mt-1 text-sm text-green-600 flex items-center gap-1 font-medium';
+                            fbDiv.innerHTML = '<span>✓ ¡Correcto!</span>';
+                        }
+                        div.appendChild(fbDiv);
+                    }
+                }
+                return div;
+            };
+
+            const createSelectGroup = (label, id, options) => {
+                const div = document.createElement('div');
+                div.innerHTML = `<label class="block font-semibold mb-1 text-gray-700">${label}</label>`;
+                
+                const select = document.createElement('select');
+                select.className = 'w-full border p-2 rounded focus:ring-2 focus:ring-green-400 outline-none bg-white disabled:bg-gray-100';
+                select.disabled = !!res;
+                select.innerHTML = '<option value="" disabled selected>Selecciona una opción</option>';
+                
+                options.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.text = opt;
+                    if (currentState.answers[id] === opt) option.selected = true;
+                    select.appendChild(option);
+                });
+                
+                select.onchange = (e) => currentState.answers[id] = e.target.value;
+                div.appendChild(select);
+
+                if (res) {
+                    const fb = res.feedback[id];
+                    if(fb) {
+                        const fbDiv = document.createElement('div');
+                        if (!fb.correct) {
+                            fbDiv.className = 'mt-1 text-sm text-red-600 flex flex-col gap-1 font-medium bg-red-50 p-2 rounded';
+                            fbDiv.innerHTML = `
+                                <span>✗ Incorrecto.</span>
+                                <span class="text-gray-700 text-xs">Correcto: <strong>${fb.answer}</strong></span>
+                            `;
+                        } else {
+                            fbDiv.className = 'mt-1 text-sm text-green-600 flex items-center gap-1 font-medium';
+                            fbDiv.innerHTML = '<span>✓ ¡Correcto!</span>';
+                        }
+                        div.appendChild(fbDiv);
+                    }
+                }
+                return div;
+            };
+
+            const createCombinedGroup = (label, inputId, selectId, selectOptions) => {
+                const div = document.createElement('div');
+                div.innerHTML = `<label class="block font-semibold mb-1 text-gray-700">${label}</label>`;
+                
+                const row = document.createElement('div');
+                row.className = 'flex gap-2';
+                
+                const inputDiv = document.createElement('div');
+                inputDiv.className = 'flex-1';
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = 'Valor';
+                input.className = 'w-full border p-2 rounded focus:ring-2 focus:ring-green-400 outline-none disabled:bg-gray-100 transition-shadow';
+                input.disabled = !!res;
+                input.value = currentState.answers[inputId] || '';
+                input.oninput = (e) => currentState.answers[inputId] = e.target.value;
+                inputDiv.appendChild(input);
+
+                const selectDiv = document.createElement('div');
+                selectDiv.className = 'w-1/3 min-w-[100px]';
+                const select = document.createElement('select');
+                select.className = 'w-full border p-2 rounded focus:ring-2 focus:ring-green-400 outline-none bg-white disabled:bg-gray-100';
+                select.disabled = !!res;
+                select.innerHTML = '<option value="" disabled selected>Unidad</option>';
+                selectOptions.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.text = opt;
+                    if (currentState.answers[selectId] === opt) option.selected = true;
+                    select.appendChild(option);
+                });
+                select.onchange = (e) => currentState.answers[selectId] = e.target.value;
+                selectDiv.appendChild(select);
+
+                row.appendChild(inputDiv);
+                row.appendChild(selectDiv);
+                div.appendChild(row);
+
+                if (res) {
+                    const fbVal = res.feedback[inputId];
+                    const fbUnit = res.feedback[selectId];
+                    if (fbVal && fbUnit) {
+                        const fbDiv = document.createElement('div');
+                        const allCorrect = fbVal.correct && fbUnit.correct;
+                        
+                        if (allCorrect) {
+                            fbDiv.className = 'mt-1 text-sm text-green-600 flex items-center gap-1 font-medium';
+                            fbDiv.innerHTML = '<span>✓ ¡Todo Correcto!</span>';
+                        } else {
+                            fbDiv.className = 'mt-1 text-sm text-red-600 flex flex-col gap-1 font-medium bg-red-50 p-2 rounded';
+                            let msg = '';
+                            if (!fbVal.correct) msg += `<span>✗ Valor incorrecto. (Esperado: <strong>${fbVal.answer}</strong>)</span> `;
+                            else msg += '<span class="text-green-600">✓ Valor correcto </span> ';
+                            
+                            if (!fbUnit.correct) msg += `<span>✗ Unidad incorrecta. (Esperado: <strong>${fbUnit.answer}</strong>)</span>`;
+                            else msg += '<span class="text-green-600">✓ Unidad correcta</span>';
+                            fbDiv.innerHTML = msg;
+                        }
+                        div.appendChild(fbDiv);
+                    }
+                }
+                return div;
+            };
+
+            // Construcción del Formulario
+            form.appendChild(createInputGroup('1. ¿De qué elemento químico se trata?', 'q1'));
+            form.appendChild(createInputGroup('2. ¿Qué número de orden (posición) ocupa en la tabla? (Ej: 1, 2, 33...)', 'q2', 'number', '', 'Número entero'));
+            form.appendChild(createInputGroup('3. ¿Cuántos protones hay en su núcleo?', 'q3', 'number'));
+            form.appendChild(createCombinedGroup(`4. ¿Cuál es la masa promedio de un átomo de ${el.symbol} y en qué unidad se mide?`, 'q4_val', 'q4_unit', r.q4UnitOpts));
+            form.appendChild(createInputGroup(`5. ¿Cuál es la masa de ${r.n1} átomos de ${el.symbol}?`, 'q5', 'text', 'u'));
+            form.appendChild(createInputGroup(`6. ¿Cuál es la masa de ${r.n2} átomos de ${el.symbol}?`, 'q6', 'text', 'u'));
+            form.appendChild(createCombinedGroup(`7. ¿Cuál es la masa molar de ${el.symbol} y en qué unidad se mide?`, 'q7_val', 'q7_unit', r.q7UnitOpts));
+            form.appendChild(createInputGroup(`8. ¿Cuál es la masa de ${r.y.toFixed(1)} moles de ${el.symbol}?`, 'q8', 'text', 'g'));
+            form.appendChild(createSelectGroup('9. ¿A qué gran grupo pertenece el elemento?', 'q9', r.q9Opts));
+
+            if (!res) {
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'flex flex-col gap-2 mt-4';
+
+                const submitBtn = document.createElement('button');
+                submitBtn.className = 'w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded shadow-lg transition-colors text-lg';
+                submitBtn.innerText = 'Corregir Respuestas';
+                submitBtn.onclick = checkAnswers;
+                actionsDiv.appendChild(submitBtn);
+
+                const giveUpBtn = document.createElement('button');
+                giveUpBtn.className = 'text-gray-500 text-sm hover:text-red-500 underline text-center pt-2';
+                giveUpBtn.innerText = 'No me sale, corregir y ver solución';
+                giveUpBtn.onclick = () => {
+                    checkAnswers();
+                };
+                actionsDiv.appendChild(giveUpBtn);
+                
+                form.appendChild(actionsDiv);
+            } else {
+                const newBtn = document.createElement('button');
+                newBtn.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded shadow-lg transition-colors mt-4 text-lg';
+                newBtn.innerText = 'Empezar Nuevo Ejercicio';
+                newBtn.onclick = startNewGame;
+                form.appendChild(newBtn);
+            }
+
+            rightCol.appendChild(form);
+            grid.appendChild(rightCol);
+            container.appendChild(grid);
+            app.appendChild(container);
+        }
+
+        function startNewGame() {
+            currentState.view = 'init';
+            currentState.results = null;
+            currentState.answers = {};
+            currentState.selectedElement = null;
+            currentState.randoms = null;
+            render();
+
+            setTimeout(() => {
+                currentState.selectedElement = pickRandomElement();
+                currentState.randoms = generateRandoms();
+                currentState.view = 'quiz';
+                render();
+            }, 3000);
+        }
+
+        function goToQuiz() {
+            currentState.view = 'quiz';
+            render();
+        }
+
+        function checkAnswers() {
+            const el = currentState.selectedElement;
+            const ans = currentState.answers;
+            const r = currentState.randoms;
+            let score = 0;
+            let feedback = {};
+
+            const visualMass = Number(el.mass.toFixed(2));
+
+            const check = (key, condition, correctVal) => {
+                if (condition) score++;
+                feedback[key] = { correct: condition, answer: correctVal };
+            };
+
+            const checkNum = (key, inputVal, targetVal) => {
+                const isValid = checkFlexibleNumber(inputVal, targetVal);
+                const displayVal = Number.isInteger(targetVal) ? targetVal : targetVal.toFixed(2);
+                check(key, isValid, displayVal);
+            };
+
+            // Q1
+            check('q1', normalizeStr(ans['q1']) === normalizeStr(el.name), el.name);
+            
+            // Q2 (Posición/Z) - Entero
+            const valQ2 = parseInt(ans['q2']);
+            check('q2', valQ2 === el.number, el.number);
+            
+            // Q3 (Protones) - Entero
+            const valQ3 = parseInt(ans['q3']);
+            check('q3', valQ3 === el.number, el.number);
+            
+            // Q4 (Combinada) - Masa
+            checkNum('q4_val', ans['q4_val'], visualMass);
+            check('q4_unit', ans['q4_unit'] === 'u', 'u');
+            
+            // Q5 (n1 átomos)
+            checkNum('q5', ans['q5'], r.n1 * visualMass);
+            
+            // Q6 (n2 átomos)
+            checkNum('q6', ans['q6'], r.n2 * visualMass);
+            
+            // Q7 (Combinada) - Masa Molar
+            checkNum('q7_val', ans['q7_val'], visualMass);
+            check('q7_unit', ans['q7_unit'] === 'g/mol', 'g/mol');
+            
+            // Q8 (y moles)
+            checkNum('q8', ans['q8'], r.y * visualMass);
+            
+            // Q9
+            check('q9', normalizeStr(ans['q9']) === normalizeStr(el.type), el.type.charAt(0).toUpperCase() + el.type.slice(1));
+
+            currentState.results = { score, feedback };
+            render();
+        }
+
+        startNewGame();
+    </script>
+</body>
+</html>
 
