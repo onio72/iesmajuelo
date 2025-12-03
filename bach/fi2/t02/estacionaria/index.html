@@ -1,1 +1,837 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laboratorio Avanzado de Ondas Estacionarias</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      user-select: none;
+    }
+    canvas {
+      touch-action: none;
+      cursor: crosshair;
+    }
+    .panel-transition {
+      transition: all 0.3s ease-in-out;
+    }
+    .marker {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .node-marker {
+      width: 12px;
+      height: 12px;
+      background-color: #22c55e; /* green-500 */
+      border: 2px solid white;
+    }
+    .antinode-marker {
+      width: 12px;
+      height: 12px;
+      background-color: #f97316; /* orange-500 */
+      border: 2px solid white;
+    }
+    /* Estilo para preguntas de radio */
+    .radio-group label {
+      cursor: pointer;
+      padding: 4px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+    .radio-group input[type="radio"]:checked + label {
+      background-color: #4f46e5;
+      color: white;
+      border-color: #4f46e5;
+    }
+    .radio-group input[type="radio"] {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 flex flex-col items-center min-h-screen pb-10">
+  <!-- Barra Superior -->
+  <header class="w-full bg-white shadow-sm border-b border-slate-200 sticky top-0 z-20">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div>
+        <h1 class="text-xl font-bold text-indigo-800">Laboratorio de Ondas</h1>
+        <p class="text-xs text-slate-500">Modo estacionario e interferencia</p>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="bg-indigo-50 px-4 py-2 rounded-lg border border-indigo-100">
+          <span class="text-xs text-indigo-500 font-bold uppercase">Puntuación</span>
+          <div class="text-2xl font-black text-indigo-700 leading-none" id="score-display">0</div>
+          <span class="text-[10px] text-indigo-400 font-bold self-end">/ 100</span>
+        </div>
+      </div>
+    </div>
+  </header>
 
+  <main class="w-full max-w-5xl p-4 flex flex-col gap-6">
+    <!-- Panel instrucciones -->
+    <div id="instruction-panel" class="bg-white p-4 rounded-xl shadow border-l-4 border-indigo-500 panel-transition">
+      <div class="flex justify-between items-start">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800" id="phase-title">Cargando...</h2>
+          <p class="text-slate-600 mt-1" id="phase-desc">...</p>
+        </div>
+        <div id="progress-indicator" class="text-sm font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded">
+          0 / 0
+        </div>
+      </div>
+      <div id="feedback-message" class="mt-2 text-sm font-bold h-5 text-transparent">Feedback</div>
+    </div>
+
+    <!-- Área de simulación -->
+    <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-1">
+      
+      <!-- Sección 1: Onda Estacionaria -->
+      <div class="px-4 pt-4 pb-2 flex justify-between items-end border-b border-slate-100">
+          <h3 class="font-bold text-slate-700 flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-indigo-600"></span>
+            Onda Estacionaria (Resultante)
+          </h3>
+          <span class="text-xs font-mono text-slate-400">Eje Y: Amplitud (m) | Eje X: Posición (m)</span>
+      </div>
+      <div class="relative bg-slate-50 border-b border-slate-200" id="standing-container">
+        <canvas id="standingCanvas" class="block w-full h-72"></canvas>
+        <div id="markers-layer" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+      </div>
+
+      <!-- Sección 2: Ondas Viajeras -->
+      <div class="px-4 pt-4 pb-2 flex justify-between items-end border-b border-slate-100 bg-white">
+          <h3 class="font-bold text-slate-700 flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-sky-500"></span>
+            <span class="w-3 h-3 rounded-full bg-orange-500 -ml-1"></span>
+            Componentes Viajeras
+          </h3>
+          <div class="bg-yellow-50 px-2 py-1 rounded text-xs font-bold text-yellow-800 border border-yellow-200">
+            v = <span id="velocity-display">--</span> m/s
+          </div>
+      </div>
+      <div class="relative bg-slate-50 border-b border-slate-200">
+        <canvas id="travelingCanvas" class="block w-full h-56"></canvas>
+      </div>
+
+      <!-- Controles -->
+      <div class="bg-slate-100 p-4 rounded-b-lg flex flex-wrap justify-between items-center gap-4">
+        <!-- Reproducción -->
+        <div class="flex items-center gap-2">
+          <button id="playBtn" class="w-10 h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow transition-transform active:scale-95">
+            ⏸
+          </button>
+          <button id="stepBackBtn" class="w-8 h-8 flex items-center justify-center bg-white border border-slate-300 text-slate-600 rounded hover:bg-slate-50 text-sm">⏪</button>
+          <button id="stepForwardBtn" class="w-8 h-8 flex items-center justify-center bg-white border border-slate-300 text-slate-600 rounded hover:bg-slate-50 text-sm">⏩</button>
+          <button id="resetBtn" class="ml-2 px-4 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded text-sm font-bold transition-colors">
+            Reiniciar / Nueva Onda
+          </button>
+        </div>
+        <!-- Velocidad tiempo -->
+        <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-full border border-slate-200 text-sm shadow-sm">
+          <span id="speed-label" class="text-xs font-bold text-indigo-600 uppercase tracking-wide w-20 text-center">Normal</span>
+          <input type="range" id="speedSlider" min="0.1" max="1.5" step="0.1" value="1.0" class="w-24 accent-indigo-600 cursor-pointer" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de preguntas -->
+    <div id="quiz-panel" class="hidden bg-indigo-50 border border-indigo-200 rounded-xl p-6 shadow-lg mb-10">
+      <h3 class="text-xl font-bold text-indigo-900 mb-4 border-b border-indigo-200 pb-2">Evaluación Final</h3>
+      <p class="text-sm text-indigo-700 mb-6">Usa la cuadrícula de precisión (líneas cada 0.25m) y los datos observados para responder. Usa punto para decimales.</p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6" id="quiz-container">
+          <!-- Las preguntas se generan aquí -->
+      </div>
+
+      <div class="mt-8 flex justify-end items-center gap-4">
+        <p id="quiz-feedback" class="text-sm font-bold text-indigo-900"></p>
+        <div class="flex gap-3">
+             <button id="nextExampleBtn" class="hidden px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold shadow transition-colors animate-pulse">
+                Otro ejemplo ➜
+            </button>
+            <button id="checkQuizBtn" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow transition-colors">
+                Enviar Respuestas
+            </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    class WaveSimulation {
+      constructor() {
+        // Canvas y contextos
+        this.cStand = document.getElementById('standingCanvas');
+        this.cTravel = document.getElementById('travelingCanvas');
+        this.ctxS = this.cStand.getContext('2d');
+        this.ctxT = this.cTravel.getContext('2d');
+        this.markersLayer = document.getElementById('markers-layer');
+
+        // UI
+        this.scoreDisplay = document.getElementById('score-display');
+        this.phaseTitle = document.getElementById('phase-title');
+        this.phaseDesc = document.getElementById('phase-desc');
+        this.progressIndicator = document.getElementById('progress-indicator');
+        this.feedbackEl = document.getElementById('feedback-message');
+        this.velocityDisplay = document.getElementById('velocity-display');
+        this.quizPanel = document.getElementById('quiz-panel');
+        this.quizContainer = document.getElementById('quiz-container');
+        this.quizFeedback = document.getElementById('quiz-feedback');
+        this.checkQuizBtn = document.getElementById('checkQuizBtn');
+        this.nextExampleBtn = document.getElementById('nextExampleBtn');
+        this.speedLabel = document.getElementById('speed-label');
+
+        // Física
+        this.physicalLength = 10.0; // m
+        this.velocity = 2.0; // m/s
+        this.baseAmplitude = 1.0; // m
+
+        // Estado
+        this.time = 0;
+        this.isPlaying = true;
+        this.speedFactor = 1.0;
+        this.score = 0;
+        this.pixelsPerMeter = 1;
+        this.pixelsPerAmp = 1;
+
+        this.currentMode = 2; // n
+        this.wavelength = 0;
+        this.k = 0;
+        this.omega = 0;
+        this.period = 0;
+
+        this.phase = 'nodes'; // 'nodes' | 'antinodes' | 'quiz' | 'finished'
+        this.foundTargets = [];
+        this.targetCount = 0;
+        
+        // Puntuación
+        this.pointsPerPhase1 = 25;
+        this.pointsPerPhase2 = 25;
+        this.pointsPerPhase3 = 50; // Quiz
+
+        // Eventos
+        window.addEventListener('resize', () => this.resize());
+        this.cStand.addEventListener('mousedown', (e) => this.handleClick(e));
+
+        document.getElementById('playBtn').addEventListener('click', () => this.togglePlay());
+        document.getElementById('stepBackBtn').addEventListener('click', () => this.step(-1));
+        document.getElementById('stepForwardBtn').addEventListener('click', () => this.step(1));
+        document.getElementById('resetBtn').addEventListener('click', () => this.resetGame());
+        this.nextExampleBtn.addEventListener('click', () => {
+             // Forzar cambio de modo para el "otro ejemplo"
+             const oldMode = this.currentMode;
+             this.resetGame();
+             while(this.currentMode === oldMode) {
+                 this.currentMode = 2 + Math.floor(Math.random() * 4);
+                 this.recalculatePhysics();
+             }
+             window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        document.getElementById('speedSlider').addEventListener('input', (e) => this.setSpeed(parseFloat(e.target.value)));
+        this.checkQuizBtn.addEventListener('click', () => this.checkQuizAnswers());
+
+        this.resize();
+        this.resetGame();
+        this.loop();
+      }
+
+      resize() {
+        const width = this.cStand.parentElement.clientWidth;
+        // Alturas ajustadas
+        const heightS = 288; 
+        const heightT = 224;
+        this.cStand.width = width;
+        this.cStand.height = heightS;
+        this.cTravel.width = width;
+        this.cTravel.height = heightT;
+        
+        this.pixelsPerMeter = width / this.physicalLength;
+        // La escala Y se actualiza en función de la amplitud actual
+        this.updateYScale();
+        
+        if (!this.isPlaying) this.draw();
+      }
+
+      updateYScale() {
+        // Altura disponible (mitad del canvas para amplitud positiva)
+        const halfHeight = this.cStand.height / 2;
+        
+        // Amplitud máxima que alcanzará la onda estacionaria: 2 * A
+        const maxStandingAmp = 2 * this.baseAmplitude;
+        
+        // Queremos que la onda ocupe aproximadamente el 75-80% de la altura disponible
+        // para que se vea bien pero no toque los bordes (margen 1.25)
+        const visibleRange = maxStandingAmp * 1.3;
+        
+        this.pixelsPerAmp = halfHeight / visibleRange;
+      }
+
+      resetGame() {
+        this.time = 0;
+        this.isPlaying = true;
+        this.score = 0;
+        this.scoreDisplay.textContent = "0";
+        this.updatePlayIcon();
+
+        // Modo aleatorio 2-5
+        this.currentMode = 2 + Math.floor(Math.random() * 4);
+
+        // Velocidad física aleatoria entre 2.0 y 4.0 m/s (pasos de 0.5)
+        this.velocity = 2.0 + (Math.floor(Math.random() * 5) * 0.5);
+
+        // Amplitud seleccionada de un conjunto "amigable" (enteros o mitades)
+        // 0.5, 1.0, 1.5
+        const friendlyAmplitudes = [0.5, 1.0, 1.5];
+        this.baseAmplitude = friendlyAmplitudes[Math.floor(Math.random() * friendlyAmplitudes.length)];
+        
+        // Recalcular escala Y según la nueva amplitud
+        this.updateYScale();
+
+        this.recalculatePhysics();
+
+        this.markersLayer.innerHTML = '';
+        this.foundTargets = [];
+        this.phase = 'nodes';
+        
+        this.quizPanel.classList.add('hidden');
+        this.nextExampleBtn.classList.add('hidden'); 
+        this.checkQuizBtn.classList.remove('hidden'); 
+        
+        this.quizFeedback.textContent = '';
+        this.checkQuizBtn.disabled = false;
+        this.checkQuizBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+        this.updatePhaseUI();
+      }
+
+      recalculatePhysics() {
+        this.wavelength = (2 * this.physicalLength) / this.currentMode;
+        this.k = (2 * Math.PI) / this.wavelength;
+        this.period = this.wavelength / this.velocity;
+        this.omega = (2 * Math.PI) / this.period;
+        this.velocityDisplay.textContent = this.velocity.toFixed(1);
+      }
+
+      updatePhaseUI() {
+        this.feedbackEl.textContent = '';
+        this.feedbackEl.classList.remove('text-green-600', 'text-red-600');
+
+        if (this.phase === 'nodes') {
+          this.targetCount = this.currentMode + 1;
+          this.phaseTitle.textContent = 'Fase 1: Identificación de Nodos';
+          this.phaseTitle.className = 'text-lg font-bold text-slate-800';
+          this.phaseDesc.innerHTML = 'Haz clic en <b>TODOS los nodos</b>. (Vale 25 pts)';
+          this.cStand.style.cursor = 'crosshair';
+        } else if (this.phase === 'antinodes') {
+          this.targetCount = this.currentMode;
+          this.phaseTitle.textContent = 'Fase 2: Identificación de Antinodos';
+          this.phaseTitle.className = 'text-lg font-bold text-orange-600';
+          this.phaseDesc.innerHTML = 'Haz clic en <b>TODOS los antinodos</b>. (Vale 25 pts)';
+          this.cStand.style.cursor = 'crosshair';
+        } else if (this.phase === 'quiz') {
+          this.phaseTitle.textContent = 'Fase 3: Análisis Conceptual y Numérico';
+          this.phaseTitle.className = 'text-lg font-bold text-indigo-600';
+          this.phaseDesc.textContent = 'Responde correctamente para completar el laboratorio. (Vale 50 pts)';
+          this.cStand.style.cursor = 'default';
+          this.generateQuiz();
+        } else {
+          this.phaseTitle.textContent = 'Simulación completada';
+          this.phaseTitle.className = 'text-lg font-bold text-green-700';
+          this.phaseDesc.textContent = '¡Excelente trabajo!';
+          this.cStand.style.cursor = 'default';
+        }
+        this.updateProgress();
+      }
+
+      updateProgress() {
+        if (this.phase === 'quiz' || this.phase === 'finished') {
+          this.progressIndicator.style.display = 'none';
+        } else {
+          this.progressIndicator.style.display = 'block';
+          this.progressIndicator.textContent = `${this.foundTargets.length} / ${this.targetCount}`;
+        }
+      }
+
+      setSpeed(v) {
+        this.speedFactor = v;
+        // NUEVO: Texto dinámico según velocidad
+        if (v >= 0.9) {
+            this.speedLabel.textContent = "Normal";
+            this.speedLabel.className = "text-xs font-bold text-indigo-600 uppercase tracking-wide w-20 text-center";
+        } else if (v >= 0.4) {
+            this.speedLabel.textContent = "Lento";
+            this.speedLabel.className = "text-xs font-bold text-amber-600 uppercase tracking-wide w-20 text-center";
+        } else {
+            this.speedLabel.textContent = "Súperlento";
+            this.speedLabel.className = "text-xs font-bold text-slate-500 uppercase tracking-wide w-20 text-center";
+        }
+      }
+
+      togglePlay() {
+        this.isPlaying = !this.isPlaying;
+        this.updatePlayIcon();
+      }
+
+      updatePlayIcon() {
+        const btn = document.getElementById('playBtn');
+        btn.textContent = this.isPlaying ? '⏸' : '▶';
+      }
+
+      step(dir) {
+        const dt = this.period / 20;
+        this.time += dir * dt;
+        if (this.time < 0) this.time += this.period;
+        this.draw();
+      }
+
+      getXFromEvent(e) {
+        const rect = this.cStand.getBoundingClientRect();
+        const xPixel = e.clientX - rect.left;
+        return xPixel / this.pixelsPerMeter;
+      }
+
+      handleClick(e) {
+        if (this.phase !== 'nodes' && this.phase !== 'antinodes') return;
+        const x = this.getXFromEvent(e);
+
+        const targets = this.phase === 'nodes' ? this.getNodePositions() : this.getAntinodePositions();
+        const thresholdMeters = this.physicalLength * 0.05;
+
+        let bestIdx = -1;
+        let bestDist = Infinity;
+        targets.forEach((xt, idx) => {
+          const d = Math.abs(xt - x);
+          if (d < bestDist) {
+            bestDist = d;
+            bestIdx = idx;
+          }
+        });
+
+        if (bestIdx === -1 || bestDist > thresholdMeters) {
+          this.feedbackEl.textContent = 'Punto incorrecto. Observa la cuadrícula.';
+          this.feedbackEl.classList.remove('text-green-600');
+          this.feedbackEl.classList.add('text-red-600');
+          return;
+        }
+
+        if (this.foundTargets.includes(bestIdx)) {
+          this.feedbackEl.textContent = 'Ya marcado.';
+          return;
+        }
+
+        this.foundTargets.push(bestIdx);
+        this.addMarker(targets[bestIdx]);
+        
+        const pointsTotal = (this.phase === 'nodes') ? this.pointsPerPhase1 : this.pointsPerPhase2;
+        const pointsPerItem = pointsTotal / this.targetCount;
+        
+        this.score += pointsPerItem;
+        this.scoreDisplay.textContent = Math.round(this.score);
+
+        this.feedbackEl.textContent = '¡Correcto!';
+        this.feedbackEl.classList.remove('text-red-600');
+        this.feedbackEl.classList.add('text-green-600');
+
+        if (this.foundTargets.length >= this.targetCount) {
+          if(this.phase === 'nodes') this.score = 25;
+          if(this.phase === 'antinodes') this.score = 50;
+          this.scoreDisplay.textContent = Math.round(this.score);
+
+          if (this.phase === 'nodes') {
+            this.phase = 'antinodes';
+            this.foundTargets = [];
+          } else if (this.phase === 'antinodes') {
+            this.phase = 'quiz';
+            this.foundTargets = [];
+          }
+          this.updatePhaseUI();
+        } else {
+          this.updateProgress();
+        }
+      }
+
+      addMarker(xMeters) {
+        const width = this.cStand.width;
+        const height = this.cStand.height;
+        const xPixel = xMeters * this.pixelsPerMeter;
+        const yPixel = height / 2;
+
+        const div = document.createElement('div');
+        div.classList.add('marker');
+        if (this.phase === 'nodes') {
+          div.classList.add('node-marker');
+        } else {
+          div.classList.add('antinode-marker');
+        }
+        div.style.left = `${xPixel}px`;
+        div.style.top = `${yPixel}px`;
+        this.markersLayer.appendChild(div);
+      }
+
+      getNodePositions() {
+        const positions = [];
+        const L = this.physicalLength;
+        const n = this.currentMode;
+        for (let i = 0; i <= n; i++) {
+          positions.push((i * L) / n);
+        }
+        return positions;
+      }
+
+      getAntinodePositions() {
+        const positions = [];
+        const L = this.physicalLength;
+        const n = this.currentMode;
+        for (let i = 0; i < n; i++) {
+          positions.push(((i + 0.5) * L) / n);
+        }
+        return positions;
+      }
+
+      // Función auxiliar para barajar arrays
+      shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      }
+
+      generateQuiz() {
+        this.quizPanel.classList.remove('hidden');
+        this.quizPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // 5 Preguntas numéricas
+        let numQuestions = [
+          { type: 'number', q: '¿Cuál es el modo de vibración (n)?', value: this.currentMode, unit: '' },
+          { type: 'number', q: '¿Longitud de onda (λ)?', value: this.wavelength, unit: 'm' },
+          { type: 'number', q: '¿Periodo (T)?', value: this.period, unit: 's' },
+          { type: 'number', q: '¿Amplitud ondas viajeras?', value: this.baseAmplitude, unit: 'm' },
+          { type: 'number', q: '¿Amplitud máx. onda estacionaria?', value: 2 * this.baseAmplitude, unit: 'm' }
+        ];
+
+        // 5 Preguntas conceptuales (Sí/No)
+        let boolQuestions = [
+            { type: 'bool', q: '¿Los puntos de las ondas viajeras oscilan todos con la misma frecuencia?', value: true },
+            { type: 'bool', q: '¿Los puntos de la onda estacionaria oscilan todos con la misma frecuencia?', value: true },
+            { type: 'bool', q: '¿La f de las ondas viajeras coincide con la f de la onda estacionaria?', value: true },
+            { type: 'bool', q: '¿Los puntos de las ondas viajeras tienen todos la misma amplitud?', value: true },
+            { type: 'bool', q: '¿Los puntos de la onda estacionaria tienen todos la misma amplitud?', value: false } 
+        ];
+
+        // NUEVO: Barajar las preguntas
+        numQuestions = this.shuffle(numQuestions);
+        boolQuestions = this.shuffle(boolQuestions);
+
+        this.quizContainer.innerHTML = '';
+
+        // Renderizar Numéricas
+        const col1 = document.createElement('div');
+        col1.className = "flex flex-col gap-4";
+        col1.innerHTML = `<h4 class="font-bold text-indigo-800 border-b border-indigo-100 pb-1 mb-2">Cálculos</h4>`;
+        numQuestions.forEach((item, idx) => {
+          col1.appendChild(this.createQuizCard(item, idx));
+        });
+        this.quizContainer.appendChild(col1);
+
+        // Renderizar Conceptuales
+        const col2 = document.createElement('div');
+        col2.className = "flex flex-col gap-4";
+        col2.innerHTML = `<h4 class="font-bold text-indigo-800 border-b border-indigo-100 pb-1 mb-2">Conceptos</h4>`;
+        boolQuestions.forEach((item, idx) => {
+          col2.appendChild(this.createQuizCard(item, idx + 5)); // offset id
+        });
+        this.quizContainer.appendChild(col2);
+      }
+
+      createQuizCard(item, idx) {
+        const card = document.createElement('div');
+        card.className = 'bg-white p-3 rounded shadow-sm border border-slate-200 text-sm';
+        card.dataset.type = item.type;
+        
+        if (item.type === 'number') {
+            card.dataset.answer = item.value;
+            card.innerHTML = `
+                <label class="block font-semibold text-slate-700 mb-1">${item.q}</label>
+                <div class="flex gap-2 items-center mt-2">
+                    <input type="number" step="0.01" class="w-24 border border-slate-300 rounded px-2 py-1 text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="0.00" />
+                    <span class="text-xs text-slate-400 font-bold">${item.unit}</span>
+                </div>
+            `;
+        } else {
+            card.dataset.answer = item.value; // true/false
+            const name = `q_bool_${idx}`;
+            card.innerHTML = `
+                <label class="block font-semibold text-slate-700 mb-2">${item.q}</label>
+                <div class="flex gap-4 radio-group mt-1">
+                    <div>
+                        <input type="radio" name="${name}" id="${name}_y" value="true">
+                        <label for="${name}_y">Sí</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="${name}" id="${name}_n" value="false">
+                        <label for="${name}_n">No</label>
+                    </div>
+                </div>
+            `;
+        }
+        return card;
+      }
+
+      checkQuizAnswers() {
+        const columns = Array.from(this.quizContainer.children);
+        let cards = [];
+        columns.forEach(col => {
+            Array.from(col.children).forEach(child => {
+                if(child.tagName === 'DIV') cards.push(child);
+            });
+        });
+
+        let correctCount = 0;
+        const total = cards.length; // Deberían ser 10
+
+        cards.forEach((card) => {
+          card.classList.remove('border-green-500', 'border-red-500', 'bg-green-50', 'bg-red-50');
+          
+          let isCorrect = false;
+
+          if (card.dataset.type === 'number') {
+              const input = card.querySelector('input');
+              const val = parseFloat(input.value.replace(',', '.'));
+              const expected = parseFloat(card.dataset.answer);
+              if (!isNaN(val)) {
+                  const tol = Math.max(0.05 * Math.abs(expected), 0.05); // Tolerancia relativa 5% o absoluta 0.05
+                  if (Math.abs(val - expected) <= tol) isCorrect = true;
+              }
+          } else {
+              // Boolean
+              const expected = (card.dataset.answer === 'true');
+              const selected = card.querySelector('input:checked');
+              if (selected) {
+                  const val = (selected.value === 'true');
+                  if (val === expected) isCorrect = true;
+              }
+          }
+
+          if (isCorrect) {
+              correctCount++;
+              card.classList.add('border-green-500', 'bg-green-50');
+          } else {
+              card.classList.add('border-red-500', 'bg-red-50');
+          }
+        });
+
+        const quizScore = correctCount * 5;
+        this.score = 50 + quizScore;
+        this.scoreDisplay.textContent = this.score;
+
+        if (correctCount === total) {
+          this.quizFeedback.textContent = '¡Perfecto! Has respondido correctamente a todo. (100/100)';
+          this.quizFeedback.className = 'text-sm font-bold text-green-700';
+          this.phase = 'finished';
+          this.updatePhaseUI();
+          this.checkQuizBtn.disabled = true;
+          this.checkQuizBtn.classList.add('opacity-50', 'cursor-not-allowed');
+          this.checkQuizBtn.classList.add('hidden'); 
+          this.nextExampleBtn.classList.remove('hidden'); 
+        } else {
+          this.quizFeedback.textContent = `Tienes ${correctCount} de ${total} correctas. Revisa las marcadas en rojo.`;
+          this.quizFeedback.className = 'text-sm font-bold text-red-600';
+        }
+      }
+
+      loop() {
+        requestAnimationFrame(() => this.loop());
+        if (this.isPlaying) {
+          const dt = 0.02 * this.speedFactor;
+          this.time += dt;
+        }
+        this.draw();
+      }
+
+      drawGrid(ctx, width, height) {
+        ctx.save();
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        const midY = height / 2;
+
+        // --- EJE X ---
+        const step = 0.25;
+        for (let xMetric = 0; xMetric <= this.physicalLength; xMetric += step) {
+            const xPix = xMetric * this.pixelsPerMeter;
+            
+            ctx.beginPath();
+            
+            const isMajor = Math.abs(xMetric % 1) < 0.01;
+            
+            if (isMajor) {
+                ctx.strokeStyle = '#94a3b8'; 
+                ctx.lineWidth = 1;
+                ctx.fillStyle = '#475569';
+                let txtAlign = 'center';
+                if (xMetric === 0) txtAlign = 'left';
+                if (Math.abs(xMetric - this.physicalLength) < 0.01) txtAlign = 'right';
+                ctx.textAlign = txtAlign;
+                ctx.fillText(Math.round(xMetric) + 'm', xMetric === 0 ? xPix + 2 : (xMetric >= this.physicalLength ? xPix - 2 : xPix), height - 10);
+            } else {
+                ctx.strokeStyle = '#cbd5e1'; 
+                ctx.lineWidth = 0.8;
+            }
+
+            ctx.moveTo(xPix, 0);
+            ctx.lineTo(xPix, height);
+            ctx.stroke();
+        }
+
+        // --- EJE Y ---
+        ctx.beginPath();
+        ctx.strokeStyle = '#64748b'; 
+        ctx.lineWidth = 1.5;
+        ctx.moveTo(0, midY);
+        ctx.lineTo(width, midY);
+        ctx.stroke();
+
+        // Líneas horizontales cada 0.25m
+        const maxAmpVisible = midY / this.pixelsPerAmp;
+        for (let a = 0.25; a < maxAmpVisible; a += 0.25) {
+            const yUp = midY - (a * this.pixelsPerAmp);
+            const yDown = midY + (a * this.pixelsPerAmp);
+            
+            const isInteger = Math.abs(a % 1) < 0.01;
+            // Se comprueba si es 0.5, 1.5, etc.
+            const isHalf = Math.abs(a % 0.5) < 0.01;
+            
+            ctx.beginPath();
+            
+            if (isInteger) {
+                // Línea principal (Enteros)
+                ctx.strokeStyle = '#94a3b8'; 
+                ctx.lineWidth = 1;
+                ctx.setLineDash([2, 2]); 
+                
+                // Texto SIEMPRE para enteros
+                ctx.fillStyle = '#475569';
+                ctx.textAlign = 'left';
+                if (yUp > 10) ctx.fillText(a + 'm', 5, yUp - 6);
+                if (yDown < height - 10) ctx.fillText('-' + a + 'm', 5, yDown - 6);
+
+            } else if (isHalf) {
+                // Línea secundaria (0.5m)
+                ctx.strokeStyle = '#cbd5e1'; 
+                ctx.lineWidth = 0.8;
+                ctx.setLineDash([]); // Línea continua pero suave
+                
+                // NUEVO: Texto TAMBIÉN para mitades (0.5, 1.5...)
+                ctx.fillStyle = '#64748b'; // Un poco más claro que los enteros
+                ctx.textAlign = 'left';
+                if (yUp > 10) ctx.fillText(a + 'm', 5, yUp - 6);
+                if (yDown < height - 10) ctx.fillText('-' + a + 'm', 5, yDown - 6);
+                
+            } else {
+                // Línea terciaria (0.25m, 0.75m)
+                ctx.strokeStyle = '#e2e8f0'; 
+                ctx.lineWidth = 0.5;
+                ctx.setLineDash([]);
+                // Sin texto
+            }
+
+            if (yUp > 0) {
+                ctx.moveTo(0, yUp);
+                ctx.lineTo(width, yUp);
+            }
+            if (yDown < height) {
+                ctx.moveTo(0, yDown);
+                ctx.lineTo(width, yDown);
+            }
+            ctx.stroke();
+        }
+
+        ctx.restore();
+      }
+
+      draw() {
+        this.ctxS.clearRect(0, 0, this.cStand.width, this.cStand.height);
+        this.drawGrid(this.ctxS, this.cStand.width, this.cStand.height); 
+        this.drawStandingWave();
+
+        this.ctxT.clearRect(0, 0, this.cTravel.width, this.cTravel.height);
+        this.drawGrid(this.ctxT, this.cTravel.width, this.cTravel.height);
+        this.drawTravelingWaves();
+      }
+
+      drawStandingWave() {
+        const ctx = this.ctxS;
+        const width = this.cStand.width;
+        const height = this.cStand.height;
+        const midY = height / 2;
+
+        ctx.save();
+        ctx.strokeStyle = '#4f46e5';
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = "rgba(79, 70, 229, 0.3)";
+        ctx.shadowBlur = 4;
+        ctx.beginPath();
+
+        const steps = width;
+        for (let px = 0; px <= steps; px++) {
+          const x = px / this.pixelsPerMeter;
+          const y = 2 * this.baseAmplitude * Math.sin(this.k * x) * Math.cos(this.omega * this.time);
+          const yPix = midY - y * this.pixelsPerAmp;
+          if (px === 0) ctx.moveTo(px, yPix);
+          else ctx.lineTo(px, yPix);
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      drawTravelingWaves() {
+        const ctx = this.ctxT;
+        const width = this.cTravel.width;
+        const height = this.cTravel.height;
+        const midY = height / 2;
+        const steps = width;
+
+        // Derecha (Azul)
+        ctx.save();
+        ctx.strokeStyle = '#0ea5e9'; 
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let px = 0; px <= steps; px++) {
+          const x = px / this.pixelsPerMeter;
+          const y = this.baseAmplitude * Math.sin(this.k * x - this.omega * this.time);
+          const yPix = midY - y * this.pixelsPerAmp;
+          if (px === 0) ctx.moveTo(px, yPix);
+          else ctx.lineTo(px, yPix);
+        }
+        ctx.stroke();
+
+        // Izquierda (Naranja)
+        ctx.strokeStyle = '#f97316'; 
+        ctx.beginPath();
+        for (let px = 0; px <= steps; px++) {
+          const x = px / this.pixelsPerMeter;
+          const y = this.baseAmplitude * Math.sin(this.k * x + this.omega * this.time);
+          const yPix = midY - y * this.pixelsPerAmp;
+          if (px === 0) ctx.moveTo(px, yPix);
+          else ctx.lineTo(px, yPix);
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      window.sim = new WaveSimulation();
+    });
+  </script>
+</body>
+</html>
