@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Cuerpos Geométricos 3D</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+        #canvas-container { width: 100%; height: 400px; cursor: move; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        select::-webkit-scrollbar { width: 8px; }
+        select::-webkit-scrollbar-track { background: #f1f1f1; }
+        select::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Game Card -->
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl overflow-hidden flex flex-col md:flex-row fade-in">
+        
+        <!-- 3D Viewer Section -->
+        <div class="w-full md:w-2/3 bg-slate-900 relative group">
+            <div id="canvas-container"></div>
+            <div class="absolute bottom-4 left-4 text-white/50 text-xs pointer-events-none select-none">
+                Arrastra para rotar • Rueda para zoom
+            </div>
+            
+            <!-- Connection Status Indicator -->
+            <div id="scorm-status" class="absolute top-4 right-4 text-xs bg-black/50 text-white px-2 py-1 rounded hidden">
+                SCORM: Offline
+            </div>
+
+            <!-- Feedback Overlay -->
+            <div id="feedback-overlay" class="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden z-10">
+                <div class="text-center p-6 bg-white rounded-xl shadow-2xl transform scale-110 transition-transform">
+                    <div id="feedback-icon" class="text-6xl mb-2"></div>
+                    <h3 id="feedback-title" class="text-2xl font-bold mb-1"></h3>
+                    <p id="feedback-message" class="text-gray-600 mb-4"></p>
+                    <button id="next-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
+                        Siguiente Figura
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Section -->
+        <div class="w-full md:w-1/3 p-6 flex flex-col justify-between border-l border-slate-200">
+            
+            <div>
+                <header class="mb-6 border-b pb-4">
+                    <h1 class="text-2xl font-bold text-slate-800 leading-tight">Cuerpos Geométricos</h1>
+                    <p class="text-sm text-slate-500 mt-1">Identifica el poliedro o cuerpo redondo</p>
+                </header>
+
+                <!-- Score Board -->
+                <div class="bg-slate-50 rounded-xl p-4 mb-6 flex justify-between items-center border border-slate-200">
+                    <div class="text-center">
+                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Puntuación</span>
+                        <span id="score-display" class="text-3xl font-bold text-blue-600">0</span>
+                    </div>
+                    <div class="text-center">
+                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Meta</span>
+                        <span class="text-3xl font-bold text-slate-300">10</span>
+                    </div>
+                </div>
+
+                <!-- Game Controls -->
+                <div id="game-controls">
+                    <label for="shape-select" class="block text-sm font-semibold text-slate-700 mb-2">¿Cómo se llama esta figura?</label>
+                    <div class="relative">
+                        <select id="shape-select" class="block w-full pl-3 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg border bg-white shadow-sm appearance-none cursor-pointer hover:border-blue-400 transition-colors">
+                            <option value="" disabled selected>Selecciona una respuesta...</option>
+                            <!-- Options populated by JS -->
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                    
+                    <button id="check-btn" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+                        Comprobar Respuesta
+                    </button>
+                </div>
+
+                <!-- Win Message -->
+                <div id="win-screen" class="hidden text-center py-4">
+                    <div class="text-5xl mb-2">🏆</div>
+                    <h2 class="text-2xl font-bold text-green-600 mb-2">¡Completado!</h2>
+                    <p class="text-gray-600 mb-6">Has enviado tu calificación de 10 a la plataforma.</p>
+                    <button id="restart-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow transition-colors">
+                        Jugar de Nuevo
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-4 text-xs text-center text-slate-400">
+                Basado en el documento "Desarrollo de Cuerpos Geométricos"
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- SCORM API WRAPPER (SCORM 1.2) ---
+        var scorm = {
+            active: false,
+            api: null,
+            
+            init: function() {
+                try {
+                    var api = this.findAPI(window);
+                    if ((api == null) && (window.parent != null) && (window.parent != window)) {
+                        api = this.findAPI(window.parent);
+                    }
+                    if (api != null) {
+                        this.api = api;
+                        var result = this.api.LMSInitialize("");
+                        if (result.toString() === "true") {
+                            this.active = true;
+                            console.log("SCORM API Initialized");
+                            this.setStatus("incomplete");
+                            this.setScore(0);
+                            document.getElementById('scorm-status').textContent = "SCORM: Conectado";
+                            document.getElementById('scorm-status').classList.remove('hidden');
+                            document.getElementById('scorm-status').classList.add('bg-green-500/80');
+                        }
+                    } else {
+                        console.log("SCORM API not found (Local Mode)");
+                    }
+                } catch (e) {
+                    console.warn("Error initializing SCORM (likely local mode):", e);
+                }
+            },
+            
+            findAPI: function(win) {
+                var findAPITries = 0;
+                try {
+                    while ((win.API == null) && (win.parent != null) && (win.parent != win)) {
+                        findAPITries++;
+                        if (findAPITries > 7) {
+                            return null;
+                        }
+                        win = win.parent;
+                    }
+                    return win.API;
+                } catch (e) {
+                    console.warn("SCORM detection blocked by cross-origin security (running standalone).");
+                    return null;
+                }
+            },
+            
+            setScore: function(score) {
+                if (!this.active) return;
+                try {
+                    this.api.LMSSetValue("cmi.core.score.raw", score);
+                    this.api.LMSSetValue("cmi.core.score.min", "0");
+                    this.api.LMSSetValue("cmi.core.score.max", "10");
+                    this.api.LMSCommit("");
+                } catch(e) {
+                    console.error("SCORM setScore failed:", e);
+                }
+            },
+
+            setStatus: function(status) { // passed, completed, failed, incomplete, browsed
+                if (!this.active) return;
+                try {
+                    this.api.LMSSetValue("cmi.core.lesson_status", status);
+                    this.api.LMSCommit("");
+                } catch(e) {
+                    console.error("SCORM setStatus failed:", e);
+                }
+            },
+            
+            finish: function() {
+                if (!this.active) return;
+                try {
+                    this.api.LMSFinish("");
+                    this.active = false;
+                } catch(e) {
+                    console.error("SCORM finish failed:", e);
+                }
+            }
+        };
+
+        // --- DATA & CONFIGURATION ---
+        const SHAPES = [
+            { id: 'tetraedro', name: 'Tetraedro', type: 'poly' },
+            { id: 'cubo', name: 'Hexaedro o Cubo', type: 'poly' },
+            { id: 'octaedro', name: 'Octaedro', type: 'poly' },
+            { id: 'dodecaedro', name: 'Dodecaedro', type: 'poly' },
+            { id: 'icosaedro', name: 'Icosaedro', type: 'poly' },
+            { id: 'prisma_tri', name: 'Prisma Triangular', type: 'prism' },
+            { id: 'prisma_cuad', name: 'Prisma Cuadrangular', type: 'prism' },
+            { id: 'prisma_pent', name: 'Prisma Pentagonal', type: 'prism' },
+            { id: 'prisma_hex', name: 'Prisma Hexagonal', type: 'prism' },
+            { id: 'piramide_tri', name: 'Pirámide Triangular', type: 'pyramid' },
+            { id: 'piramide_cuad', name: 'Pirámide Cuadrangular', type: 'pyramid' },
+            { id: 'piramide_pent', name: 'Pirámide Pentagonal', type: 'pyramid' },
+            { id: 'piramide_hex', name: 'Pirámide Hexagonal', type: 'pyramid' },
+            { id: 'piramide_oct', name: 'Pirámide Octagonal', type: 'pyramid' },
+            { id: 'piramide_trunc', name: 'Pirámide Cuadrangular Truncada', type: 'trunc_pyr' },
+            { id: 'cilindro', name: 'Cilindro', type: 'cylinder' },
+            { id: 'cono', name: 'Cono', type: 'cone' },
+            { id: 'cono_trunc', name: 'Cono Truncado', type: 'cone_trunc' }
+        ];
+
+        let score = 0;
+        let currentShape = null;
+        let isAnimating = true;
+        let availableShapes = []; // Bolsa de preguntas para no repetir
+
+        // --- THREE.JS SETUP ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0f172a); // Slate 900
+
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+        camera.position.set(0, 2, 5);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 5, 5);
+        scene.add(dirLight);
+
+        const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        backLight.position.set(-5, -5, -5);
+        scene.add(backLight);
+
+        // Materials
+        const materialSolid = new THREE.MeshPhongMaterial({ 
+            color: 0x3b82f6, 
+            flatShading: true,
+            polygonOffset: true,
+            polygonOffsetFactor: 1, 
+            polygonOffsetUnits: 1,
+            shininess: 60
+        });
+        
+        const materialWire = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 });
+
+        let currentMeshGroup = new THREE.Group();
+        scene.add(currentMeshGroup);
+
+        // --- GEOMETRY FACTORY ---
+        function createGeometry(shapeId) {
+            let geometry;
+            let radius = 1.5;
+            let height = 2.5;
+
+            switch(shapeId) {
+                // Regular Polyhedra
+                case 'tetraedro': geometry = new THREE.TetrahedronGeometry(radius); break;
+                case 'cubo': geometry = new THREE.BoxGeometry(2, 2, 2); break;
+                case 'octaedro': geometry = new THREE.OctahedronGeometry(radius); break;
+                case 'dodecaedro': geometry = new THREE.DodecahedronGeometry(radius); break;
+                case 'icosaedro': geometry = new THREE.IcosahedronGeometry(radius); break;
+                
+                // Prisms
+                case 'prisma_tri': geometry = new THREE.CylinderGeometry(1.2, 1.2, height, 3); break;
+                case 'prisma_cuad': geometry = new THREE.BoxGeometry(1.5, 2.5, 1.5); break; 
+                case 'prisma_pent': geometry = new THREE.CylinderGeometry(1.2, 1.2, height, 5); break;
+                case 'prisma_hex': geometry = new THREE.CylinderGeometry(1.2, 1.2, height, 6); break;
+                
+                // Pyramids
+                case 'piramide_tri': geometry = new THREE.ConeGeometry(1.5, height, 3); break;
+                case 'piramide_cuad': geometry = new THREE.ConeGeometry(1.5, height, 4); break;
+                case 'piramide_pent': geometry = new THREE.ConeGeometry(1.5, height, 5); break;
+                case 'piramide_hex': geometry = new THREE.ConeGeometry(1.5, height, 6); break;
+                case 'piramide_oct': geometry = new THREE.ConeGeometry(1.5, height, 8); break;
+                
+                // Truncated Pyramid
+                case 'piramide_trunc': geometry = new THREE.CylinderGeometry(0.8, 1.5, 2, 4); break;
+                
+                // Round Bodies
+                case 'cilindro': geometry = new THREE.CylinderGeometry(1, 1, height, 32); break;
+                case 'cono': geometry = new THREE.ConeGeometry(1.2, height, 32); break;
+                case 'cono_trunc': geometry = new THREE.CylinderGeometry(0.6, 1.2, 2, 32); break;
+            }
+            return geometry;
+        }
+
+        function loadShape(shape) {
+            while(currentMeshGroup.children.length > 0){ 
+                let child = currentMeshGroup.children[0];
+                if(child.geometry) child.geometry.dispose();
+                currentMeshGroup.remove(child); 
+            }
+
+            const geometry = createGeometry(shape.id);
+            const mesh = new THREE.Mesh(geometry, materialSolid);
+            
+            let edges;
+            if (['cilindro', 'cono', 'cono_trunc'].includes(shape.id)) {
+                 edges = new THREE.EdgesGeometry(geometry, 30);
+            } else {
+                 edges = new THREE.EdgesGeometry(geometry);
+            }
+            
+            const line = new THREE.LineSegments(edges, materialWire);
+
+            currentMeshGroup.add(mesh);
+            currentMeshGroup.add(line);
+
+            currentMeshGroup.rotation.x = Math.random() * Math.PI;
+            currentMeshGroup.rotation.y = Math.random() * Math.PI;
+        }
+
+        // --- GAME LOGIC ---
+
+        function initGame() {
+            // SCORM Init
+            scorm.init();
+
+            const select = document.getElementById('shape-select');
+            const sortedShapes = [...SHAPES].sort((a, b) => a.name.localeCompare(b.name));
+            
+            // Avoid duplicates on restart
+            select.innerHTML = '<option value="" disabled selected>Selecciona una respuesta...</option>';
+
+            sortedShapes.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.name;
+                select.appendChild(opt);
+            });
+
+            // Llenamos la bolsa de figuras inicial
+            availableShapes = [...SHAPES];
+            nextRound();
+        }
+
+        function nextRound() {
+            if (score >= 10) {
+                endGame();
+                return;
+            }
+
+            document.getElementById('feedback-overlay').classList.add('hidden');
+            document.getElementById('shape-select').value = "";
+            document.getElementById('check-btn').disabled = false;
+
+            // Si se acaban las preguntas (porque el usuario ha fallado muchas y ha pasado de ronda)
+            // volvemos a llenar la bolsa para que pueda seguir sumando.
+            if (availableShapes.length === 0) {
+                availableShapes = [...SHAPES];
+            }
+
+            const randomIndex = Math.floor(Math.random() * availableShapes.length);
+            currentShape = availableShapes[randomIndex];
+            
+            // Eliminamos la figura usada
+            availableShapes.splice(randomIndex, 1);
+            
+            loadShape(currentShape);
+        }
+
+        function checkAnswer() {
+            const userChoiceId = document.getElementById('shape-select').value;
+            if (!userChoiceId) return;
+
+            const isCorrect = userChoiceId === currentShape.id;
+            
+            if (isCorrect) {
+                score += 1;
+                showFeedback(true);
+            } else {
+                score = Math.max(0, score - 0.5); 
+                showFeedback(false);
+            }
+            
+            // Send score to SCORM immediately
+            scorm.setScore(score);
+            document.getElementById('score-display').textContent = score;
+        }
+
+        function showFeedback(isCorrect) {
+            const overlay = document.getElementById('feedback-overlay');
+            const icon = document.getElementById('feedback-icon');
+            const title = document.getElementById('feedback-title');
+            const msg = document.getElementById('feedback-message');
+            const nextBtn = document.getElementById('next-btn');
+
+            overlay.classList.remove('hidden');
+            
+            if (isCorrect) {
+                icon.textContent = '🎉';
+                title.textContent = '¡Correcto!';
+                title.className = 'text-2xl font-bold mb-1 text-green-600';
+                msg.textContent = `¡Muy bien! Has sumado 1 punto.`;
+            } else {
+                icon.textContent = '❌';
+                title.textContent = 'Incorrecto';
+                title.className = 'text-2xl font-bold mb-1 text-red-600';
+                msg.textContent = `Era un ${currentShape.name}. Pierdes 0.5 puntos.`;
+            }
+
+            setTimeout(() => nextBtn.focus(), 100);
+        }
+
+        function endGame() {
+            // Aseguramos que la ventana de feedback se cierra
+            document.getElementById('feedback-overlay').classList.add('hidden');
+            
+            document.getElementById('game-controls').classList.add('hidden');
+            document.getElementById('canvas-container').classList.add('hidden');
+            document.getElementById('win-screen').classList.remove('hidden');
+            
+            // SCORM Finish
+            scorm.setStatus("completed");
+            scorm.finish();
+        }
+
+        function resetGame() {
+            score = 0;
+            document.getElementById('score-display').textContent = score;
+            
+            // Reset SCORM status locally (optional)
+            scorm.active = true; // Reactivate tracking if needed logic allows
+            scorm.setStatus("incomplete");
+            scorm.setScore(0);
+
+            // Restore UI
+            document.getElementById('win-screen').classList.add('hidden');
+            document.getElementById('game-controls').classList.remove('hidden');
+            document.getElementById('canvas-container').classList.remove('hidden');
+            
+            // Reload shapes
+            initGame();
+        }
+
+        // --- ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+            if (isAnimating) {
+                currentMeshGroup.rotation.x += 0.005;
+                currentMeshGroup.rotation.y += 0.01;
+            }
+            renderer.render(scene, camera);
+        }
+
+        // --- EVENT LISTENERS ---
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        // Mouse interaction for rotation
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+
+        container.addEventListener('mousedown', () => isDragging = true);
+        container.addEventListener('mouseup', () => isDragging = false);
+        container.addEventListener('mouseleave', () => isDragging = false);
+        
+        container.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaMove = {
+                    x: e.offsetX - previousMousePosition.x,
+                    y: e.offsetY - previousMousePosition.y
+                };
+                currentMeshGroup.rotation.y += deltaMove.x * 0.01;
+                currentMeshGroup.rotation.x += deltaMove.y * 0.01;
+            }
+            previousMousePosition = { x: e.offsetX, y: e.offsetY };
+        });
+
+        // Touch support
+        container.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }, {passive: false});
+
+        container.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                e.preventDefault(); 
+                const currentX = e.touches[0].clientX;
+                const currentY = e.touches[0].clientY;
+                
+                const deltaMove = {
+                    x: currentX - previousMousePosition.x,
+                    y: currentY - previousMousePosition.y
+                };
+
+                currentMeshGroup.rotation.y += deltaMove.x * 0.01;
+                currentMeshGroup.rotation.x += deltaMove.y * 0.01;
+                
+                previousMousePosition = { x: currentX, y: currentY };
+            }
+        }, {passive: false});
+        
+        container.addEventListener('touchend', () => isDragging = false);
+
+        document.getElementById('check-btn').addEventListener('click', checkAnswer);
+        document.getElementById('next-btn').addEventListener('click', nextRound);
+        document.getElementById('restart-btn').addEventListener('click', resetGame);
+
+        // Cleanup SCORM on window unload
+        window.onunload = function() {
+            scorm.finish();
+        };
+
+        // Start
+        initGame();
+        animate();
+
+    </script>
+</body>
+</html>
