@@ -1,1 +1,567 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reto de Logística: Cálculo de Volúmenes</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #dbeafe;
+            --success: #22c55e;
+            --error: #ef4444;
+            --text: #1f2937;
+            --bg: #f3f4f6;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* Header y Puntuación */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 { margin: 0; font-size: 1.8rem; }
+        
+        .score-board {
+            background: rgba(255, 255, 255, 0.1);
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        /* Barra de progreso */
+        .progress-container {
+            width: 100%;
+            height: 10px;
+            background-color: #e5e7eb;
+            margin-top: 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: var(--success);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Área del Problema */
+        .problem-area {
+            padding: 30px;
+        }
+
+        .scenario {
+            background-color: var(--secondary);
+            padding: 20px;
+            border-left: 5px solid var(--primary);
+            border-radius: 4px;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        .data-highlight {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* Pasos de Resolución */
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .step-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #fff;
+        }
+
+        .step-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #4b5563;
+        }
+
+        .formula {
+            font-family: 'Courier New', Courier, monospace;
+            background: #f9fafb;
+            padding: 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        /* Inputs generales */
+        input[type="number"] {
+            padding: 8px 12px;
+            font-size: 1rem;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
+            width: 150px;
+            margin-left: 10px;
+            transition: border-color 0.3s;
+        }
+
+        /* Mini inputs para conversiones */
+        .mini-input {
+            width: 90px !important;
+            padding: 5px !important;
+            margin: 0 5px !important;
+            text-align: center;
+        }
+
+        .conversion-row {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        input.correct {
+            border-color: var(--success);
+            background-color: #dcfce7;
+        }
+
+        input.incorrect {
+            border-color: var(--error);
+            background-color: #fee2e2;
+        }
+
+        /* Botones */
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        button:active { transform: scale(0.98); }
+
+        #btn-check {
+            background-color: var(--success);
+            color: white;
+        }
+
+        #btn-next {
+            background-color: var(--primary);
+            color: white;
+            display: none; /* Oculto al inicio */
+        }
+
+        button:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        /* Mensajes de Feedback */
+        .feedback-msg {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            min-height: 1.5em;
+        }
+
+        /* Pantalla Final */
+        #victory-screen {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        #victory-screen h2 { color: var(--success); font-size: 2.5rem; }
+        .confetti { font-size: 4rem; }
+
+        /* Adaptación Móvil */
+        @media (max-width: 600px) {
+            .step-card { padding: 15px; }
+            input[type="number"] { width: 100%; margin-left: 0; margin-top: 10px; }
+            .mini-input { width: 80px !important; }
+            .controls { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>📦 Reto de Almacén</h1>
+        <div class="score-board">
+            <span>Puntos: <span id="score-display">0</span> / 10</span>
+            <span>Problema: <span id="problem-count">1</span></span>
+        </div>
+    </header>
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <!-- Pantalla de Juego -->
+    <div id="game-area" class="problem-area">
+        <div id="scenario-text" class="scenario">
+            <!-- El texto del problema se genera aquí -->
+        </div>
+
+        <div class="steps-container">
+            <!-- PASO 1: Volumen del Objeto -->
+            <div class="step-card">
+                <div class="step-title">Paso 1: Calcula el volumen de UN objeto (en cm³)</div>
+                <div id="step1-desc"></div>
+                <label>Volumen objeto = </label>
+                <input type="number" id="input-obj-vol" placeholder="Resultado"> cm³
+            </div>
+
+            <!-- PASO 2: Conversiones y Volumen Almacén -->
+            <div class="step-card">
+                <div class="step-title">Paso 2: Calcula el volumen del Almacén</div>
+                
+                <p><strong>A) Pasa las medidas de metros a centímetros:</strong><br>
+                <small>(Recuerda: 1 metro = 100 cm. Añade dos ceros)</small></p>
+                
+                <div class="conversion-row">
+                    📏 Largo: <span id="label-dim-l" style="margin: 0 5px; font-weight:bold;"></span> m = 
+                    <input type="number" id="input-dim-l" class="mini-input"> cm
+                </div>
+                <div class="conversion-row">
+                    📏 Ancho: <span id="label-dim-w" style="margin: 0 5px; font-weight:bold;"></span> m = 
+                    <input type="number" id="input-dim-w" class="mini-input"> cm
+                </div>
+                <div class="conversion-row">
+                    📏 Alto: <span id="label-dim-h" style="margin: 0 5px; font-weight:bold;"></span> m = 
+                    <input type="number" id="input-dim-h" class="mini-input"> cm
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+
+                <p><strong>B) Calcula el volumen total del almacén:</strong><br>
+                <small>(Multiplica el Largo × Ancho × Alto en cm)</small></p>
+                <div class="formula">V = L (cm) × A (cm) × H (cm)</div>
+                <br>
+                <label>Volumen Almacén = </label>
+                <input type="number" id="input-warehouse-vol" placeholder="Total"> cm³
+            </div>
+
+            <!-- PASO 3: División Final -->
+            <div class="step-card">
+                <div class="step-title">Paso 3: ¿Cuántos objetos caben?</div>
+                <p>Divide el volumen del almacén entre el volumen del objeto.</p>
+                <div class="formula">Objetos = Vol. Almacén / Vol. Objeto</div>
+                <br>
+                <label>Resultado final = </label>
+                <input type="number" id="input-final" placeholder="Número de objetos">
+            </div>
+        </div>
+
+        <div class="feedback-msg" id="feedback"></div>
+
+        <div class="controls">
+            <button id="btn-check" onclick="checkAnswers()">✅ Corregir</button>
+            <button id="btn-next" onclick="nextProblem()">➡️ Siguiente Problema</button>
+        </div>
+    </div>
+
+    <!-- Pantalla de Victoria -->
+    <div id="victory-screen">
+        <div class="confetti">🎉🏆🎉</div>
+        <h2>¡ENHORABUENA!</h2>
+        <p>Has conseguido 10 puntos.</p>
+        <p>Eres un experto calculando volúmenes.</p>
+        <button onclick="location.reload()" style="background-color: var(--primary); color: white; margin-top: 20px;">Jugar otra vez</button>
+    </div>
+</div>
+
+<script>
+    // --- ESTADO DE LA APLICACIÓN ---
+    let state = {
+        score: 0,
+        problemNumber: 1,
+        maxScore: 10,
+        currentProblem: null,
+        isChecked: false
+    };
+
+    // --- GENERADOR DE DATOS ---
+    const objectTypes = [
+        { type: 'cube', name: 'Dado gigante', formula: 'Lado × Lado × Lado', img: '📦' },
+        { type: 'cube', name: 'Caja fuerte', formula: 'Lado × Lado × Lado', img: '🔒' },
+        { type: 'prism', name: 'Caja de zapatos', formula: 'Largo × Ancho × Alto', img: '👟' },
+        { type: 'prism', name: 'Microondas', formula: 'Largo × Ancho × Alto', img: '📟' },
+        { type: 'prism', name: 'Ladrillo', formula: 'Largo × Ancho × Alto', img: '🧱' },
+        { type: 'cylinder', name: 'Bote de pintura', formula: '3.14 × Radio × Radio × Altura', img: '🎨' },
+        { type: 'cylinder', name: 'Barril', formula: '3.14 × Radio × Radio × Altura', img: '🛢️' }
+    ];
+
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function generateProblem() {
+        // 1. Datos del Almacén (Metros)
+        const wL = getRandomInt(3, 8); // Metros
+        const wW = getRandomInt(2, 6);
+        const wH = getRandomInt(3, 5);
+        
+        // Volumen almacén en cm3 (Cálculo interno: 1m = 100cm)
+        const warehouseVolCm3 = (wL * 100) * (wW * 100) * (wH * 100);
+
+        // 2. Datos del Objeto (cm)
+        const objTemplate = objectTypes[getRandomInt(0, objectTypes.length - 1)];
+        let dims = {};
+        let objVol = 0;
+        let description = "";
+        let step1Html = "";
+
+        if (objTemplate.type === 'cube') {
+            const side = getRandomInt(20, 60); // cm
+            dims = { side };
+            objVol = side * side * side;
+            description = `${objTemplate.img} Tienes un almacén de <b>${wL}m de largo</b>, <b>${wW}m de ancho</b> y <b>${wH}m de alto</b>. <br>Queremos llenarlo de <b>${objTemplate.name}s</b> que son cubos de <b>${side} cm de lado</b>.`;
+            step1Html = `<div class="formula">${objTemplate.formula}</div><br>Cálculo: ${side} × ${side} × ${side}`;
+        } 
+        else if (objTemplate.type === 'prism') {
+            const l = getRandomInt(30, 60);
+            const w = getRandomInt(20, 40);
+            const h = getRandomInt(15, 30);
+            dims = { l, w, h };
+            objVol = l * w * h;
+            description = `${objTemplate.img} Tienes un almacén de <b>${wL}m de largo</b>, <b>${wW}m de ancho</b> y <b>${wH}m de alto</b>. <br>Queremos llenarlo de <b>${objTemplate.name}s</b> que miden: <b>${l}cm de largo</b>, <b>${w}cm de ancho</b> y <b>${h}cm de alto</b>.`;
+            step1Html = `<div class="formula">${objTemplate.formula}</div><br>Cálculo: ${l} × ${w} × ${h}`;
+        }
+        else if (objTemplate.type === 'cylinder') {
+            const r = getRandomInt(10, 30);
+            const h = getRandomInt(30, 60);
+            dims = { r, h };
+            objVol = 3.14 * r * r * h;
+            description = `${objTemplate.img} Tienes un almacén de <b>${wL}m de largo</b>, <b>${wW}m de ancho</b> y <b>${wH}m de alto</b>. <br>Queremos llenarlo de <b>${objTemplate.name}s</b> (cilindros) con <b>${r}cm de radio</b> y <b>${h}cm de altura</b>.`;
+            step1Html = `<div class="formula">${objTemplate.formula}</div><br>Cálculo: 3.14 × ${r} × ${r} × ${h}`;
+        }
+
+        const count = Math.floor(warehouseVolCm3 / objVol);
+
+        return {
+            description,
+            warehouseDims: { l: wL, w: wW, h: wH },
+            warehouseVolCm3,
+            objType: objTemplate,
+            objVol, 
+            finalCount: count,
+            step1Html
+        };
+    }
+
+    // --- UI MANAGER ---
+
+    function resetInputs() {
+        const inputs = document.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => {
+            input.value = '';
+            input.className = '';
+            if(input.classList.contains('mini-input')) input.classList.add('mini-input');
+            input.disabled = false;
+        });
+    }
+
+    function renderProblem() {
+        const p = generateProblem();
+        state.currentProblem = p;
+        state.isChecked = false;
+
+        resetInputs();
+
+        document.getElementById('feedback').innerText = '';
+        document.getElementById('feedback').style.color = 'inherit';
+
+        // Botones
+        document.getElementById('btn-check').style.display = 'inline-block';
+        document.getElementById('btn-next').style.display = 'none';
+
+        // Textos del problema
+        document.getElementById('scenario-text').innerHTML = p.description;
+        document.getElementById('step1-desc').innerHTML = p.step1Html;
+
+        // Etiquetas para conversión (Paso 2)
+        document.getElementById('label-dim-l').innerText = p.warehouseDims.l;
+        document.getElementById('label-dim-w').innerText = p.warehouseDims.w;
+        document.getElementById('label-dim-h').innerText = p.warehouseDims.h;
+    }
+
+    function checkAnswers() {
+        if (state.isChecked) return;
+
+        // Recoger valores
+        const inputObjVol = parseFloat(document.getElementById('input-obj-vol').value);
+        
+        const inputDimL = parseFloat(document.getElementById('input-dim-l').value);
+        const inputDimW = parseFloat(document.getElementById('input-dim-w').value);
+        const inputDimH = parseFloat(document.getElementById('input-dim-h').value);
+        const inputWhVol = parseFloat(document.getElementById('input-warehouse-vol').value);
+
+        const inputFinal = parseInt(document.getElementById('input-final').value);
+        
+        const p = state.currentProblem;
+
+        // Verificar vacíos
+        if (isNaN(inputObjVol) || isNaN(inputDimL) || isNaN(inputDimW) || isNaN(inputDimH) || isNaN(inputWhVol) || isNaN(inputFinal)) {
+            document.getElementById('feedback').innerText = "⚠️ Por favor, rellena TODOS los campos antes de corregir.";
+            document.getElementById('feedback').style.color = "#d97706";
+            return;
+        }
+
+        state.isChecked = true;
+        let pointsGained = 0;
+        let errors = false;
+
+        // CAMBIO DE LÓGICA DE PUNTOS PARA REQUERIR 5 EJERCICIOS (TOTAL 2 PUNTOS MAX POR EJERCICIO)
+
+        // 1. Validar Volumen Objeto (0.4 pto)
+        const elObjVol = document.getElementById('input-obj-vol');
+        if (Math.abs(inputObjVol - p.objVol) < 1.0) {
+            elObjVol.classList.add('correct');
+            pointsGained += 0.4;
+        } else {
+            elObjVol.classList.add('incorrect');
+            errors = true;
+            pointsGained -= 0.2;
+        }
+
+        // 2. Validar Conversiones (0.2 pto cada una = 0.6 ptos)
+        const checkConversion = (elId, valMeters) => {
+            const el = document.getElementById(elId);
+            const val = parseFloat(el.value);
+            if (val === valMeters * 100) {
+                el.classList.add('correct');
+                return 0.2;
+            } else {
+                el.classList.add('incorrect');
+                errors = true;
+                return -0.1; // Penalización pequeña
+            }
+        };
+        pointsGained += checkConversion('input-dim-l', p.warehouseDims.l);
+        pointsGained += checkConversion('input-dim-w', p.warehouseDims.w);
+        pointsGained += checkConversion('input-dim-h', p.warehouseDims.h);
+
+        // 3. Validar Volumen Almacén (0.4 pto)
+        const elWhVol = document.getElementById('input-warehouse-vol');
+        if (Math.abs(inputWhVol - p.warehouseVolCm3) < 1.0) {
+            elWhVol.classList.add('correct');
+            pointsGained += 0.4;
+        } else {
+            elWhVol.classList.add('incorrect');
+            errors = true;
+            pointsGained -= 0.2;
+        }
+
+        // 4. Validar Resultado Final (0.6 ptos)
+        const elFinal = document.getElementById('input-final');
+        if (inputFinal === p.finalCount) {
+            elFinal.classList.add('correct');
+            pointsGained += 0.6;
+        } else {
+            elFinal.classList.add('incorrect');
+            errors = true;
+            pointsGained -= 0.4;
+        }
+
+        // Actualizar Puntuación Global
+        state.score += pointsGained;
+        // Evitar decimales feos en la visualización
+        state.score = Math.round(state.score * 10) / 10;
+        
+        if (state.score < 0) state.score = 0;
+        if (state.score > 10) state.score = 10;
+
+        updateScoreUI();
+
+        // Feedback Texto
+        const feedbackEl = document.getElementById('feedback');
+        if (!errors) {
+            feedbackEl.innerText = `¡Excelente! Has sumado puntos.`;
+            feedbackEl.style.color = "var(--success)";
+        } else {
+            feedbackEl.innerHTML = `Hay errores (en rojo).<br>
+            Vol. Objeto correcto: ${Math.round(p.objVol).toLocaleString('es-ES')} cm³.<br>
+            Vol. Almacén correcto: ${p.warehouseVolCm3.toLocaleString('es-ES')} cm³.<br>
+            Resultado final: ${p.finalCount} objetos.`;
+            feedbackEl.style.color = "var(--error)";
+        }
+
+        // Bloquear inputs
+        const allInputs = document.querySelectorAll('input');
+        allInputs.forEach(inp => inp.disabled = true);
+
+        // Gestión Botones
+        document.getElementById('btn-check').style.display = 'none';
+
+        if (state.score >= 10) {
+            setTimeout(showVictory, 1500);
+        } else {
+            document.getElementById('btn-next').style.display = 'inline-block';
+        }
+    }
+
+    function updateScoreUI() {
+        document.getElementById('score-display').innerText = state.score;
+        document.getElementById('problem-count').innerText = state.problemNumber;
+        const percentage = (state.score / 10) * 100;
+        document.getElementById('progress-bar').style.width = percentage + "%";
+    }
+
+    function nextProblem() {
+        state.problemNumber++;
+        updateScoreUI();
+        renderProblem();
+    }
+
+    function showVictory() {
+        document.getElementById('game-area').style.display = 'none';
+        document.getElementById('victory-screen').style.display = 'block';
+        document.querySelector('.score-board').style.display = 'none';
+    }
+
+    // --- INICIO ---
+    renderProblem();
+
+</script>
+
+</body>
+</html>
