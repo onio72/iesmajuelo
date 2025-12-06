@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conteo de Elementos en Poliedros</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+        
+        /* Aseguramos altura mínima para evitar colapso */
+        #canvas-container { 
+            width: 100%; 
+            height: 500px; 
+            min-height: 400px;
+            cursor: default;
+            background-color: #0f172a; /* Fondo visual inmediato */
+        }
+        
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .mode-radio:checked + label {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px #3b82f6 inset;
+        }
+        .dot { height: 12px; width: 12px; display: inline-block; border-radius: 50%; margin-right: 6px; }
+        .dot-green { background-color: #22c55e; }
+        .dot-red { background-color: #ef4444; }
+        .dot-orange { background-color: #f97316; }
+        
+        /* Animación suave para el cálculo */
+        .calc-box { transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Tarjeta Principal -->
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-6xl overflow-hidden flex flex-col lg:flex-row fade-in">
+        
+        <!-- Sección Visualizador 3D -->
+        <div class="w-full lg:w-2/3 bg-slate-900 relative group flex items-center justify-center overflow-hidden">
+            <div id="canvas-container"></div>
+            
+            <!-- Leyenda de Interacción -->
+            <div class="absolute bottom-4 left-4 bg-black/70 text-white p-3 rounded-lg text-xs backdrop-blur-sm pointer-events-none select-none border border-white/10 z-10">
+                <p class="mb-1"><span class="text-xl align-middle">🖱️</span> <strong>Clic:</strong> Marcar elemento (+1)</p>
+                <p class="mb-1"><span class="text-xl align-middle">🖱️🖱️</span> <strong>Doble Clic:</strong> Desmarcar (-1)</p>
+                <p><span class="text-xl align-middle">🖐️</span> <strong>Arrastrar:</strong> Rotar figura</p>
+            </div>
+
+            <!-- Estado SCORM -->
+            <div id="scorm-status" class="absolute top-4 right-4 text-xs bg-black/50 text-white px-2 py-1 rounded hidden z-10">
+                SCORM: Offline
+            </div>
+
+            <!-- Overlay de Feedback -->
+            <div id="feedback-overlay" class="absolute inset-0 flex items-center justify-center bg-slate-900/90 backdrop-blur-md hidden z-20">
+                <div class="text-center p-8 bg-white rounded-2xl shadow-2xl max-w-md w-full m-4">
+                    <div id="feedback-icon" class="text-6xl mb-4"></div>
+                    <h3 id="feedback-title" class="text-3xl font-bold mb-2"></h3>
+                    <div id="feedback-details" class="text-left bg-slate-50 p-4 rounded-lg mb-6 text-sm space-y-3 border border-slate-200"></div>
+                    <button id="next-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold py-3 px-6 rounded-xl transition-transform hover:scale-105 shadow-lg">
+                        Otro Ejemplo
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Controles -->
+        <div class="w-full lg:w-1/3 p-6 flex flex-col border-l border-slate-200 bg-slate-50 overflow-y-auto max-h-[600px]">
+            
+            <header class="mb-4 border-b border-slate-200 pb-4">
+                <h1 class="text-xl font-bold text-slate-800">Elementos del Poliedro</h1>
+                <p class="text-sm text-slate-500">Cuenta en orden: Vértices, Caras y Aristas</p>
+            </header>
+
+            <!-- Marcador -->
+            <div class="bg-white rounded-xl p-3 mb-4 flex justify-between items-center shadow-sm border border-slate-200">
+                <div class="text-center">
+                    <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Puntos</span>
+                    <span id="score-display" class="text-2xl font-bold text-blue-600">0.00</span>
+                </div>
+                <div class="text-center">
+                    <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Meta</span>
+                    <span class="text-2xl font-bold text-slate-300">10</span>
+                </div>
+            </div>
+
+            <!-- Selector de Modo (Reordenado: V -> C -> A) -->
+            <div class="mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <p class="text-xs font-bold text-slate-500 uppercase mb-3 text-center">Selecciona para marcar</p>
+                <div class="flex flex-col gap-2">
+                    <!-- 1. Vértices -->
+                    <div>
+                        <input type="radio" name="mode" id="mode-vertex" value="vertex" class="hidden mode-radio" checked>
+                        <label for="mode-vertex" class="flex items-center justify-between p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-all">
+                            <span class="flex items-center text-sm font-semibold text-slate-700">
+                                <span class="dot dot-green"></span>Vértices
+                            </span>
+                            <span id="count-vertex" class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded">0</span>
+                        </label>
+                    </div>
+                    <!-- 2. Caras (Movido aquí) -->
+                    <div>
+                        <input type="radio" name="mode" id="mode-face" value="face" class="hidden mode-radio">
+                        <label for="mode-face" class="flex items-center justify-between p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-all">
+                            <span class="flex items-center text-sm font-semibold text-slate-700">
+                                <span class="dot dot-orange"></span>Caras
+                            </span>
+                            <span id="count-face" class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded">0</span>
+                        </label>
+                    </div>
+                    <!-- 3. Aristas (Movido al final) -->
+                    <div>
+                        <input type="radio" name="mode" id="mode-edge" value="edge" class="hidden mode-radio">
+                        <label for="mode-edge" class="flex items-center justify-between p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-all">
+                            <span class="flex items-center text-sm font-semibold text-slate-700">
+                                <span class="dot dot-red"></span>Aristas
+                            </span>
+                            <span id="count-edge" class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded">0</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campos de Respuesta (Reordenado con cálculo intermedio) -->
+            <form id="quiz-form" class="space-y-3 mb-6">
+                <p class="text-xs text-center text-slate-400">Escribe aquí tus conteos</p>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Fila 1: Vértices y Caras -->
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 text-center">Vértices</label>
+                        <input type="number" id="input-V" class="w-full p-2 text-center font-bold border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 text-center">Caras</label>
+                        <input type="number" id="input-C" class="w-full p-2 text-center font-bold border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0">
+                    </div>
+                </div>
+
+                <!-- Cálculo automático intermedio -->
+                <div class="calc-box bg-blue-50 border border-blue-100 rounded-lg p-2 text-center my-2">
+                    <p class="text-xs text-blue-500 font-bold uppercase mb-1">Vértices + Caras =</p>
+                    <div id="sum-display" class="text-xl font-bold text-blue-700">-</div>
+                </div>
+
+                <!-- Fila 2: Aristas (Centrado) -->
+                <div class="w-1/2 mx-auto">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 text-center">Aristas</label>
+                    <input type="number" id="input-A" class="w-full p-2 text-center font-bold border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0">
+                </div>
+            </form>
+            
+            <div class="mt-auto">
+                <button id="check-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+                    Comprobar Resultados
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de Victoria -->
+    <div id="win-screen" class="fixed inset-0 bg-slate-900 z-50 hidden flex flex-col items-center justify-center text-white text-center p-4">
+        <div class="text-6xl mb-4 animate-bounce">🏆</div>
+        <h1 class="text-4xl font-bold mb-4">¡Ejercicio Completado!</h1>
+        <p class="text-xl text-slate-300 mb-8 max-w-lg">Has alcanzado la puntuación máxima practicando con al menos 8 poliedros.</p>
+        <button id="restart-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors shadow-lg shadow-green-500/30">
+            Reiniciar Práctica
+        </button>
+    </div>
+
+    <script>
+        // --- API SCORM ---
+        var scorm = {
+            active: false,
+            api: null,
+            init: function() {
+                try {
+                    var api = this.findAPI(window);
+                    if ((api == null) && (window.parent != null) && (window.parent != window)) api = this.findAPI(window.parent);
+                    if (api != null) {
+                        this.api = api;
+                        if (this.api.LMSInitialize("").toString() === "true") {
+                            this.active = true;
+                            this.setStatus("incomplete");
+                            this.setScore(0);
+                            document.getElementById('scorm-status').textContent = "SCORM: Conectado";
+                            document.getElementById('scorm-status').classList.remove('hidden');
+                            document.getElementById('scorm-status').classList.add('bg-green-500/80');
+                        }
+                    } else {
+                        console.log("Modo local (Sin SCORM)");
+                    }
+                } catch (e) { console.warn("Error SCORM init (seguro):", e); }
+            },
+            findAPI: function(win) {
+                var tries = 0;
+                try {
+                    while ((win.API == null) && (win.parent != null) && (win.parent != win)) {
+                        tries++; if (tries > 7) return null;
+                        win = win.parent;
+                    }
+                    return win.API;
+                } catch (e) { return null; }
+            },
+            setScore: function(score) {
+                if (!this.active) return;
+                try {
+                    this.api.LMSSetValue("cmi.core.score.raw", score);
+                    this.api.LMSSetValue("cmi.core.score.min", "0");
+                    this.api.LMSSetValue("cmi.core.score.max", "10");
+                    this.api.LMSCommit("");
+                } catch(e){}
+            },
+            setStatus: function(status) {
+                if (!this.active) return;
+                try { this.api.LMSSetValue("cmi.core.lesson_status", status); this.api.LMSCommit(""); } catch(e){}
+            },
+            finish: function() {
+                if (!this.active) return;
+                try { this.api.LMSFinish(""); this.active = false; } catch(e){}
+            }
+        };
+
+        // --- DATOS ---
+        const POLYHEDRA = [
+            { id: 'tetraedro', name: 'Tetraedro', V: 4, E: 6, F: 4 },
+            { id: 'cubo', name: 'Cubo (Hexaedro)', V: 8, E: 12, F: 6 },
+            { id: 'octaedro', name: 'Octaedro', V: 6, E: 12, F: 8 },
+            { id: 'dodecaedro', name: 'Dodecaedro', V: 20, E: 30, F: 12 },
+            { id: 'icosaedro', name: 'Icosaedro', V: 12, E: 30, F: 20 },
+            { id: 'prisma_tri', name: 'Prisma Triangular', V: 6, E: 9, F: 5 },
+            { id: 'prisma_cuad', name: 'Prisma Cuadrangular', V: 8, E: 12, F: 6 },
+            { id: 'prisma_pent', name: 'Prisma Pentagonal', V: 10, E: 15, F: 7 },
+            { id: 'prisma_hex', name: 'Prisma Hexagonal', V: 12, E: 18, F: 8 },
+            { id: 'piramide_tri', name: 'Pirámide Triangular', V: 4, E: 6, F: 4 },
+            { id: 'piramide_cuad', name: 'Pirámide Cuadrangular', V: 5, E: 8, F: 5 },
+            { id: 'piramide_pent', name: 'Pirámide Pentagonal', V: 6, E: 10, F: 6 },
+            { id: 'piramide_hex', name: 'Pirámide Hexagonal', V: 7, E: 12, F: 7 },
+            { id: 'piramide_oct', name: 'Pirámide Octagonal', V: 9, E: 16, F: 9 },
+            { id: 'piramide_trunc', name: 'Pirámide Truncada', V: 8, E: 12, F: 6 }
+        ];
+
+        let score = 0;
+        let currentShape = null;
+        let currentMode = 'vertex';
+        let availableShapes = [];
+        let markedItems = { vertex: new Set(), edge: new Set(), face: new Set() };
+        let helperObjects = { vertex: [], edge: [], face: [] };
+        let faceOverlays = {};
+
+        const POINTS_PER_CORRECT = 10 / 24; 
+        const POINTS_PENALTY = 0.2; 
+
+        // --- THREE.JS ---
+        const container = document.getElementById('canvas-container');
+        let scene, camera, renderer, raycaster, mouse;
+        let mainGroup;
+
+        // Variables de arrastre
+        let isDragging = false;
+        let prevMouse = {x:0, y:0};
+        const onStart = (x, y) => { isDragging = true; prevMouse = {x, y}; };
+        const onMove = (x, y) => {
+            if(isDragging) {
+                const deltaX = x - prevMouse.x;
+                const deltaY = y - prevMouse.y;
+                mainGroup.rotation.y += deltaX * 0.008;
+                mainGroup.rotation.x += deltaY * 0.008;
+                prevMouse = {x, y};
+            }
+        };
+        const onEnd = () => { isDragging = false; };
+
+        function initThree() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0f172a);
+
+            camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 100);
+            camera.position.set(0, 4, 8); 
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+            const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight1.position.set(5, 10, 7);
+            scene.add(dirLight1);
+            const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+            dirLight2.position.set(-5, -5, -5);
+            scene.add(dirLight2);
+
+            raycaster = new THREE.Raycaster();
+            raycaster.params.Line.threshold = 0.3; 
+            mouse = new THREE.Vector2();
+
+            mainGroup = new THREE.Group();
+            scene.add(mainGroup);
+
+            // Eventos
+            renderer.domElement.addEventListener('click', onMouseClick);
+            renderer.domElement.addEventListener('dblclick', onMouseDoubleClick);
+
+            const c = renderer.domElement;
+            c.addEventListener('mousedown', e => onStart(e.clientX, e.clientY));
+            c.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+            c.addEventListener('mouseup', onEnd);
+            c.addEventListener('mouseleave', onEnd);
+            c.addEventListener('touchstart', e => onStart(e.touches[0].clientX, e.touches[0].clientY), {passive: false});
+            c.addEventListener('touchmove', e => { e.preventDefault(); onMove(e.touches[0].clientX, e.touches[0].clientY); }, {passive: false});
+            c.addEventListener('touchend', onEnd);
+            
+            const resizeObserver = new ResizeObserver(() => {
+                if(container.clientWidth > 0 && container.clientHeight > 0) {
+                    camera.aspect = container.clientWidth / container.clientHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(container.clientWidth, container.clientHeight);
+                }
+            });
+            resizeObserver.observe(container);
+
+            animate();
+        }
+
+        function createPolyhedron(data) {
+            while(mainGroup.children.length > 0){ 
+                const obj = mainGroup.children[0];
+                if(obj.geometry) obj.geometry.dispose();
+                if(obj.material) {
+                    if(Array.isArray(obj.material)) obj.material.forEach(m=>m.dispose());
+                    else obj.material.dispose();
+                }
+                mainGroup.remove(obj); 
+            }
+            
+            helperObjects = { vertex: [], edge: [], face: [] };
+            markedItems = { vertex: new Set(), edge: new Set(), face: new Set() };
+            faceOverlays = {};
+
+            let geometry;
+            let radius = 2.0; 
+            let height = 3.5;
+
+            try {
+                switch(data.id) {
+                    case 'tetraedro': geometry = new THREE.TetrahedronGeometry(radius); break;
+                    case 'cubo': geometry = new THREE.BoxGeometry(2.8, 2.8, 2.8); break;
+                    case 'octaedro': geometry = new THREE.OctahedronGeometry(radius); break;
+                    case 'dodecaedro': geometry = new THREE.DodecahedronGeometry(radius); break;
+                    case 'icosaedro': geometry = new THREE.IcosahedronGeometry(radius); break;
+                    case 'prisma_tri': geometry = new THREE.CylinderGeometry(1.5, 1.5, height, 3); break;
+                    case 'prisma_cuad': geometry = new THREE.BoxGeometry(2.2, 3.8, 2.2); break;
+                    case 'prisma_pent': geometry = new THREE.CylinderGeometry(1.6, 1.6, height, 5); break;
+                    case 'prisma_hex': geometry = new THREE.CylinderGeometry(1.6, 1.6, height, 6); break;
+                    case 'piramide_tri': geometry = new THREE.ConeGeometry(2.0, height, 3); break;
+                    case 'piramide_cuad': geometry = new THREE.ConeGeometry(2.2, height, 4); break;
+                    case 'piramide_pent': geometry = new THREE.ConeGeometry(2.0, height, 5); break;
+                    case 'piramide_hex': geometry = new THREE.ConeGeometry(2.0, height, 6); break;
+                    case 'piramide_oct': geometry = new THREE.ConeGeometry(2.0, height, 8); break;
+                    case 'piramide_trunc': geometry = new THREE.CylinderGeometry(1.2, 2.2, 2.8, 4); break;
+                    default: geometry = new THREE.BoxGeometry(2,2,2); 
+                }
+
+                geometry = geometry.toNonIndexed();
+                geometry.computeVertexNormals();
+
+                // 1. CARAS (DoubleSide)
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: 0x3b82f6, 
+                    flatShading: true,
+                    polygonOffset: true, 
+                    polygonOffsetFactor: 1, 
+                    polygonOffsetUnits: 1,
+                    side: THREE.DoubleSide 
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.userData = { type: 'face' };
+                mainGroup.add(mesh);
+                helperObjects.face.push(mesh);
+
+                // 2. ARISTAS
+                const edgesGeo = new THREE.EdgesGeometry(geometry, 20); 
+                const edgePos = edgesGeo.attributes.position;
+                
+                if (edgePos) {
+                    for(let i=0; i < edgePos.count; i+=2) {
+                        const start = new THREE.Vector3(edgePos.getX(i), edgePos.getY(i), edgePos.getZ(i));
+                        const end = new THREE.Vector3(edgePos.getX(i+1), edgePos.getY(i+1), edgePos.getZ(i+1));
+                        const edgeLen = start.distanceTo(end);
+                        const edgeGeom = new THREE.CylinderGeometry(0.08, 0.08, edgeLen, 6);
+                        edgeGeom.translate(0, edgeLen/2, 0);
+                        edgeGeom.rotateX(Math.PI/2);
+                        const edgeMesh = new THREE.Mesh(edgeGeom, new THREE.MeshBasicMaterial({ color: 0x94a3b8 })); 
+                        edgeMesh.position.copy(start);
+                        edgeMesh.lookAt(end);
+                        edgeMesh.userData = { type: 'edge', id: i/2 };
+                        mainGroup.add(edgeMesh);
+                        helperObjects.edge.push(edgeMesh);
+                    }
+                }
+
+                // 3. VÉRTICES
+                const pos = geometry.attributes.position;
+                const uniqueVerts = [];
+                const vTol = 0.01;
+                
+                for(let i=0; i < pos.count; i++) {
+                    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+                    if(!uniqueVerts.some(v => Math.abs(v.x-x)<vTol && Math.abs(v.y-y)<vTol && Math.abs(v.z-z)<vTol)) {
+                        uniqueVerts.push({x,y,z});
+                    }
+                }
+
+                uniqueVerts.forEach((v, idx) => {
+                    const sphereGeo = new THREE.SphereGeometry(0.18, 16, 16);
+                    const sphere = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({ color: 0x94a3b8 }));
+                    sphere.position.set(v.x, v.y, v.z);
+                    sphere.userData = { type: 'vertex', id: idx };
+                    mainGroup.add(sphere);
+                    helperObjects.vertex.push(sphere);
+                });
+
+            } catch (err) {
+                console.error("Error generando figura:", err);
+            }
+        }
+
+        // --- INTERACCIÓN ---
+        function updateCounterUI() {
+            document.getElementById('count-vertex').textContent = markedItems.vertex.size;
+            document.getElementById('count-edge').textContent = markedItems.edge.size;
+            document.getElementById('count-face').textContent = markedItems.face.size;
+        }
+
+        function handleInteraction(event, isDoubleClick) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+
+            let targets = [];
+            if(currentMode === 'vertex') targets = helperObjects.vertex;
+            else if(currentMode === 'edge') targets = helperObjects.edge;
+            else if(currentMode === 'face') targets = helperObjects.face;
+
+            const intersects = raycaster.intersectObjects(targets);
+
+            if (intersects.length > 0) {
+                const hit = intersects[0];
+                const obj = hit.object;
+
+                if (currentMode === 'face') {
+                    const normal = hit.face.normal;
+                    const nx = Math.round(normal.x*10);
+                    const ny = Math.round(normal.y*10);
+                    const nz = Math.round(normal.z*10);
+                    const faceId = `${nx},${ny},${nz}`;
+                    
+                    if (isDoubleClick) {
+                        if (markedItems.face.has(faceId)) {
+                            markedItems.face.delete(faceId);
+                            removeFaceHighlight(faceId);
+                        }
+                    } else {
+                        if (!markedItems.face.has(faceId)) {
+                            markedItems.face.add(faceId);
+                            addFaceHighlight(hit.face.normal, faceId);
+                        }
+                    }
+                } 
+                else {
+                    const id = obj.userData.id;
+                    const isMarked = markedItems[currentMode].has(id);
+
+                    if (isDoubleClick && isMarked) {
+                        markedItems[currentMode].delete(id);
+                        obj.material.color.setHex(0x94a3b8); 
+                    } else if (!isDoubleClick && !isMarked) {
+                        markedItems[currentMode].add(id);
+                        const color = currentMode === 'vertex' ? 0x22c55e : (currentMode === 'edge' ? 0xef4444 : 0xf97316); 
+                        obj.material.color.setHex(color);
+                    }
+                }
+                updateCounterUI();
+            }
+        }
+
+        function addFaceHighlight(normal, id) {
+            const mainGeo = mainGroup.children.find(c => c.userData.type === 'face').geometry;
+            const pos = mainGeo.attributes.position;
+            const norm = mainGeo.attributes.normal;
+            const overlayVerts = [];
+            const tolerance = 0.1;
+
+            for(let i=0; i < norm.count; i++) {
+                if (Math.abs(norm.getX(i) - normal.x) < tolerance &&
+                    Math.abs(norm.getY(i) - normal.y) < tolerance &&
+                    Math.abs(norm.getZ(i) - normal.z) < tolerance) {
+                    overlayVerts.push(pos.getX(i), pos.getY(i), pos.getZ(i));
+                }
+            }
+
+            if(overlayVerts.length > 0) {
+                const geo = new THREE.BufferGeometry();
+                geo.setAttribute('position', new THREE.Float32BufferAttribute(overlayVerts, 3));
+                const mat = new THREE.MeshBasicMaterial({ color: 0xf97316, side: THREE.DoubleSide, transparent: true, opacity: 0.8 }); 
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.add(normal.clone().multiplyScalar(0.04));
+                mainGroup.add(mesh);
+                faceOverlays[id] = mesh;
+            }
+        }
+
+        function removeFaceHighlight(id) {
+            if(faceOverlays[id]) {
+                mainGroup.remove(faceOverlays[id]);
+                faceOverlays[id].geometry.dispose();
+                faceOverlays[id].material.dispose();
+                delete faceOverlays[id];
+            }
+        }
+
+        // --- APP LOGIC ---
+        function onMouseClick(e) { handleInteraction(e, false); }
+        function onMouseDoubleClick(e) { handleInteraction(e, true); }
+
+        // --- CÁLCULO SUMA AUTOMÁTICA ---
+        function updateSumDisplay() {
+            const v = parseInt(document.getElementById('input-V').value) || 0;
+            const c = parseInt(document.getElementById('input-C').value) || 0;
+            document.getElementById('sum-display').textContent = (v > 0 || c > 0) ? (v + c) : '-';
+        }
+
+        function initGame() {
+            scorm.init();
+            availableShapes = [...POLYHEDRA];
+            
+            document.querySelectorAll('.mode-radio').forEach(r => {
+                r.addEventListener('change', (e) => {
+                    currentMode = e.target.value;
+                });
+            });
+
+            // Listeners para suma automática
+            document.getElementById('input-V').addEventListener('input', updateSumDisplay);
+            document.getElementById('input-C').addEventListener('input', updateSumDisplay);
+
+            nextRound();
+        }
+
+        function nextRound() {
+            if (score >= 9.99) { 
+                showWin();
+                return;
+            }
+            document.getElementById('feedback-overlay').classList.add('hidden');
+            document.getElementById('quiz-form').reset();
+            updateSumDisplay(); // Reset display
+            currentMode = 'vertex';
+            document.getElementById('mode-vertex').checked = true;
+            markedItems = { vertex: new Set(), edge: new Set(), face: new Set() };
+            updateCounterUI();
+
+            if(availableShapes.length === 0) availableShapes = [...POLYHEDRA];
+            const idx = Math.floor(Math.random() * availableShapes.length);
+            currentShape = availableShapes[idx];
+            availableShapes.splice(idx, 1);
+
+            createPolyhedron(currentShape);
+            mainGroup.rotation.set(0.3, 0.3, 0); 
+        }
+
+        function checkAnswer() {
+            const uV = parseInt(document.getElementById('input-V').value) || 0;
+            const uA = parseInt(document.getElementById('input-A').value) || 0;
+            const uC = parseInt(document.getElementById('input-C').value) || 0;
+            const { V: cV, E: cA, F: cC } = currentShape;
+
+            let roundScore = 0;
+            let detailsHTML = `<p class="text-lg font-bold text-slate-800 mb-2 border-b pb-2">${currentShape.name}</p>`;
+
+            const check = (val, corr, name) => {
+                if(val === corr) { 
+                    roundScore += POINTS_PER_CORRECT; 
+                    return `<p class="text-green-600 font-semibold">✅ ${name}: Correcto (${corr})</p>`; 
+                }
+                roundScore -= POINTS_PENALTY;
+                return `<p class="text-red-500 font-semibold">❌ ${name}: Tienes ${val}, son ${corr}.</p>`;
+            };
+
+            detailsHTML += check(uV, cV, 'Vértices');
+            detailsHTML += check(uC, cC, 'Caras');
+            detailsHTML += check(uA, cA, 'Aristas');
+
+            score += roundScore;
+            if(score < 0) score = 0;
+            if(score > 10) score = 10; 
+            
+            document.getElementById('score-display').textContent = score.toFixed(2);
+            scorm.setScore(score);
+
+            const isPerfect = (uV===cV && uA===cA && uC===cC);
+            const fbTitle = document.getElementById('feedback-title');
+            const fbIcon = document.getElementById('feedback-icon');
+
+            if(isPerfect) {
+                fbTitle.textContent = "¡Perfecto!";
+                fbTitle.className = "text-3xl font-bold mb-2 text-green-600";
+                fbIcon.textContent = "🎉";
+            } else {
+                fbTitle.textContent = "¡Aprende del error!";
+                fbTitle.className = "text-3xl font-bold mb-2 text-orange-500";
+                fbIcon.textContent = "🧐";
+            }
+            
+            document.getElementById('feedback-details').innerHTML = detailsHTML;
+            document.getElementById('feedback-overlay').classList.remove('hidden');
+        }
+
+        function showWin() {
+            document.getElementById('win-screen').classList.remove('hidden');
+            scorm.setStatus("completed");
+            scorm.finish();
+        }
+
+        // --- ANIMATION / ROTATION ---
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        document.getElementById('check-btn').addEventListener('click', (e) => { e.preventDefault(); checkAnswer(); });
+        document.getElementById('next-btn').addEventListener('click', nextRound);
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            score = 0;
+            document.getElementById('score-display').textContent = "0.00";
+            document.getElementById('win-screen').classList.add('hidden');
+            scorm.active = true;
+            initGame();
+        });
+
+        initThree();
+        initGame();
+
+    </script>
+</body>
+</html>
