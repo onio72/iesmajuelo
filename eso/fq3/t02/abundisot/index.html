@@ -1,1 +1,798 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abundancia de Isótopos - Gráfico de Quesitos</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #e67e22;
+            --bg-color: #f4f6f7;
+            --card-bg: #ffffff;
+            --success-color: #27ae60;
+            --error-color: #c0392b;
+            --text-dark: #333333; /* Nuevo color para texto oscuro */
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Layout Principal */
+        .main-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            max-width: 1000px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Tarjeta del Elemento (Izquierda) */
+        .card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 250px;
+            flex: 1;
+            position: relative;
+        }
+
+        /* Notación Química */
+        .chem-symbol-container {
+            font-family: 'Times New Roman', serif;
+            position: relative;
+            font-size: 120px;
+            line-height: 1;
+            margin: 30px 0 30px 50px; 
+            color: var(--primary-color);
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .atomic-number { /* Z - Abajo Izquierda */
+            position: absolute;
+            bottom: 5px;
+            left: -85px; 
+            font-size: 40px;
+            width: 80px;
+            text-align: right;
+            pointer-events: none;
+        }
+
+        .mass-number { /* A - Arriba Izquierda */
+            position: absolute;
+            top: 5px;
+            left: -85px; 
+            font-size: 40px;
+            width: 80px;
+            text-align: right;
+            color: var(--primary-color); 
+            opacity: 0; 
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .mass-number.visible {
+            opacity: 1;
+        }
+
+        .element-name {
+            font-size: 24px;
+            font-weight: 600;
+            color: #555;
+            margin-top: 10px;
+        }
+
+        .info-panel {
+            margin-top: 20px;
+            text-align: center;
+            height: 60px; 
+        }
+
+        .info-text {
+            font-size: 18px;
+            color: var(--text-dark); /* Color gris oscuro fijo para el texto base */
+            font-weight: bold;
+        }
+
+        /* Gráfico y Leyenda (Derecha) */
+        .chart-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            flex: 2;
+            min-width: 300px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-around;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+            width: 300px;
+        }
+
+        /* Leyenda Personalizada */
+        .custom-legend {
+            list-style: none;
+            padding: 0;
+            margin-left: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background 0.2s;
+        }
+
+        .legend-item:hover {
+            background-color: #eee;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+            margin-right: 10px;
+        }
+
+        .legend-text {
+            font-size: 16px;
+            font-family: 'Times New Roman', serif; /* Serif para notación científica se ve mejor */
+        }
+        
+        .legend-text sup {
+            font-size: 0.7em;
+        }
+
+        /* Sección de Preguntas */
+        .quiz-section {
+            margin-top: 30px;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 900px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .score-board {
+            text-align: right;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .score-value.low { color: var(--error-color); }
+        .score-value.high { color: var(--success-color); }
+
+        .question-block {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        select {
+            padding: 5px;
+            font-size: 1rem;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin: 0 5px;
+            background-color: #fff;
+        }
+
+        /* Botones de selección de isótopo */
+        .iso-btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .iso-select-btn {
+            background-color: #ecf0f1;
+            border: 2px solid #bdc3c7;
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Times New Roman', serif; /* Serif para los botones también */
+        }
+
+        .iso-select-btn.selected {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .iso-select-btn:hover:not(.selected) {
+            background-color: #dfe6e9;
+        }
+
+        /* Botones de acción */
+        .action-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-right: 10px;
+            transition: opacity 0.2s;
+        }
+
+        .action-btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+
+        .check-btn { background-color: var(--accent-color); }
+        .restart-btn { background-color: var(--success-color); display: none; }
+
+        .feedback-msg {
+            margin-top: 5px;
+            font-size: 0.95rem;
+            font-weight: bold;
+        }
+        .feedback-msg.correct { color: var(--success-color); }
+        .feedback-msg.incorrect { color: var(--error-color); }
+
+        @media (max-width: 768px) {
+            .chart-card {
+                flex-direction: column;
+            }
+            .chem-symbol-container {
+                margin-left: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Abundancia Isotópica</h1>
+
+    <div class="main-container">
+        <!-- Panel Izquierdo: Ficha del Elemento -->
+        <div class="card">
+            <div class="element-name" id="elementName">Cargando...</div>
+            
+            <div class="chem-symbol-container">
+                <span class="mass-number" id="massNumber">12</span>
+                <span class="atomic-number" id="atomicNumber">6</span>
+                <span id="symbolText">C</span>
+            </div>
+
+            <div class="info-panel">
+                <div id="isotopeInfo" class="info-text">Pulsa en la leyenda para ver detalles</div>
+            </div>
+        </div>
+
+        <!-- Panel Derecho: Gráfico y Leyenda -->
+        <div class="chart-card">
+            <div class="chart-wrapper">
+                <canvas id="isotopeChart"></canvas>
+            </div>
+            <ul class="custom-legend" id="chartLegend">
+                <!-- La leyenda se genera con JS -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- Panel Inferior: Preguntas -->
+    <div class="quiz-section">
+        <div class="score-board">
+            Puntuación: <span id="scoreValue" class="score-value low">0.00</span> / 10
+        </div>
+
+        <div id="questionsContainer">
+            <!-- Las preguntas se generan dinámicamente aquí -->
+        </div>
+
+        <div style="margin-top: 20px; text-align: center;">
+            <button id="checkBtn" class="action-btn check-btn" onclick="checkAnswers()">Corregir</button>
+            <button id="nextBtn" class="action-btn" onclick="loadNextElement()" style="display:none;">Siguiente Elemento</button>
+            <button id="restartBtn" class="action-btn restart-btn" onclick="restartGame()">Reiniciar Juego</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. PROCESAMIENTO DE DATOS ---
+        
+        const csvData = `Elemento,Simbolo,Masa_nominal,Masa_exacta,Abundancia
+Hidrógeno,1H,1,1.00783,99.99
+Hidrógeno,D/2H,2,2.01410,0.01
+Carbono,12C,12,12.0000,98.91
+Carbono,13C,13,13.0034,1.09
+Nitrógeno,14N,14,14.0031,99.6
+Nitrógeno,15N,15,15.0001,0.37
+Oxígeno,16O,16,15.9949,99.76
+Oxígeno,17O,17,16.9991,0.037
+Oxígeno,18O,18,17.9992,0.20
+Flúor,19F,19,18.9984,100
+Silicio,28Si,28,27.9769,92.28
+Silicio,29Si,29,28.9765,4.70
+Silicio,30Si,30,29.9737,3.02
+Azufre,32S,32,31.9721,95.02
+Azufre,33S,33,32.9715,0.75
+Azufre,34S,34,33.9679,4.21
+Azufre,36S,36,35.9671,0.02
+Cloro,35Cl,35,34.9689,75.77
+Cloro,37Cl,37,36.9659,24.23
+Bromo,79Br,79,78.9183,50.69
+Bromo,81Br,81,80.9163,49.31
+Hafnio,174Hf,174,173.940046,0.16
+Hafnio,176Hf,176,175.941402,5.26
+Hafnio,177Hf,177,176.94322,18.60
+Hafnio,178Hf,178,177.943698,27.28
+Hafnio,179Hf,179,178.945815,13.62
+Hafnio,180Hf,180,179.946549,35.08
+Tántalo,180Ta,180,179.947466,0.012
+Tántalo,181Ta,181,180.947996,99.988
+Wolframio,180W,180,179.946706,0.12
+Wolframio,182W,182,181.948206,26.50
+Wolframio,183W,183,182.950224,14.31
+Wolframio,184W,184,183.950933,30.64
+Wolframio,186W,186,185.954362,28.43
+Renio,185Re,185,184.952957,37.40
+Renio,187Re,187,186.955753,62.60`;
+
+        const atomicNumbersMap = {
+            'Hidrógeno': 1, 'Carbono': 6, 'Nitrógeno': 7, 'Oxígeno': 8, 'Flúor': 9,
+            'Silicio': 14, 'Azufre': 16, 'Cloro': 17, 'Bromo': 35, 'Hafnio': 72,
+            'Tántalo': 73, 'Wolframio': 74, 'Renio': 75
+        };
+
+        let parsedElements = {};
+        let validElementKeys = []; 
+        let currentElementKey = '';
+        let currentElementData = null;
+        let currentChart = null;
+        
+        let globalScore = 0.0;
+        let selectedIsotopeForQ5 = null;
+
+        function parseCSV() {
+            const lines = csvData.split('\n');
+            for (let i = 1; i < lines.length; i++) {
+                const parts = lines[i].split(',');
+                if (parts.length < 5) continue;
+
+                const name = parts[0].trim();
+                const rawSymbol = parts[1].trim();
+                const massNominal = parseInt(parts[2].trim());
+                let abundanceStr = parts[4].trim();
+                const abundance = parseFloat(abundanceStr) || 0;
+
+                const chemSymbol = rawSymbol.replace(/[0-9]/g, '').replace('D/', '').replace('/H', ''); 
+
+                if (!parsedElements[name]) {
+                    parsedElements[name] = {
+                        name: name,
+                        symbol: chemSymbol,
+                        z: atomicNumbersMap[name] || 0,
+                        isotopes: []
+                    };
+                }
+
+                parsedElements[name].isotopes.push({
+                    fullSymbol: rawSymbol,
+                    mass: massNominal,
+                    abundance: abundance,
+                    label: rawSymbol
+                });
+            }
+
+            validElementKeys = Object.keys(parsedElements).filter(key => parsedElements[key].isotopes.length > 1);
+        }
+
+        // --- 2. LÓGICA DE VISUALIZACIÓN ---
+
+        function loadNextElement() {
+            if (globalScore >= 10) {
+                endGame();
+                return;
+            }
+            
+            document.getElementById('checkBtn').style.display = 'inline-block';
+            document.getElementById('checkBtn').disabled = false;
+            document.getElementById('nextBtn').style.display = 'none';
+
+            if (validElementKeys.length === 0) {
+                console.error("No hay elementos válidos con >1 isótopo");
+                return;
+            }
+
+            // --- CORRECCIÓN 1: Evitar repetición consecutiva ---
+            let randomKey;
+            if (validElementKeys.length > 1) {
+                // Si hay más de 1 opción, buscamos hasta encontrar una diferente a la actual
+                do {
+                    randomKey = validElementKeys[Math.floor(Math.random() * validElementKeys.length)];
+                } while (randomKey === currentElementKey);
+            } else {
+                // Si solo hay 1, no queda otra que repetir
+                randomKey = validElementKeys[0];
+            }
+
+            currentElementKey = randomKey;
+            currentElementData = parsedElements[randomKey];
+            
+            renderElement(currentElementData);
+            generateFullQuiz(currentElementData);
+        }
+
+        function restartGame() {
+            globalScore = 0.0;
+            updateScoreDisplay();
+            document.getElementById('restartBtn').style.display = 'none';
+            document.getElementById('checkBtn').style.display = 'inline-block';
+            loadNextElement();
+        }
+
+        function endGame() {
+            document.getElementById('questionsContainer').innerHTML = `<h3>¡Felicidades! Has alcanzado la puntuación máxima de 10.</h3>`;
+            document.getElementById('checkBtn').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('restartBtn').style.display = 'inline-block';
+        }
+
+        function renderElement(data) {
+            document.getElementById('elementName').innerText = data.name;
+            document.getElementById('symbolText').innerText = data.symbol;
+            document.getElementById('atomicNumber').innerText = data.z;
+            
+            const massEl = document.getElementById('massNumber');
+            massEl.innerText = '';
+            massEl.classList.remove('visible');
+            
+            document.getElementById('isotopeInfo').innerText = "Pulsa en la leyenda o gráfico";
+
+            const labels = data.isotopes.map(iso => iso.fullSymbol);
+            const abundanceData = data.isotopes.map(iso => iso.abundance);
+
+            const colors = [
+                '#FFCE56', // Amarillo
+                '#FF6384', // Rojo
+                '#36A2EB', // Azul
+                '#FF9F40', // Naranja
+                '#4BC0C0', // Turquesa
+                '#7f8c8d', // Gris Azulado Oscuro
+                '#FFD700', // Oro
+                '#9b59b6'  // Violeta
+            ];
+
+            const ctx = document.getElementById('isotopeChart').getContext('2d');
+            if (currentChart) currentChart.destroy();
+
+            currentChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: abundanceData,
+                        backgroundColor: colors.slice(0, data.isotopes.length),
+                        borderColor: '#fff',
+                        borderWidth: 1 
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label}: ${parseFloat(context.raw).toLocaleString('es-ES', {maximumFractionDigits: 3})}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Leyenda
+            const legendContainer = document.getElementById('chartLegend');
+            legendContainer.innerHTML = '';
+
+            data.isotopes.forEach((iso, index) => {
+                const li = document.createElement('li');
+                li.className = 'legend-item';
+                
+                const colorBox = document.createElement('span');
+                colorBox.className = 'legend-color';
+                const isoColor = colors[index]; 
+                colorBox.style.backgroundColor = isoColor;
+                
+                const text = document.createElement('span');
+                text.className = 'legend-text';
+                
+                // NOTACIÓN CIENTÍFICA: SUPERÍNDICE A LA IZQUIERDA
+                text.innerHTML = `<sup>${iso.mass}</sup>${data.symbol}`;
+
+                li.appendChild(colorBox);
+                li.appendChild(text);
+
+                li.onclick = () => { highlightIsotope(iso.mass, iso.abundance, isoColor); };
+                legendContainer.appendChild(li);
+            });
+        }
+
+        function highlightIsotope(mass, abundance, color) {
+            const massEl = document.getElementById('massNumber');
+            massEl.innerText = mass;
+            massEl.classList.add('visible');
+            
+            if (color) {
+                massEl.style.color = color;
+            }
+
+            const infoEl = document.getElementById('isotopeInfo');
+            const displayAbundance = parseFloat(abundance).toLocaleString('es-ES', {maximumFractionDigits: 4});
+            
+            const colorStyle = color ? `style="color:${color}; font-size:1.4em"` : 'style="font-size:1.4em"';
+            
+            infoEl.innerHTML = `Abundancia: <span ${colorStyle}>${displayAbundance}%</span>`;
+        }
+
+        // --- 3. GENERACIÓN DE PREGUNTAS (QUIZ) ---
+
+        function generateFullQuiz(data) {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            selectedIsotopeForQ5 = null;
+
+            const Z = data.z;
+            const isotopes = data.isotopes;
+            
+            // Calcular más abundante
+            let maxAbundance = -1;
+            let mostAbundantIso = null;
+            
+            isotopes.forEach(iso => {
+                if (iso.abundance > maxAbundance) {
+                    maxAbundance = iso.abundance;
+                    mostAbundantIso = iso;
+                }
+            });
+            
+            const avgMassAnswer = mostAbundantIso.mass; 
+
+            let optionsPool = [];
+            for(let i = Z-2; i <= Z+2; i++) optionsPool.push(i);
+            isotopes.forEach(iso => optionsPool.push(iso.mass));
+            optionsPool.push(mostAbundantIso.mass + 1);
+            optionsPool.push(mostAbundantIso.mass - 1);
+            
+            optionsPool = [...new Set(optionsPool)].sort(() => Math.random() - 0.5);
+
+            // Pregunta 1
+            const q1 = createDropdownQuestion(1, 
+                `En la naturaleza podemos encontrar`, 
+                `isótopos del ${data.name}.`, 
+                [1,2,3,4,5,6], 
+                isotopes.length);
+            container.appendChild(q1);
+
+            // Pregunta 2
+            const q2 = createDropdownQuestion(2,
+                `Todos los átomos de ${data.name} tienen`,
+                `protones.`,
+                optionsPool,
+                Z);
+            container.appendChild(q2);
+
+            // Pregunta 3
+            const q3 = createDropdownQuestion(3,
+                `El número atómico del ${data.name} es`,
+                `.`,
+                optionsPool,
+                Z);
+            container.appendChild(q3);
+
+            // Pregunta 4
+            const q4 = createDropdownQuestion(4,
+                `El isótopo más abundante del ${data.name} tiene una masa atómica de`,
+                `u.`,
+                optionsPool,
+                mostAbundantIso.mass);
+            container.appendChild(q4);
+
+            // Pregunta 5 (Botones)
+            const q5Div = document.createElement('div');
+            q5Div.className = 'question-block';
+            q5Div.dataset.correct = mostAbundantIso.fullSymbol;
+            q5Div.id = 'q5-block';
+            
+            const q5Text = document.createElement('p');
+            q5Text.className = 'question-text';
+            q5Text.innerText = `5. Observando el gráfico, ¿cuál es el isótopo más abundante del ${data.name}?`;
+            q5Div.appendChild(q5Text);
+
+            const btnGroup = document.createElement('div');
+            btnGroup.className = 'iso-btn-group';
+            
+            isotopes.forEach(iso => {
+                const btn = document.createElement('button');
+                btn.className = 'iso-select-btn';
+                // Usamos innerHTML también aquí para consistencia y estilo
+                btn.innerHTML = `<sup>${iso.mass}</sup>${data.symbol}`;
+                btn.onclick = () => {
+                    document.querySelectorAll('.iso-select-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedIsotopeForQ5 = iso.fullSymbol;
+                };
+                btnGroup.appendChild(btn);
+            });
+            q5Div.appendChild(btnGroup);
+            
+            const q5Feedback = document.createElement('div');
+            q5Feedback.className = 'feedback-msg';
+            q5Feedback.id = 'feedback-5';
+            q5Div.appendChild(q5Feedback);
+
+            container.appendChild(q5Div);
+
+            // Pregunta 6
+            const q6 = createDropdownQuestion(6,
+                `La masa promedio de un átomo de ${data.name} estará más próxima a`,
+                `u.`,
+                optionsPool,
+                avgMassAnswer);
+            container.appendChild(q6);
+        }
+
+        function createDropdownQuestion(id, textPre, textPost, options, correctAnswer) {
+            const div = document.createElement('div');
+            div.className = 'question-block';
+            div.dataset.correct = correctAnswer;
+            div.id = `q${id}-block`;
+
+            const p = document.createElement('p');
+            p.className = 'question-text';
+            
+            const select = document.createElement('select');
+            select.id = `input-${id}`;
+            
+            const defaultOpt = document.createElement('option');
+            defaultOpt.value = "";
+            defaultOpt.text = "?";
+            select.appendChild(defaultOpt);
+
+            options.forEach(opt => {
+                const o = document.createElement('option');
+                o.value = opt;
+                o.text = opt;
+                select.appendChild(o);
+            });
+
+            p.appendChild(document.createTextNode(`${id}. ${textPre} `));
+            p.appendChild(select);
+            p.appendChild(document.createTextNode(` ${textPost}`));
+
+            div.appendChild(p);
+            
+            const feedback = document.createElement('div');
+            feedback.className = 'feedback-msg';
+            feedback.id = `feedback-${id}`;
+            div.appendChild(feedback);
+
+            return div;
+        }
+
+        // --- 4. CORRECCIÓN Y PUNTUACIÓN ---
+
+        function updateScoreDisplay() {
+            const scoreEl = document.getElementById('scoreValue');
+            scoreEl.innerText = globalScore.toFixed(2);
+            if (globalScore >= 5) {
+                scoreEl.className = 'score-value high';
+            } else {
+                scoreEl.className = 'score-value low';
+            }
+        }
+
+        function checkAnswers() {
+            const container = document.getElementById('questionsContainer');
+            
+            document.getElementById('checkBtn').disabled = true;
+
+            for (let i = 1; i <= 6; i++) {
+                const block = document.getElementById(`q${i}-block`);
+                const feedback = document.getElementById(`feedback-${i}`);
+                const correctVal = block.dataset.correct;
+                let userVal = '';
+                let isCorrect = false;
+
+                if (i === 5) {
+                    userVal = selectedIsotopeForQ5;
+                    block.querySelectorAll('button').forEach(b => b.disabled = true);
+                } else {
+                    const select = document.getElementById(`input-${i}`);
+                    userVal = select.value;
+                    select.disabled = true;
+                }
+
+                if (userVal && String(userVal) === String(correctVal)) {
+                    isCorrect = true;
+                    globalScore += 0.3; 
+                    feedback.innerText = "¡Correcto! (+0.3)";
+                    feedback.className = "feedback-msg correct";
+                } else {
+                    // --- CORRECCIÓN 2: Lógica de puntuación mínima 0 ---
+                    // Solo restamos si la puntuación es mayor que 0
+                    if (globalScore > 0) {
+                        // Math.max asegura que no bajemos de 0
+                        globalScore = Math.max(0, globalScore - 0.15);
+                        feedback.innerText = `Incorrecto. La respuesta era ${correctVal}. (-0.15)`;
+                    } else {
+                        // Si ya es 0 o menos (aunque no debería), no restamos
+                        feedback.innerText = `Incorrecto. La respuesta era ${correctVal}.`;
+                    }
+                    feedback.className = "feedback-msg incorrect";
+                }
+            }
+
+            updateScoreDisplay();
+
+            if (globalScore >= 10) {
+                document.getElementById('nextBtn').style.display = 'none';
+                document.getElementById('checkBtn').style.display = 'none';
+                setTimeout(endGame, 1000);
+            } else {
+                document.getElementById('nextBtn').style.display = 'inline-block';
+                document.getElementById('checkBtn').style.display = 'none';
+            }
+        }
+
+        window.onload = function() {
+            parseCSV();
+            restartGame();
+        };
+
+    </script>
+</body>
+</html>
