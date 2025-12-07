@@ -1,1 +1,570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluador Competencial Física 2º Bachillerato</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos personalizados para Drag & Drop */
+        .criterion-tag {
+            cursor: grab;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .criterion-tag:active {
+            cursor: grabbing;
+        }
+        .drop-zone {
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .drop-zone.drag-over {
+            background-color: #e0f2fe; /* blue-100 */
+            border-color: #3b82f6; /* blue-500 */
+            border-style: solid;
+        }
+        /* Colores para las Competencias Específicas */
+        .ce-1 { background-color: #fee2e2; border-color: #fca5a5; color: #7f1d1d; } /* Red */
+        .ce-2 { background-color: #ffedd5; border-color: #fdba74; color: #7c2d12; } /* Orange */
+        .ce-3 { background-color: #fef9c3; border-color: #fde047; color: #713f12; } /* Yellow */
+        .ce-4 { background-color: #dcfce7; border-color: #86efac; color: #14532d; } /* Green */
+        .ce-5 { background-color: #dbeafe; border-color: #93c5fd; color: #1e3a8a; } /* Blue */
+        .ce-6 { background-color: #f3e8ff; border-color: #d8b4fe; color: #581c87; } /* Purple */
 
+        @media print {
+            .no-print { display: none; }
+            #results-section { display: block !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-slate-800 text-white p-4 shadow-md shrink-0 flex justify-between items-center z-10">
+        <div>
+            <h1 class="text-xl font-bold flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                Evaluador Competencial: Física 2º Bachillerato
+            </h1>
+            <p class="text-xs text-slate-300 mt-1">Cálculo de medias anidadas (Tarea > Criterio > Competencia > Asignatura)</p>
+        </div>
+        <div class="flex gap-2">
+             <button onclick="resetApp()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition">
+                Reiniciar
+            </button>
+            <button onclick="calculateGrades()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold shadow transition flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                Calcular Evaluación
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- Sidebar: Criterios (Source) -->
+        <aside class="w-1/4 bg-white border-r border-slate-200 flex flex-col shadow-lg z-20">
+            <div class="p-3 bg-slate-100 border-b border-slate-200 font-semibold text-sm text-slate-600 uppercase tracking-wider">
+                Competencias y Criterios
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-4" id="criteria-palette">
+                <!-- Se rellena con JS -->
+            </div>
+            <div class="p-3 bg-slate-50 text-xs text-slate-500 border-t text-center">
+                Arrastra los criterios a las tareas
+            </div>
+        </aside>
+
+        <!-- Main Area: Tareas (Target) -->
+        <main class="w-3/4 flex flex-col bg-slate-50 relative">
+            <div class="p-4 border-b border-slate-200 bg-white flex justify-between items-center shadow-sm">
+                <h2 class="font-bold text-lg text-slate-700">Tareas del Trimestre</h2>
+                <button onclick="addTask()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded shadow transition flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Nueva Tarea
+                </button>
+            </div>
+
+            <!-- Contenedor de Tareas -->
+            <div id="tasks-container" class="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 content-start">
+                <!-- Las tarjetas de tarea se inyectan aquí -->
+                <div id="empty-state" class="col-span-full flex flex-col items-center justify-center text-slate-400 py-20 border-2 border-dashed border-slate-300 rounded-xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    <p class="text-lg">No hay tareas definidas.</p>
+                    <p class="text-sm">Añade una tarea para comenzar a evaluar.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Resultados -->
+    <div id="results-modal" class="fixed inset-0 bg-slate-900 bg-opacity-75 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden">
+            <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <h2 class="text-2xl font-bold text-slate-800">Informe de Evaluación</h2>
+                <button onclick="closeModal()" class="text-slate-500 hover:text-slate-800 hover:bg-slate-200 p-2 rounded-full transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-8" id="results-content">
+                <!-- Contenido dinámico del informe -->
+            </div>
+
+            <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 no-print">
+                <button onclick="window.print()" class="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded shadow text-sm">
+                    Imprimir Informe / Guardar PDF
+                </button>
+                <button onclick="closeModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded shadow text-sm">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Definición de Datos (Normativa) ---
+        const structure = [
+            { id: 1, count: 2, desc: "Resolver problemas" },
+            { id: 2, count: 3, desc: "Leyes y teorías" },
+            { id: 3, count: 3, desc: "Indagación e investigación" },
+            { id: 4, count: 2, desc: "Cultura científica" },
+            { id: 5, count: 3, desc: "Herramientas digitales" },
+            { id: 6, count: 2, desc: "Naturaleza de la ciencia" }
+        ];
+
+        // Estado de la aplicación
+        let tasks = [];
+        let taskIdCounter = 1;
+
+        // --- 2. Inicialización UI ---
+        
+        function initPalette() {
+            const palette = document.getElementById('criteria-palette');
+            palette.innerHTML = '';
+
+            structure.forEach(comp => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'mb-6';
+                
+                const title = document.createElement('h3');
+                title.className = `font-bold text-sm mb-2 px-2 py-1 rounded border-l-4 ce-${comp.id}`;
+                title.innerText = `CE ${comp.id} (${comp.desc})`;
+                groupDiv.appendChild(title);
+
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-2 gap-2';
+
+                for (let i = 1; i <= comp.count; i++) {
+                    const tag = document.createElement('div');
+                    const code = `FISI.2.${comp.id}.${i}`;
+                    tag.className = `criterion-tag ce-${comp.id} border rounded px-2 py-1 text-xs font-mono font-bold text-center select-none shadow-sm bg-opacity-50 hover:bg-opacity-100 hover:scale-105 active:scale-95`;
+                    tag.innerText = code;
+                    tag.draggable = true;
+                    
+                    // Evento Drag Start
+                    tag.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', code);
+                        e.dataTransfer.effectAllowed = 'copy';
+                        tag.classList.add('opacity-50');
+                    });
+
+                    tag.addEventListener('dragend', () => {
+                        tag.classList.remove('opacity-50');
+                    });
+
+                    grid.appendChild(tag);
+                }
+                groupDiv.appendChild(grid);
+                palette.appendChild(groupDiv);
+            });
+        }
+
+        // --- 3. Gestión de Tareas ---
+
+        function addTask() {
+            document.getElementById('empty-state').classList.add('hidden');
+            const container = document.getElementById('tasks-container');
+            const id = taskIdCounter++;
+
+            const taskCard = document.createElement('div');
+            taskCard.className = 'bg-white rounded-lg shadow border border-slate-200 flex flex-col transition hover:shadow-md';
+            taskCard.dataset.id = id;
+            
+            taskCard.innerHTML = `
+                <div class="p-3 border-b border-slate-100 bg-slate-50 flex justify-between items-start rounded-t-lg">
+                    <div class="flex-1 mr-2">
+                        <input type="text" placeholder="Nombre Tarea (ej. Examen T1)" class="w-full bg-transparent font-bold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-b-2 border-blue-400 text-sm mb-1 task-name">
+                        <div class="flex items-center gap-2 text-xs text-slate-500">
+                            <span>Nota:</span>
+                            <input type="number" min="0" max="10" step="0.01" value="5" class="w-16 p-1 border rounded text-center font-mono font-bold text-slate-700 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none task-grade">
+                        </div>
+                    </div>
+                    <button onclick="removeTask(${id})" class="text-slate-400 hover:text-red-500 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex-1 p-3 bg-slate-50/50 min-h-[100px] drop-zone rounded-b-lg relative" id="drop-zone-${id}">
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-300 text-xs italic placeholder-text">
+                        Arrastra criterios aquí
+                    </div>
+                    <div class="flex flex-wrap gap-2 criteria-container relative z-10"></div>
+                </div>
+            `;
+
+            // Setup Drop Zone logic
+            const dropZone = taskCard.querySelector('.drop-zone');
+            
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault(); // Necessary for drop
+                e.dataTransfer.dropEffect = 'copy';
+                dropZone.classList.add('drag-over');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('drag-over');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                const code = e.dataTransfer.getData('text/plain');
+                if (code) {
+                    addCriterionToTask(taskCard, code);
+                }
+            });
+
+            container.appendChild(taskCard);
+            
+            // Focus on name
+            taskCard.querySelector('.task-name').focus();
+        }
+
+        function removeTask(id) {
+            if(!confirm("¿Eliminar esta tarea y sus criterios asociados?")) return;
+            const card = document.querySelector(`div[data-id="${id}"]`);
+            if (card) {
+                card.remove();
+                if (document.getElementById('tasks-container').children.length <= 1) { // 1 because empty state div is there
+                    document.getElementById('empty-state').classList.remove('hidden');
+                }
+            }
+        }
+
+        function addCriterionToTask(taskCard, code) {
+            const container = taskCard.querySelector('.criteria-container');
+            const placeholder = taskCard.querySelector('.placeholder-text');
+            if (placeholder) placeholder.style.display = 'none';
+
+            // Check if already exists in this task
+            const existing = Array.from(container.children).find(child => child.dataset.code === code);
+            if (existing) {
+                // Flash effect to indicate duplicate
+                existing.classList.add('ring-2', 'ring-offset-1', 'ring-red-400');
+                setTimeout(() => existing.classList.remove('ring-2', 'ring-offset-1', 'ring-red-400'), 500);
+                return;
+            }
+
+            // Extract comp ID for styling
+            const compId = code.split('.')[2];
+
+            const chip = document.createElement('div');
+            chip.dataset.code = code;
+            chip.className = `flex items-center gap-1 pl-2 pr-1 py-1 rounded text-xs font-bold border shadow-sm ce-${compId} bg-white`;
+            chip.innerHTML = `
+                <span>${code}</span>
+                <button class="hover:bg-red-100 text-red-400 hover:text-red-600 rounded-full p-0.5 transition" onclick="this.parentElement.remove(); checkEmptyTask('${taskCard.dataset.id}')">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            `;
+            container.appendChild(chip);
+        }
+
+        function checkEmptyTask(taskId) {
+            const card = document.querySelector(`div[data-id="${taskId}"]`);
+            const container = card.querySelector('.criteria-container');
+            if (container.children.length === 0) {
+                const placeholder = card.querySelector('.placeholder-text');
+                if (placeholder) placeholder.style.display = 'flex';
+            }
+        }
+
+        function resetApp() {
+            if(confirm("¿Borrar todas las tareas y empezar de cero?")) {
+                document.getElementById('tasks-container').innerHTML = `
+                <div id="empty-state" class="col-span-full flex flex-col items-center justify-center text-slate-400 py-20 border-2 border-dashed border-slate-300 rounded-xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    <p class="text-lg">No hay tareas definidas.</p>
+                    <p class="text-sm">Añade una tarea para comenzar a evaluar.</p>
+                </div>`;
+                taskIdCounter = 1;
+            }
+        }
+
+        // --- 4. Lógica de Cálculo (El Core Matemático) ---
+
+        function calculateGrades() {
+            // 1. Recolectar Datos
+            const taskNodes = document.querySelectorAll('#tasks-container > div:not(#empty-state)');
+            const taskData = [];
+            
+            taskNodes.forEach(node => {
+                const name = node.querySelector('.task-name').value || "Tarea sin nombre";
+                const grade = parseFloat(node.querySelector('.task-grade').value) || 0;
+                const criteriaNodes = node.querySelectorAll('.criteria-container > div');
+                const criteria = Array.from(criteriaNodes).map(c => c.dataset.code);
+                
+                if (criteria.length > 0) { // Solo tareas que evalúan algo
+                    taskData.push({ id: node.dataset.id, name, grade, criteria });
+                }
+            });
+
+            if (taskData.length === 0) {
+                alert("No hay tareas con criterios asignados para calcular.");
+                return;
+            }
+
+            // 2. Procesar Criterios Individuales
+            const criteriaReport = {}; // code -> { sum: 0, count: 0, avg: 0, tasks: [] }
+            
+            taskData.forEach(task => {
+                task.criteria.forEach(code => {
+                    if (!criteriaReport[code]) {
+                        criteriaReport[code] = { sum: 0, count: 0, avg: 0, tasks: [] };
+                    }
+                    criteriaReport[code].sum += task.grade;
+                    criteriaReport[code].count += 1;
+                    criteriaReport[code].tasks.push(task.name);
+                });
+            });
+
+            // Calcular medias de criterios
+            for (let code in criteriaReport) {
+                criteriaReport[code].avg = criteriaReport[code].sum / criteriaReport[code].count;
+            }
+
+            // 3. Procesar Competencias Específicas
+            const competencyReport = {}; // id -> { sumAvg: 0, countCriteria: 0, avg: 0 }
+            const unassessedCriteria = [];
+            const unassessedCompetencies = [];
+
+            structure.forEach(comp => {
+                let compSum = 0;
+                let compCount = 0;
+                let assessedInThisComp = [];
+
+                for (let i = 1; i <= comp.count; i++) {
+                    const code = `FISI.2.${comp.id}.${i}`;
+                    if (criteriaReport[code]) {
+                        compSum += criteriaReport[code].avg;
+                        compCount++;
+                        assessedInThisComp.push(code);
+                    } else {
+                        unassessedCriteria.push({ code, desc: `Criterio ${i} de CE ${comp.id}` });
+                    }
+                }
+
+                if (compCount > 0) {
+                    competencyReport[comp.id] = {
+                        avg: compSum / compCount,
+                        criteriaCount: compCount,
+                        assessedCodes: assessedInThisComp
+                    };
+                } else {
+                    unassessedCompetencies.push(comp);
+                }
+            });
+
+            // 4. Calcular Nota Final (Media de las Competencias Evaluadas)
+            let subjectSum = 0;
+            let subjectCount = 0;
+            
+            for (let id in competencyReport) {
+                subjectSum += competencyReport[id].avg;
+                subjectCount++;
+            }
+            
+            const finalGrade = subjectCount > 0 ? (subjectSum / subjectCount) : 0;
+
+            // 5. Calcular Pesos / Contribución
+            // Algoritmo: Weight(Task) = Sum( (1/NumComps) * (1/NumCritInComp) * (1/NumTasksInCrit) )
+            const taskWeights = {};
+            const criteriaWeights = {};
+
+            taskData.forEach(t => taskWeights[t.id] = 0);
+            
+            // Recorrer la estructura "viva" de lo evaluado
+            Object.keys(competencyReport).forEach(compId => {
+                const compWeight = 1 / subjectCount; // Peso de la CE en la nota final
+                const criteriaInComp = competencyReport[compId].assessedCodes;
+                const critWeight = compWeight / criteriaInComp.length; // Peso del Criterio en la nota final
+
+                criteriaInComp.forEach(critCode => {
+                    criteriaWeights[critCode] = critWeight * 100; // Porcentaje
+                    const tasksInvolving = criteriaReport[critCode].tasks.length; // Número de tareas que tocan este criterio (usamos length de array de nombres, simplificado)
+                    
+                    // Buscar qué tareas específicas aportaron a este criterio
+                    taskData.forEach(task => {
+                        if (task.criteria.includes(critCode)) {
+                            // Sumamos la porción de peso
+                            taskWeights[task.id] += (critWeight / tasksInvolving) * 100;
+                        }
+                    });
+                });
+            });
+
+            // 6. Renderizar Informe
+            renderReport(finalGrade, competencyReport, criteriaReport, unassessedCriteria, unassessedCompetencies, taskData, taskWeights, criteriaWeights);
+        }
+
+        function renderReport(finalGrade, compRep, critRep, unassessed, unassessedComps, tasks, taskWeights, critWeights) {
+            const container = document.getElementById('results-content');
+            
+            // Función auxiliar para color de nota
+            const gradeColor = (n) => n < 5 ? 'text-red-600' : (n >= 9 ? 'text-emerald-600' : 'text-blue-600');
+
+            let html = `
+                <div class="mb-8 p-6 bg-slate-100 rounded-xl border border-slate-200 text-center">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wide mb-2">Calificación Global de Física</h3>
+                    <div class="text-6xl font-extrabold ${gradeColor(finalGrade)}">${finalGrade.toFixed(2)}</div>
+                    <p class="text-sm text-slate-400 mt-2">Media aritmética de ${Object.keys(compRep).length} competencias evaluadas</p>
+                </div>
+            `;
+
+            // Tabla Competencias
+            html += `<h3 class="text-xl font-bold mb-4 text-slate-800 border-b pb-2">Desglose por Competencias</h3>`;
+            html += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">`;
+            
+            structure.forEach(comp => {
+                const data = compRep[comp.id];
+                if (!data) return; // No evaluada
+
+                let criteriaHtml = '';
+                data.assessedCodes.forEach(code => {
+                    const cData = critRep[code];
+                    const weight = critWeights[code] || 0;
+                    criteriaHtml += `
+                        <div class="flex justify-between items-center text-sm py-1 border-b border-slate-100 last:border-0">
+                            <span class="font-mono font-bold text-slate-600">${code}</span>
+                            <div class="text-right">
+                                <span class="block font-bold ${gradeColor(cData.avg)}">${cData.avg.toFixed(2)}</span>
+                                <span class="text-[10px] text-slate-400">Peso: ${weight.toFixed(1)}%</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                    <div class="bg-white rounded-lg shadow border-t-4 ce-${comp.id} p-4">
+                        <div class="flex justify-between items-start mb-3">
+                            <h4 class="font-bold text-slate-700">CE ${comp.id}</h4>
+                            <span class="text-2xl font-bold ${gradeColor(data.avg)}">${data.avg.toFixed(2)}</span>
+                        </div>
+                        <div class="space-y-1 bg-slate-50 p-2 rounded">
+                            ${criteriaHtml}
+                        </div>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+
+            // Tabla Contribución de Tareas
+            html += `<h3 class="text-xl font-bold mb-4 text-slate-800 border-b pb-2">Impacto de las Tareas</h3>`;
+            html += `
+                <div class="overflow-x-auto rounded-lg border border-slate-200 mb-8">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-100 text-slate-600 uppercase font-bold text-xs">
+                            <tr>
+                                <th class="px-4 py-3">Tarea</th>
+                                <th class="px-4 py-3 text-center">Nota Puesta</th>
+                                <th class="px-4 py-3 text-center">Criterios Evaluados</th>
+                                <th class="px-4 py-3 text-right">Peso en Nota Final</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+            `;
+            
+            tasks.forEach(t => {
+                const weight = taskWeights[t.id] || 0;
+                html += `
+                    <tr class="bg-white hover:bg-slate-50">
+                        <td class="px-4 py-3 font-medium text-slate-700">${t.name}</td>
+                        <td class="px-4 py-3 text-center font-bold ${gradeColor(t.grade)}">${t.grade.toFixed(2)}</td>
+                        <td class="px-4 py-3 text-center text-slate-500">${t.criteria.length}</td>
+                        <td class="px-4 py-3 text-right font-mono text-slate-600">${weight.toFixed(2)}%</td>
+                    </tr>
+                `;
+            });
+            html += `</tbody></table></div>`;
+
+            // Lista de NO Evaluados
+            if (unassessed.length > 0 || unassessedComps.length > 0) {
+                html += `<div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-8">
+                    <h3 class="text-orange-800 font-bold mb-4 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                        Informe de carencias (No Evaluado)
+                    </h3>`;
+                
+                // 1. Competencias enteras faltantes (Prioridad Alta)
+                if (unassessedComps.length > 0) {
+                    html += `
+                    <div class="mb-4 bg-red-50 p-3 rounded border border-red-100">
+                        <h4 class="text-xs font-bold text-red-700 uppercase mb-2">⚠️ Competencias Específicas sin evaluar (Se omiten de la media):</h4>
+                        <div class="flex flex-col gap-2">`;
+                    unassessedComps.forEach(c => {
+                        html += `
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-bold border border-red-200">CE ${c.id}</span>
+                                <span class="text-sm text-red-800">${c.desc}</span>
+                            </div>
+                        `;
+                    });
+                    html += `</div></div>`;
+                }
+
+                // 2. Criterios sueltos faltantes
+                if (unassessed.length > 0) {
+                    html += `
+                    <div>
+                        <h4 class="text-xs font-bold text-orange-700 uppercase mb-2">Criterios individuales no evaluados:</h4>
+                        <div class="flex flex-wrap gap-2">
+                    `;
+                    unassessed.forEach(u => {
+                        html += `<span class="px-2 py-1 rounded border bg-white border-orange-200 text-slate-500 text-xs font-mono" title="${u.desc}">${u.code}</span>`;
+                    });
+                    html += `</div></div>`;
+                }
+
+                html += `</div>`;
+            }
+
+            container.innerHTML = html;
+            document.getElementById('results-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('results-modal').classList.add('hidden');
+        }
+
+        // --- Init ---
+        initPalette();
+    </script>
+</body>
+</html>
