@@ -133,12 +133,13 @@
 
     <script>
         // --- 1. Definición de Datos (Normativa) ---
+        // Actualizado según las últimas indicaciones
         const structure = [
             { id: 1, count: 2, desc: "Resolver problemas" },
             { id: 2, count: 3, desc: "Leyes y teorías" },
-            { id: 3, count: 3, desc: "Indagación e investigación" },
-            { id: 4, count: 2, desc: "Cultura científica" },
-            { id: 5, count: 3, desc: "Herramientas digitales" },
+            { id: 3, count: 3, desc: "Lenguaje científico" },
+            { id: 4, count: 2, desc: "Búsqueda de información y trabajo en equipo" },
+            { id: 5, count: 3, desc: "Experimentación y trabajo en equipo" },
             { id: 6, count: 2, desc: "Naturaleza de la ciencia" }
         ];
 
@@ -204,7 +205,7 @@
 
         // --- 3. Gestión de Tareas ---
 
-        function addTask() {
+        function addTask(initialData = null) {
             document.getElementById('empty-state').classList.add('hidden');
             const container = document.getElementById('tasks-container');
             const id = taskIdCounter++;
@@ -222,11 +223,18 @@
                             <input type="number" min="0" max="10" step="0.01" value="5" class="w-16 p-1 border rounded text-center font-mono font-bold text-slate-700 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none task-grade">
                         </div>
                     </div>
-                    <button onclick="removeTask(${id})" class="text-slate-400 hover:text-red-500 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                    </button>
+                    <div class="flex items-center">
+                        <button onclick="cloneTask(${id})" class="text-slate-400 hover:text-blue-500 transition mr-2" title="Duplicar tarea">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                        </button>
+                        <button onclick="removeTask(${id})" class="text-slate-400 hover:text-red-500 transition" title="Eliminar tarea">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="flex-1 p-3 bg-slate-50/50 min-h-[100px] drop-zone rounded-b-lg relative" id="drop-zone-${id}">
                     <div class="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-300 text-xs italic placeholder-text">
@@ -270,9 +278,36 @@
             });
 
             container.appendChild(taskCard);
-            
-            // Focus on name
-            taskCard.querySelector('.task-name').focus();
+
+            // Gestionar datos iniciales si es una clonación o tarea nueva
+            const nameInput = taskCard.querySelector('.task-name');
+            const gradeInput = taskCard.querySelector('.task-grade');
+
+            if (initialData) {
+                nameInput.value = initialData.name + " (copia)";
+                gradeInput.value = initialData.grade;
+                initialData.criteria.forEach(code => {
+                    addCriterionToTask(taskCard, code);
+                });
+                // Pequeño flash para indicar que se creó
+                taskCard.classList.add('ring-2', 'ring-blue-300');
+                setTimeout(() => taskCard.classList.remove('ring-2', 'ring-blue-300'), 500);
+            } else {
+                // Solo hacer foco si es tarea nueva vacía
+                nameInput.focus();
+            }
+        }
+
+        function cloneTask(id) {
+            const originalCard = document.querySelector(`div[data-id="${id}"]`);
+            if (!originalCard) return;
+
+            const name = originalCard.querySelector('.task-name').value || "Tarea sin nombre";
+            const grade = originalCard.querySelector('.task-grade').value || 5;
+            const criteriaNodes = originalCard.querySelectorAll('.criteria-container > div');
+            const criteria = Array.from(criteriaNodes).map(c => c.dataset.code);
+
+            addTask({ name, grade, criteria });
         }
 
         function removeTask(id) {
