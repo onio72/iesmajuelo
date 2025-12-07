@@ -74,7 +74,7 @@
                 <!-- Se rellena con JS -->
             </div>
             <div class="p-3 bg-slate-50 text-xs text-slate-500 border-t text-center">
-                Arrastra los criterios a las tareas
+                Arrastra criterios o competencias enteras
             </div>
         </aside>
 
@@ -157,8 +157,21 @@
                 groupDiv.className = 'mb-6';
                 
                 const title = document.createElement('h3');
-                title.className = `font-bold text-sm mb-2 px-2 py-1 rounded border-l-4 ce-${comp.id}`;
-                title.innerText = `CE ${comp.id} (${comp.desc})`;
+                title.className = `font-bold text-sm mb-2 px-2 py-1 rounded border-l-4 ce-${comp.id} cursor-grab active:cursor-grabbing hover:bg-slate-50 transition select-none flex justify-between items-center`;
+                title.innerHTML = `<span>CE ${comp.id} (${comp.desc})</span> <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>`;
+                title.draggable = true;
+                title.title = "Arrastra para añadir todos los criterios de esta competencia";
+
+                // Evento Drag Start para Competencias
+                title.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', `COMP:${comp.id}`);
+                    e.dataTransfer.effectAllowed = 'copy';
+                    title.classList.add('opacity-50');
+                });
+                title.addEventListener('dragend', () => {
+                    title.classList.remove('opacity-50');
+                });
+
                 groupDiv.appendChild(title);
 
                 const grid = document.createElement('div');
@@ -171,7 +184,7 @@
                     tag.innerText = code;
                     tag.draggable = true;
                     
-                    // Evento Drag Start
+                    // Evento Drag Start para Criterios
                     tag.addEventListener('dragstart', (e) => {
                         e.dataTransfer.setData('text/plain', code);
                         e.dataTransfer.effectAllowed = 'copy';
@@ -217,7 +230,7 @@
                 </div>
                 <div class="flex-1 p-3 bg-slate-50/50 min-h-[100px] drop-zone rounded-b-lg relative" id="drop-zone-${id}">
                     <div class="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-300 text-xs italic placeholder-text">
-                        Arrastra criterios aquí
+                        Arrastra criterios o competencias aquí
                     </div>
                     <div class="flex flex-wrap gap-2 criteria-container relative z-10"></div>
                 </div>
@@ -239,9 +252,20 @@
             dropZone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 dropZone.classList.remove('drag-over');
-                const code = e.dataTransfer.getData('text/plain');
-                if (code) {
-                    addCriterionToTask(taskCard, code);
+                const data = e.dataTransfer.getData('text/plain');
+                
+                if (data.startsWith('COMP:')) {
+                    // Gestión de Competencias completas
+                    const compId = parseInt(data.split(':')[1]);
+                    const comp = structure.find(c => c.id === compId);
+                    if (comp) {
+                        for (let i = 1; i <= comp.count; i++) {
+                            addCriterionToTask(taskCard, `FISI.2.${compId}.${i}`);
+                        }
+                    }
+                } else if (data) {
+                    // Gestión de Criterio individual
+                    addCriterionToTask(taskCard, data);
                 }
             });
 
@@ -349,7 +373,8 @@
                     }
                     criteriaReport[code].sum += task.grade;
                     criteriaReport[code].count += 1;
-                    criteriaReport[code].tasks.push(task.name);
+                    // GUARDAMOS OBJETO CON NOMBRE Y NOTA
+                    criteriaReport[code].tasks.push({ name: task.name, grade: task.grade });
                 });
             });
 
@@ -416,7 +441,7 @@
 
                 criteriaInComp.forEach(critCode => {
                     criteriaWeights[critCode] = critWeight * 100; // Porcentaje
-                    const tasksInvolving = criteriaReport[critCode].tasks.length; // Número de tareas que tocan este criterio (usamos length de array de nombres, simplificado)
+                    const tasksInvolving = criteriaReport[critCode].tasks.length;
                     
                     // Buscar qué tareas específicas aportaron a este criterio
                     taskData.forEach(task => {
@@ -511,6 +536,47 @@
                 `;
             });
             html += `</tbody></table></div>`;
+
+
+            // --- NUEVA TABLA DE TRAZABILIDAD ---
+            html += `<h3 class="text-xl font-bold mb-4 text-slate-800 border-b pb-2">Trazabilidad por Criterio</h3>`;
+            html += `
+                <div class="overflow-x-auto rounded-lg border border-slate-200 mb-8">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-100 text-slate-600 uppercase font-bold text-xs">
+                            <tr>
+                                <th class="px-4 py-3 w-32">Criterio</th>
+                                <th class="px-4 py-3 w-24 text-center">Nota Media</th>
+                                <th class="px-4 py-3">Tareas Contribuyentes (Nota)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+            `;
+            
+            const evaluatedCriteria = Object.keys(critRep).sort();
+            evaluatedCriteria.forEach(code => {
+                const compId = code.split('.')[2];
+                const taskList = critRep[code].tasks;
+                const avg = critRep[code].avg;
+                
+                let taskBadges = '';
+                taskList.forEach(t => {
+                    taskBadges += `<span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-100 border border-slate-200 text-xs text-slate-700 mr-2 mb-1">
+                        <span>${t.name}</span>
+                        <span class="font-bold ${gradeColor(t.grade)}">(${t.grade.toFixed(2)})</span>
+                    </span>`;
+                });
+
+                html += `
+                    <tr class="bg-white hover:bg-slate-50">
+                        <td class="px-4 py-3 font-mono font-bold text-slate-600 ce-${compId} border-l-4">${code}</td>
+                        <td class="px-4 py-3 text-center font-bold ${gradeColor(avg)}">${avg.toFixed(2)}</td>
+                        <td class="px-4 py-3">${taskBadges}</td>
+                    </tr>
+                `;
+            });
+            html += `</tbody></table></div>`;
+
 
             // Lista de NO Evaluados
             if (unassessed.length > 0 || unassessedComps.length > 0) {
