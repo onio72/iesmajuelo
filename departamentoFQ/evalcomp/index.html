@@ -1,1 +1,856 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluador Competencial Universal V2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos Drag & Drop */
+        .criterion-tag { cursor: grab; transition: transform 0.1s, box-shadow 0.1s; }
+        .criterion-tag:active { cursor: grabbing; }
+        .drop-zone { transition: background-color 0.2s, border-color 0.2s; }
+        .drop-zone.drag-over { background-color: #e0f2fe; border-color: #3b82f6; border-style: solid; }
+        
+        /* Colores Dinámicos (Clases base, se inyectan colores vía style en JS para flexibilidad total) */
+        .ce-card { border-left-width: 4px; }
 
+        @media print {
+            .no-print { display: none !important; }
+            #results-section { display: block !important; }
+            #evaluator-view { display: block !important; }
+            #dashboard-view { display: none !important; }
+        }
+
+        /* Animaciones */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans h-screen flex flex-col overflow-hidden">
+
+    <!-- VISTA 1: DASHBOARD (Lista de Materias) -->
+    <div id="dashboard-view" class="flex flex-col h-full fade-in">
+        <header class="bg-slate-900 text-white p-6 shadow-lg shrink-0">
+            <div class="max-w-6xl mx-auto flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                        Evaluador Competencial Universal
+                    </h1>
+                    <p class="text-slate-400 text-sm mt-1">Gestión de evaluación LOMLOE multi-asignatura</p>
+                </div>
+                <div class="flex gap-3">
+                    <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(this)">
+                    <button onclick="document.getElementById('import-file').click()" class="px-4 py-2 border border-slate-600 hover:bg-slate-800 text-slate-300 rounded text-sm transition flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        Importar JSON
+                    </button>
+                    <button onclick="exportData()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded text-sm transition flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Exportar Todo
+                    </button>
+                    <button onclick="openNewSubjectModal()" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded shadow transition flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        Nueva Materia
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <div class="max-w-6xl mx-auto">
+                <div id="subject-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Cards de Asignaturas -->
+                </div>
+                
+                <div id="empty-dashboard" class="hidden flex flex-col items-center justify-center py-20 text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mb-4 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <h2 class="text-xl font-semibold">No tienes materias creadas</h2>
+                    <p>Haz clic en "Nueva Materia" para configurar tu primer evaluador.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- VISTA 2: EVALUADOR (La App original adaptada) -->
+    <div id="evaluator-view" class="hidden flex-col h-full fade-in bg-slate-50">
+        <!-- Header Evaluador -->
+        <header class="bg-slate-800 text-white p-3 shadow-md shrink-0 flex justify-between items-center z-10">
+            <div class="flex items-center gap-4">
+                <button onclick="backToDashboard()" class="text-slate-400 hover:text-white transition flex items-center gap-1 text-sm font-bold">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Volver
+                </button>
+                <div class="border-l border-slate-600 pl-4">
+                    <h1 id="eval-subject-title" class="text-lg font-bold">Asignatura</h1>
+                    <p id="eval-subject-subtitle" class="text-xs text-slate-300">Curso</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                 <button onclick="saveCurrentSubject()" class="text-xs text-slate-400 hover:text-white mr-2" id="save-indicator">Guardado</button>
+                 <button onclick="resetTasks()" class="px-3 py-1.5 bg-red-600/80 hover:bg-red-700 text-white rounded text-sm transition">
+                    Borrar Tareas
+                </button>
+                <button onclick="calculateGrades()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold shadow transition flex items-center gap-2 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Informe
+                </button>
+            </div>
+        </header>
+
+        <!-- Workspace Evaluador -->
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Sidebar Criterios -->
+            <aside class="w-1/4 bg-white border-r border-slate-200 flex flex-col shadow-lg z-20">
+                <div class="p-3 bg-slate-100 border-b border-slate-200 font-semibold text-xs text-slate-600 uppercase tracking-wider">
+                    Competencias y Criterios
+                </div>
+                <div class="flex-1 overflow-y-auto p-4 space-y-4" id="criteria-palette">
+                    <!-- Dinámico -->
+                </div>
+                <div class="p-2 bg-slate-50 text-[10px] text-slate-400 border-t text-center">
+                    Arrastra etiquetas a las tareas
+                </div>
+            </aside>
+
+            <!-- Main Tareas -->
+            <main class="w-3/4 flex flex-col bg-slate-50 relative">
+                <div class="p-3 border-b border-slate-200 bg-white flex justify-between items-center shadow-sm">
+                    <h2 class="font-bold text-slate-700">Tareas Definidas</h2>
+                    <button onclick="addTask()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded shadow transition flex items-center gap-1 text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        Nueva Tarea
+                    </button>
+                </div>
+                <div id="tasks-container" class="flex-1 overflow-y-auto p-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 content-start">
+                    <!-- Tareas Dinámicas -->
+                    <div id="eval-empty-state" class="col-span-full flex flex-col items-center justify-center text-slate-400 py-10 border-2 border-dashed border-slate-300 rounded-xl">
+                        <p>No hay tareas. Añade una para empezar.</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL: Nueva Materia -->
+    <div id="new-subject-modal" class="fixed inset-0 bg-slate-900/80 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-slate-200 bg-slate-50">
+                <h2 class="text-xl font-bold text-slate-800">Configurar Nueva Materia</h2>
+                <p class="text-sm text-slate-500">Define la estructura de competencias de la asignatura.</p>
+            </div>
+            
+            <div class="p-6 overflow-y-auto">
+                <form id="new-subject-form" onsubmit="event.preventDefault();">
+                    <!-- Paso 1: Datos Generales -->
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Nombre Materia</label>
+                            <input type="text" id="input-name" required placeholder="Ej. Física y Química" class="w-full border rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Curso</label>
+                            <input type="text" id="input-course" required placeholder="Ej. 2º Bachillerato" class="w-full border rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Prefijo Criterios</label>
+                            <input type="text" id="input-prefix" required placeholder="Ej. FISI.2" class="w-full border rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm uppercase">
+                        </div>
+                    </div>
+
+                    <!-- Paso 2: Estructura -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Número de Competencias Específicas (CE)</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="input-ce-count" min="1" max="15" value="6" class="w-20 border rounded p-2 text-center font-bold">
+                            <button onclick="generateStructureInputs()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-sm font-medium">Generar Estructura</button>
+                        </div>
+                    </div>
+
+                    <div id="structure-inputs-container" class="space-y-3 hidden">
+                        <div class="grid grid-cols-12 gap-2 text-xs font-bold text-slate-500 uppercase border-b pb-1">
+                            <div class="col-span-1 text-center">#</div>
+                            <div class="col-span-8">Descripción Competencia</div>
+                            <div class="col-span-3 text-center">Nº Criterios</div>
+                        </div>
+                        <div id="ce-rows" class="space-y-2 max-h-60 overflow-y-auto pr-2"></div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
+                <button onclick="closeNewSubjectModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded">Cancelar</button>
+                <button onclick="createSubject()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold shadow disabled:opacity-50" id="btn-create-subject" disabled>Crear Materia</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Resultados (Mismo diseño que V1) -->
+    <div id="results-modal" class="fixed inset-0 bg-slate-900/80 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden">
+            <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <h2 class="text-2xl font-bold text-slate-800">Informe de Evaluación</h2>
+                <button onclick="closeResultModal()" class="text-slate-500 hover:text-slate-800 p-2 rounded-full">✕</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-8" id="results-content"></div>
+            <div class="p-4 border-t bg-slate-50 flex justify-end gap-3 no-print">
+                <button onclick="window.print()" class="px-4 py-2 bg-slate-600 text-white rounded">Imprimir / PDF</button>
+                <button onclick="closeResultModal()" class="px-4 py-2 bg-blue-600 text-white rounded">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- GESTIÓN DE ESTADO GLOBAL ---
+        
+        let appData = {
+            subjects: [] 
+            // { id: uuid, name: "", course: "", prefix: "", structure: [], tasks: [] }
+        };
+
+        let currentSubject = null;
+        let taskIdCounter = 1;
+
+        // Colores pastel generados dinámicamente para las competencias
+        const ceColors = [
+            { bg: '#fee2e2', border: '#fca5a5', text: '#7f1d1d' }, // Red
+            { bg: '#ffedd5', border: '#fdba74', text: '#7c2d12' }, // Orange
+            { bg: '#fef9c3', border: '#fde047', text: '#713f12' }, // Yellow
+            { bg: '#dcfce7', border: '#86efac', text: '#14532d' }, // Green
+            { bg: '#dbeafe', border: '#93c5fd', text: '#1e3a8a' }, // Blue
+            { bg: '#f3e8ff', border: '#d8b4fe', text: '#581c87' }, // Purple
+            { bg: '#fce7f3', border: '#fbcfe8', text: '#831843' }, // Pink
+            { bg: '#e0f2fe', border: '#bae6fd', text: '#0c4a6e' }, // Sky
+            { bg: '#ccfbf1', border: '#99f6e4', text: '#134e4a' }, // Teal
+            { bg: '#e5e7eb', border: '#d1d5db', text: '#374151' }  // Gray
+        ];
+
+        // --- INICIALIZACIÓN Y STORAGE ---
+
+        window.onload = function() {
+            loadFromStorage();
+            renderDashboard();
+        };
+
+        function loadFromStorage() {
+            const stored = localStorage.getItem('evaluador_universal_v2');
+            if (stored) {
+                appData = JSON.parse(stored);
+            }
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('evaluador_universal_v2', JSON.stringify(appData));
+            const indicator = document.getElementById('save-indicator');
+            if (indicator) {
+                indicator.innerText = "Guardado...";
+                setTimeout(() => indicator.innerText = "Guardado", 1000);
+            }
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(appData, null, 2);
+            const blob = new Blob([dataStr], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `evaluador_backup_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+        }
+
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.subjects) {
+                        appData = data;
+                        saveToStorage();
+                        renderDashboard();
+                        alert("Datos importados correctamente.");
+                    } else {
+                        alert("Formato de archivo incorrecto.");
+                    }
+                } catch(err) {
+                    alert("Error al leer el archivo JSON.");
+                }
+            };
+            reader.readAsText(file);
+            input.value = ''; // Reset
+        }
+
+        // --- DASHBOARD LOGIC ---
+
+        function renderDashboard() {
+            document.getElementById('dashboard-view').classList.remove('hidden');
+            document.getElementById('evaluator-view').classList.add('hidden');
+            
+            const grid = document.getElementById('subject-grid');
+            grid.innerHTML = '';
+
+            if (appData.subjects.length === 0) {
+                document.getElementById('empty-dashboard').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('empty-dashboard').classList.add('hidden');
+
+            appData.subjects.forEach(sub => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-6 rounded-xl shadow-md border border-slate-200 hover:shadow-xl transition cursor-pointer relative group";
+                card.onclick = (e) => {
+                    if(!e.target.closest('button')) openSubject(sub.id);
+                };
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-bold text-xl text-slate-800">${sub.name}</h3>
+                        <button onclick="deleteSubject('${sub.id}')" class="text-slate-300 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition" title="Borrar materia">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 000-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="text-slate-500 mb-4">${sub.course}</p>
+                    <div class="flex gap-2 text-xs text-slate-400 font-mono bg-slate-50 p-2 rounded">
+                        <span>Prefijo: <b>${sub.prefix}</b></span>
+                        <span>•</span>
+                        <span>${sub.structure.length} CEs</span>
+                        <span>•</span>
+                        <span>${sub.tasks.length} Tareas</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function deleteSubject(id) {
+            if(confirm("¿Estás seguro de borrar esta materia y todas sus notas?")) {
+                appData.subjects = appData.subjects.filter(s => s.id !== id);
+                saveToStorage();
+                renderDashboard();
+            }
+        }
+
+        // --- NEW SUBJECT WIZARD ---
+
+        function openNewSubjectModal() {
+            document.getElementById('new-subject-modal').classList.remove('hidden');
+            document.getElementById('new-subject-form').reset();
+            document.getElementById('structure-inputs-container').classList.add('hidden');
+            document.getElementById('ce-rows').innerHTML = '';
+            document.getElementById('btn-create-subject').disabled = true;
+        }
+
+        function closeNewSubjectModal() {
+            document.getElementById('new-subject-modal').classList.add('hidden');
+        }
+
+        function generateStructureInputs() {
+            const count = parseInt(document.getElementById('input-ce-count').value) || 6;
+            const container = document.getElementById('ce-rows');
+            container.innerHTML = '';
+            
+            for(let i=1; i<=count; i++) {
+                const row = document.createElement('div');
+                row.className = "grid grid-cols-12 gap-2 items-center";
+                row.innerHTML = `
+                    <div class="col-span-1 text-center font-bold text-slate-600 bg-slate-100 rounded py-1">CE ${i}</div>
+                    <div class="col-span-8">
+                        <input type="text" class="ce-desc-input w-full border rounded px-2 py-1 text-sm focus:border-blue-500 outline-none" placeholder="Descripción (ej. Resolución de problemas)" value="Competencia Específica ${i}">
+                    </div>
+                    <div class="col-span-3">
+                        <input type="number" class="ce-crit-count-input w-full border rounded px-2 py-1 text-center text-sm font-bold" min="1" max="10" value="2">
+                    </div>
+                `;
+                container.appendChild(row);
+            }
+            document.getElementById('structure-inputs-container').classList.remove('hidden');
+            document.getElementById('btn-create-subject').disabled = false;
+        }
+
+        function createSubject() {
+            const name = document.getElementById('input-name').value;
+            const course = document.getElementById('input-course').value;
+            const prefix = document.getElementById('input-prefix').value;
+            
+            if(!name || !prefix) { alert("Rellena nombre y prefijo"); return; }
+
+            const structure = [];
+            const rows = document.getElementById('ce-rows').children;
+            
+            for(let i=0; i<rows.length; i++) {
+                const desc = rows[i].querySelector('.ce-desc-input').value;
+                const count = parseInt(rows[i].querySelector('.ce-crit-count-input').value);
+                structure.push({ id: i+1, count, desc });
+            }
+
+            const newSubject = {
+                id: crypto.randomUUID(),
+                name, course, prefix, structure,
+                tasks: []
+            };
+
+            appData.subjects.push(newSubject);
+            saveToStorage();
+            closeNewSubjectModal();
+            openSubject(newSubject.id);
+        }
+
+        // --- EVALUATOR LOGIC (Adapted for V2) ---
+
+        function openSubject(id) {
+            currentSubject = appData.subjects.find(s => s.id === id);
+            if (!currentSubject) return;
+
+            // UI Switch
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('evaluator-view').classList.remove('hidden');
+
+            // Set Header
+            document.getElementById('eval-subject-title').innerText = currentSubject.name;
+            document.getElementById('eval-subject-subtitle').innerText = currentSubject.course;
+
+            // Init Logic
+            // Find max ID to restart counter correctly
+            taskIdCounter = 1;
+            if(currentSubject.tasks.length > 0) {
+                 const maxId = Math.max(...currentSubject.tasks.map(t => parseInt(t.id) || 0));
+                 taskIdCounter = maxId + 1;
+            }
+
+            initPalette();
+            renderTasks();
+        }
+
+        function backToDashboard() {
+            saveCurrentSubject();
+            currentSubject = null;
+            renderDashboard();
+        }
+
+        function saveCurrentSubject() {
+            if(!currentSubject) return;
+            // Update the object in the main array
+            const idx = appData.subjects.findIndex(s => s.id === currentSubject.id);
+            if(idx !== -1) {
+                appData.subjects[idx] = currentSubject;
+                saveToStorage();
+            }
+        }
+
+        // --- PALETTE RENDER ---
+        function initPalette() {
+            const palette = document.getElementById('criteria-palette');
+            palette.innerHTML = '';
+            
+            currentSubject.structure.forEach((comp, index) => {
+                const color = ceColors[index % ceColors.length];
+                
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'mb-4';
+                
+                // Style injection for dynamic colors
+                const titleStyle = `background-color:${color.bg}; border-color:${color.border}; color:${color.text}`;
+                const tagStyle = `background-color:${color.bg}; border-color:${color.border}; color:${color.text}`;
+
+                const title = document.createElement('div');
+                title.className = `font-bold text-xs mb-2 px-2 py-1 rounded border-l-4 cursor-grab select-none flex justify-between items-center hover:brightness-95`;
+                title.style = titleStyle;
+                title.innerHTML = `<span class="truncate pr-2">CE ${comp.id}: ${comp.desc}</span>`;
+                title.draggable = true;
+                
+                title.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', `COMP:${comp.id}`);
+                });
+
+                groupDiv.appendChild(title);
+
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-3 gap-1';
+
+                for (let i = 1; i <= comp.count; i++) {
+                    const tag = document.createElement('div');
+                    const code = `${currentSubject.prefix}.${comp.id}.${i}`; // Dynamic Prefix
+                    tag.className = `criterion-tag border rounded px-1 py-1 text-[10px] font-mono font-bold text-center select-none shadow-sm opacity-90 hover:opacity-100 hover:scale-105`;
+                    tag.style = tagStyle;
+                    tag.innerText = code;
+                    tag.draggable = true;
+                    
+                    tag.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', code);
+                    });
+                    grid.appendChild(tag);
+                }
+                groupDiv.appendChild(grid);
+                palette.appendChild(groupDiv);
+            });
+        }
+
+        // --- TASK MANAGEMENT (InMemory -> then Save) ---
+
+        function renderTasks() {
+            const container = document.getElementById('tasks-container');
+            container.innerHTML = '';
+            
+            if(currentSubject.tasks.length === 0) {
+                 container.innerHTML = `
+                    <div id="eval-empty-state" class="col-span-full flex flex-col items-center justify-center text-slate-400 py-10 border-2 border-dashed border-slate-300 rounded-xl">
+                        <p>No hay tareas. Añade una para empezar.</p>
+                    </div>`;
+                 return;
+            }
+
+            currentSubject.tasks.forEach(task => {
+                const taskCard = createTaskElement(task);
+                container.appendChild(taskCard);
+            });
+        }
+
+        function addTask(initialData = null) {
+            // Remove empty state if present
+            const emptyState = document.getElementById('eval-empty-state');
+            if(emptyState) emptyState.remove();
+
+            const container = document.getElementById('tasks-container');
+            
+            // Generate Data
+            let taskData = initialData;
+            if(!taskData) {
+                taskData = {
+                    id: taskIdCounter++,
+                    name: "",
+                    grade: 5,
+                    criteria: []
+                };
+                currentSubject.tasks.push(taskData);
+            } else {
+                // If coming from Clone, ensure new ID
+                if(!currentSubject.tasks.find(t => t.id === taskData.id)) {
+                     currentSubject.tasks.push(taskData);
+                }
+            }
+
+            const card = createTaskElement(taskData);
+            container.appendChild(card);
+            
+            // Focus if new
+            if(!initialData) card.querySelector('.task-name').focus();
+            
+            saveCurrentSubject();
+        }
+
+        function createTaskElement(taskData) {
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-lg shadow border border-slate-200 flex flex-col transition hover:shadow-md';
+            card.dataset.id = taskData.id;
+
+            card.innerHTML = `
+                <div class="p-2 border-b border-slate-100 bg-slate-50 flex justify-between items-start rounded-t-lg">
+                    <div class="flex-1 mr-2">
+                        <input type="text" placeholder="Nombre Tarea" value="${taskData.name}" class="task-name w-full bg-transparent font-bold text-slate-700 text-sm focus:outline-none focus:border-b border-blue-400 mb-1" oninput="updateTaskData(${taskData.id}, 'name', this.value)">
+                        <div class="flex items-center gap-2 text-xs text-slate-500">
+                            <span>Nota:</span>
+                            <input type="number" min="0" max="10" step="0.01" value="${taskData.grade}" class="w-14 p-0.5 border rounded text-center font-mono font-bold text-slate-700 outline-none" onchange="updateTaskData(${taskData.id}, 'grade', this.value)">
+                        </div>
+                    </div>
+                    <div class="flex gap-1">
+                         <button onclick="cloneTask(${taskData.id})" class="text-slate-300 hover:text-blue-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg></button>
+                         <button onclick="removeTask(${taskData.id})" class="text-slate-300 hover:text-red-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                    </div>
+                </div>
+                <div class="flex-1 p-2 bg-slate-50/50 min-h-[80px] drop-zone rounded-b-lg relative">
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-300 text-[10px] italic placeholder-text" style="${taskData.criteria.length ? 'display:none' : ''}">Arrastra aquí</div>
+                    <div class="flex flex-wrap gap-1 criteria-container relative z-10"></div>
+                </div>
+            `;
+
+            // Fill Criteria
+            const container = card.querySelector('.criteria-container');
+            taskData.criteria.forEach(code => {
+                container.appendChild(createChipElement(code, taskData.id));
+            });
+
+            // Events
+            setupDropZone(card, taskData.id);
+
+            return card;
+        }
+
+        function createChipElement(code, taskId) {
+            // Determine color based on CE ID
+            // Code format: PREFIX.CE.CRIT (e.g., FISI.2.1.1)
+            // We assume structure: part 2 is the ID.
+            const parts = code.split('.');
+            // If prefix has dots (FISI.2), we need to be careful. 
+            // The logic: find which CE index this code belongs to based on structure.
+            // Simplified: extract the number after the prefix. 
+            // Better approach: Search inside currentSubject.structure
+            
+            // Let's assume the CE ID is the second to last element if format is standard, 
+            // BUT given custom prefixes, let's just use the number in the code that matches a structure ID.
+            
+            // Fallback for color
+            let color = ceColors[9]; 
+            
+            // Try to find CE ID
+            const ceIdMatch = currentSubject.structure.find(s => code.includes(`.${s.id}.`));
+            if(ceIdMatch) {
+                const idx = currentSubject.structure.indexOf(ceIdMatch);
+                if(idx !== -1) color = ceColors[idx % ceColors.length];
+            }
+
+            const chip = document.createElement('div');
+            chip.className = `flex items-center gap-1 pl-2 pr-1 py-0.5 rounded text-[10px] font-bold border shadow-sm bg-white`;
+            chip.style = `border-color:${color.border}; color:${color.text}`;
+            chip.innerHTML = `
+                <span>${code}</span>
+                <button class="hover:bg-red-100 text-red-400 hover:text-red-600 rounded-full p-0.5" onclick="removeCriterion(${taskId}, '${code}', this)">×</button>
+            `;
+            return chip;
+        }
+
+        function setupDropZone(card, taskId) {
+            const dropZone = card.querySelector('.drop-zone');
+            dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                const data = e.dataTransfer.getData('text/plain');
+                if(!data) return;
+
+                if(data.startsWith('COMP:')) {
+                    const compId = parseInt(data.split(':')[1]);
+                    const comp = currentSubject.structure.find(c => c.id === compId);
+                    if(comp) {
+                        for(let i=1; i<=comp.count; i++) {
+                            addCriterionToTask(taskId, `${currentSubject.prefix}.${compId}.${i}`);
+                        }
+                    }
+                } else {
+                    addCriterionToTask(taskId, data);
+                }
+            });
+        }
+
+        function updateTaskData(taskId, field, value) {
+            const task = currentSubject.tasks.find(t => t.id === taskId);
+            if(task) {
+                if(field === 'grade') value = parseFloat(value) || 0;
+                task[field] = value;
+                saveCurrentSubject();
+            }
+        }
+
+        function removeTask(id) {
+            if(!confirm("¿Borrar tarea?")) return;
+            currentSubject.tasks = currentSubject.tasks.filter(t => t.id !== id);
+            renderTasks();
+            saveCurrentSubject();
+        }
+
+        function resetTasks() {
+            if(!confirm("¿Estás seguro de borrar TODAS las tareas de esta asignatura?")) return;
+            currentSubject.tasks = [];
+            taskIdCounter = 1;
+            renderTasks();
+            saveCurrentSubject();
+        }
+
+        function cloneTask(id) {
+            const original = currentSubject.tasks.find(t => t.id === id);
+            if(!original) return;
+            
+            const newTask = {
+                id: taskIdCounter++,
+                name: original.name + " (Copia)",
+                grade: original.grade,
+                criteria: [...original.criteria]
+            };
+            
+            addTask(newTask);
+        }
+
+        function addCriterionToTask(taskId, code) {
+            const task = currentSubject.tasks.find(t => t.id === taskId);
+            if(!task) return;
+
+            if(!task.criteria.includes(code)) {
+                task.criteria.push(code);
+                // Update UI immediately (simpler than full rerender)
+                const card = document.querySelector(`div[data-id="${taskId}"]`);
+                const container = card.querySelector('.criteria-container');
+                container.appendChild(createChipElement(code, taskId));
+                card.querySelector('.placeholder-text').style.display = 'none';
+                saveCurrentSubject();
+            }
+        }
+
+        function removeCriterion(taskId, code, btnElement) {
+            const task = currentSubject.tasks.find(t => t.id === taskId);
+            if(task) {
+                task.criteria = task.criteria.filter(c => c !== code);
+                btnElement.parentElement.remove();
+                if(task.criteria.length === 0) {
+                     const card = document.querySelector(`div[data-id="${taskId}"]`);
+                     if(card) card.querySelector('.placeholder-text').style.display = 'flex';
+                }
+                saveCurrentSubject();
+            }
+        }
+
+        // --- CALCULATOR ENGINE (Generic) ---
+
+        function calculateGrades() {
+            if(currentSubject.tasks.length === 0) { alert("No hay datos"); return; }
+            
+            // Mapping Logic similar to V1 but using currentSubject.structure
+            
+            // 1. Criteria Stats
+            const criteriaStats = {};
+            currentSubject.tasks.forEach(task => {
+                if(task.criteria.length === 0) return;
+                task.criteria.forEach(code => {
+                    if(!criteriaStats[code]) criteriaStats[code] = { sum: 0, count: 0, tasks: [] };
+                    criteriaStats[code].sum += task.grade;
+                    criteriaStats[code].count++;
+                    criteriaStats[code].tasks.push({ name: task.name, grade: task.grade });
+                });
+            });
+
+            // 2. Competency Stats
+            const compStats = {};
+            const unassessed = [];
+            const unassessedComps = [];
+
+            currentSubject.structure.forEach(comp => {
+                let compSum = 0;
+                let critCountInComp = 0;
+                let codesInComp = [];
+
+                for(let i=1; i<=comp.count; i++) {
+                    const code = `${currentSubject.prefix}.${comp.id}.${i}`;
+                    if(criteriaStats[code]) {
+                        const avg = criteriaStats[code].sum / criteriaStats[code].count;
+                        criteriaStats[code].avg = avg;
+                        compSum += avg;
+                        critCountInComp++;
+                        codesInComp.push(code);
+                    } else {
+                        unassessed.push(code);
+                    }
+                }
+
+                if(critCountInComp > 0) {
+                    compStats[comp.id] = {
+                        avg: compSum / critCountInComp,
+                        codes: codesInComp
+                    };
+                } else {
+                    unassessedComps.push(comp);
+                }
+            });
+
+            // 3. Final Grade
+            let subjectSum = 0;
+            let subjectDiv = 0;
+            Object.values(compStats).forEach(c => { subjectSum += c.avg; subjectDiv++; });
+            const finalGrade = subjectDiv ? subjectSum / subjectDiv : 0;
+
+            renderReport(finalGrade, compStats, criteriaStats, unassessed, unassessedComps);
+        }
+
+        function renderReport(final, compStats, critStats, unassessed, unassessedComps) {
+            const el = document.getElementById('results-content');
+            const gradeColor = (n) => n < 5 ? 'text-red-600' : (n >= 9 ? 'text-emerald-600' : 'text-blue-600');
+            
+            let html = `
+                <div class="text-center bg-slate-100 p-6 rounded-lg mb-6 border">
+                    <h3 class="text-sm font-bold uppercase text-slate-500">Nota Final: ${currentSubject.name}</h3>
+                    <div class="text-6xl font-extrabold ${gradeColor(final)}">${final.toFixed(2)}</div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            `;
+
+            currentSubject.structure.forEach((comp, idx) => {
+                if(!compStats[comp.id]) return;
+                const cData = compStats[comp.id];
+                const color = ceColors[idx % ceColors.length];
+                
+                let critRows = '';
+                cData.codes.forEach(code => {
+                    const stat = critStats[code];
+                    critRows += `
+                        <div class="flex justify-between text-xs py-1 border-b border-slate-100">
+                            <span class="font-mono font-bold">${code}</span>
+                            <span class="font-bold ${gradeColor(stat.avg)}">${stat.avg.toFixed(2)}</span>
+                        </div>
+                    `;
+                });
+
+                html += `
+                    <div class="bg-white border-l-4 shadow rounded p-3" style="border-color:${color.border}">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="font-bold text-sm" style="color:${color.text}">CE ${comp.id}</h4>
+                            <span class="text-xl font-bold ${gradeColor(cData.avg)}">${cData.avg.toFixed(2)}</span>
+                        </div>
+                        <div class="bg-slate-50 p-2 rounded">${critRows}</div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            // Warnings
+            if(unassessed.length > 0 || unassessedComps.length > 0) {
+                html += `<div class="bg-orange-50 border border-orange-200 p-4 rounded text-sm mb-6">
+                    <h4 class="font-bold text-orange-800 mb-2">Faltan por evaluar:</h4>
+                    ${unassessedComps.map(c => `<div class="text-red-600 font-bold">• CE ${c.id}: ${c.desc} (COMPLETA)</div>`).join('')}
+                    <div class="flex flex-wrap gap-1 mt-2">
+                        ${unassessed.map(u => `<span class="bg-white border px-1 rounded text-xs text-slate-500">${u}</span>`).join('')}
+                    </div>
+                </div>`;
+            }
+
+            // Trazabilidad simplificada
+            html += `<h3 class="font-bold mb-2 border-b pb-1">Detalle Criterios Evaluados</h3>`;
+            html += `<div class="overflow-x-auto"><table class="w-full text-xs text-left">
+                <thead class="bg-slate-100"><tr><th class="p-2">Criterio</th><th class="p-2">Nota Media</th><th class="p-2">Tareas</th></tr></thead>
+                <tbody>`;
+            
+            Object.keys(critStats).sort().forEach(code => {
+                 const s = critStats[code];
+                 const tasksStr = s.tasks.map(t => `${t.name} (${t.grade})`).join(', ');
+                 html += `<tr class="border-b"><td class="p-2 font-mono font-bold">${code}</td><td class="p-2 font-bold ${gradeColor(s.avg)}">${s.avg.toFixed(2)}</td><td class="p-2 text-slate-500 truncate max-w-xs" title="${tasksStr}">${tasksStr}</td></tr>`;
+            });
+            html += `</tbody></table></div>`;
+
+            el.innerHTML = html;
+            document.getElementById('results-modal').classList.remove('hidden');
+        }
+
+        function closeResultModal() {
+             document.getElementById('results-modal').classList.add('hidden');
+        }
+
+    </script>
+</body>
+</html>
