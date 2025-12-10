@@ -13,8 +13,9 @@
             --bg-color: #f4f6f7;
             --card-bg: #ffffff;
             --success-color: #27ae60;
+            --warning-color: #f39c12; /* Nuevo color para Regular */
             --error-color: #c0392b;
-            --text-dark: #333333; /* Nuevo color para texto oscuro */
+            --text-dark: #333333;
         }
 
         body {
@@ -113,7 +114,7 @@
 
         .info-text {
             font-size: 18px;
-            color: var(--text-dark); /* Color gris oscuro fijo para el texto base */
+            color: var(--text-dark);
             font-weight: bold;
         }
 
@@ -169,7 +170,7 @@
 
         .legend-text {
             font-size: 16px;
-            font-family: 'Times New Roman', serif; /* Serif para notación científica se ve mejor */
+            font-family: 'Times New Roman', serif;
         }
         
         .legend-text sup {
@@ -209,13 +210,17 @@
             color: #333;
         }
 
-        select {
+        select, input[type="number"] {
             padding: 5px;
             font-size: 1rem;
             border-radius: 4px;
             border: 1px solid #ccc;
             margin: 0 5px;
             background-color: #fff;
+        }
+        
+        input[type="number"] {
+            width: 100px;
         }
 
         /* Botones de selección de isótopo */
@@ -234,7 +239,7 @@
             border-radius: 20px;
             cursor: pointer;
             transition: all 0.2s;
-            font-family: 'Times New Roman', serif; /* Serif para los botones también */
+            font-family: 'Times New Roman', serif;
         }
 
         .iso-select-btn.selected {
@@ -278,6 +283,7 @@
             font-weight: bold;
         }
         .feedback-msg.correct { color: var(--success-color); }
+        .feedback-msg.regular { color: var(--warning-color); }
         .feedback-msg.incorrect { color: var(--error-color); }
 
         @media (max-width: 768px) {
@@ -339,6 +345,60 @@
     </div>
 
     <script>
+        // --- 0. SCORM API WRAPPER (Minificado y Simplificado para SCORM 1.2) ---
+        var SCORM = {
+            API: null,
+            init: function() {
+                var api = this.getAPI();
+                if (api) {
+                    this.API = api;
+                    this.API.LMSInitialize("");
+                    this.API.LMSSetValue("cmi.core.score.min", "0");
+                    this.API.LMSSetValue("cmi.core.score.max", "10");
+                    this.API.LMSSetValue("cmi.core.lesson_status", "incomplete");
+                    this.API.LMSCommit("");
+                    console.log("SCORM: Conectado.");
+                } else {
+                    console.warn("SCORM: API no encontrada. Ejecutando en modo local.");
+                }
+            },
+            getAPI: function() {
+                var findAPITries = 0;
+                var win = window;
+                try {
+                    while ((win.API == null) && (win.parent != null) && (win.parent != win)) {
+                        findAPITries++;
+                        if (findAPITries > 7) {
+                            console.warn("SCORM: API search depth limit reached.");
+                            return null;
+                        }
+                        win = win.parent;
+                    }
+                    return win.API;
+                } catch (e) {
+                    console.warn("SCORM: Security error while searching for API (likely cross-origin sandbox). Running locally.", e);
+                    return null;
+                }
+            },
+            setScore: function(score) {
+                if (this.API) {
+                    this.API.LMSSetValue("cmi.core.score.raw", score.toFixed(2));
+                    this.API.LMSCommit("");
+                }
+            },
+            setComplete: function() {
+                if (this.API) {
+                    this.API.LMSSetValue("cmi.core.lesson_status", "passed"); // O 'completed'
+                    this.API.LMSCommit("");
+                }
+            },
+            terminate: function() {
+                if (this.API) {
+                    this.API.LMSFinish("");
+                }
+            }
+        };
+
         // --- 1. PROCESAMIENTO DE DATOS ---
         
         const csvData = `Elemento,Simbolo,Masa_nominal,Masa_exacta,Abundancia
@@ -467,6 +527,7 @@ Renio,187Re,187,186.955753,62.60`;
         function restartGame() {
             globalScore = 0.0;
             updateScoreDisplay();
+            SCORM.setScore(0); // Resetear SCORM
             document.getElementById('restartBtn').style.display = 'none';
             document.getElementById('checkBtn').style.display = 'inline-block';
             loadNextElement();
@@ -477,6 +538,12 @@ Renio,187Re,187,186.955753,62.60`;
             document.getElementById('checkBtn').style.display = 'none';
             document.getElementById('nextBtn').style.display = 'none';
             document.getElementById('restartBtn').style.display = 'inline-block';
+            
+            // --- SCORM: Finalizar curso ---
+            SCORM.setScore(10);
+            SCORM.setComplete();
+            // No cerramos (terminate) aquí para permitir reiniciar si el usuario quiere, 
+            // se cerrará al salir de la página.
         }
 
         function renderElement(data) {
@@ -676,13 +743,42 @@ Renio,187Re,187,186.955753,62.60`;
 
             container.appendChild(q5Div);
 
-            // Pregunta 6
+            // Pregunta 6 (Estimación)
             const q6 = createDropdownQuestion(6,
                 `La masa promedio de un átomo de ${data.name} estará más próxima a`,
                 `u.`,
                 optionsPool,
                 avgMassAnswer);
             container.appendChild(q6);
+
+            // --- Pregunta 7 (Cálculo Exacto) ---
+            const q7Div = document.createElement('div');
+            q7Div.className = 'question-block';
+            q7Div.id = 'q7-block';
+            
+            // Calcular la masa exacta ponderada
+            const calculatedMass = isotopes.reduce((acc, iso) => acc + (iso.mass * iso.abundance), 0) / 100;
+            q7Div.dataset.correct = calculatedMass; 
+
+            const q7Text = document.createElement('p');
+            q7Text.className = 'question-text';
+            q7Text.innerHTML = `7. Calcula la masa atómica promedio del <b>${data.name}</b> teniendo en cuenta la abundancia (usa 2 decimales):`;
+
+            const q7Input = document.createElement('input');
+            q7Input.type = 'number';
+            q7Input.step = '0.01';
+            q7Input.id = 'input-7';
+            q7Input.placeholder = 'Ej: 12.01';
+
+            q7Div.appendChild(q7Text);
+            q7Div.appendChild(q7Input);
+            
+            const q7Feedback = document.createElement('div');
+            q7Feedback.className = 'feedback-msg';
+            q7Feedback.id = 'feedback-7';
+            q7Div.appendChild(q7Feedback);
+
+            container.appendChild(q7Div);
         }
 
         function createDropdownQuestion(id, textPre, textPost, options, correctAnswer) {
@@ -740,13 +836,13 @@ Renio,187Re,187,186.955753,62.60`;
             
             document.getElementById('checkBtn').disabled = true;
 
+            // Procesamos preguntas 1 a 6 (lógica original)
             for (let i = 1; i <= 6; i++) {
                 const block = document.getElementById(`q${i}-block`);
                 const feedback = document.getElementById(`feedback-${i}`);
                 const correctVal = block.dataset.correct;
                 let userVal = '';
-                let isCorrect = false;
-
+                
                 if (i === 5) {
                     userVal = selectedIsotopeForQ5;
                     block.querySelectorAll('button').forEach(b => b.disabled = true);
@@ -757,26 +853,57 @@ Renio,187Re,187,186.955753,62.60`;
                 }
 
                 if (userVal && String(userVal) === String(correctVal)) {
-                    isCorrect = true;
                     globalScore += 0.3; 
                     feedback.innerText = "¡Correcto! (+0.3)";
                     feedback.className = "feedback-msg correct";
                 } else {
-                    // --- CORRECCIÓN 2: Lógica de puntuación mínima 0 ---
-                    // Solo restamos si la puntuación es mayor que 0
                     if (globalScore > 0) {
-                        // Math.max asegura que no bajemos de 0
                         globalScore = Math.max(0, globalScore - 0.15);
                         feedback.innerText = `Incorrecto. La respuesta era ${correctVal}. (-0.15)`;
                     } else {
-                        // Si ya es 0 o menos (aunque no debería), no restamos
                         feedback.innerText = `Incorrecto. La respuesta era ${correctVal}.`;
                     }
                     feedback.className = "feedback-msg incorrect";
                 }
             }
 
+            // --- Procesamos Pregunta 7 (Cálculo) ---
+            const block7 = document.getElementById('q7-block');
+            const feedback7 = document.getElementById('feedback-7');
+            const input7 = document.getElementById('input-7');
+            const correctMass = parseFloat(block7.dataset.correct);
+            const userMass = parseFloat(input7.value);
+
+            input7.disabled = true;
+
+            if (!isNaN(userMass)) {
+                const diff = Math.abs(userMass - correctMass);
+                
+                if (diff < 0.05) {
+                    // Correcto
+                    globalScore += 4;
+                    feedback7.innerText = `¡Correcto! Valor exacto: ${correctMass.toFixed(3)}. (+4.0)`;
+                    feedback7.className = "feedback-msg correct";
+                } else if (diff >= 0.05 && diff < 0.2) {
+                    // Regular
+                    globalScore += 2;
+                    feedback7.innerText = `Regular. Valor exacto: ${correctMass.toFixed(3)}. (+2.0)`;
+                    feedback7.className = "feedback-msg regular";
+                } else {
+                    // Incorrecto (penalización mayor por ser pregunta de 4 puntos)
+                    if (globalScore > 0) globalScore = Math.max(0, globalScore - 0.5);
+                    feedback7.innerText = `Incorrecto. Valor exacto: ${correctMass.toFixed(3)}. (-0.5)`;
+                    feedback7.className = "feedback-msg incorrect";
+                }
+            } else {
+                feedback7.innerText = "Sin respuesta.";
+                feedback7.className = "feedback-msg incorrect";
+            }
+
             updateScoreDisplay();
+
+            // --- SCORM: Enviar puntuación ---
+            SCORM.setScore(globalScore);
 
             if (globalScore >= 10) {
                 document.getElementById('nextBtn').style.display = 'none';
@@ -789,8 +916,15 @@ Renio,187Re,187,186.955753,62.60`;
         }
 
         window.onload = function() {
+            // --- SCORM: Inicializar al cargar ---
+            SCORM.init();
             parseCSV();
             restartGame();
+        };
+
+        // --- SCORM: Cerrar conexión al salir ---
+        window.onbeforeunload = function() {
+            SCORM.terminate();
         };
 
     </script>
