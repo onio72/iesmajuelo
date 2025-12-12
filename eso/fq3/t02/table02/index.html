@@ -24,7 +24,6 @@
       --good:#16a34a;
 
       --gap:2px;
-
       --cellH: 60px;
       --cellW: 56px;
     }
@@ -69,7 +68,7 @@
       flex-direction:column;
       align-items:flex-end;
       gap:8px;
-      min-width: 320px;
+      min-width: 260px;
     }
 
     .grade{
@@ -177,10 +176,19 @@
       font-size:11px;
       font-weight:950;
       color: rgba(0,0,0,.78);
+      background: transparent;
+      border:none;
+      padding:0;
+      border-radius:0;
       line-height:1;
     }
 
-    .sym{ font-size:18px; font-weight:950; margin:0; line-height:1; }
+    .sym{
+      font-size:18px;
+      font-weight:950;
+      margin:0;
+      line-height:1;
+    }
     .name{
       font-size:10px;
       font-weight:900;
@@ -255,7 +263,6 @@
     .bigName{ font-size:18px; font-weight:950; color: rgba(0,0,0,.78); margin:0; }
     .bigMass{ font-size:18px; font-weight:950; color: rgba(0,0,0,.70); margin:0; }
 
-    /* Leyenda */
     .legend{
       display:flex;
       flex-wrap:wrap;
@@ -274,33 +281,14 @@
     .sw.ng{background:var(--noble)}
 
     /* ==== Panel preguntas ==== */
-    .qTitle{
-      margin:0 0 8px;
-      font-size:18px;
-      font-weight:950;
-      text-align:center;
-    }
-    .qBox{
-      border:2px solid var(--border);
-      border-radius:14px;
-      padding:10px;
-      background:#fff;
-    }
-
-    .qText{
-      margin:0 0 10px;
-      font-size:16px;
-      font-weight:900;
-      line-height:1.32;
-      text-align:center; /* centrado */
-    }
-
+    .qTitle{ margin:0 0 8px; font-size:18px; font-weight:950; }
+    .qBox{ border:2px solid var(--border); border-radius:14px; padding:10px; background:#fff; }
+    .qText{ margin:0 0 10px; font-size:16px; font-weight:900; line-height:1.32; }
     .answerRow{
       display:flex;
       gap:10px;
       flex-wrap:wrap;
       align-items:center;
-      justify-content:center; /* centrado */
       margin: 6px 0 10px;
     }
 
@@ -314,35 +302,17 @@
       min-width: 240px;
       outline:none;
       font-weight:900;
-      text-align:center;
     }
     input:focus, select:focus{
       border-color:#93c5fd;
       box-shadow: 0 0 0 4px rgba(147,197,253,.35);
     }
 
-    .ansWithUnit{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-    }
-    .ansWithUnit .unit{
-      font-size:14px;
-      font-weight:950;
-      color: rgba(0,0,0,.72);
-      white-space:nowrap;
-    }
-    .massInputNarrow{
-      min-width: 160px !important;
-      width: 160px;
-    }
-
-    /* Botones centrados */
+    /* Botones */
     .iconBtnRow{
       display:flex;
       gap:12px;
-      justify-content:center;
+      justify-content:flex-start;
       align-items:center;
       margin-top:8px;
     }
@@ -360,13 +330,19 @@
     .iconBtn:hover{ border-color:#cbd5e1; }
     .iconBtn:active{ transform: translateY(1px); }
     .iconBtn svg{ width:24px; height:24px; }
-
     .btnTextIcon{
       font-weight:950;
       font-size:22px;
       line-height:1;
       letter-spacing:-1px;
       user-select:none;
+    }
+
+    /* Estado deshabilitado (tras validar) */
+    .iconBtn:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+      transform:none;
     }
 
     .feedback{
@@ -378,66 +354,113 @@
       line-height:1.32;
       display:none;
       margin-top:10px;
-      text-align:center;
     }
     .feedback.ok{border-color: rgba(22,163,74,.45); background: rgba(22,163,74,.10);}
     .feedback.ko{border-color: rgba(220,38,38,.45); background: rgba(220,38,38,.10);}
 
-    /* Resumen 3 filas */
-    .skillPanel{
+    /* ===== Resumen por tipo ===== */
+    .summaryCard{
       margin-top:10px;
       border:2px solid var(--border);
       border-radius:14px;
       padding:10px;
       background:#fff;
     }
-    .skillTitle{
-      margin:0 0 8px;
+    .summaryTitle{
+      margin:0 0 10px;
       font-size:13px;
       font-weight:950;
-      color: rgba(0,0,0,.75);
-      text-align:center;
+      color: rgba(0,0,0,.70);
     }
-    .skillTable{
-      width:100%;
-      border-collapse:separate;
-      border-spacing:6px 6px;
-      table-layout:fixed;
+
+    /* más ancho/alto para que NO queden “tubitos” */
+    .summaryGrid{
+      display:grid;
+      grid-template-columns: repeat(11, minmax(38px, 1fr));
+      gap:8px;
+      align-items:stretch;
     }
-    .skillTable td{
+    .sumCell{
       border:2px solid var(--border);
-      border-radius:10px;
-      height:34px;
-      text-align:center;
-      font-weight:950;
+      border-radius:12px;
+      padding:6px 6px 7px;
       background:#fff;
-      overflow:hidden;
-      white-space:nowrap;
+      min-height:60px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      align-items:center;
+      position:relative;
     }
-    .skillTable td.head{
-      background: rgba(243,244,246,.85);
-      color: rgba(0,0,0,.72);
+
+    .sumNum{
+      width:28px;
+      height:28px;
+      border-radius:999px;
+      border:2px solid rgba(0,0,0,.12);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:950;
+      font-size:13px;
+      line-height:1;
+      background:#fff;
+    }
+
+    .sumRows{
+      width:100%;
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      margin-top:6px;
+    }
+    .sumRow{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-weight:900;
       font-size:12px;
+      line-height:1;
+      color: rgba(0,0,0,.72);
     }
-    .skillTable td.ok{
-      border-color: rgba(22,163,74,.45);
-      background: rgba(22,163,74,.10);
+    .sumOk{ color: var(--good); }
+    .sumKo{ color: var(--bad); }
+
+    /* Tooltip */
+    .sumTip{
+      display:none;
+      position:absolute;
+      bottom: calc(100% + 8px);
+      left:50%;
+      transform:translateX(-50%);
+      background:#111827;
+      color:#fff;
+      padding:8px 10px;
+      border-radius:10px;
+      font-size:12px;
+      line-height:1.2;
+      font-weight:850;
+      white-space:nowrap;
+      box-shadow: 0 10px 22px rgba(0,0,0,.18);
+      z-index: 20;
     }
-    .skillTable td.ko{
-      border-color: rgba(220,38,38,.45);
-      background: rgba(220,38,38,.10);
+    .sumTip:after{
+      content:"";
+      position:absolute;
+      top:100%;
+      left:50%;
+      transform:translateX(-50%);
+      border:7px solid transparent;
+      border-top-color:#111827;
     }
-    .skillTable td.empty{
-      background: rgba(243,244,246,.55);
-      color: rgba(0,0,0,.55);
-    }
+    .sumCell:hover .sumTip{ display:block; }
 
     @media (max-width: 980px){
       body{ overflow:auto; }
       .wrap{ height:auto; }
       .layout{ grid-template-columns:1fr; }
-      .skillTable{ border-spacing:4px 4px; }
-      .skillTable td{ height:30px; }
+      .summaryGrid{ grid-template-columns: repeat(6, minmax(38px, 1fr)); }
     }
   </style>
 </head>
@@ -457,7 +480,6 @@
         <div class="gradeSub">
           <span id="hitsText">Aciertos: 0</span>
           <span id="missText">Fallos: 0</span>
-          <span id="qLeftText">Quedan: 20</span>
         </div>
       </div>
     </div>
@@ -493,7 +515,7 @@
     <aside class="panel">
       <h2 class="qTitle">Pregunta</h2>
       <div class="qBox">
-        <p class="qText" id="qText">Pulsa “&gt;&gt;” para empezar.</p>
+        <p class="qText" id="qText">Pulsa “Comprobar” tras responder. Para otra pregunta, “Nuevo ejercicio”.</p>
         <div class="answerRow" id="answerRow"></div>
 
         <div class="iconBtnRow">
@@ -519,9 +541,10 @@
 
         <div class="feedback" id="feedback"></div>
 
-        <div class="skillPanel" aria-label="Resumen por tipo de pregunta (dos intentos)">
-          <p class="skillTitle">Resumen por tipo (pasa el ratón por el número):</p>
-          <table class="skillTable" id="skillTable"></table>
+        <!-- Resumen por tipo -->
+        <div class="summaryCard" aria-label="Resumen por tipo">
+          <p class="summaryTitle">Resumen por tipo (pasa el ratón por el número):</p>
+          <div class="summaryGrid" id="summaryGrid"></div>
         </div>
       </div>
     </aside>
@@ -529,119 +552,63 @@
 </div>
 
 <script>
-/* ======= utilidades ======= */
 function fmtMass2(x){
   if(x === null || x === undefined) return "";
   return Number(x).toFixed(2);
 }
-function normalizeText(s){
-  return (s ?? "")
-    .toString()
-    .trim()
-    .toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-}
-function approxEqual(a, b, tol){ return Math.abs(a-b) <= tol; }
-function randomInt(min, max){ return Math.floor(Math.random()*(max-min+1)) + min; }
-function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
-/* ======= datos ======= */
+/* ===== Datos (Ts como metal; La y Ac sin asterisco y con masa) ===== */
 const DATA = [
-  [1,"H","Hidrógeno",1.008,1,1,"No metal"],
-  [2,"He","Helio",4.0026,18,1,"Gas noble"],
+  [1,"H","Hidrógeno",1.008,1,1,"No metal"], [2,"He","Helio",4.0026,18,1,"Gas noble"],
+  [3,"Li","Litio",6.94,1,2,"Metal"], [4,"Be","Berilio",9.0122,2,2,"Metal"],
+  [5,"B","Boro",10.81,13,2,"Semimetal"], [6,"C","Carbono",12.011,14,2,"No metal"],
+  [7,"N","Nitrógeno",14.007,15,2,"No metal"], [8,"O","Oxígeno",15.999,16,2,"No metal"],
+  [9,"F","Flúor",18.998,17,2,"No metal"], [10,"Ne","Neón",20.180,18,2,"Gas noble"],
 
-  [3,"Li","Litio",6.94,1,2,"Metal"],
-  [4,"Be","Berilio",9.0122,2,2,"Metal"],
-  [5,"B","Boro",10.81,13,2,"Semimetal"],
-  [6,"C","Carbono",12.011,14,2,"No metal"],
-  [7,"N","Nitrógeno",14.007,15,2,"No metal"],
-  [8,"O","Oxígeno",15.999,16,2,"No metal"],
-  [9,"F","Flúor",18.998,17,2,"No metal"],
-  [10,"Ne","Neón",20.180,18,2,"Gas noble"],
+  [11,"Na","Sodio",22.990,1,3,"Metal"], [12,"Mg","Magnesio",24.305,2,3,"Metal"],
+  [13,"Al","Aluminio",26.982,13,3,"Metal"], [14,"Si","Silicio",28.085,14,3,"Semimetal"],
+  [15,"P","Fósforo",30.974,15,3,"No metal"], [16,"S","Azufre",32.06,16,3,"No metal"],
+  [17,"Cl","Cloro",35.45,17,3,"No metal"], [18,"Ar","Argón",39.948,18,3,"Gas noble"],
 
-  [11,"Na","Sodio",22.990,1,3,"Metal"],
-  [12,"Mg","Magnesio",24.305,2,3,"Metal"],
-  [13,"Al","Aluminio",26.982,13,3,"Metal"],
-  [14,"Si","Silicio",28.085,14,3,"Semimetal"],
-  [15,"P","Fósforo",30.974,15,3,"No metal"],
-  [16,"S","Azufre",32.06,16,3,"No metal"],
-  [17,"Cl","Cloro",35.45,17,3,"No metal"],
-  [18,"Ar","Argón",39.948,18,3,"Gas noble"],
+  [19,"K","Potasio",39.098,1,4,"Metal"], [20,"Ca","Calcio",40.078,2,4,"Metal"],
+  [21,"Sc","Escandio",44.956,3,4,"Metal"], [22,"Ti","Titanio",47.867,4,4,"Metal"],
+  [23,"V","Vanadio",50.942,5,4,"Metal"], [24,"Cr","Cromo",51.996,6,4,"Metal"],
+  [25,"Mn","Manganeso",54.938,7,4,"Metal"], [26,"Fe","Hierro",55.845,8,4,"Metal"],
+  [27,"Co","Cobalto",58.933,9,4,"Metal"], [28,"Ni","Níquel",58.693,10,4,"Metal"],
+  [29,"Cu","Cobre",63.546,11,4,"Metal"], [30,"Zn","Zinc",65.38,12,4,"Metal"],
+  [31,"Ga","Galio",69.723,13,4,"Metal"], [32,"Ge","Germanio",72.630,14,4,"Semimetal"],
+  [33,"As","Arsénico",74.922,15,4,"Semimetal"], [34,"Se","Selenio",78.971,16,4,"No metal"],
+  [35,"Br","Bromo",79.904,17,4,"No metal"], [36,"Kr","Kriptón",83.798,18,4,"Gas noble"],
 
-  [19,"K","Potasio",39.098,1,4,"Metal"],
-  [20,"Ca","Calcio",40.078,2,4,"Metal"],
-  [21,"Sc","Escandio",44.956,3,4,"Metal"],
-  [22,"Ti","Titanio",47.867,4,4,"Metal"],
-  [23,"V","Vanadio",50.942,5,4,"Metal"],
-  [24,"Cr","Cromo",51.996,6,4,"Metal"],
-  [25,"Mn","Manganeso",54.938,7,4,"Metal"],
-  [26,"Fe","Hierro",55.845,8,4,"Metal"],
-  [27,"Co","Cobalto",58.933,9,4,"Metal"],
-  [28,"Ni","Níquel",58.693,10,4,"Metal"],
-  [29,"Cu","Cobre",63.546,11,4,"Metal"],
-  [30,"Zn","Zinc",65.38,12,4,"Metal"],
-  [31,"Ga","Galio",69.723,13,4,"Metal"],
-  [32,"Ge","Germanio",72.630,14,4,"Semimetal"],
-  [33,"As","Arsénico",74.922,15,4,"Semimetal"],
-  [34,"Se","Selenio",78.971,16,4,"No metal"],
-  [35,"Br","Bromo",79.904,17,4,"No metal"],
-  [36,"Kr","Kriptón",83.798,18,4,"Gas noble"],
+  [37,"Rb","Rubidio",85.468,1,5,"Metal"], [38,"Sr","Estroncio",87.62,2,5,"Metal"],
+  [39,"Y","Itrio",88.906,3,5,"Metal"], [40,"Zr","Circonio",91.224,4,5,"Metal"],
+  [41,"Nb","Niobio",92.906,5,5,"Metal"], [42,"Mo","Molibdeno",95.95,6,5,"Metal"],
+  [43,"Tc","Tecnecio",98.0,7,5,"Metal"], [44,"Ru","Rutenio",101.07,8,5,"Metal"],
+  [45,"Rh","Rodio",102.91,9,5,"Metal"], [46,"Pd","Paladio",106.42,10,5,"Metal"],
+  [47,"Ag","Plata",107.87,11,5,"Metal"], [48,"Cd","Cadmio",112.41,12,5,"Metal"],
+  [49,"In","Indio",114.82,13,5,"Metal"], [50,"Sn","Estaño",118.71,14,5,"Metal"],
+  [51,"Sb","Antimonio",121.76,15,5,"Semimetal"], [52,"Te","Telurio",127.60,16,5,"Semimetal"],
+  [53,"I","Yodo",126.90,17,5,"No metal"], [54,"Xe","Xenón",131.29,18,5,"Gas noble"],
 
-  [37,"Rb","Rubidio",85.468,1,5,"Metal"],
-  [38,"Sr","Estroncio",87.62,2,5,"Metal"],
-  [39,"Y","Itrio",88.906,3,5,"Metal"],
-  [40,"Zr","Circonio",91.224,4,5,"Metal"],
-  [41,"Nb","Niobio",92.906,5,5,"Metal"],
-  [42,"Mo","Molibdeno",95.95,6,5,"Metal"],
-  [43,"Tc","Tecnecio",98.0,7,5,"Metal"],
-  [44,"Ru","Rutenio",101.07,8,5,"Metal"],
-  [45,"Rh","Rodio",102.91,9,5,"Metal"],
-  [46,"Pd","Paladio",106.42,10,5,"Metal"],
-  [47,"Ag","Plata",107.87,11,5,"Metal"],
-  [48,"Cd","Cadmio",112.41,12,5,"Metal"],
-  [49,"In","Indio",114.82,13,5,"Metal"],
-  [50,"Sn","Estaño",118.71,14,5,"Metal"],
-  [51,"Sb","Antimonio",121.76,15,5,"Semimetal"],
-  [52,"Te","Telurio",127.60,16,5,"Semimetal"],
-  [53,"I","Yodo",126.90,17,5,"No metal"],
-  [54,"Xe","Xenón",131.29,18,5,"Gas noble"],
-
-  [55,"Cs","Cesio",132.91,1,6,"Metal"],
-  [56,"Ba","Bario",137.33,2,6,"Metal"],
+  [55,"Cs","Cesio",132.91,1,6,"Metal"], [56,"Ba","Bario",137.33,2,6,"Metal"],
   [57,"La","Lantano",138.90547,3,6,"Metal"],
-
-  [72,"Hf","Hafnio",178.49,4,6,"Metal"],
-  [73,"Ta","Tantalio",180.95,5,6,"Metal"],
-  [74,"W","Wolframio",183.84,6,6,"Metal"],
-  [75,"Re","Renio",186.21,7,6,"Metal"],
-  [76,"Os","Osmio",190.23,8,6,"Metal"],
-  [77,"Ir","Iridio",192.22,9,6,"Metal"],
-  [78,"Pt","Platino",195.08,10,6,"Metal"],
-  [79,"Au","Oro",196.97,11,6,"Metal"],
-  [80,"Hg","Mercurio",200.59,12,6,"Metal"],
-  [81,"Tl","Talio",204.38,13,6,"Metal"],
-  [82,"Pb","Plomo",207.2,14,6,"Metal"],
-  [83,"Bi","Bismuto",208.98,15,6,"Metal"],
-  [84,"Po","Polonio",209,16,6,"Semimetal"],
-  [85,"At","Astato",210,17,6,"Semimetal"],
+  [72,"Hf","Hafnio",178.49,4,6,"Metal"], [73,"Ta","Tantalio",180.95,5,6,"Metal"],
+  [74,"W","Wolframio",183.84,6,6,"Metal"], [75,"Re","Renio",186.21,7,6,"Metal"],
+  [76,"Os","Osmio",190.23,8,6,"Metal"], [77,"Ir","Iridio",192.22,9,6,"Metal"],
+  [78,"Pt","Platino",195.08,10,6,"Metal"], [79,"Au","Oro",196.97,11,6,"Metal"],
+  [80,"Hg","Mercurio",200.59,12,6,"Metal"], [81,"Tl","Talio",204.38,13,6,"Metal"],
+  [82,"Pb","Plomo",207.2,14,6,"Metal"], [83,"Bi","Bismuto",208.98,15,6,"Metal"],
+  [84,"Po","Polonio",209,16,6,"Semimetal"], [85,"At","Astato",210,17,6,"Semimetal"],
   [86,"Rn","Radón",222,18,6,"Gas noble"],
 
-  [87,"Fr","Francio",223,1,7,"Metal"],
-  [88,"Ra","Radio",226,2,7,"Metal"],
+  [87,"Fr","Francio",223,1,7,"Metal"], [88,"Ra","Radio",226,2,7,"Metal"],
   [89,"Ac","Actinio",227.02775,3,7,"Metal"],
-
-  [104,"Rf","Rutherfordio",267,4,7,"Metal"],
-  [105,"Db","Dubnio",268,5,7,"Metal"],
-  [106,"Sg","Seaborgio",269,6,7,"Metal"],
-  [107,"Bh","Bohrio",270,7,7,"Metal"],
-  [108,"Hs","Hassio",277,8,7,"Metal"],
-  [109,"Mt","Meitnerio",278,9,7,"Metal"],
-  [110,"Ds","Darmstadtio",281,10,7,"Metal"],
-  [111,"Rg","Roentgenio",282,11,7,"Metal"],
-  [112,"Cn","Copernicio",285,12,7,"Metal"],
-  [113,"Nh","Nihonio",286,13,7,"Metal"],
-  [114,"Fl","Flerovio",289,14,7,"Metal"],
-  [115,"Mc","Moscovio",290,15,7,"Metal"],
+  [104,"Rf","Rutherfordio",267,4,7,"Metal"], [105,"Db","Dubnio",268,5,7,"Metal"],
+  [106,"Sg","Seaborgio",269,6,7,"Metal"], [107,"Bh","Bohrio",270,7,7,"Metal"],
+  [108,"Hs","Hassio",277,8,7,"Metal"], [109,"Mt","Meitnerio",278,9,7,"Metal"],
+  [110,"Ds","Darmstadtio",281,10,7,"Metal"], [111,"Rg","Roentgenio",282,11,7,"Metal"],
+  [112,"Cn","Copernicio",285,12,7,"Metal"], [113,"Nh","Nihonio",286,13,7,"Metal"],
+  [114,"Fl","Flerovio",289,14,7,"Metal"], [115,"Mc","Moscovio",290,15,7,"Metal"],
   [116,"Lv","Livermorio",293,16,7,"Metal"],
   [117,"Ts","Teneso",294,17,7,"Metal"],
   [118,"Og","Oganesón",294,18,7,"Gas noble"],
@@ -653,9 +620,8 @@ const elements = DATA.map(d => ({
 }));
 
 const byZ = new Map(elements.filter(e => typeof e.Z === "number").map(e => [e.Z, e]));
-const questionPoolElements = elements.filter(e => typeof e.Z === "number" && e.Z >= 1 && e.Z <= 56);
+const questionPool = elements.filter(e => typeof e.Z === "number" && e.Z >= 1 && e.Z <= 56);
 
-/* ======= render tabla ======= */
 function catClass(el){
   if(el.category === "Metal") return "cat-metal";
   if(el.category === "No metal") return "cat-nonmetal";
@@ -663,7 +629,55 @@ function catClass(el){
   if(el.category === "Gas noble") return "cat-noble";
   return "cat-placeholder";
 }
+
+function bigGroupCategory(el){
+  if(el.category === "Gas noble") return "Gas Noble";
+  if(el.category === "Semimetal") return "Semimetal";
+  if(el.category === "No metal") return "No metal";
+  return "Metal";
+}
+
+function groupFamilyName(group){
+  if(group === 1) return "Alcalinos";
+  if(group === 2) return "Alcalinotérreos";
+  if(group >= 3 && group <= 12) return "Metales de transición";
+  if(group === 13) return "Boroideos";
+  if(group === 14) return "Carbonoideos";
+  if(group === 15) return "Nitrogenoideos";
+  if(group === 16) return "Calcógenos";
+  if(group === 17) return "Halógenos";
+  if(group === 18) return "Gases nobles";
+  return "—";
+}
+
+function valenceElectrons(el){
+  const g = el.group;
+  if(g === 1) return 1;
+  if(g === 2) return 2;
+  if(g >= 3 && g <= 12) return 2;
+  if(g === 13) return 3;
+  if(g === 14) return 4;
+  if(g === 15) return 5;
+  if(g === 16) return 6;
+  if(g === 17) return 7;
+  if(g === 18) return (el.Z === 2 ? 2 : 8);
+  return null;
+}
+
+function normalizeText(s){
+  return (s ?? "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function approxEqual(a, b, tol){ return Math.abs(a-b) <= tol; }
+function randomInt(min, max){ return Math.floor(Math.random()*(max-min+1)) + min; }
+
+/* ===== Render tabla ===== */
 const ptable = document.getElementById("ptable");
+
 function renderTable(){
   ptable.innerHTML = "";
   const grid = Array.from({length:7}, () => Array.from({length:18}, () => null));
@@ -672,22 +686,27 @@ function renderTable(){
       grid[el.period-1][el.group-1] = el;
     }
   }
+
   for(let p=1; p<=7; p++){
     for(let g=1; g<=18; g++){
       const el = grid[p-1][g-1];
       const cell = document.createElement("div");
       cell.className = "cell";
+
       if(!el){
         cell.style.background = "#fff";
         cell.style.border = "1px solid transparent";
         ptable.appendChild(cell);
         continue;
       }
+
       cell.classList.add(catClass(el));
+      cell.setAttribute("role","gridcell");
       if(typeof el.Z === "number") cell.dataset.z = String(el.Z);
 
       const zText = (typeof el.Z === "number") ? String(el.Z) : "";
       const massText = (el.mass != null) ? fmtMass2(el.mass) : "";
+
       cell.innerHTML = `
         <div class="z">${zText}</div>
         <div class="sym">${el.sym}</div>
@@ -699,7 +718,7 @@ function renderTable(){
   }
 }
 
-/* ======= escalado + magnificada ======= */
+/* ===== Escalado sin scroll + posicionamiento magnificada 3x3 ===== */
 const tableFit = document.getElementById("tableFit");
 const tableStage = document.getElementById("tableStage");
 const bigOverlay = document.getElementById("bigOverlay");
@@ -723,8 +742,8 @@ function applyTableScale(){
   const cellH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cellH'));
   const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gap'));
 
-  const colStart = 8;
-  const rowStart = 1;
+  const colStart = 8; // 3 columnas: 8,9,10
+  const rowStart = 1; // 3 filas: 1,2,3
 
   const x = pad + (colStart - 1) * (cellW + gap);
   const y = pad + (rowStart - 1) * (cellH + gap);
@@ -734,40 +753,15 @@ function applyTableScale(){
 }
 window.addEventListener("resize", () => requestAnimationFrame(applyTableScale));
 
-/* ======= familias / valencia ======= */
-function groupFamilyName(group){
-  if(group === 1) return "Alcalinos";
-  if(group === 2) return "Alcalinotérreos";
-  if(group >= 3 && group <= 12) return "Metales de transición";
-  if(group === 13) return "Boroideos";
-  if(group === 14) return "Carbonoideos";
-  if(group === 15) return "Nitrogenoideos";
-  if(group === 16) return "Calcógenos";
-  if(group === 17) return "Halógenos";
-  if(group === 18) return "Gases nobles";
-  return "—";
-}
-function valenceElectrons(el){
-  const g = el.group;
-  if(g === 1) return 1;
-  if(g === 2) return 2;
-  if(g >= 3 && g <= 12) return 2;
-  if(g === 13) return 3;
-  if(g === 14) return 4;
-  if(g === 15) return 5;
-  if(g === 16) return 6;
-  if(g === 17) return 7;
-  if(g === 18) return (el.Z === 2 ? 2 : 8);
-  return null;
-}
-function bigGroupCategory(el){
-  if(el.category === "Gas noble") return "Gas Noble";
-  if(el.category === "Semimetal") return "Semimetal";
-  if(el.category === "No metal") return "No metal";
-  return "Metal";
-}
+/* ===== Motor de preguntas + bloqueo tras validar ===== */
+let currentElement = null;
+let currentQuestion = null;
+let validated = false;
 
-/* ======= UI ======= */
+let hits = 0;
+let misses = 0;
+let grade = 0;
+
 const qText = document.getElementById("qText");
 const answerRow = document.getElementById("answerRow");
 const feedback = document.getElementById("feedback");
@@ -780,86 +774,46 @@ const bigZ = document.getElementById("bigZ");
 const gradeValue = document.getElementById("gradeValue");
 const hitsText = document.getElementById("hitsText");
 const missText = document.getElementById("missText");
-const qLeftText = document.getElementById("qLeftText");
 
-const skillTable = document.getElementById("skillTable");
-
-/* ======= scoring: 20 preguntas -> 10 puntos ======= */
-const QUESTIONS_TO_10 = 20;
-const POINTS_PER_OK = 10 / QUESTIONS_TO_10; // 0.5
-let hits = 0;
-let misses = 0;
-let grade = 0;
-let totalAnswered = 0;
-let locked = false;
+const checkBtn = document.getElementById("checkBtn");
+const newBtn = document.getElementById("newBtn");
+const resetBtn = document.getElementById("resetBtn");
 
 function setGradeUI(){
   gradeValue.textContent = `${grade.toFixed(1)}/10`;
   gradeValue.style.color = (grade >= 5) ? "var(--good)" : "var(--bad)";
   hitsText.textContent = `Aciertos: ${hits}`;
   missText.textContent = `Fallos: ${misses}`;
-  qLeftText.textContent = `Quedan: ${Math.max(0, QUESTIONS_TO_10 - totalAnswered)}`;
 }
 
-/* ======= Resumen: 3 filas (números / intento1 / intento2) ======= */
-const QUESTION_TEXTS = {
-  1:"¿A qué gran grupo de la tabla periódica pertenece?",
-  2:"¿Cómo se denomina su grupo?",
-  3:"¿A qué grupo pertenece?",
-  4:"¿A qué periodo pertenece?",
-  5:"¿Cuántos protones tiene en su núcleo?",
-  6:"¿Qué posición ocupa en la tabla periódica?",
-  7:"¿Cuál es su número atómico?",
-  8:"¿Cuántos electrones de valencia tiene?",
-  9:"¿En qué elemento se convierte si pierde/gana 1/2/3 protones?",
-  10:"¿Cuál es la masa promedio de un átomo?",
-  11:"¿Cuál es la masa de un mol?",
-  12:"Indica un elemento con las mismas propiedades químicas.",
-  13:"Indica un elemento con las mismas capas de electrones.",
-};
-
-// Por tipo de pregunta guardamos el primer y segundo intento (ok/ko), sin más pistas
-const attemptStatus = {}; // id -> {a1: "ok"|"ko"|null, a2: "ok"|"ko"|null}
-for(let i=1;i<=13;i++) attemptStatus[i] = {a1:null, a2:null};
-
-function renderSkillTable(){
-  skillTable.innerHTML = "";
-
-  const tr1 = document.createElement("tr");
-  const tr2 = document.createElement("tr");
-  const tr3 = document.createElement("tr");
-
-  for(let id=1; id<=13; id++){
-    // Fila 1: número con tooltip
-    const tdN = document.createElement("td");
-    tdN.className = "head";
-    tdN.title = QUESTION_TEXTS[id];
-    tdN.textContent = String(id);
-    tr1.appendChild(tdN);
-
-    // Fila 2: intento 1
-    const td1 = document.createElement("td");
-    const st1 = attemptStatus[id].a1;
-    if(st1 === "ok"){ td1.classList.add("ok"); td1.textContent = "✓"; }
-    else if(st1 === "ko"){ td1.classList.add("ko"); td1.textContent = "✗"; }
-    else { td1.classList.add("empty"); td1.textContent = "—"; }
-    tr2.appendChild(td1);
-
-    // Fila 3: intento 2
-    const td2 = document.createElement("td");
-    const st2 = attemptStatus[id].a2;
-    if(st2 === "ok"){ td2.classList.add("ok"); td2.textContent = "✓"; }
-    else if(st2 === "ko"){ td2.classList.add("ko"); td2.textContent = "✗"; }
-    else { td2.classList.add("empty"); td2.textContent = "—"; }
-    tr3.appendChild(td2);
-  }
-
-  skillTable.appendChild(tr1);
-  skillTable.appendChild(tr2);
-  skillTable.appendChild(tr3);
+function pickRandomElement(){
+  return questionPool[Math.floor(Math.random()*questionPool.length)];
 }
 
-/* ======= inputs ======= */
+function highlightElement(el){
+  document.querySelectorAll(".cell.active").forEach(c => c.classList.remove("active"));
+  const cell = document.querySelector(`.cell[data-z="${el.Z}"]`);
+  if(cell) cell.classList.add("active");
+
+  bigZ.textContent = String(el.Z);
+  bigSym.textContent = el.sym;
+  bigName.textContent = el.name;
+  bigMass.textContent = fmtMass2(el.mass);
+}
+
+function clearFeedback(){
+  feedback.style.display = "none";
+  feedback.classList.remove("ok","ko");
+  feedback.textContent = "";
+}
+
+function showFeedback(ok, msg){
+  feedback.style.display = "block";
+  feedback.classList.toggle("ok", ok);
+  feedback.classList.toggle("ko", !ok);
+  feedback.textContent = msg;
+}
+
 function makeInputNumber(placeholder){
   const input = document.createElement("input");
   input.type = "number";
@@ -890,147 +844,143 @@ function makeSelect(options, placeholder="Sin responder"){
   return sel;
 }
 
-/* ======= elemento activo ======= */
-let currentElement = null;
-let currentQuestion = null;
-let currentAttempt = 0; // 0 -> primer intento para el tipo actual, 1 -> segundo intento (si procede)
+/* ===== Tipos (1..11) para resumen ===== */
+const TYPE_LIST = [
+  { id:"bigGroup",     label:"Gran grupo: Metal / No metal / Semimetal / Gas noble" },
+  { id:"groupName",    label:"Nombre del grupo (familia)" },
+  { id:"groupNumber",  label:"Número de grupo (1–18)" },
+  { id:"period",       label:"Período (1–7)" },
+  { id:"protons",      label:"Protones en el núcleo" },
+  { id:"position",     label:"Posición / número de orden (1–56)" },
+  { id:"atomicNumber", label:"Número atómico (Z)" },
+  { id:"valence",      label:"Electrones de valencia" },
+  { id:"shiftProtons", label:"Elemento tras ganar/perder protones" },
+  { id:"atomicMass",   label:"Masa promedio de un átomo" },
+  { id:"molarMass",    label:"Masa de un mol" },
+];
 
-function highlightElement(el){
-  document.querySelectorAll(".cell.active").forEach(c => c.classList.remove("active"));
-  const cell = document.querySelector(`.cell[data-z="${el.Z}"]`);
-  if(cell) cell.classList.add("active");
+const statsByType = Object.fromEntries(TYPE_LIST.map(t => [t.id, { asked:0, ok:0, ko:0 }]));
 
-  bigZ.textContent = String(el.Z);
-  bigSym.textContent = el.sym;
-  bigName.textContent = el.name;
-  bigMass.textContent = fmtMass2(el.mass);
+const summaryGrid = document.getElementById("summaryGrid");
+
+function renderSummary(){
+  summaryGrid.innerHTML = "";
+  TYPE_LIST.forEach((t, idx) => {
+    const s = statsByType[t.id];
+    const cell = document.createElement("div");
+    cell.className = "sumCell";
+
+    cell.innerHTML = `
+      <div class="sumTip">
+        <div style="font-weight:950; margin-bottom:4px;">${t.label}</div>
+        <div style="opacity:.92;">Preguntas: ${s.asked} · ✅ ${s.ok} · ❌ ${s.ko}</div>
+      </div>
+      <div class="sumNum">${idx+1}</div>
+      <div class="sumRows">
+        <div class="sumRow"><span class="sumOk">✅</span><span>${s.ok}</span></div>
+        <div class="sumRow"><span class="sumKo">❌</span><span>${s.ko}</span></div>
+      </div>
+    `;
+    summaryGrid.appendChild(cell);
+  });
 }
 
-/* ======= feedback ======= */
-function clearFeedback(){
-  feedback.style.display = "none";
-  feedback.classList.remove("ok","ko");
-  feedback.textContent = "";
-}
-function showFeedback(ok, msg){
-  feedback.style.display = "block";
-  feedback.classList.toggle("ok", ok);
-  feedback.classList.toggle("ko", !ok);
-  feedback.textContent = msg;
-}
+function buildQuestion(el){
+  const types = TYPE_LIST.map(t => t.id);
+  const type = types[Math.floor(Math.random()*types.length)];
 
-/* ======= bolsa de preguntas sin repetición ======= */
-const questionOrderBag = [];
-function refillBag(){
-  questionOrderBag.length = 0;
-  for(let i=1;i<=13;i++) questionOrderBag.push(i);
-  for(let i=questionOrderBag.length-1; i>0; i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [questionOrderBag[i], questionOrderBag[j]] = [questionOrderBag[j], questionOrderBag[i]];
-  }
-}
-refillBag();
-function pickNextQuestionId(){
-  if(questionOrderBag.length === 0) refillBag();
-  return questionOrderBag.pop();
-}
-
-/* ======= auxiliares para Q12/Q13 sin pistas ======= */
-function matchElementByNameOrSymbol(input){
-  const s = normalizeText(input);
-  if(!s) return null;
-  for(const e of questionPoolElements){
-    if(normalizeText(e.sym) === s || normalizeText(e.name) === s) return e;
-  }
-  return null;
-}
-
-/* ======= construir pregunta por ID ======= */
-function buildQuestion(el, id){
-  if(id === 1){
-    const sol = bigGroupCategory(el);
+  if(type === "bigGroup"){
     return {
-      id,
-      text:`1. ${QUESTION_TEXTS[1]}`,
+      type,
+      text:"¿A qué gran grupo de la tabla periódica pertenece?",
       ui:() => makeSelect(["Metal","No metal","Semimetal","Gas Noble"]),
-      check:(v)=> v === sol,
-      solution: sol
+      check:(v)=> v === bigGroupCategory(el),
+      solution: bigGroupCategory(el)
     };
   }
-  if(id === 2){
+
+  if(type === "groupName"){
     return {
-      id,
-      text:`2. ${QUESTION_TEXTS[2]}`,
-      ui:() => makeInputText(""),
+      type,
+      text:"¿Cómo se denomina su grupo (familia)?",
+      ui:() => makeInputText("Ej.: Alcalinos, Halógenos..."),
       check:(v)=> normalizeText(v) === normalizeText(groupFamilyName(el.group)),
       solution: groupFamilyName(el.group)
     };
   }
-  if(id === 3){
+
+  if(type === "groupNumber"){
     return {
-      id,
-      text:`3. ${QUESTION_TEXTS[3]}`,
-      ui:() => makeInputNumber(""),
+      type,
+      text:"¿A qué grupo pertenece? (1–18)",
+      ui:() => makeInputNumber("1–18"),
       check:(v)=> Number(v) === el.group,
       solution: String(el.group)
     };
   }
-  if(id === 4){
+
+  if(type === "period"){
     return {
-      id,
-      text:`4. ${QUESTION_TEXTS[4]}`,
-      ui:() => makeInputNumber(""),
+      type,
+      text:"¿A qué período pertenece? (1–7)",
+      ui:() => makeInputNumber("1–7"),
       check:(v)=> Number(v) === el.period,
       solution: String(el.period)
     };
   }
-  if(id === 5){
+
+  if(type === "protons"){
     return {
-      id,
-      text:`5. ${QUESTION_TEXTS[5]}`,
-      ui:() => makeInputNumber(""),
+      type,
+      text:"¿Cuántos protones tiene en su núcleo?",
+      ui:() => makeInputNumber("Número de protones"),
       check:(v)=> Number(v) === el.Z,
       solution: String(el.Z)
     };
   }
-  if(id === 6){
+
+  if(type === "position"){
     return {
-      id,
-      text:`6. ${QUESTION_TEXTS[6]}`,
-      ui:() => makeInputNumber(""),
+      type,
+      text:"¿Qué posición (número de orden) ocupa en la tabla periódica? (1–56)",
+      ui:() => makeInputNumber("1–56"),
       check:(v)=> Number(v) === el.Z,
       solution: String(el.Z)
     };
   }
-  if(id === 7){
+
+  if(type === "atomicNumber"){
     return {
-      id,
-      text:`7. ${QUESTION_TEXTS[7]}`,
-      ui:() => makeInputNumber(""),
+      type,
+      text:"¿Cuál es su número atómico?",
+      ui:() => makeInputNumber("Z"),
       check:(v)=> Number(v) === el.Z,
       solution: String(el.Z)
     };
   }
-  if(id === 8){
+
+  if(type === "valence"){
     const ve = valenceElectrons(el);
     return {
-      id,
-      text:`8. ${QUESTION_TEXTS[8]}`,
-      ui:() => makeInputNumber(""),
+      type,
+      text:"¿Cuántos electrones de valencia tiene?",
+      ui:() => makeInputNumber("Electrones de valencia"),
       check:(v)=> Number(v) === ve,
       solution: String(ve)
     };
   }
-  if(id === 9){
+
+  if(type === "shiftProtons"){
     const n = randomInt(1,3);
     let delta = (Math.random() < 0.5) ? -n : n;
     let targetZ = el.Z + delta;
     if(targetZ < 1 || targetZ > 56){ delta = -delta; targetZ = el.Z + delta; }
     const tEl = byZ.get(targetZ);
+
     return {
-      id,
-      text:`9. ¿En qué elemento se convierte si ${delta < 0 ? "pierde" : "gana"} ${n} proton${n===1?"":"es"}?`,
-      ui:() => makeInputText(""),
+      type,
+      text:`¿En qué elemento se convierte si ${delta < 0 ? "pierde" : "gana"} ${n} proton${n===1?"":"es"}?`,
+      ui:() => makeInputText("Nombre o símbolo"),
       check:(v)=> {
         const s = normalizeText(v);
         return s === normalizeText(tEl.name) || s === normalizeText(tEl.sym);
@@ -1038,24 +988,12 @@ function buildQuestion(el, id){
       solution:`${tEl.name} (${tEl.sym})`
     };
   }
-  if(id === 10){
+
+  if(type === "atomicMass"){
     return {
-      id,
-      text:`10. ${QUESTION_TEXTS[10]}`,
-      ui:() => {
-        const wrap = document.createElement("div");
-        wrap.className = "ansWithUnit";
-        const input = makeInputNumber("");
-        input.classList.add("massInputNarrow");
-        wrap.appendChild(input);
-        const u = document.createElement("span");
-        u.className = "unit";
-        u.textContent = "u";
-        wrap.appendChild(u);
-        wrap._control = input;
-        return wrap;
-      },
-      getValue:(node)=> node._control.value,
+      type,
+      text:"¿Cuál es la masa promedio de un átomo?",
+      ui:() => makeInputNumber("Ej.: 55.85"),
       check:(v)=> {
         const num = Number(v);
         if(!Number.isFinite(num)) return false;
@@ -1064,202 +1002,106 @@ function buildQuestion(el, id){
       solution: fmtMass2(el.mass)
     };
   }
-  if(id === 11){
-    return {
-      id,
-      text:`11. ${QUESTION_TEXTS[11]}`,
-      ui:() => {
-        const wrap = document.createElement("div");
-        wrap.className = "ansWithUnit";
-        const input = makeInputNumber("");
-        input.classList.add("massInputNarrow");
-        wrap.appendChild(input);
-        const u = document.createElement("span");
-        u.className = "unit";
-        u.textContent = "g/mol";
-        wrap.appendChild(u);
-        wrap._control = input;
-        return wrap;
-      },
-      getValue:(node)=> node._control.value,
-      check:(v)=> {
-        const num = Number(v);
-        if(!Number.isFinite(num)) return false;
-        return approxEqual(num, Number(fmtMass2(el.mass)), 0.05);
-      },
-      solution: fmtMass2(el.mass)
-    };
-  }
-  if(id === 12){
-    // SIN pistas ni ejemplo
-    return {
-      id,
-      text:`12. ${QUESTION_TEXTS[12]}`,
-      ui:() => makeInputText(""),
-      check:(v)=> {
-        const chosen = matchElementByNameOrSymbol(v);
-        if(!chosen) return false;
-        return chosen.group === el.group && chosen.Z !== el.Z;
-      },
-      solution:`Cualquier elemento del mismo grupo que ${el.sym}.`
-    };
-  }
-  // id === 13: SIN pistas en el enunciado (solo la solución explica el criterio)
+
   return {
-    id,
-    text:`13. ${QUESTION_TEXTS[13]}`,
-    ui:() => makeInputText(""),
+    type:"molarMass",
+    text:"¿Cuál es la masa de un mol?",
+    ui:() => makeInputNumber("Ej.: 55.85"),
     check:(v)=> {
-      const chosen = matchElementByNameOrSymbol(v);
-      if(!chosen) return false;
-      return chosen.period === el.period && chosen.Z !== el.Z;
+      const num = Number(v);
+      if(!Number.isFinite(num)) return false;
+      return approxEqual(num, Number(fmtMass2(el.mass)), 0.05);
     },
-    solution:`Cualquier elemento del mismo período que ${el.sym}.`
+    solution: fmtMass2(el.mass)
   };
 }
 
-/* ======= montar pregunta ======= */
+function setValidatedState(isValidated){
+  validated = isValidated;
+  checkBtn.disabled = validated;
+}
+
 function mountQuestion(q){
   qText.textContent = q.text;
   answerRow.innerHTML = "";
+  const control = q.ui();
+  control.id = "answerControl";
+  answerRow.appendChild(control);
 
-  const node = q.ui();
-  node.id = "answerControl";
-  const control = node._control ? node._control : node;
-
-  answerRow.appendChild(node);
-
+  // Intro SOLO si no está validada la respuesta
   control.addEventListener("keydown", (ev) => {
     if(ev.key === "Enter"){
       ev.preventDefault();
-      checkAnswer();
+      if(!validated) checkAnswer();
     }
   });
 
   clearFeedback();
+  setValidatedState(false);
   control.focus?.();
 }
 
-/* ======= flujo ======= */
-function pickRandomElement(){
-  return pickRandom(questionPoolElements);
+function applyScoring(ok){
+  if(ok){ hits++; grade = Math.min(10, grade + 1); }
+  else { misses++; grade = Math.max(0, grade - 1); }
+  setGradeUI();
 }
-function setLockedUI(){
-  const newBtn = document.getElementById("newBtn");
-  const checkBtn = document.getElementById("checkBtn");
-  if(locked){
-    newBtn.disabled = true;
-    checkBtn.disabled = true;
-    newBtn.style.opacity = 0.5;
-    checkBtn.style.opacity = 0.5;
-  }else{
-    newBtn.disabled = false;
-    checkBtn.disabled = false;
-    newBtn.style.opacity = 1;
-    checkBtn.style.opacity = 1;
-  }
+
+function updateTypeStats(typeId, ok){
+  const s = statsByType[typeId];
+  s.asked += 1;
+  if(ok) s.ok += 1;
+  else s.ko += 1;
+  renderSummary();
+}
+
+function checkAnswer(){
+  // Bloqueo total: si ya validó, no hace nada
+  if(validated) return;
+  if(!currentQuestion || !currentElement) return;
+
+  const control = document.getElementById("answerControl");
+  const value = control ? control.value : "";
+
+  const ok = currentQuestion.check(value);
+
+  applyScoring(ok);
+  updateTypeStats(currentQuestion.type, ok);
+
+  showFeedback(ok, `${ok ? "Correcto" : "Incorrecto"}. Solución: ${currentQuestion.solution}`);
+
+  // Tras validar: bloquear hasta Nuevo ejercicio
+  setValidatedState(true);
 }
 
 function newRound(){
-  if(locked) return;
-  if(totalAnswered >= QUESTIONS_TO_10){
-    locked = true;
-    setLockedUI();
-    qText.textContent = "Has completado 20 preguntas. Reinicia para empezar de nuevo.";
-    answerRow.innerHTML = "";
-    clearFeedback();
-    return;
-  }
   currentElement = pickRandomElement();
   highlightElement(currentElement);
-
-  const qid = pickNextQuestionId();
-  currentQuestion = buildQuestion(currentElement, qid);
-
-  // reinicia el contador de intentos para este tipo en caso de necesitarlo
-  currentAttempt = 0;
-
+  currentQuestion = buildQuestion(currentElement);
   mountQuestion(currentQuestion);
   requestAnimationFrame(applyTableScale);
 }
 
-function applyScoring(ok, qid){
-  totalAnswered++;
-
-  if(ok){
-    hits++;
-    grade = Math.min(10, grade + POINTS_PER_OK);
-  }else{
-    misses++;
-    grade = Math.max(0, grade - POINTS_PER_OK);
-  }
-
-  // Registrar en resumen: primer intento y segundo intento (si ya había uno)
-  if(attemptStatus[qid].a1 === null){
-    attemptStatus[qid].a1 = ok ? "ok" : "ko";
-  }else if(attemptStatus[qid].a2 === null){
-    attemptStatus[qid].a2 = ok ? "ok" : "ko";
-  }else{
-    // Si ya hay dos, sobrescribimos el segundo (último intento registrado)
-    attemptStatus[qid].a2 = ok ? "ok" : "ko";
-  }
-  renderSkillTable();
-
-  if(grade >= 10 || totalAnswered >= QUESTIONS_TO_10){
-    grade = Math.min(10, grade);
-    locked = true;
-    setLockedUI();
-  }
+/* ===== Botones ===== */
+checkBtn.addEventListener("click", checkAnswer);
+newBtn.addEventListener("click", newRound);
+resetBtn.addEventListener("click", () => {
+  hits = 0; misses = 0; grade = 0;
   setGradeUI();
-}
 
-function readAnswerValue(){
-  const node = document.getElementById("answerControl");
-  if(!node) return "";
-  if(node._control) return node._control.value;
-  return node.value ?? "";
-}
-
-function checkAnswer(){
-  if(locked) return;
-  if(!currentQuestion || !currentElement) return;
-
-  const value = readAnswerValue();
-  const ok = currentQuestion.check(value);
-
-  applyScoring(ok, currentQuestion.id);
-
-  showFeedback(ok, `${ok ? "Correcto" : "Incorrecto"}. Solución/criterio: ${currentQuestion.solution}`);
-
-  if(locked){
-    qText.textContent = (grade >= 10)
-      ? "Has llegado a 10/10. Reinicia para volver a jugar."
-      : "Has completado 20 preguntas. Reinicia para empezar de nuevo.";
-    answerRow.innerHTML = "";
+  // reset stats por tipo
+  for(const k of Object.keys(statsByType)){
+    statsByType[k] = { asked:0, ok:0, ko:0 };
   }
-}
+  renderSummary();
 
-/* ======= botones ======= */
-document.getElementById("checkBtn").addEventListener("click", checkAnswer);
-document.getElementById("newBtn").addEventListener("click", () => {
-  if(locked) return;
-  newRound();
-});
-document.getElementById("resetBtn").addEventListener("click", () => {
-  hits = 0; misses = 0; grade = 0; totalAnswered = 0; locked = false;
-  for(let i=1;i<=13;i++) attemptStatus[i] = {a1:null, a2:null};
-  renderSkillTable();
-  setLockedUI();
-  setGradeUI();
-  refillBag();
   newRound();
 });
 
-/* ======= init ======= */
+/* ===== Init ===== */
 renderTable();
-renderSkillTable();
 setGradeUI();
-setLockedUI();
+renderSummary();
 newRound();
 requestAnimationFrame(applyTableScale);
 </script>
