@@ -1,1 +1,1037 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tabla periódica interactiva — Preguntas (3º ESO)</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --text:#111827;
+      --muted:#4b5563;
+      --border:#e5e7eb;
+
+      /* Colores tipo captura */
+      --metal:#7dd3fc;      /* azul claro */
+      --metalloid:#84cc16;  /* verde */
+      --nonmetal:#fde047;   /* amarillo */
+      --noble:#fb7185;      /* rosa */
+      --placeholder:#dbeafe;
+
+      --active:#2563eb;
+      --activeGlow:rgba(37,99,235,.22);
+
+      --bad:#dc2626;
+      --good:#16a34a;
+
+      --gap:2px;
+
+      /* Un poco más altas para evitar solapes */
+      --cellH: 60px;
+      --cellW: 56px;
+    }
+
+    *{box-sizing:border-box}
+    html, body{
+      height:100%;
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    /* En escritorio: sin scroll */
+    body{ overflow:hidden; }
+
+    .wrap{
+      height:100vh;
+      display:flex;
+      flex-direction:column;
+      padding:12px 12px 14px;
+      max-width: 1400px;
+      margin: 0 auto;
+      gap:10px;
+    }
+
+    header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex: 0 0 auto;
+    }
+    h1{
+      margin:0;
+      font-size: 26px;
+      font-weight: 950;
+      letter-spacing:.2px;
+      line-height:1.05;
+    }
+
+    .topRight{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:8px;
+      min-width: 260px;
+    }
+
+    .grade{
+      width:100%;
+      border:2px solid var(--border);
+      border-radius:14px;
+      padding:8px 10px;
+      background:#fff;
+    }
+    .gradeRow{
+      display:flex;
+      justify-content:space-between;
+      align-items:baseline;
+      gap:10px;
+    }
+    .gradeLabel{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:800;
+    }
+    .gradeValue{
+      font-size:30px;
+      font-weight:950;
+      letter-spacing:.2px;
+    }
+    .gradeSub{
+      margin-top:4px;
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      font-weight:800;
+    }
+
+    .layout{
+      flex: 1 1 auto;
+      display:grid;
+      grid-template-columns: 1.55fr 1fr;
+      gap:10px;
+      min-height:0;
+    }
+
+    .panel{
+      border:2px solid var(--border);
+      background:#fff;
+      border-radius:16px;
+      padding:10px;
+      min-height:0;
+    }
+
+    /* ==== TABLA ==== */
+    .tableArea{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-height:0;
+    }
+
+    .tableFit{
+      flex: 1 1 auto;
+      min-height:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .tableStage{
+      transform-origin: top center;
+      will-change: transform;
+      position:relative;
+    }
+
+    .ptable{
+      width: calc(var(--cellW) * 18 + var(--gap) * 19);
+      display:grid;
+      grid-template-columns: repeat(18, var(--cellW));
+      grid-auto-rows: var(--cellH);
+      gap: var(--gap);
+      background: var(--border);
+      padding: var(--gap);
+      border-radius: 12px;
+    }
+
+    .cell{
+      position:relative;
+      border-radius: 0;
+      border:1px solid rgba(0,0,0,.08);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+
+      /* franja superior para Z */
+      padding: 18px 6px 6px;
+      text-align:center;
+      line-height:1.05;
+      user-select:none;
+      background:#fff;
+      overflow:hidden;
+    }
+
+    /* Z: sin rectángulo, arriba-izquierda */
+    .z{
+      position:absolute;
+      top:1px;
+      left:3px;
+      font-size:11px;
+      font-weight:950;
+      color: rgba(0,0,0,.78);
+      background: transparent;
+      border:none;
+      padding:0;
+      border-radius:0;
+      line-height:1;
+    }
+
+    .sym{
+      font-size:18px;
+      font-weight:950;
+      margin:0;
+      line-height:1;
+    }
+    .name{
+      font-size:10px;
+      font-weight:900;
+      color: rgba(0,0,0,.70);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 100%;
+      margin-top:4px;
+      line-height:1.1;
+    }
+    .mass{
+      font-size:10px;
+      font-weight:900;
+      color: rgba(0,0,0,.62);
+      margin-top:2px;
+      line-height:1.1;
+    }
+
+    .cat-metal{background: var(--metal);}
+    .cat-nonmetal{background: var(--nonmetal);}
+    .cat-metalloid{background: var(--metalloid);}
+    .cat-noble{background: var(--noble);}
+    .cat-placeholder{background: var(--placeholder);}
+
+    .cell.active{
+      outline: 4px solid var(--active);
+      outline-offset: -2px;
+      box-shadow: 0 0 0 5px var(--activeGlow);
+    }
+
+    /* ==== Magnificada 3x3 ==== */
+    .bigOverlay{
+      position:absolute;
+      pointer-events:none;
+      z-index: 10;
+    }
+    .bigSlot{
+      width: calc(var(--cellW) * 3 + var(--gap) * 2);
+      height: calc(var(--cellH) * 3 + var(--gap) * 2);
+      border:2px solid #111827;
+      border-radius: 12px;
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:14px;
+      position:relative;
+      box-shadow: 0 10px 24px rgba(0,0,0,.10);
+    }
+    /* Z dentro de la magnificada: arriba-izquierda interior, sin pastilla */
+    .bigZ{
+      position:absolute;
+      top:10px;
+      left:10px;
+      font-size:16px;
+      font-weight:950;
+      color: rgba(0,0,0,.82);
+      line-height:1;
+    }
+    .bigCenter{
+      width:100%;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      text-align:center;
+      padding-top:16px; /* separa de bigZ */
+    }
+    .bigSym{
+      font-size:80px;
+      font-weight:950;
+      line-height:1;
+      margin:0;
+    }
+    .bigName{
+      font-size:18px;
+      font-weight:950;
+      color: rgba(0,0,0,.78);
+      margin:0;
+    }
+    .bigMass{
+      font-size:18px;
+      font-weight:950;
+      color: rgba(0,0,0,.70);
+      margin:0;
+    }
+
+    /* Leyenda */
+    .legend{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px 14px;
+      align-items:center;
+      justify-content:center;
+      font-weight:950;
+      color: rgba(0,0,0,.70);
+      padding-top:4px;
+    }
+    .legItem{display:flex; align-items:center; gap:8px; font-size:13px;}
+    .sw{width:14px;height:14px;border:2px solid rgba(0,0,0,.12);}
+    .sw.m{background:var(--metal)}
+    .sw.s{background:var(--metalloid)}
+    .sw.nm{background:var(--nonmetal)}
+    .sw.ng{background:var(--noble)}
+
+    /* ==== Panel preguntas ==== */
+    .qTitle{
+      margin:0 0 8px;
+      font-size:18px;
+      font-weight:950;
+    }
+    .qBox{
+      border:2px solid var(--border);
+      border-radius:14px;
+      padding:10px;
+      background:#fff;
+    }
+    .qText{
+      margin:0 0 10px;
+      font-size:16px;
+      font-weight:900;
+      line-height:1.32;
+    }
+    .answerRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin: 6px 0 10px;
+    }
+
+    input[type="text"], input[type="number"], select{
+      border:2px solid var(--border);
+      background:#fff;
+      color:var(--text);
+      padding:10px 10px;
+      border-radius:12px;
+      font-size:15px;
+      min-width: 240px;
+      outline:none;
+      font-weight:900;
+    }
+    input:focus, select:focus{
+      border-color:#93c5fd;
+      box-shadow: 0 0 0 4px rgba(147,197,253,.35);
+    }
+
+    /* Botones: Comprobar, Nuevo, Reiniciar (iconos) */
+    .iconBtnRow{
+      display:flex;
+      gap:12px;
+      justify-content:flex-start;
+      align-items:center;
+      margin-top:8px;
+    }
+    .iconBtn{
+      width:46px;
+      height:46px;
+      border-radius:12px;
+      border:2px solid var(--border);
+      background:#fff;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+    }
+    .iconBtn:hover{ border-color:#cbd5e1; }
+    .iconBtn:active{ transform: translateY(1px); }
+    .iconBtn svg{ width:24px; height:24px; }
+
+    .btnTextIcon{
+      font-weight:950;
+      font-size:22px;
+      line-height:1;
+      letter-spacing:-1px;
+      user-select:none;
+    }
+
+    .feedback{
+      border:2px solid var(--border);
+      border-radius:14px;
+      padding:10px 10px;
+      font-size:14px;
+      font-weight:900;
+      line-height:1.32;
+      display:none;
+      margin-top:10px;
+    }
+    .feedback.ok{border-color: rgba(22,163,74,.45); background: rgba(22,163,74,.10);}
+    .feedback.ko{border-color: rgba(220,38,38,.45); background: rgba(220,38,38,.10);}
+
+    /* En móviles, permitimos scroll y layout vertical */
+    @media (max-width: 980px){
+      body{ overflow:auto; }
+      .wrap{ height:auto; }
+      .layout{ grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Tabla Periódica Interactiva</h1>
+    </div>
+
+    <div class="topRight">
+      <div class="grade" aria-label="Calificación">
+        <div class="gradeRow">
+          <div class="gradeLabel">Nota</div>
+          <div class="gradeValue" id="gradeValue">0.0/10</div>
+        </div>
+        <div class="gradeSub">
+          <span id="hitsText">Aciertos: 0</span>
+          <span id="missText">Fallos: 0</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <section class="panel tableArea">
+      <div class="tableFit" id="tableFit">
+        <div class="tableStage" id="tableStage">
+          <!-- Magnificada 3x3 -->
+          <div class="bigOverlay" id="bigOverlay" aria-hidden="true">
+            <div class="bigSlot">
+              <div class="bigZ" id="bigZ">26</div>
+              <div class="bigCenter">
+                <div class="bigSym" id="bigSym">Fe</div>
+                <div class="bigName" id="bigName">Hierro</div>
+                <div class="bigMass" id="bigMass">55.85</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ptable" id="ptable" role="grid" aria-label="Tabla periódica (sin transición interna)"></div>
+
+          <div class="legend" aria-label="Leyenda">
+            <div class="legItem"><span class="sw m"></span> Metal</div>
+            <div class="legItem"><span class="sw s"></span> Semimetal</div>
+            <div class="legItem"><span class="sw nm"></span> No metal</div>
+            <div class="legItem"><span class="sw ng"></span> Gases Nobles</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <h2 class="qTitle">Pregunta</h2>
+      <div class="qBox">
+        <p class="qText" id="qText">Pulsa “Comprobar” tras responder o “Nuevo ejercicio” para cambiar.</p>
+        <div class="answerRow" id="answerRow"></div>
+
+        <!-- ORDEN: Comprobar, Nuevo ejercicio, Reiniciar -->
+        <div class="iconBtnRow">
+          <button class="iconBtn" id="checkBtn" type="button" title="Comprobar" aria-label="Comprobar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6 9 17l-5-5"/>
+            </svg>
+          </button>
+
+          <button class="iconBtn" id="newBtn" type="button" title="Nuevo ejercicio" aria-label="Nuevo ejercicio">
+            <span class="btnTextIcon">&gt;&gt;</span>
+          </button>
+
+          <button class="iconBtn" id="resetBtn" type="button" title="Reiniciar" aria-label="Reiniciar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a9 9 0 1 1-3.05-6.72"/>
+              <path d="M21 3v6h-6"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* ======= Masas SIEMPRE a 2 decimales ======= */
+function fmtMass2(x){
+  if(x === null || x === undefined) return "";
+  return Number(x).toFixed(2);
+}
+
+/* =========================
+   Datos
+   - La y Ac sin asterisco y con masa.
+   - Ts como Metal (didáctico).
+   - Tabla completa (sin transición interna como filas separadas).
+   - Preguntas solo con Z <= 56.
+   ========================= */
+const DATA = [
+  [1,"H","Hidrógeno",1.008,1,1,"No metal"],
+  [2,"He","Helio",4.0026,18,1,"Gas noble"],
+
+  [3,"Li","Litio",6.94,1,2,"Metal"],
+  [4,"Be","Berilio",9.0122,2,2,"Metal"],
+  [5,"B","Boro",10.81,13,2,"Semimetal"],
+  [6,"C","Carbono",12.011,14,2,"No metal"],
+  [7,"N","Nitrógeno",14.007,15,2,"No metal"],
+  [8,"O","Oxígeno",15.999,16,2,"No metal"],
+  [9,"F","Flúor",18.998,17,2,"No metal"],
+  [10,"Ne","Neón",20.180,18,2,"Gas noble"],
+
+  [11,"Na","Sodio",22.990,1,3,"Metal"],
+  [12,"Mg","Magnesio",24.305,2,3,"Metal"],
+  [13,"Al","Aluminio",26.982,13,3,"Metal"],
+  [14,"Si","Silicio",28.085,14,3,"Semimetal"],
+  [15,"P","Fósforo",30.974,15,3,"No metal"],
+  [16,"S","Azufre",32.06,16,3,"No metal"],
+  [17,"Cl","Cloro",35.45,17,3,"No metal"],
+  [18,"Ar","Argón",39.948,18,3,"Gas noble"],
+
+  [19,"K","Potasio",39.098,1,4,"Metal"],
+  [20,"Ca","Calcio",40.078,2,4,"Metal"],
+  [21,"Sc","Escandio",44.956,3,4,"Metal"],
+  [22,"Ti","Titanio",47.867,4,4,"Metal"],
+  [23,"V","Vanadio",50.942,5,4,"Metal"],
+  [24,"Cr","Cromo",51.996,6,4,"Metal"],
+  [25,"Mn","Manganeso",54.938,7,4,"Metal"],
+  [26,"Fe","Hierro",55.845,8,4,"Metal"],
+  [27,"Co","Cobalto",58.933,9,4,"Metal"],
+  [28,"Ni","Níquel",58.693,10,4,"Metal"],
+  [29,"Cu","Cobre",63.546,11,4,"Metal"],
+  [30,"Zn","Zinc",65.38,12,4,"Metal"],
+  [31,"Ga","Galio",69.723,13,4,"Metal"],
+  [32,"Ge","Germanio",72.630,14,4,"Semimetal"],
+  [33,"As","Arsénico",74.922,15,4,"Semimetal"],
+  [34,"Se","Selenio",78.971,16,4,"No metal"],
+  [35,"Br","Bromo",79.904,17,4,"No metal"],
+  [36,"Kr","Kriptón",83.798,18,4,"Gas noble"],
+
+  [37,"Rb","Rubidio",85.468,1,5,"Metal"],
+  [38,"Sr","Estroncio",87.62,2,5,"Metal"],
+  [39,"Y","Itrio",88.906,3,5,"Metal"],
+  [40,"Zr","Circonio",91.224,4,5,"Metal"],
+  [41,"Nb","Niobio",92.906,5,5,"Metal"],
+  [42,"Mo","Molibdeno",95.95,6,5,"Metal"],
+  [43,"Tc","Tecnecio",98.0,7,5,"Metal"],
+  [44,"Ru","Rutenio",101.07,8,5,"Metal"],
+  [45,"Rh","Rodio",102.91,9,5,"Metal"],
+  [46,"Pd","Paladio",106.42,10,5,"Metal"],
+  [47,"Ag","Plata",107.87,11,5,"Metal"],
+  [48,"Cd","Cadmio",112.41,12,5,"Metal"],
+  [49,"In","Indio",114.82,13,5,"Metal"],
+  [50,"Sn","Estaño",118.71,14,5,"Metal"],
+  [51,"Sb","Antimonio",121.76,15,5,"Semimetal"],
+  [52,"Te","Telurio",127.60,16,5,"Semimetal"],
+  [53,"I","Yodo",126.90,17,5,"No metal"],
+  [54,"Xe","Xenón",131.29,18,5,"Gas noble"],
+
+  [55,"Cs","Cesio",132.91,1,6,"Metal"],
+  [56,"Ba","Bario",137.33,2,6,"Metal"],
+  [57,"La","Lantano",138.90547,3,6,"Metal"],
+
+  [72,"Hf","Hafnio",178.49,4,6,"Metal"],
+  [73,"Ta","Tantalio",180.95,5,6,"Metal"],
+  [74,"W","Wolframio",183.84,6,6,"Metal"],
+  [75,"Re","Renio",186.21,7,6,"Metal"],
+  [76,"Os","Osmio",190.23,8,6,"Metal"],
+  [77,"Ir","Iridio",192.22,9,6,"Metal"],
+  [78,"Pt","Platino",195.08,10,6,"Metal"],
+  [79,"Au","Oro",196.97,11,6,"Metal"],
+  [80,"Hg","Mercurio",200.59,12,6,"Metal"],
+  [81,"Tl","Talio",204.38,13,6,"Metal"],
+  [82,"Pb","Plomo",207.2,14,6,"Metal"],
+  [83,"Bi","Bismuto",208.98,15,6,"Metal"],
+  [84,"Po","Polonio",209,16,6,"Semimetal"],
+  [85,"At","Astato",210,17,6,"Semimetal"],
+  [86,"Rn","Radón",222,18,6,"Gas noble"],
+
+  [87,"Fr","Francio",223,1,7,"Metal"],
+  [88,"Ra","Radio",226,2,7,"Metal"],
+  [89,"Ac","Actinio",227.02775,3,7,"Metal"],
+
+  [104,"Rf","Rutherfordio",267,4,7,"Metal"],
+  [105,"Db","Dubnio",268,5,7,"Metal"],
+  [106,"Sg","Seaborgio",269,6,7,"Metal"],
+  [107,"Bh","Bohrio",270,7,7,"Metal"],
+  [108,"Hs","Hassio",277,8,7,"Metal"],
+  [109,"Mt","Meitnerio",278,9,7,"Metal"],
+  [110,"Ds","Darmstadtio",281,10,7,"Metal"],
+  [111,"Rg","Roentgenio",282,11,7,"Metal"],
+  [112,"Cn","Copernicio",285,12,7,"Metal"],
+  [113,"Nh","Nihonio",286,13,7,"Metal"],
+  [114,"Fl","Flerovio",289,14,7,"Metal"],
+  [115,"Mc","Moscovio",290,15,7,"Metal"],
+  [116,"Lv","Livermorio",293,16,7,"Metal"],
+  [117,"Ts","Teneso",294,17,7,"Metal"], /* Ts metal */
+  [118,"Og","Oganesón",294,18,7,"Gas noble"],
+];
+
+const elements = DATA.map(d => ({
+  Z:d[0], sym:d[1], name:d[2], mass:d[3],
+  group:d[4], period:d[5], category:d[6]
+}));
+
+const byZ = new Map(elements.filter(e => typeof e.Z === "number").map(e => [e.Z, e]));
+const questionPool = elements.filter(e => typeof e.Z === "number" && e.Z >= 1 && e.Z <= 56);
+
+function catClass(el){
+  if(el.category === "Metal") return "cat-metal";
+  if(el.category === "No metal") return "cat-nonmetal";
+  if(el.category === "Semimetal") return "cat-metalloid";
+  if(el.category === "Gas noble") return "cat-noble";
+  return "cat-placeholder";
+}
+
+function bigGroupCategory(el){
+  if(el.category === "Gas noble") return "Gas Noble";
+  if(el.category === "Semimetal") return "Semimetal";
+  if(el.category === "No metal") return "No metal";
+  return "Metal";
+}
+
+function groupFamilyName(group){
+  if(group === 1) return "Alcalinos";
+  if(group === 2) return "Alcalinotérreos";
+  if(group >= 3 && group <= 12) return "Metales de transición";
+  if(group === 13) return "Boroideos";
+  if(group === 14) return "Carbonoideos";
+  if(group === 15) return "Nitrogenoideos";
+  if(group === 16) return "Calcógenos";
+  if(group === 17) return "Halógenos";
+  if(group === 18) return "Gases nobles";
+  return "—";
+}
+
+function valenceElectrons(el){
+  const g = el.group;
+  if(g === 1) return 1;
+  if(g === 2) return 2;
+  if(g >= 3 && g <= 12) return 2;
+  if(g === 13) return 3;
+  if(g === 14) return 4;
+  if(g === 15) return 5;
+  if(g === 16) return 6;
+  if(g === 17) return 7;
+  if(g === 18) return (el.Z === 2 ? 2 : 8);
+  return null;
+}
+
+function normalizeText(s){
+  return (s ?? "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function approxEqual(a, b, tol){
+  return Math.abs(a-b) <= tol;
+}
+
+function randomInt(min, max){
+  return Math.floor(Math.random()*(max-min+1)) + min;
+}
+
+/* =========================
+   Render tabla
+   ========================= */
+const ptable = document.getElementById("ptable");
+
+function renderTable(){
+  ptable.innerHTML = "";
+  const grid = Array.from({length:7}, () => Array.from({length:18}, () => null));
+
+  for(const el of elements){
+    if(el.period >= 1 && el.period <= 7 && el.group >= 1 && el.group <= 18){
+      grid[el.period-1][el.group-1] = el;
+    }
+  }
+
+  for(let p=1; p<=7; p++){
+    for(let g=1; g<=18; g++){
+      const el = grid[p-1][g-1];
+      const cell = document.createElement("div");
+      cell.className = "cell";
+
+      if(!el){
+        cell.style.background = "#fff";
+        cell.style.border = "1px solid transparent";
+        ptable.appendChild(cell);
+        continue;
+      }
+
+      cell.classList.add(catClass(el));
+      cell.setAttribute("role","gridcell");
+
+      if(typeof el.Z === "number") cell.dataset.z = String(el.Z);
+
+      const zText = (typeof el.Z === "number") ? String(el.Z) : "";
+      const massText = (el.mass != null) ? fmtMass2(el.mass) : "";
+
+      cell.innerHTML = `
+        <div class="z">${zText}</div>
+        <div class="sym">${el.sym}</div>
+        <div class="name" title="${el.name}">${el.name}</div>
+        <div class="mass">${massText}</div>
+      `;
+      ptable.appendChild(cell);
+    }
+  }
+}
+
+/* =========================
+   Escalado sin scroll + posicionamiento magnificada
+   ========================= */
+const tableFit = document.getElementById("tableFit");
+const tableStage = document.getElementById("tableStage");
+const bigOverlay = document.getElementById("bigOverlay");
+
+function applyTableScale(){
+  const fitRect = tableFit.getBoundingClientRect();
+  const nativeWidth = ptable.getBoundingClientRect().width;
+  const nativeHeight = tableStage.scrollHeight;
+
+  const maxW = fitRect.width - 8;
+  const maxH = fitRect.height - 8;
+
+  const sW = maxW / nativeWidth;
+  const sH = maxH / nativeHeight;
+  const s = Math.min(1, sW, sH);
+
+  tableStage.style.transform = `scale(${s})`;
+
+  // Magnificada 3x3: anclada arriba, en zona grupos 8-10 para no tapar H/He/Li
+  const pad = 2;
+  const cellW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cellW'));
+  const cellH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cellH'));
+  const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gap'));
+
+  const colStart = 8; // ocupa 8,9,10
+  const rowStart = 1; // ocupa 1,2,3
+
+  const x = pad + (colStart - 1) * (cellW + gap);
+  const y = pad + (rowStart - 1) * (cellH + gap);
+
+  bigOverlay.style.left = `${x}px`;
+  bigOverlay.style.top  = `${y}px`;
+}
+
+window.addEventListener("resize", () => requestAnimationFrame(applyTableScale));
+
+/* =========================
+   Motor de preguntas
+   ========================= */
+let currentElement = null;
+let currentQuestion = null;
+
+let hits = 0;
+let misses = 0;
+let grade = 0;
+
+const qText = document.getElementById("qText");
+const answerRow = document.getElementById("answerRow");
+const feedback = document.getElementById("feedback");
+
+const bigSym = document.getElementById("bigSym");
+const bigName = document.getElementById("bigName");
+const bigMass = document.getElementById("bigMass");
+const bigZ = document.getElementById("bigZ");
+
+const gradeValue = document.getElementById("gradeValue");
+const hitsText = document.getElementById("hitsText");
+const missText = document.getElementById("missText");
+
+function setGradeUI(){
+  gradeValue.textContent = `${grade.toFixed(1)}/10`;
+  gradeValue.style.color = (grade >= 5) ? "var(--good)" : "var(--bad)";
+  hitsText.textContent = `Aciertos: ${hits}`;
+  missText.textContent = `Fallos: ${misses}`;
+}
+
+function pickRandomElement(){
+  return questionPool[Math.floor(Math.random()*questionPool.length)];
+}
+
+function highlightElement(el){
+  document.querySelectorAll(".cell.active").forEach(c => c.classList.remove("active"));
+  const cell = document.querySelector(`.cell[data-z="${el.Z}"]`);
+  if(cell) cell.classList.add("active");
+
+  // Magnificada sin pistas extra
+  bigZ.textContent = String(el.Z);
+  bigSym.textContent = el.sym;
+  bigName.textContent = el.name;
+  bigMass.textContent = fmtMass2(el.mass);
+}
+
+function clearFeedback(){
+  feedback.style.display = "none";
+  feedback.classList.remove("ok","ko");
+  feedback.textContent = "";
+}
+
+function showFeedback(ok, msg){
+  feedback.style.display = "block";
+  feedback.classList.toggle("ok", ok);
+  feedback.classList.toggle("ko", !ok);
+  feedback.textContent = msg;
+}
+
+function makeInputNumber(placeholder){
+  const input = document.createElement("input");
+  input.type = "number";
+  input.step = "1";
+  input.placeholder = placeholder;
+  input.autocomplete = "off";
+  return input;
+}
+
+function makeInputText(placeholder){
+  const input = document.createElement("input");
+  input.type = "text";
+  input.placeholder = placeholder;
+  input.autocomplete = "off";
+  return input;
+}
+
+function makeSelect(options, placeholder="Sin responder"){
+  const sel = document.createElement("select");
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = placeholder;
+  sel.appendChild(opt0);
+  for(const o of options){
+    const op = document.createElement("option");
+    op.value = o;
+    op.textContent = o;
+    sel.appendChild(op);
+  }
+  return sel;
+}
+
+function buildQuestion(el){
+  const types = [
+    "bigGroup",
+    "groupName",
+    "groupNumber",
+    "period",
+    "protons",
+    "position",
+    "atomicNumber",
+    "valence",
+    "shiftProtons",
+    "atomicMass",
+    "molarMass"
+  ];
+  const type = types[Math.floor(Math.random()*types.length)];
+
+  if(type === "bigGroup"){
+    return {
+      text:"¿A qué gran grupo de la tabla periódica pertenece?",
+      ui:() => makeSelect(["Metal","No metal","Semimetal","Gas Noble"]),
+      check:(v)=> v === bigGroupCategory(el),
+      solution: bigGroupCategory(el)
+    };
+  }
+
+  if(type === "groupName"){
+    return {
+      text:"¿Cómo se denomina su grupo (familia)?",
+      ui:() => makeInputText("Ej.: Alcalinos, Halógenos..."),
+      check:(v)=> normalizeText(v) === normalizeText(groupFamilyName(el.group)),
+      solution: groupFamilyName(el.group)
+    };
+  }
+
+  if(type === "groupNumber"){
+    return {
+      text:"¿A qué grupo pertenece? (1–18)",
+      ui:() => makeInputNumber("1–18"),
+      check:(v)=> Number(v) === el.group,
+      solution: String(el.group)
+    };
+  }
+
+  if(type === "period"){
+    return {
+      text:"¿A qué período pertenece? (1–7)",
+      ui:() => makeInputNumber("1–7"),
+      check:(v)=> Number(v) === el.period,
+      solution: String(el.period)
+    };
+  }
+
+  if(type === "protons"){
+    return {
+      text:"¿Cuántos protones tiene en su núcleo?",
+      ui:() => makeInputNumber("Número de protones"),
+      check:(v)=> Number(v) === el.Z,
+      solution: String(el.Z)
+    };
+  }
+
+  if(type === "position"){
+    return {
+      text:"¿Qué posición (número de orden) ocupa en la tabla periódica? (1–56)",
+      ui:() => makeInputNumber("1–56"),
+      check:(v)=> Number(v) === el.Z,
+      solution: String(el.Z)
+    };
+  }
+
+  if(type === "atomicNumber"){
+    return {
+      text:"¿Cuál es su número atómico?",
+      ui:() => makeInputNumber("Z"),
+      check:(v)=> Number(v) === el.Z,
+      solution: String(el.Z)
+    };
+  }
+
+  if(type === "valence"){
+    const ve = valenceElectrons(el);
+    return {
+      text:"¿Cuántos electrones de valencia tiene?",
+      ui:() => makeInputNumber("Electrones de valencia"),
+      check:(v)=> Number(v) === ve,
+      solution: String(ve)
+    };
+  }
+
+  if(type === "shiftProtons"){
+    const n = randomInt(1,3);
+    let delta = (Math.random() < 0.5) ? -n : n;
+    let targetZ = el.Z + delta;
+    if(targetZ < 1 || targetZ > 56){ delta = -delta; targetZ = el.Z + delta; }
+    const tEl = byZ.get(targetZ);
+
+    return {
+      text:`¿En qué elemento se convierte si ${delta < 0 ? "pierde" : "gana"} ${n} proton${n===1?"":"es"}?`,
+      ui:() => makeInputText("Nombre o símbolo"),
+      check:(v)=> {
+        const s = normalizeText(v);
+        return s === normalizeText(tEl.name) || s === normalizeText(tEl.sym);
+      },
+      solution:`${tEl.name} (${tEl.sym})`
+    };
+  }
+
+  if(type === "atomicMass"){
+    return {
+      text:"¿Cuál es la masa promedio de un átomo?",
+      ui:() => makeInputNumber("Ej.: 55.85"),
+      check:(v)=> {
+        const num = Number(v);
+        if(!Number.isFinite(num)) return false;
+        return approxEqual(num, Number(fmtMass2(el.mass)), 0.05);
+      },
+      solution: fmtMass2(el.mass)
+    };
+  }
+
+  return {
+    text:"¿Cuál es la masa de un mol?",
+    ui:() => makeInputNumber("Ej.: 55.85"),
+    check:(v)=> {
+      const num = Number(v);
+      if(!Number.isFinite(num)) return false;
+      return approxEqual(num, Number(fmtMass2(el.mass)), 0.05);
+    },
+    solution: fmtMass2(el.mass)
+  };
+}
+
+function mountQuestion(q){
+  qText.textContent = q.text;
+  answerRow.innerHTML = "";
+  const control = q.ui();
+  control.id = "answerControl";
+  answerRow.appendChild(control);
+
+  control.addEventListener("keydown", (ev) => {
+    if(ev.key === "Enter"){
+      ev.preventDefault();
+      checkAnswer();
+    }
+  });
+
+  clearFeedback();
+  control.focus?.();
+}
+
+function applyScoring(ok){
+  if(ok){ hits++; grade = Math.min(10, grade + 1); }
+  else { misses++; grade = Math.max(0, grade - 1); }
+  setGradeUI();
+}
+
+function checkAnswer(){
+  if(!currentQuestion || !currentElement) return;
+  const control = document.getElementById("answerControl");
+  const value = control ? control.value : "";
+  const ok = currentQuestion.check(value);
+  applyScoring(ok);
+  showFeedback(ok, `${ok ? "Correcto" : "Incorrecto"}. Solución: ${currentQuestion.solution}`);
+}
+
+function newRound(){
+  currentElement = pickRandomElement();
+  highlightElement(currentElement);
+  currentQuestion = buildQuestion(currentElement);
+  mountQuestion(currentQuestion);
+  requestAnimationFrame(applyTableScale);
+}
+
+/* =========================
+   Botones
+   ========================= */
+document.getElementById("checkBtn").addEventListener("click", checkAnswer);
+document.getElementById("newBtn").addEventListener("click", newRound);
+document.getElementById("resetBtn").addEventListener("click", () => {
+  hits = 0; misses = 0; grade = 0;
+  setGradeUI();
+  newRound();
+});
+
+/* =========================
+   Init
+   ========================= */
+renderTable();
+setGradeUI();
+newRound();
+requestAnimationFrame(applyTableScale);
+</script>
+</body>
+</html>
 
