@@ -11,11 +11,10 @@
       --muted:#4b5563;
       --border:#e5e7eb;
 
-      /* Colores tipo captura */
-      --metal:#7dd3fc;      /* azul claro */
-      --metalloid:#84cc16;  /* verde */
-      --nonmetal:#fde047;   /* amarillo */
-      --noble:#fb7185;      /* rosa */
+      --metal:#7dd3fc;
+      --metalloid:#84cc16;
+      --nonmetal:#fde047;
+      --noble:#fb7185;
       --placeholder:#dbeafe;
 
       --active:#2563eb;
@@ -26,7 +25,6 @@
 
       --gap:2px;
 
-      /* Un poco más altas para evitar solapes */
       --cellH: 60px;
       --cellW: 56px;
     }
@@ -39,8 +37,6 @@
       color:var(--text);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     }
-
-    /* En escritorio: sin scroll */
     body{ overflow:hidden; }
 
     .wrap{
@@ -73,7 +69,7 @@
       flex-direction:column;
       align-items:flex-end;
       gap:8px;
-      min-width: 260px;
+      min-width: 320px;
     }
 
     .grade{
@@ -166,8 +162,6 @@
       align-items:center;
       justify-content:center;
       flex-direction:column;
-
-      /* franja superior para Z */
       padding: 18px 6px 6px;
       text-align:center;
       line-height:1.05;
@@ -176,7 +170,6 @@
       overflow:hidden;
     }
 
-    /* Z: sin rectángulo, arriba-izquierda */
     .z{
       position:absolute;
       top:1px;
@@ -184,19 +177,10 @@
       font-size:11px;
       font-weight:950;
       color: rgba(0,0,0,.78);
-      background: transparent;
-      border:none;
-      padding:0;
-      border-radius:0;
       line-height:1;
     }
 
-    .sym{
-      font-size:18px;
-      font-weight:950;
-      margin:0;
-      line-height:1;
-    }
+    .sym{ font-size:18px; font-weight:950; margin:0; line-height:1; }
     .name{
       font-size:10px;
       font-weight:900;
@@ -247,7 +231,6 @@
       position:relative;
       box-shadow: 0 10px 24px rgba(0,0,0,.10);
     }
-    /* Z dentro de la magnificada: arriba-izquierda interior, sin pastilla */
     .bigZ{
       position:absolute;
       top:10px;
@@ -266,26 +249,11 @@
       justify-content:center;
       gap:10px;
       text-align:center;
-      padding-top:16px; /* separa de bigZ */
+      padding-top:16px;
     }
-    .bigSym{
-      font-size:80px;
-      font-weight:950;
-      line-height:1;
-      margin:0;
-    }
-    .bigName{
-      font-size:18px;
-      font-weight:950;
-      color: rgba(0,0,0,.78);
-      margin:0;
-    }
-    .bigMass{
-      font-size:18px;
-      font-weight:950;
-      color: rgba(0,0,0,.70);
-      margin:0;
-    }
+    .bigSym{ font-size:80px; font-weight:950; line-height:1; margin:0; }
+    .bigName{ font-size:18px; font-weight:950; color: rgba(0,0,0,.78); margin:0; }
+    .bigMass{ font-size:18px; font-weight:950; color: rgba(0,0,0,.70); margin:0; }
 
     /* Leyenda */
     .legend{
@@ -317,12 +285,14 @@
       padding:10px;
       background:#fff;
     }
+
     .qText{
       margin:0 0 10px;
       font-size:16px;
       font-weight:900;
       line-height:1.32;
     }
+
     .answerRow{
       display:flex;
       gap:10px;
@@ -347,11 +317,28 @@
       box-shadow: 0 0 0 4px rgba(147,197,253,.35);
     }
 
-    /* Botones: Comprobar, Nuevo, Reiniciar (iconos) */
+    /* Respuesta con unidad (u / g/mol) */
+    .ansWithUnit{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .ansWithUnit .unit{
+      font-size:14px;
+      font-weight:950;
+      color: rgba(0,0,0,.72);
+      white-space:nowrap;
+    }
+    .massInputNarrow{
+      min-width: 160px !important;  /* más estrecha para que quepa la unidad */
+      width: 160px;
+    }
+
+    /* Botones centrados */
     .iconBtnRow{
       display:flex;
       gap:12px;
-      justify-content:flex-start;
+      justify-content:center;  /* centrados */
       align-items:center;
       margin-top:8px;
     }
@@ -391,11 +378,61 @@
     .feedback.ok{border-color: rgba(22,163,74,.45); background: rgba(22,163,74,.10);}
     .feedback.ko{border-color: rgba(220,38,38,.45); background: rgba(220,38,38,.10);}
 
-    /* En móviles, permitimos scroll y layout vertical */
+    /* Tabla resumen de dominio (ok/ko por tipo de pregunta) */
+    .skillPanel{
+      margin-top:10px;
+      border:2px solid var(--border);
+      border-radius:14px;
+      padding:10px;
+      background:#fff;
+    }
+    .skillTitle{
+      margin:0 0 8px;
+      font-size:13px;
+      font-weight:950;
+      color: rgba(0,0,0,.75);
+    }
+    .skillGrid{
+      display:grid;
+      grid-template-columns: repeat(13, 1fr);
+      gap:6px;
+      align-items:center;
+    }
+    .skillCell{
+      border:2px solid var(--border);
+      border-radius:10px;
+      height:34px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:950;
+      font-size:14px;
+      background:#fff;
+      position:relative;
+    }
+    .skillCell .n{
+      font-size:12px;
+      font-weight:950;
+      color: rgba(0,0,0,.72);
+    }
+    .skillCell.ok{ border-color: rgba(22,163,74,.45); background: rgba(22,163,74,.10); }
+    .skillCell.ko{ border-color: rgba(220,38,38,.45); background: rgba(220,38,38,.10); }
+    .skillCell.done{
+      color: rgba(0,0,0,.88);
+    }
+    .skillCell:not(.done){
+      color: rgba(0,0,0,.70);
+      background: rgba(243,244,246,.8);
+    }
+    .skillCell[data-tip]{
+      cursor:help;
+    }
+
     @media (max-width: 980px){
       body{ overflow:auto; }
       .wrap{ height:auto; }
       .layout{ grid-template-columns:1fr; }
+      .skillGrid{ grid-template-columns: repeat(7, 1fr); }
     }
   </style>
 </head>
@@ -415,6 +452,7 @@
         <div class="gradeSub">
           <span id="hitsText">Aciertos: 0</span>
           <span id="missText">Fallos: 0</span>
+          <span id="qLeftText">Quedan: 20</span>
         </div>
       </div>
     </div>
@@ -424,7 +462,6 @@
     <section class="panel tableArea">
       <div class="tableFit" id="tableFit">
         <div class="tableStage" id="tableStage">
-          <!-- Magnificada 3x3 -->
           <div class="bigOverlay" id="bigOverlay" aria-hidden="true">
             <div class="bigSlot">
               <div class="bigZ" id="bigZ">26</div>
@@ -451,10 +488,9 @@
     <aside class="panel">
       <h2 class="qTitle">Pregunta</h2>
       <div class="qBox">
-        <p class="qText" id="qText">Pulsa “Comprobar” tras responder o “Nuevo ejercicio” para cambiar.</p>
+        <p class="qText" id="qText">Pulsa “&gt;&gt;” para empezar.</p>
         <div class="answerRow" id="answerRow"></div>
 
-        <!-- ORDEN: Comprobar, Nuevo ejercicio, Reiniciar -->
         <div class="iconBtnRow">
           <button class="iconBtn" id="checkBtn" type="button" title="Comprobar" aria-label="Comprobar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
@@ -477,25 +513,34 @@
         </div>
 
         <div class="feedback" id="feedback"></div>
+
+        <div class="skillPanel" aria-label="Resumen de dominio por tipo de pregunta">
+          <p class="skillTitle">Resumen por tipo de pregunta (pasa el ratón por el número):</p>
+          <div class="skillGrid" id="skillGrid"></div>
+        </div>
       </div>
     </aside>
   </div>
 </div>
 
 <script>
-/* ======= Masas SIEMPRE a 2 decimales ======= */
+/* ======= utilidades ======= */
 function fmtMass2(x){
   if(x === null || x === undefined) return "";
   return Number(x).toFixed(2);
 }
+function normalizeText(s){
+  return (s ?? "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+function approxEqual(a, b, tol){ return Math.abs(a-b) <= tol; }
+function randomInt(min, max){ return Math.floor(Math.random()*(max-min+1)) + min; }
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
-/* =========================
-   Datos
-   - La y Ac sin asterisco y con masa.
-   - Ts como Metal (didáctico).
-   - Tabla completa (sin transición interna como filas separadas).
-   - Preguntas solo con Z <= 56.
-   ========================= */
+/* ======= datos ======= */
 const DATA = [
   [1,"H","Hidrógeno",1.008,1,1,"No metal"],
   [2,"He","Helio",4.0026,18,1,"Gas noble"],
@@ -593,7 +638,7 @@ const DATA = [
   [114,"Fl","Flerovio",289,14,7,"Metal"],
   [115,"Mc","Moscovio",290,15,7,"Metal"],
   [116,"Lv","Livermorio",293,16,7,"Metal"],
-  [117,"Ts","Teneso",294,17,7,"Metal"], /* Ts metal */
+  [117,"Ts","Teneso",294,17,7,"Metal"], /* didáctico */
   [118,"Og","Oganesón",294,18,7,"Gas noble"],
 ];
 
@@ -603,23 +648,15 @@ const elements = DATA.map(d => ({
 }));
 
 const byZ = new Map(elements.filter(e => typeof e.Z === "number").map(e => [e.Z, e]));
-const questionPool = elements.filter(e => typeof e.Z === "number" && e.Z >= 1 && e.Z <= 56);
+const questionPoolElements = elements.filter(e => typeof e.Z === "number" && e.Z >= 1 && e.Z <= 56);
 
-function catClass(el){
-  if(el.category === "Metal") return "cat-metal";
-  if(el.category === "No metal") return "cat-nonmetal";
-  if(el.category === "Semimetal") return "cat-metalloid";
-  if(el.category === "Gas noble") return "cat-noble";
-  return "cat-placeholder";
-}
-
+/* Categorías grandes */
 function bigGroupCategory(el){
   if(el.category === "Gas noble") return "Gas Noble";
   if(el.category === "Semimetal") return "Semimetal";
   if(el.category === "No metal") return "No metal";
   return "Metal";
 }
-
 function groupFamilyName(group){
   if(group === 1) return "Alcalinos";
   if(group === 2) return "Alcalinotérreos";
@@ -632,7 +669,6 @@ function groupFamilyName(group){
   if(group === 18) return "Gases nobles";
   return "—";
 }
-
 function valenceElectrons(el){
   const g = el.group;
   if(g === 1) return 1;
@@ -647,58 +683,39 @@ function valenceElectrons(el){
   return null;
 }
 
-function normalizeText(s){
-  return (s ?? "")
-    .toString()
-    .trim()
-    .toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+/* ======= render tabla ======= */
+function catClass(el){
+  if(el.category === "Metal") return "cat-metal";
+  if(el.category === "No metal") return "cat-nonmetal";
+  if(el.category === "Semimetal") return "cat-metalloid";
+  if(el.category === "Gas noble") return "cat-noble";
+  return "cat-placeholder";
 }
-
-function approxEqual(a, b, tol){
-  return Math.abs(a-b) <= tol;
-}
-
-function randomInt(min, max){
-  return Math.floor(Math.random()*(max-min+1)) + min;
-}
-
-/* =========================
-   Render tabla
-   ========================= */
 const ptable = document.getElementById("ptable");
-
 function renderTable(){
   ptable.innerHTML = "";
   const grid = Array.from({length:7}, () => Array.from({length:18}, () => null));
-
   for(const el of elements){
     if(el.period >= 1 && el.period <= 7 && el.group >= 1 && el.group <= 18){
       grid[el.period-1][el.group-1] = el;
     }
   }
-
   for(let p=1; p<=7; p++){
     for(let g=1; g<=18; g++){
       const el = grid[p-1][g-1];
       const cell = document.createElement("div");
       cell.className = "cell";
-
       if(!el){
         cell.style.background = "#fff";
         cell.style.border = "1px solid transparent";
         ptable.appendChild(cell);
         continue;
       }
-
       cell.classList.add(catClass(el));
-      cell.setAttribute("role","gridcell");
-
       if(typeof el.Z === "number") cell.dataset.z = String(el.Z);
 
       const zText = (typeof el.Z === "number") ? String(el.Z) : "";
       const massText = (el.mass != null) ? fmtMass2(el.mass) : "";
-
       cell.innerHTML = `
         <div class="z">${zText}</div>
         <div class="sym">${el.sym}</div>
@@ -710,9 +727,7 @@ function renderTable(){
   }
 }
 
-/* =========================
-   Escalado sin scroll + posicionamiento magnificada
-   ========================= */
+/* ======= escalado + magnificada ======= */
 const tableFit = document.getElementById("tableFit");
 const tableStage = document.getElementById("tableStage");
 const bigOverlay = document.getElementById("bigOverlay");
@@ -731,14 +746,14 @@ function applyTableScale(){
 
   tableStage.style.transform = `scale(${s})`;
 
-  // Magnificada 3x3: anclada arriba, en zona grupos 8-10 para no tapar H/He/Li
+  // Magnificada 3x3: anclada en zona superior, grupos 8-10 para no tapar H/He
   const pad = 2;
   const cellW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cellW'));
   const cellH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cellH'));
   const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gap'));
 
-  const colStart = 8; // ocupa 8,9,10
-  const rowStart = 1; // ocupa 1,2,3
+  const colStart = 8;
+  const rowStart = 1;
 
   const x = pad + (colStart - 1) * (cellW + gap);
   const y = pad + (rowStart - 1) * (cellH + gap);
@@ -746,19 +761,9 @@ function applyTableScale(){
   bigOverlay.style.left = `${x}px`;
   bigOverlay.style.top  = `${y}px`;
 }
-
 window.addEventListener("resize", () => requestAnimationFrame(applyTableScale));
 
-/* =========================
-   Motor de preguntas
-   ========================= */
-let currentElement = null;
-let currentQuestion = null;
-
-let hits = 0;
-let misses = 0;
-let grade = 0;
-
+/* ======= UI ======= */
 const qText = document.getElementById("qText");
 const answerRow = document.getElementById("answerRow");
 const feedback = document.getElementById("feedback");
@@ -771,43 +776,67 @@ const bigZ = document.getElementById("bigZ");
 const gradeValue = document.getElementById("gradeValue");
 const hitsText = document.getElementById("hitsText");
 const missText = document.getElementById("missText");
+const qLeftText = document.getElementById("qLeftText");
+
+const skillGrid = document.getElementById("skillGrid");
+
+/* ======= scoring: 20 preguntas -> 10 puntos ======= */
+const QUESTIONS_TO_10 = 20;
+const POINTS_PER_OK = 10 / QUESTIONS_TO_10; // 0.5
+let hits = 0;
+let misses = 0;
+let grade = 0;
+let totalAnswered = 0;
+let locked = false;
 
 function setGradeUI(){
   gradeValue.textContent = `${grade.toFixed(1)}/10`;
   gradeValue.style.color = (grade >= 5) ? "var(--good)" : "var(--bad)";
   hitsText.textContent = `Aciertos: ${hits}`;
   missText.textContent = `Fallos: ${misses}`;
+  qLeftText.textContent = `Quedan: ${Math.max(0, QUESTIONS_TO_10 - totalAnswered)}`;
 }
 
-function pickRandomElement(){
-  return questionPool[Math.floor(Math.random()*questionPool.length)];
+/* ======= resumen por tipo ======= */
+const QUESTION_TEXTS = {
+  1:"¿A qué gran grupo de la tabla periódica pertenece?",
+  2:"¿Cómo se denomina su grupo?",
+  3:"¿A qué grupo pertenece?",
+  4:"¿A qué periodo pertenece?",
+  5:"¿Cuántos protones tiene en su núcleo?",
+  6:"¿Qué posición ocupa en la tabla periódica?",
+  7:"¿Cuál es su número atómico?",
+  8:"¿Cuántos electrones de valencia tiene?",
+  9:"¿En qué elemento se convierte si pierde/gana 1/2/3 protones?",
+  10:"¿Cuál es la masa promedio de un átomo?",
+  11:"¿Cuál es la masa de un mol?",
+  12:"Indica un elemento con las mismas propiedades químicas (mismo grupo).",
+  13:"Indica un elemento con las mismas capas de electrones (mismo periodo).",
+};
+const skillStatus = {}; // id -> "ok"/"ko"/null
+
+function renderSkillGrid(){
+  skillGrid.innerHTML = "";
+  for(let id=1; id<=13; id++){
+    const div = document.createElement("div");
+    div.className = "skillCell";
+    div.dataset.tip = QUESTION_TEXTS[id];
+    div.title = QUESTION_TEXTS[id]; // tooltip nativo
+    const st = skillStatus[id];
+    if(st === "ok"){
+      div.classList.add("ok","done");
+      div.innerHTML = `<span class="n">${id}</span>&nbsp;✓`;
+    }else if(st === "ko"){
+      div.classList.add("ko","done");
+      div.innerHTML = `<span class="n">${id}</span>&nbsp;✗`;
+    }else{
+      div.innerHTML = `<span class="n">${id}</span>`;
+    }
+    skillGrid.appendChild(div);
+  }
 }
 
-function highlightElement(el){
-  document.querySelectorAll(".cell.active").forEach(c => c.classList.remove("active"));
-  const cell = document.querySelector(`.cell[data-z="${el.Z}"]`);
-  if(cell) cell.classList.add("active");
-
-  // Magnificada sin pistas extra
-  bigZ.textContent = String(el.Z);
-  bigSym.textContent = el.sym;
-  bigName.textContent = el.name;
-  bigMass.textContent = fmtMass2(el.mass);
-}
-
-function clearFeedback(){
-  feedback.style.display = "none";
-  feedback.classList.remove("ok","ko");
-  feedback.textContent = "";
-}
-
-function showFeedback(ok, msg){
-  feedback.style.display = "block";
-  feedback.classList.toggle("ok", ok);
-  feedback.classList.toggle("ko", !ok);
-  feedback.textContent = msg;
-}
-
+/* ======= inputs ======= */
 function makeInputNumber(placeholder){
   const input = document.createElement("input");
   input.type = "number";
@@ -816,7 +845,6 @@ function makeInputNumber(placeholder){
   input.autocomplete = "off";
   return input;
 }
-
 function makeInputText(placeholder){
   const input = document.createElement("input");
   input.type = "text";
@@ -824,7 +852,6 @@ function makeInputText(placeholder){
   input.autocomplete = "off";
   return input;
 }
-
 function makeSelect(options, placeholder="Sin responder"){
   const sel = document.createElement("select");
   const opt0 = document.createElement("option");
@@ -840,104 +867,152 @@ function makeSelect(options, placeholder="Sin responder"){
   return sel;
 }
 
-function buildQuestion(el){
-  const types = [
-    "bigGroup",
-    "groupName",
-    "groupNumber",
-    "period",
-    "protons",
-    "position",
-    "atomicNumber",
-    "valence",
-    "shiftProtons",
-    "atomicMass",
-    "molarMass"
-  ];
-  const type = types[Math.floor(Math.random()*types.length)];
+/* ======= elemento activo ======= */
+let currentElement = null;
+let currentQuestion = null;
 
-  if(type === "bigGroup"){
+function highlightElement(el){
+  document.querySelectorAll(".cell.active").forEach(c => c.classList.remove("active"));
+  const cell = document.querySelector(`.cell[data-z="${el.Z}"]`);
+  if(cell) cell.classList.add("active");
+
+  bigZ.textContent = String(el.Z);
+  bigSym.textContent = el.sym;
+  bigName.textContent = el.name;
+  bigMass.textContent = fmtMass2(el.mass);
+}
+
+/* ======= feedback ======= */
+function clearFeedback(){
+  feedback.style.display = "none";
+  feedback.classList.remove("ok","ko");
+  feedback.textContent = "";
+}
+function showFeedback(ok, msg){
+  feedback.style.display = "block";
+  feedback.classList.toggle("ok", ok);
+  feedback.classList.toggle("ko", !ok);
+  feedback.textContent = msg;
+}
+
+/* ======= banco de preguntas sin repetición hasta agotar ======= */
+const questionOrderBag = [];
+function refillBag(){
+  questionOrderBag.length = 0;
+  for(let i=1;i<=13;i++) questionOrderBag.push(i);
+  // shuffle
+  for(let i=questionOrderBag.length-1; i>0; i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [questionOrderBag[i], questionOrderBag[j]] = [questionOrderBag[j], questionOrderBag[i]];
+  }
+}
+refillBag();
+
+function pickNextQuestionId(){
+  if(questionOrderBag.length === 0) refillBag();
+  return questionOrderBag.pop();
+}
+
+/* ======= auxiliares para Q12/Q13 ======= */
+function elementsSameGroup(el){
+  return questionPoolElements.filter(e => e.group === el.group && e.Z !== el.Z);
+}
+function elementsSamePeriod(el){
+  return questionPoolElements.filter(e => e.period === el.period && e.Z !== el.Z);
+}
+function matchElementByNameOrSymbol(input){
+  const s = normalizeText(input);
+  if(!s) return null;
+  for(const e of questionPoolElements){
+    if(normalizeText(e.sym) === s || normalizeText(e.name) === s) return e;
+  }
+  return null;
+}
+
+/* ======= construir pregunta por ID ======= */
+function buildQuestion(el, id){
+  if(id === 1){
     return {
-      text:"¿A qué gran grupo de la tabla periódica pertenece?",
+      id,
+      text:`1. ${QUESTION_TEXTS[1]}`,
       ui:() => makeSelect(["Metal","No metal","Semimetal","Gas Noble"]),
-      check:(v)=> v === bigGroupCategory(el),
-      solution: bigGroupCategory(el)
+      check:(v)=> v === (el.category === "Gas noble" ? "Gas Noble" : el.category === "Semimetal" ? "Semimetal" : el.category === "No metal" ? "No metal" : "Metal"),
+      solution: (el.category === "Gas noble" ? "Gas Noble" : el.category === "Semimetal" ? "Semimetal" : el.category === "No metal" ? "No metal" : "Metal")
     };
   }
-
-  if(type === "groupName"){
+  if(id === 2){
     return {
-      text:"¿Cómo se denomina su grupo (familia)?",
+      id,
+      text:`2. ${QUESTION_TEXTS[2]}`,
       ui:() => makeInputText("Ej.: Alcalinos, Halógenos..."),
       check:(v)=> normalizeText(v) === normalizeText(groupFamilyName(el.group)),
       solution: groupFamilyName(el.group)
     };
   }
-
-  if(type === "groupNumber"){
+  if(id === 3){
     return {
-      text:"¿A qué grupo pertenece? (1–18)",
+      id,
+      text:`3. ${QUESTION_TEXTS[3]}`,
       ui:() => makeInputNumber("1–18"),
       check:(v)=> Number(v) === el.group,
       solution: String(el.group)
     };
   }
-
-  if(type === "period"){
+  if(id === 4){
     return {
-      text:"¿A qué período pertenece? (1–7)",
+      id,
+      text:`4. ${QUESTION_TEXTS[4]}`,
       ui:() => makeInputNumber("1–7"),
       check:(v)=> Number(v) === el.period,
       solution: String(el.period)
     };
   }
-
-  if(type === "protons"){
+  if(id === 5){
     return {
-      text:"¿Cuántos protones tiene en su núcleo?",
+      id,
+      text:`5. ${QUESTION_TEXTS[5]}`,
       ui:() => makeInputNumber("Número de protones"),
       check:(v)=> Number(v) === el.Z,
       solution: String(el.Z)
     };
   }
-
-  if(type === "position"){
+  if(id === 6){
     return {
-      text:"¿Qué posición (número de orden) ocupa en la tabla periódica? (1–56)",
+      id,
+      text:`6. ${QUESTION_TEXTS[6]}`,
       ui:() => makeInputNumber("1–56"),
       check:(v)=> Number(v) === el.Z,
       solution: String(el.Z)
     };
   }
-
-  if(type === "atomicNumber"){
+  if(id === 7){
     return {
-      text:"¿Cuál es su número atómico?",
+      id,
+      text:`7. ${QUESTION_TEXTS[7]}`,
       ui:() => makeInputNumber("Z"),
       check:(v)=> Number(v) === el.Z,
       solution: String(el.Z)
     };
   }
-
-  if(type === "valence"){
+  if(id === 8){
     const ve = valenceElectrons(el);
     return {
-      text:"¿Cuántos electrones de valencia tiene?",
+      id,
+      text:`8. ${QUESTION_TEXTS[8]}`,
       ui:() => makeInputNumber("Electrones de valencia"),
       check:(v)=> Number(v) === ve,
       solution: String(ve)
     };
   }
-
-  if(type === "shiftProtons"){
+  if(id === 9){
     const n = randomInt(1,3);
     let delta = (Math.random() < 0.5) ? -n : n;
     let targetZ = el.Z + delta;
     if(targetZ < 1 || targetZ > 56){ delta = -delta; targetZ = el.Z + delta; }
     const tEl = byZ.get(targetZ);
-
     return {
-      text:`¿En qué elemento se convierte si ${delta < 0 ? "pierde" : "gana"} ${n} proton${n===1?"":"es"}?`,
+      id,
+      text:`9. ¿En qué elemento se convierte si ${delta < 0 ? "pierde" : "gana"} ${n} proton${n===1?"":"es"}?`,
       ui:() => makeInputText("Nombre o símbolo"),
       check:(v)=> {
         const s = normalizeText(v);
@@ -946,11 +1021,26 @@ function buildQuestion(el){
       solution:`${tEl.name} (${tEl.sym})`
     };
   }
-
-  if(type === "atomicMass"){
+  if(id === 10){
+    // Masa atómica promedio: input estrecho + unidad u
     return {
-      text:"¿Cuál es la masa promedio de un átomo?",
-      ui:() => makeInputNumber("Ej.: 55.85"),
+      id,
+      text:`10. ${QUESTION_TEXTS[10]}`,
+      ui:() => {
+        const wrap = document.createElement("div");
+        wrap.className = "ansWithUnit";
+        const input = makeInputNumber("Ej.: 55.85");
+        input.classList.add("massInputNarrow");
+        wrap.appendChild(input);
+        const u = document.createElement("span");
+        u.className = "unit";
+        u.textContent = "u";
+        wrap.appendChild(u);
+        // Para que el motor lea el value
+        wrap._control = input;
+        return wrap;
+      },
+      getValue:(node)=> node._control.value,
       check:(v)=> {
         const num = Number(v);
         if(!Number.isFinite(num)) return false;
@@ -959,25 +1049,82 @@ function buildQuestion(el){
       solution: fmtMass2(el.mass)
     };
   }
-
-  return {
-    text:"¿Cuál es la masa de un mol?",
-    ui:() => makeInputNumber("Ej.: 55.85"),
-    check:(v)=> {
-      const num = Number(v);
-      if(!Number.isFinite(num)) return false;
-      return approxEqual(num, Number(fmtMass2(el.mass)), 0.05);
-    },
-    solution: fmtMass2(el.mass)
-  };
+  if(id === 11){
+    // Masa molar: input estrecho + unidad g/mol
+    return {
+      id,
+      text:`11. ${QUESTION_TEXTS[11]}`,
+      ui:() => {
+        const wrap = document.createElement("div");
+        wrap.className = "ansWithUnit";
+        const input = makeInputNumber("Ej.: 55.85");
+        input.classList.add("massInputNarrow");
+        wrap.appendChild(input);
+        const u = document.createElement("span");
+        u.className = "unit";
+        u.textContent = "g/mol";
+        wrap.appendChild(u);
+        wrap._control = input;
+        return wrap;
+      },
+      getValue:(node)=> node._control.value,
+      check:(v)=> {
+        const num = Number(v);
+        if(!Number.isFinite(num)) return false;
+        return approxEqual(num, Number(fmtMass2(el.mass)), 0.05);
+      },
+      solution: fmtMass2(el.mass)
+    };
+  }
+  if(id === 12){
+    const candidates = elementsSameGroup(el);
+    const example = candidates.length ? candidates[0].sym : "";
+    return {
+      id,
+      text:`12. ${QUESTION_TEXTS[12]}`,
+      ui:() => makeInputText(example ? `Ej.: ${example}` : "Símbolo o nombre"),
+      check:(v)=> {
+        const chosen = matchElementByNameOrSymbol(v);
+        if(!chosen) return false;
+        return chosen.group === el.group && chosen.Z !== el.Z;
+      },
+      solution: (candidates.length
+        ? `Cualquier elemento del grupo ${el.group} (misma columna).`
+        : `No disponible para este elemento.`)
+    };
+  }
+  // id === 13
+  {
+    const candidates = elementsSamePeriod(el);
+    const example = candidates.length ? candidates[0].sym : "";
+    return {
+      id,
+      text:`13. ${QUESTION_TEXTS[13]}`,
+      ui:() => makeInputText(example ? `Ej.: ${example}` : "Símbolo o nombre"),
+      check:(v)=> {
+        const chosen = matchElementByNameOrSymbol(v);
+        if(!chosen) return false;
+        return chosen.period === el.period && chosen.Z !== el.Z;
+      },
+      solution: (candidates.length
+        ? `Cualquier elemento del periodo ${el.period} (misma fila).`
+        : `No disponible para este elemento.`)
+    };
+  }
 }
 
+/* ======= montar pregunta ======= */
 function mountQuestion(q){
   qText.textContent = q.text;
   answerRow.innerHTML = "";
-  const control = q.ui();
-  control.id = "answerControl";
-  answerRow.appendChild(control);
+
+  const node = q.ui();
+  node.id = "answerControl";
+
+  // Si es wrapper con unidad, el input real está en node._control
+  const control = node._control ? node._control : node;
+
+  answerRow.appendChild(node);
 
   control.addEventListener("keydown", (ev) => {
     if(ev.key === "Enter"){
@@ -990,48 +1137,125 @@ function mountQuestion(q){
   control.focus?.();
 }
 
-function applyScoring(ok){
-  if(ok){ hits++; grade = Math.min(10, grade + 1); }
-  else { misses++; grade = Math.max(0, grade - 1); }
-  setGradeUI();
+/* ======= flujo ======= */
+function pickRandomElement(){
+  return pickRandom(questionPoolElements);
 }
 
-function checkAnswer(){
-  if(!currentQuestion || !currentElement) return;
-  const control = document.getElementById("answerControl");
-  const value = control ? control.value : "";
-  const ok = currentQuestion.check(value);
-  applyScoring(ok);
-  showFeedback(ok, `${ok ? "Correcto" : "Incorrecto"}. Solución: ${currentQuestion.solution}`);
+function setLockedUI(){
+  const newBtn = document.getElementById("newBtn");
+  const checkBtn = document.getElementById("checkBtn");
+  if(locked){
+    newBtn.disabled = true;
+    checkBtn.disabled = true;
+    newBtn.style.opacity = 0.5;
+    checkBtn.style.opacity = 0.5;
+  }else{
+    newBtn.disabled = false;
+    checkBtn.disabled = false;
+    newBtn.style.opacity = 1;
+    checkBtn.style.opacity = 1;
+  }
 }
 
 function newRound(){
+  if(locked) return;
+  if(totalAnswered >= QUESTIONS_TO_10){
+    locked = true;
+    setLockedUI();
+    qText.textContent = "Has completado 20 preguntas. Reinicia para empezar de nuevo.";
+    answerRow.innerHTML = "";
+    clearFeedback();
+    return;
+  }
   currentElement = pickRandomElement();
   highlightElement(currentElement);
-  currentQuestion = buildQuestion(currentElement);
+
+  const qid = pickNextQuestionId();
+  currentQuestion = buildQuestion(currentElement, qid);
+
   mountQuestion(currentQuestion);
   requestAnimationFrame(applyTableScale);
 }
 
-/* =========================
-   Botones
-   ========================= */
-document.getElementById("checkBtn").addEventListener("click", checkAnswer);
-document.getElementById("newBtn").addEventListener("click", newRound);
-document.getElementById("resetBtn").addEventListener("click", () => {
-  hits = 0; misses = 0; grade = 0;
+function applyScoring(ok, qid){
+  totalAnswered++;
+
+  if(ok){
+    hits++;
+    grade = Math.min(10, grade + POINTS_PER_OK);
+  }else{
+    misses++;
+    grade = Math.max(0, grade - POINTS_PER_OK);
+  }
+
+  // actualizar tabla de dominio por tipo
+  skillStatus[qid] = ok ? "ok" : "ko";
+  renderSkillGrid();
+
+  // bloqueo al llegar a 10 o al contestar 20
+  if(grade >= 10 || totalAnswered >= QUESTIONS_TO_10){
+    grade = Math.min(10, grade);
+    locked = true;
+    setLockedUI();
+  }
+
   setGradeUI();
+}
+
+function readAnswerValue(){
+  const node = document.getElementById("answerControl");
+  if(!node) return "";
+  if(node._control) return node._control.value;
+  return node.value ?? "";
+}
+
+function checkAnswer(){
+  if(locked) return;
+  if(!currentQuestion || !currentElement) return;
+
+  const value = readAnswerValue();
+  const ok = currentQuestion.check(value);
+
+  applyScoring(ok, currentQuestion.id);
+
+  const msg = `${ok ? "Correcto" : "Incorrecto"}.`;
+  const sol = ` Solución/criterio: ${currentQuestion.solution}`;
+  showFeedback(ok, msg + sol);
+
+  // Si se bloquea, mensaje final
+  if(locked){
+    qText.textContent = (grade >= 10)
+      ? "Has llegado a 10/10. Reinicia para volver a jugar."
+      : "Has completado 20 preguntas. Reinicia para empezar de nuevo.";
+    answerRow.innerHTML = "";
+  }
+}
+
+/* ======= botones ======= */
+document.getElementById("checkBtn").addEventListener("click", checkAnswer);
+document.getElementById("newBtn").addEventListener("click", () => {
+  if(locked) return;
+  newRound();
+});
+document.getElementById("resetBtn").addEventListener("click", () => {
+  hits = 0; misses = 0; grade = 0; totalAnswered = 0; locked = false;
+  for(let i=1;i<=13;i++) skillStatus[i] = null;
+  renderSkillGrid();
+  setLockedUI();
+  setGradeUI();
+  refillBag();
   newRound();
 });
 
-/* =========================
-   Init
-   ========================= */
+/* ======= init ======= */
 renderTable();
+for(let i=1;i<=13;i++) skillStatus[i] = null;
+renderSkillGrid();
 setGradeUI();
+setLockedUI();
 newRound();
 requestAnimationFrame(applyTableScale);
 </script>
 </body>
 </html>
-
