@@ -278,6 +278,7 @@
       margin:0 0 8px;
       font-size:18px;
       font-weight:950;
+      text-align:center;
     }
     .qBox{
       border:2px solid var(--border);
@@ -291,6 +292,7 @@
       font-size:16px;
       font-weight:900;
       line-height:1.32;
+      text-align:center; /* centrado */
     }
 
     .answerRow{
@@ -298,6 +300,7 @@
       gap:10px;
       flex-wrap:wrap;
       align-items:center;
+      justify-content:center; /* centrado */
       margin: 6px 0 10px;
     }
 
@@ -311,16 +314,17 @@
       min-width: 240px;
       outline:none;
       font-weight:900;
+      text-align:center;
     }
     input:focus, select:focus{
       border-color:#93c5fd;
       box-shadow: 0 0 0 4px rgba(147,197,253,.35);
     }
 
-    /* Respuesta con unidad (u / g/mol) */
     .ansWithUnit{
       display:flex;
       align-items:center;
+      justify-content:center;
       gap:8px;
     }
     .ansWithUnit .unit{
@@ -330,7 +334,7 @@
       white-space:nowrap;
     }
     .massInputNarrow{
-      min-width: 160px !important;  /* más estrecha para que quepa la unidad */
+      min-width: 160px !important;
       width: 160px;
     }
 
@@ -338,7 +342,7 @@
     .iconBtnRow{
       display:flex;
       gap:12px;
-      justify-content:center;  /* centrados */
+      justify-content:center;
       align-items:center;
       margin-top:8px;
     }
@@ -374,11 +378,12 @@
       line-height:1.32;
       display:none;
       margin-top:10px;
+      text-align:center;
     }
     .feedback.ok{border-color: rgba(22,163,74,.45); background: rgba(22,163,74,.10);}
     .feedback.ko{border-color: rgba(220,38,38,.45); background: rgba(220,38,38,.10);}
 
-    /* Tabla resumen de dominio (ok/ko por tipo de pregunta) */
+    /* Resumen 3 filas */
     .skillPanel{
       margin-top:10px;
       border:2px solid var(--border);
@@ -391,48 +396,48 @@
       font-size:13px;
       font-weight:950;
       color: rgba(0,0,0,.75);
+      text-align:center;
     }
-    .skillGrid{
-      display:grid;
-      grid-template-columns: repeat(13, 1fr);
-      gap:6px;
-      align-items:center;
+    .skillTable{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:6px 6px;
+      table-layout:fixed;
     }
-    .skillCell{
+    .skillTable td{
       border:2px solid var(--border);
       border-radius:10px;
       height:34px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      text-align:center;
       font-weight:950;
-      font-size:14px;
       background:#fff;
-      position:relative;
+      overflow:hidden;
+      white-space:nowrap;
     }
-    .skillCell .n{
-      font-size:12px;
-      font-weight:950;
+    .skillTable td.head{
+      background: rgba(243,244,246,.85);
       color: rgba(0,0,0,.72);
+      font-size:12px;
     }
-    .skillCell.ok{ border-color: rgba(22,163,74,.45); background: rgba(22,163,74,.10); }
-    .skillCell.ko{ border-color: rgba(220,38,38,.45); background: rgba(220,38,38,.10); }
-    .skillCell.done{
-      color: rgba(0,0,0,.88);
+    .skillTable td.ok{
+      border-color: rgba(22,163,74,.45);
+      background: rgba(22,163,74,.10);
     }
-    .skillCell:not(.done){
-      color: rgba(0,0,0,.70);
-      background: rgba(243,244,246,.8);
+    .skillTable td.ko{
+      border-color: rgba(220,38,38,.45);
+      background: rgba(220,38,38,.10);
     }
-    .skillCell[data-tip]{
-      cursor:help;
+    .skillTable td.empty{
+      background: rgba(243,244,246,.55);
+      color: rgba(0,0,0,.55);
     }
 
     @media (max-width: 980px){
       body{ overflow:auto; }
       .wrap{ height:auto; }
       .layout{ grid-template-columns:1fr; }
-      .skillGrid{ grid-template-columns: repeat(7, 1fr); }
+      .skillTable{ border-spacing:4px 4px; }
+      .skillTable td{ height:30px; }
     }
   </style>
 </head>
@@ -514,9 +519,9 @@
 
         <div class="feedback" id="feedback"></div>
 
-        <div class="skillPanel" aria-label="Resumen de dominio por tipo de pregunta">
-          <p class="skillTitle">Resumen por tipo de pregunta (pasa el ratón por el número):</p>
-          <div class="skillGrid" id="skillGrid"></div>
+        <div class="skillPanel" aria-label="Resumen por tipo de pregunta (dos intentos)">
+          <p class="skillTitle">Resumen por tipo (pasa el ratón por el número):</p>
+          <table class="skillTable" id="skillTable"></table>
         </div>
       </div>
     </aside>
@@ -638,7 +643,7 @@ const DATA = [
   [114,"Fl","Flerovio",289,14,7,"Metal"],
   [115,"Mc","Moscovio",290,15,7,"Metal"],
   [116,"Lv","Livermorio",293,16,7,"Metal"],
-  [117,"Ts","Teneso",294,17,7,"Metal"], /* didáctico */
+  [117,"Ts","Teneso",294,17,7,"Metal"],
   [118,"Og","Oganesón",294,18,7,"Gas noble"],
 ];
 
@@ -649,39 +654,6 @@ const elements = DATA.map(d => ({
 
 const byZ = new Map(elements.filter(e => typeof e.Z === "number").map(e => [e.Z, e]));
 const questionPoolElements = elements.filter(e => typeof e.Z === "number" && e.Z >= 1 && e.Z <= 56);
-
-/* Categorías grandes */
-function bigGroupCategory(el){
-  if(el.category === "Gas noble") return "Gas Noble";
-  if(el.category === "Semimetal") return "Semimetal";
-  if(el.category === "No metal") return "No metal";
-  return "Metal";
-}
-function groupFamilyName(group){
-  if(group === 1) return "Alcalinos";
-  if(group === 2) return "Alcalinotérreos";
-  if(group >= 3 && group <= 12) return "Metales de transición";
-  if(group === 13) return "Boroideos";
-  if(group === 14) return "Carbonoideos";
-  if(group === 15) return "Nitrogenoideos";
-  if(group === 16) return "Calcógenos";
-  if(group === 17) return "Halógenos";
-  if(group === 18) return "Gases nobles";
-  return "—";
-}
-function valenceElectrons(el){
-  const g = el.group;
-  if(g === 1) return 1;
-  if(g === 2) return 2;
-  if(g >= 3 && g <= 12) return 2;
-  if(g === 13) return 3;
-  if(g === 14) return 4;
-  if(g === 15) return 5;
-  if(g === 16) return 6;
-  if(g === 17) return 7;
-  if(g === 18) return (el.Z === 2 ? 2 : 8);
-  return null;
-}
 
 /* ======= render tabla ======= */
 function catClass(el){
@@ -746,7 +718,6 @@ function applyTableScale(){
 
   tableStage.style.transform = `scale(${s})`;
 
-  // Magnificada 3x3: anclada en zona superior, grupos 8-10 para no tapar H/He
   const pad = 2;
   const cellW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cellW'));
   const cellH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cellH'));
@@ -763,6 +734,39 @@ function applyTableScale(){
 }
 window.addEventListener("resize", () => requestAnimationFrame(applyTableScale));
 
+/* ======= familias / valencia ======= */
+function groupFamilyName(group){
+  if(group === 1) return "Alcalinos";
+  if(group === 2) return "Alcalinotérreos";
+  if(group >= 3 && group <= 12) return "Metales de transición";
+  if(group === 13) return "Boroideos";
+  if(group === 14) return "Carbonoideos";
+  if(group === 15) return "Nitrogenoideos";
+  if(group === 16) return "Calcógenos";
+  if(group === 17) return "Halógenos";
+  if(group === 18) return "Gases nobles";
+  return "—";
+}
+function valenceElectrons(el){
+  const g = el.group;
+  if(g === 1) return 1;
+  if(g === 2) return 2;
+  if(g >= 3 && g <= 12) return 2;
+  if(g === 13) return 3;
+  if(g === 14) return 4;
+  if(g === 15) return 5;
+  if(g === 16) return 6;
+  if(g === 17) return 7;
+  if(g === 18) return (el.Z === 2 ? 2 : 8);
+  return null;
+}
+function bigGroupCategory(el){
+  if(el.category === "Gas noble") return "Gas Noble";
+  if(el.category === "Semimetal") return "Semimetal";
+  if(el.category === "No metal") return "No metal";
+  return "Metal";
+}
+
 /* ======= UI ======= */
 const qText = document.getElementById("qText");
 const answerRow = document.getElementById("answerRow");
@@ -778,7 +782,7 @@ const hitsText = document.getElementById("hitsText");
 const missText = document.getElementById("missText");
 const qLeftText = document.getElementById("qLeftText");
 
-const skillGrid = document.getElementById("skillGrid");
+const skillTable = document.getElementById("skillTable");
 
 /* ======= scoring: 20 preguntas -> 10 puntos ======= */
 const QUESTIONS_TO_10 = 20;
@@ -797,7 +801,7 @@ function setGradeUI(){
   qLeftText.textContent = `Quedan: ${Math.max(0, QUESTIONS_TO_10 - totalAnswered)}`;
 }
 
-/* ======= resumen por tipo ======= */
+/* ======= Resumen: 3 filas (números / intento1 / intento2) ======= */
 const QUESTION_TEXTS = {
   1:"¿A qué gran grupo de la tabla periódica pertenece?",
   2:"¿Cómo se denomina su grupo?",
@@ -810,30 +814,49 @@ const QUESTION_TEXTS = {
   9:"¿En qué elemento se convierte si pierde/gana 1/2/3 protones?",
   10:"¿Cuál es la masa promedio de un átomo?",
   11:"¿Cuál es la masa de un mol?",
-  12:"Indica un elemento con las mismas propiedades químicas (mismo grupo).",
-  13:"Indica un elemento con las mismas capas de electrones (mismo periodo).",
+  12:"Indica un elemento con las mismas propiedades químicas.",
+  13:"Indica un elemento con las mismas capas de electrones.",
 };
-const skillStatus = {}; // id -> "ok"/"ko"/null
 
-function renderSkillGrid(){
-  skillGrid.innerHTML = "";
+// Por tipo de pregunta guardamos el primer y segundo intento (ok/ko), sin más pistas
+const attemptStatus = {}; // id -> {a1: "ok"|"ko"|null, a2: "ok"|"ko"|null}
+for(let i=1;i<=13;i++) attemptStatus[i] = {a1:null, a2:null};
+
+function renderSkillTable(){
+  skillTable.innerHTML = "";
+
+  const tr1 = document.createElement("tr");
+  const tr2 = document.createElement("tr");
+  const tr3 = document.createElement("tr");
+
   for(let id=1; id<=13; id++){
-    const div = document.createElement("div");
-    div.className = "skillCell";
-    div.dataset.tip = QUESTION_TEXTS[id];
-    div.title = QUESTION_TEXTS[id]; // tooltip nativo
-    const st = skillStatus[id];
-    if(st === "ok"){
-      div.classList.add("ok","done");
-      div.innerHTML = `<span class="n">${id}</span>&nbsp;✓`;
-    }else if(st === "ko"){
-      div.classList.add("ko","done");
-      div.innerHTML = `<span class="n">${id}</span>&nbsp;✗`;
-    }else{
-      div.innerHTML = `<span class="n">${id}</span>`;
-    }
-    skillGrid.appendChild(div);
+    // Fila 1: número con tooltip
+    const tdN = document.createElement("td");
+    tdN.className = "head";
+    tdN.title = QUESTION_TEXTS[id];
+    tdN.textContent = String(id);
+    tr1.appendChild(tdN);
+
+    // Fila 2: intento 1
+    const td1 = document.createElement("td");
+    const st1 = attemptStatus[id].a1;
+    if(st1 === "ok"){ td1.classList.add("ok"); td1.textContent = "✓"; }
+    else if(st1 === "ko"){ td1.classList.add("ko"); td1.textContent = "✗"; }
+    else { td1.classList.add("empty"); td1.textContent = "—"; }
+    tr2.appendChild(td1);
+
+    // Fila 3: intento 2
+    const td2 = document.createElement("td");
+    const st2 = attemptStatus[id].a2;
+    if(st2 === "ok"){ td2.classList.add("ok"); td2.textContent = "✓"; }
+    else if(st2 === "ko"){ td2.classList.add("ko"); td2.textContent = "✗"; }
+    else { td2.classList.add("empty"); td2.textContent = "—"; }
+    tr3.appendChild(td2);
   }
+
+  skillTable.appendChild(tr1);
+  skillTable.appendChild(tr2);
+  skillTable.appendChild(tr3);
 }
 
 /* ======= inputs ======= */
@@ -870,6 +893,7 @@ function makeSelect(options, placeholder="Sin responder"){
 /* ======= elemento activo ======= */
 let currentElement = null;
 let currentQuestion = null;
+let currentAttempt = 0; // 0 -> primer intento para el tipo actual, 1 -> segundo intento (si procede)
 
 function highlightElement(el){
   document.querySelectorAll(".cell.active").forEach(c => c.classList.remove("active"));
@@ -895,31 +919,23 @@ function showFeedback(ok, msg){
   feedback.textContent = msg;
 }
 
-/* ======= banco de preguntas sin repetición hasta agotar ======= */
+/* ======= bolsa de preguntas sin repetición ======= */
 const questionOrderBag = [];
 function refillBag(){
   questionOrderBag.length = 0;
   for(let i=1;i<=13;i++) questionOrderBag.push(i);
-  // shuffle
   for(let i=questionOrderBag.length-1; i>0; i--){
     const j = Math.floor(Math.random()*(i+1));
     [questionOrderBag[i], questionOrderBag[j]] = [questionOrderBag[j], questionOrderBag[i]];
   }
 }
 refillBag();
-
 function pickNextQuestionId(){
   if(questionOrderBag.length === 0) refillBag();
   return questionOrderBag.pop();
 }
 
-/* ======= auxiliares para Q12/Q13 ======= */
-function elementsSameGroup(el){
-  return questionPoolElements.filter(e => e.group === el.group && e.Z !== el.Z);
-}
-function elementsSamePeriod(el){
-  return questionPoolElements.filter(e => e.period === el.period && e.Z !== el.Z);
-}
+/* ======= auxiliares para Q12/Q13 sin pistas ======= */
 function matchElementByNameOrSymbol(input){
   const s = normalizeText(input);
   if(!s) return null;
@@ -932,19 +948,20 @@ function matchElementByNameOrSymbol(input){
 /* ======= construir pregunta por ID ======= */
 function buildQuestion(el, id){
   if(id === 1){
+    const sol = bigGroupCategory(el);
     return {
       id,
       text:`1. ${QUESTION_TEXTS[1]}`,
       ui:() => makeSelect(["Metal","No metal","Semimetal","Gas Noble"]),
-      check:(v)=> v === (el.category === "Gas noble" ? "Gas Noble" : el.category === "Semimetal" ? "Semimetal" : el.category === "No metal" ? "No metal" : "Metal"),
-      solution: (el.category === "Gas noble" ? "Gas Noble" : el.category === "Semimetal" ? "Semimetal" : el.category === "No metal" ? "No metal" : "Metal")
+      check:(v)=> v === sol,
+      solution: sol
     };
   }
   if(id === 2){
     return {
       id,
       text:`2. ${QUESTION_TEXTS[2]}`,
-      ui:() => makeInputText("Ej.: Alcalinos, Halógenos..."),
+      ui:() => makeInputText(""),
       check:(v)=> normalizeText(v) === normalizeText(groupFamilyName(el.group)),
       solution: groupFamilyName(el.group)
     };
@@ -953,7 +970,7 @@ function buildQuestion(el, id){
     return {
       id,
       text:`3. ${QUESTION_TEXTS[3]}`,
-      ui:() => makeInputNumber("1–18"),
+      ui:() => makeInputNumber(""),
       check:(v)=> Number(v) === el.group,
       solution: String(el.group)
     };
@@ -962,7 +979,7 @@ function buildQuestion(el, id){
     return {
       id,
       text:`4. ${QUESTION_TEXTS[4]}`,
-      ui:() => makeInputNumber("1–7"),
+      ui:() => makeInputNumber(""),
       check:(v)=> Number(v) === el.period,
       solution: String(el.period)
     };
@@ -971,7 +988,7 @@ function buildQuestion(el, id){
     return {
       id,
       text:`5. ${QUESTION_TEXTS[5]}`,
-      ui:() => makeInputNumber("Número de protones"),
+      ui:() => makeInputNumber(""),
       check:(v)=> Number(v) === el.Z,
       solution: String(el.Z)
     };
@@ -980,7 +997,7 @@ function buildQuestion(el, id){
     return {
       id,
       text:`6. ${QUESTION_TEXTS[6]}`,
-      ui:() => makeInputNumber("1–56"),
+      ui:() => makeInputNumber(""),
       check:(v)=> Number(v) === el.Z,
       solution: String(el.Z)
     };
@@ -989,7 +1006,7 @@ function buildQuestion(el, id){
     return {
       id,
       text:`7. ${QUESTION_TEXTS[7]}`,
-      ui:() => makeInputNumber("Z"),
+      ui:() => makeInputNumber(""),
       check:(v)=> Number(v) === el.Z,
       solution: String(el.Z)
     };
@@ -999,7 +1016,7 @@ function buildQuestion(el, id){
     return {
       id,
       text:`8. ${QUESTION_TEXTS[8]}`,
-      ui:() => makeInputNumber("Electrones de valencia"),
+      ui:() => makeInputNumber(""),
       check:(v)=> Number(v) === ve,
       solution: String(ve)
     };
@@ -1013,7 +1030,7 @@ function buildQuestion(el, id){
     return {
       id,
       text:`9. ¿En qué elemento se convierte si ${delta < 0 ? "pierde" : "gana"} ${n} proton${n===1?"":"es"}?`,
-      ui:() => makeInputText("Nombre o símbolo"),
+      ui:() => makeInputText(""),
       check:(v)=> {
         const s = normalizeText(v);
         return s === normalizeText(tEl.name) || s === normalizeText(tEl.sym);
@@ -1022,21 +1039,19 @@ function buildQuestion(el, id){
     };
   }
   if(id === 10){
-    // Masa atómica promedio: input estrecho + unidad u
     return {
       id,
       text:`10. ${QUESTION_TEXTS[10]}`,
       ui:() => {
         const wrap = document.createElement("div");
         wrap.className = "ansWithUnit";
-        const input = makeInputNumber("Ej.: 55.85");
+        const input = makeInputNumber("");
         input.classList.add("massInputNarrow");
         wrap.appendChild(input);
         const u = document.createElement("span");
         u.className = "unit";
         u.textContent = "u";
         wrap.appendChild(u);
-        // Para que el motor lea el value
         wrap._control = input;
         return wrap;
       },
@@ -1050,14 +1065,13 @@ function buildQuestion(el, id){
     };
   }
   if(id === 11){
-    // Masa molar: input estrecho + unidad g/mol
     return {
       id,
       text:`11. ${QUESTION_TEXTS[11]}`,
       ui:() => {
         const wrap = document.createElement("div");
         wrap.className = "ansWithUnit";
-        const input = makeInputNumber("Ej.: 55.85");
+        const input = makeInputNumber("");
         input.classList.add("massInputNarrow");
         wrap.appendChild(input);
         const u = document.createElement("span");
@@ -1077,40 +1091,31 @@ function buildQuestion(el, id){
     };
   }
   if(id === 12){
-    const candidates = elementsSameGroup(el);
-    const example = candidates.length ? candidates[0].sym : "";
+    // SIN pistas ni ejemplo
     return {
       id,
       text:`12. ${QUESTION_TEXTS[12]}`,
-      ui:() => makeInputText(example ? `Ej.: ${example}` : "Símbolo o nombre"),
+      ui:() => makeInputText(""),
       check:(v)=> {
         const chosen = matchElementByNameOrSymbol(v);
         if(!chosen) return false;
         return chosen.group === el.group && chosen.Z !== el.Z;
       },
-      solution: (candidates.length
-        ? `Cualquier elemento del grupo ${el.group} (misma columna).`
-        : `No disponible para este elemento.`)
+      solution:`Cualquier elemento del mismo grupo que ${el.sym}.`
     };
   }
-  // id === 13
-  {
-    const candidates = elementsSamePeriod(el);
-    const example = candidates.length ? candidates[0].sym : "";
-    return {
-      id,
-      text:`13. ${QUESTION_TEXTS[13]}`,
-      ui:() => makeInputText(example ? `Ej.: ${example}` : "Símbolo o nombre"),
-      check:(v)=> {
-        const chosen = matchElementByNameOrSymbol(v);
-        if(!chosen) return false;
-        return chosen.period === el.period && chosen.Z !== el.Z;
-      },
-      solution: (candidates.length
-        ? `Cualquier elemento del periodo ${el.period} (misma fila).`
-        : `No disponible para este elemento.`)
-    };
-  }
+  // id === 13: SIN pistas en el enunciado (solo la solución explica el criterio)
+  return {
+    id,
+    text:`13. ${QUESTION_TEXTS[13]}`,
+    ui:() => makeInputText(""),
+    check:(v)=> {
+      const chosen = matchElementByNameOrSymbol(v);
+      if(!chosen) return false;
+      return chosen.period === el.period && chosen.Z !== el.Z;
+    },
+    solution:`Cualquier elemento del mismo período que ${el.sym}.`
+  };
 }
 
 /* ======= montar pregunta ======= */
@@ -1120,8 +1125,6 @@ function mountQuestion(q){
 
   const node = q.ui();
   node.id = "answerControl";
-
-  // Si es wrapper con unidad, el input real está en node._control
   const control = node._control ? node._control : node;
 
   answerRow.appendChild(node);
@@ -1141,7 +1144,6 @@ function mountQuestion(q){
 function pickRandomElement(){
   return pickRandom(questionPoolElements);
 }
-
 function setLockedUI(){
   const newBtn = document.getElementById("newBtn");
   const checkBtn = document.getElementById("checkBtn");
@@ -1174,6 +1176,9 @@ function newRound(){
   const qid = pickNextQuestionId();
   currentQuestion = buildQuestion(currentElement, qid);
 
+  // reinicia el contador de intentos para este tipo en caso de necesitarlo
+  currentAttempt = 0;
+
   mountQuestion(currentQuestion);
   requestAnimationFrame(applyTableScale);
 }
@@ -1189,17 +1194,22 @@ function applyScoring(ok, qid){
     grade = Math.max(0, grade - POINTS_PER_OK);
   }
 
-  // actualizar tabla de dominio por tipo
-  skillStatus[qid] = ok ? "ok" : "ko";
-  renderSkillGrid();
+  // Registrar en resumen: primer intento y segundo intento (si ya había uno)
+  if(attemptStatus[qid].a1 === null){
+    attemptStatus[qid].a1 = ok ? "ok" : "ko";
+  }else if(attemptStatus[qid].a2 === null){
+    attemptStatus[qid].a2 = ok ? "ok" : "ko";
+  }else{
+    // Si ya hay dos, sobrescribimos el segundo (último intento registrado)
+    attemptStatus[qid].a2 = ok ? "ok" : "ko";
+  }
+  renderSkillTable();
 
-  // bloqueo al llegar a 10 o al contestar 20
   if(grade >= 10 || totalAnswered >= QUESTIONS_TO_10){
     grade = Math.min(10, grade);
     locked = true;
     setLockedUI();
   }
-
   setGradeUI();
 }
 
@@ -1219,11 +1229,8 @@ function checkAnswer(){
 
   applyScoring(ok, currentQuestion.id);
 
-  const msg = `${ok ? "Correcto" : "Incorrecto"}.`;
-  const sol = ` Solución/criterio: ${currentQuestion.solution}`;
-  showFeedback(ok, msg + sol);
+  showFeedback(ok, `${ok ? "Correcto" : "Incorrecto"}. Solución/criterio: ${currentQuestion.solution}`);
 
-  // Si se bloquea, mensaje final
   if(locked){
     qText.textContent = (grade >= 10)
       ? "Has llegado a 10/10. Reinicia para volver a jugar."
@@ -1240,8 +1247,8 @@ document.getElementById("newBtn").addEventListener("click", () => {
 });
 document.getElementById("resetBtn").addEventListener("click", () => {
   hits = 0; misses = 0; grade = 0; totalAnswered = 0; locked = false;
-  for(let i=1;i<=13;i++) skillStatus[i] = null;
-  renderSkillGrid();
+  for(let i=1;i<=13;i++) attemptStatus[i] = {a1:null, a2:null};
+  renderSkillTable();
   setLockedUI();
   setGradeUI();
   refillBag();
@@ -1250,8 +1257,7 @@ document.getElementById("resetBtn").addEventListener("click", () => {
 
 /* ======= init ======= */
 renderTable();
-for(let i=1;i<=13;i++) skillStatus[i] = null;
-renderSkillGrid();
+renderSkillTable();
 setGradeUI();
 setLockedUI();
 newRound();
