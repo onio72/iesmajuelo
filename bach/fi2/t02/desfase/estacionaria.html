@@ -1,1 +1,800 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Visualizador de ondas estacionarias</title>
+  <style>
+    :root {
+      /* Paleta clara */
+      --bg: #f0f2f5;
+      --panel: #ffffff;
+      --ink: #1a1a1a;
+      --muted: #5f6368;
+      --accent: #d93025; /* Rojo para diferenciar de la viajera (azul) */
+      --ok: #1e8e3e;     
+      --warn: #f9ab00;   
+      --line: #dadce0;
+      --shadow: rgba(0, 0, 0, 0.1);
+      --ghost: #9aa0a6; 
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Helvetica Neue, Arial;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .wrap {
+      width: min(980px, 100%);
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      position: relative; 
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 4px 20px var(--shadow);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+    header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      background: #ffffff;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      color: var(--accent);
+    }
+    header p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .content {
+      padding: 14px 16px 16px;
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 860px) {
+      .content { grid-template-columns: 1fr; }
+    }
 
+    .canvasBox {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+      position: relative;
+    }
+    canvas {
+      width: 100%;
+      height: 420px;
+      display: block;
+      border-radius: 10px;
+      background: #f8f9fa; 
+      cursor: crosshair;
+    }
+
+    .panel {
+      background: #f8f9fa;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .btns { display: flex; gap: 10px; flex-wrap: wrap; }
+    button {
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: #ffffff;
+      color: var(--ink);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    button:hover { background: #f1f3f4; }
+    button:active { transform: translateY(1px); }
+    button.primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+    }
+    button.primary:hover { background: #b3261e; }
+    button.secondary {
+      border-color: var(--muted);
+      color: var(--muted);
+    }
+    button.secondary.active {
+      background: var(--muted);
+      color: #fff;
+    }
+    button.danger {
+      color: var(--warn);
+      border-color: rgba(249, 171, 0, 0.3);
+      background: #fff8e1;
+    }
+    button.danger:hover { background: #fff0c2; }
+
+    .control {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .control label { font-size: 13px; color: var(--muted); font-weight: 500; }
+    input[type=range] { width: 100%; cursor: pointer; accent-color: var(--accent); }
+    
+    input.secondary-slider { accent-color: var(--ghost); }
+
+    .pill {
+      font-variant-numeric: tabular-nums;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      min-width: 80px;
+      text-align: right;
+      font-weight: 500;
+    }
+
+    .help {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      background: #e8f0fe;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #d2e3fc;
+    }
+    .tool-box {
+      border: 1px solid var(--accent);
+      background: rgba(217,48,37,0.05);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .tool-title {
+      font-size: 12px; 
+      font-weight: 700; 
+      color: var(--accent); 
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .kv {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    .kv .item {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px dashed var(--line);
+      background: #ffffff;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--ink);
+      background: rgba(0,0,0,0.04);
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #f1f3f4;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+    .dot.ok { background: var(--ok); }
+    .dot.warn { background: var(--warn); }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(5px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 18px;
+    }
+    .modal-content {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      border: 1px solid var(--line);
+      text-align: center;
+      max-width: 500px;
+    }
+    .modal-content h2 { margin-top: 0; color: var(--accent); }
+    .modal-content p { color: var(--muted); line-height: 1.5; margin-bottom: 24px; }
+    .mode-btns { display: flex; flex-direction: column; gap: 12px; }
+    .mode-btn {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f8f9fa;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .mode-btn:hover {
+      background: #fce8e6;
+      border-color: var(--accent);
+    }
+    .mode-btn strong { display: block; color: var(--ink); font-size: 14px; }
+    .mode-btn span { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .icon { font-size: 24px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    
+    <!-- Modal de Selección -->
+    <div id="modeModal" class="modal-overlay">
+      <div class="modal-content">
+        <h2>Elige qué explorar</h2>
+        <p>Selecciona el tipo de diferencia de fase para la <b>Onda Estacionaria</b>:</p>
+        <div class="mode-btns">
+          <button class="mode-btn" onclick="selectMode('spatial')">
+            <div class="icon">📏</div>
+            <div>
+              <strong>Diferencia de fase espacial</strong>
+              <span>Entre dos puntos P1 y P2 (Fase o Contrafase).</span>
+            </div>
+          </button>
+          <button class="mode-btn" onclick="selectMode('temporal')">
+            <div class="icon">⏱️</div>
+            <div>
+              <strong>Diferencia de fase temporal</strong>
+              <span>En un mismo punto P1 entre dos instantes.</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <header>
+        <div>
+          <h1 id="appTitle">Visualizador de ondas estacionarias</h1>
+          <p id="appDesc">Interferencia de dos ondas viajeras opuestas.</p>
+        </div>
+        <div class="badge"><span class="dot" id="statusDot"></span><span id="statusText">En reposo</span></div>
+      </header>
+
+      <div class="content">
+        <div class="canvasBox">
+          <canvas id="c"></canvas>
+        </div>
+
+        <div class="panel">
+          <div class="btns">
+            <button class="primary" id="btnPlay">Play</button>
+            <button id="btnPause">Pausa</button>
+            <button class="danger" id="btnReset">Reiniciar</button>
+            <button class="secondary" id="btnBackToMenu">⟲ Menú</button>
+          </div>
+
+          <!-- Herramienta Comparación Temporal (Solo modo temporal) -->
+          <div id="temporalTools" class="tool-box" style="display:none">
+            <div class="tool-title">⏱️ Comparación Temporal</div>
+            <p style="font-size:12px; margin:0; color:var(--muted); line-height:1.4">
+              1. <b>"Capturar Instante"</b> para fijar t<sub>1</sub>.<br>
+              2. Ajusta t<sub>1</sub> con el slider gris si es necesario.<br>
+              3. Avanza t<sub>2</sub> para medir el desfase.
+            </p>
+            <div class="btns" style="margin-top:8px">
+              <button class="secondary" id="btnSnapshot">Capturar Instante</button>
+              <button class="secondary" id="btnClearSnapshot" style="display:none">Borrar Captura</button>
+            </div>
+            <!-- Slider T1 -->
+            <div id="t1Control" style="display:none; margin-top:10px; border-top:1px solid rgba(0,0,0,0.1); padding-top:10px;">
+              <label for="t1Slider" style="font-size:12px; color:var(--muted);">Ajustar Referencia t<sub>1</sub> (s)</label>
+              <div style="display:flex; align-items:center; gap:8px;">
+                 <input id="t1Slider" class="secondary-slider" type="range" step="0.01" style="flex:1">
+                 <span id="t1Val" class="mono" style="font-size:11px; min-width:45px; text-align:right; color:var(--ghost)">0.00s</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Herramienta Comparación Espacial (Solo modo espacial) -->
+          <div id="spatialTools" class="tool-box" style="display:none">
+            <div class="tool-title">📏 Comparación Espacial</div>
+            <p style="font-size:12px; margin:0; color:var(--muted)">
+              Arrastra P1 y P2. Observa si están en <b>Fase</b> (0 rad) o en <b>Oposición</b> (π rad).
+            </p>
+          </div>
+
+          <div class="control">
+            <div>
+              <label for="timeSlider">Tiempo Actual <i>t</i> (s)</label>
+              <input id="timeSlider" type="range" min="0" max="20" step="0.01" value="0" />
+            </div>
+            <div class="pill" id="timeOut">0.00 s</div>
+          </div>
+
+          <div class="control">
+            <div>
+              <label for="freq">Frecuencia (Hz)</label>
+              <input id="freq" type="range" min="0.2" max="2.0" step="0.1" value="0.5" />
+            </div>
+            <div class="pill" id="freqOut">0.5 Hz</div>
+          </div>
+
+          <div class="control">
+            <div>
+              <label for="speed">Velocidad (m/s)</label>
+              <input id="speed" type="range" min="50" max="400" step="10" value="200" />
+            </div>
+            <div class="pill" id="speedOut">200 m/s</div>
+          </div>
+
+          <div class="control">
+            <div>
+              <label for="amp">Amplitud Componentes (m)</label>
+              <input id="amp" type="range" min="10" max="50" step="1" value="30" />
+            </div>
+            <div class="pill" id="ampOut">30 m</div>
+          </div>
+
+          <div class="kv">
+            <div class="item">
+              <!-- Ec. estacionaria con nodo en x=0 para simplificar -->
+              Fórmula: <span class="mono">y = 2A sen(kx) cos(ωt)</span>
+            </div>
+            
+            <!-- Resultado -->
+            <div class="item" id="resultBox" style="display:none; border-color:var(--accent); background:rgba(217,48,37,0.05);">
+              <span id="resultLabel">Diferencia:</span><br>
+              <span class="mono" id="resultVal">0π</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ====== Utilidades ======
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const fmt = (n, d=2) => Number.isFinite(n) ? n.toFixed(d) : '—';
+
+    function formatPiMultiple(m){
+      const absM = Math.abs(m);
+      if(absM > 100) return `${m.toFixed(1)}π`; 
+      const decimal = absM % 1;
+      if(decimal < 0.05 || decimal > 0.95) return `${m.toFixed(0)}π`;
+      if(Math.abs(decimal - 0.5) < 0.05) return `${m.toFixed(1)}π`;
+      return `${m.toFixed(2)}π`;
+    }
+
+    // ====== Estado ======
+    const state = {
+      mode: null,
+      running: false,
+      paused: false,
+      t: 0,
+      f: 0.5,
+      v: 200,
+      A: 30, // Amplitud de cada componente (onda estacionaria tendrá 2A en antinodos)
+      x1: 180, 
+      x2: 420,
+      dragging: null,
+      margin: {l: 40, r: 20, t: 30, b: 30},
+      snapshot: null 
+    };
+
+    // ====== UI Elements ======
+    const el = id => document.getElementById(id);
+    const canvas = el('c');
+    const ctx = canvas.getContext('2d');
+    
+    const ui = {
+      modal: el('modeModal'),
+      play: el('btnPlay'),
+      pause: el('btnPause'),
+      reset: el('btnReset'),
+      back: el('btnBackToMenu'),
+      tempTools: el('temporalTools'),
+      spatTools: el('spatialTools'),
+      btnSnap: el('btnSnapshot'),
+      btnClearSnap: el('btnClearSnapshot'),
+      t1Control: el('t1Control'),
+      t1Slider: el('t1Slider'),
+      t1Val: el('t1Val'),
+      resultBox: el('resultBox'),
+      resultLabel: el('resultLabel'),
+      resultVal: el('resultVal'),
+      time: el('timeSlider'),
+      timeOut: el('timeOut'),
+      freq: el('freq'),
+      freqOut: el('freqOut'),
+      speed: el('speed'),
+      speedOut: el('speedOut'),
+      amp: el('amp'),
+      ampOut: el('ampOut'),
+      dot: el('statusDot'),
+      text: el('statusText'),
+      title: el('appTitle'),
+      desc: el('appDesc')
+    };
+
+    // ====== Lógica de Modos ======
+    window.selectMode = function(mode){
+      state.mode = mode;
+      ui.modal.style.display = 'none';
+      state.running = false;
+      state.paused = false;
+      state.t = 0;
+      state.snapshot = null;
+      ui.time.min = "0";
+      ui.time.value = 0;
+      setStatus('', 'En reposo');
+      
+      if(mode === 'spatial'){
+        ui.title.textContent = 'Onda Estacionaria - Fase Espacial';
+        ui.spatTools.style.display = 'flex';
+        ui.tempTools.style.display = 'none';
+        state.x1 = state.margin.l + 100; 
+        state.x2 = state.margin.l + 300;
+        ui.resultBox.style.display = 'block';
+      } else {
+        ui.title.textContent = 'Onda Estacionaria - Fase Temporal';
+        ui.spatTools.style.display = 'none';
+        ui.tempTools.style.display = 'flex';
+        state.x1 = state.margin.l + 150; // default pos
+        toggleSnapshotUI(false);
+      }
+      syncOutputs();
+      draw();
+    };
+
+    ui.back.addEventListener('click', () => { state.running = false; ui.modal.style.display = 'flex'; });
+
+    // ====== Interacción General ======
+    function setStatus(kind, msg){
+      ui.text.textContent = msg;
+      ui.dot.className = 'dot ' + kind;
+    }
+
+    function syncOutputs(){
+      ui.timeOut.textContent = `${fmt(state.t)} s`;
+      ui.freqOut.textContent = `${Number(ui.freq.value).toFixed(1)} Hz`;
+      ui.speedOut.textContent = `${Number(ui.speed.value).toFixed(0)} m/s`;
+      ui.ampOut.textContent = `${Number(ui.amp.value).toFixed(0)} m`;
+      
+      if (state.t > parseFloat(ui.time.max)) ui.time.max = Math.ceil(state.t + 10);
+      ui.time.value = state.t;
+
+      updateCalculations();
+    }
+
+    // ====== CÁLCULOS FÍSICOS ESTACIONARIA ======
+    function getStandingY(x, t, params){
+      const { f, v, A } = params;
+      const omega = 2 * Math.PI * f;
+      const lambda = v / f;
+      const k = 2 * Math.PI / lambda;
+      // y = 2A sin(kx) cos(wt)
+      // Nota: Usamos sin(kx) para tener nodo en x=0 (si x se mide desde origen)
+      // Ajustamos x para que coincida visualmente si cambiamos v/f
+      return 2 * A * Math.sin(k * x) * Math.cos(omega * t);
+    }
+
+    function updateCalculations(){
+      const omega = 2 * Math.PI * state.f;
+      const lambda = state.v / state.f;
+      const k = 2 * Math.PI / lambda;
+
+      if(state.mode === 'spatial'){
+        // Fase espacial en onda estacionaria
+        // Puntos entre nodos consecutivos están en fase (0).
+        // Puntos separados por un número impar de nodos están en oposición (pi).
+        // Matemáticamente: verificamos el signo de sin(kx)
+        const s1 = Math.sin(k * (state.x1 - state.margin.l));
+        const s2 = Math.sin(k * (state.x2 - state.margin.l));
+        
+        // Evitar nodos (cerca de 0)
+        const isNode1 = Math.abs(s1) < 0.01;
+        const isNode2 = Math.abs(s2) < 0.01;
+
+        if(isNode1 || isNode2){
+          ui.resultLabel.innerHTML = '<b>Aviso:</b>';
+          ui.resultVal.textContent = "Nodo seleccionado";
+        } else {
+          // Si tienen mismo signo -> Fase (0). Distinto -> Oposición (pi)
+          const inPhase = (Math.sign(s1) === Math.sign(s2));
+          ui.resultLabel.innerHTML = '<b>Δφ Espacial:</b>';
+          ui.resultVal.textContent = inPhase ? '0 rad (En Fase)' : 'π rad (Oposición)';
+        }
+        ui.resultBox.style.display = 'block';
+      
+      } else if(state.mode === 'temporal'){
+        if(state.snapshot){
+          // Δφ = ω * (t2 - t1)
+          // El signo espacial no importa aquí, solo la evolución temporal cos(wt)
+          const dt = Math.abs(state.t - state.snapshot.t);
+          const dPhi = omega * dt;
+          ui.resultLabel.innerHTML = `<b>Δφ Temporal:</b>`;
+          // Normalizamos a [0, 2pi) para claridad o acumulado
+          ui.resultVal.textContent = formatPiMultiple(dPhi / Math.PI);
+          ui.resultBox.style.display = 'block';
+        } else {
+          ui.resultBox.style.display = 'none';
+        }
+      }
+    }
+
+    // Listeners
+    ui.freq.addEventListener('input', () => { state.f = Number(ui.freq.value); syncOutputs(); draw(); });
+    ui.speed.addEventListener('input', () => { state.v = Number(ui.speed.value); syncOutputs(); draw(); });
+    ui.amp.addEventListener('input', () => { state.A = Number(ui.amp.value); syncOutputs(); draw(); });
+    ui.time.addEventListener('input', () => { state.t = Number(ui.time.value); syncOutputs(); draw(); });
+
+    ui.play.addEventListener('click', () => { state.running = true; state.paused = false; setStatus('ok', 'Reproduciendo'); });
+    ui.pause.addEventListener('click', () => { if(state.running){ state.paused = true; setStatus('warn', 'En pausa'); } });
+    ui.reset.addEventListener('click', () => {
+      state.running = false; state.paused = false; state.t = 0; state.snapshot = null;
+      toggleSnapshotUI(false); ui.time.min = "0"; ui.time.max = 20;
+      syncOutputs(); setStatus('', 'En reposo'); draw();
+    });
+
+    function toggleSnapshotUI(hasSnapshot){
+      if(hasSnapshot){
+        ui.btnSnap.style.display = 'none'; ui.btnClearSnap.style.display = 'inline-block'; ui.t1Control.style.display = 'block';
+      } else {
+        ui.btnSnap.style.display = 'inline-block'; ui.btnClearSnap.style.display = 'none'; ui.t1Control.style.display = 'none';
+      }
+      syncOutputs();
+    }
+
+    ui.btnSnap.addEventListener('click', () => {
+      const captureTime = state.t; state.snapshot = { t: captureTime }; 
+      ui.t1Slider.min = 0; ui.t1Slider.max = Math.max(20, captureTime + 10);
+      ui.t1Slider.value = captureTime; ui.t1Val.textContent = fmt(captureTime) + 's';
+      ui.time.min = captureTime; toggleSnapshotUI(true); draw();
+    });
+
+    ui.t1Slider.addEventListener('input', () => {
+      if(!state.snapshot) return;
+      const newT1 = Number(ui.t1Slider.value); state.snapshot.t = newT1;
+      ui.t1Val.textContent = fmt(newT1) + 's'; ui.time.min = newT1;
+      if(state.t < newT1){ state.t = newT1; ui.time.value = state.t; }
+      syncOutputs(); draw();
+    });
+    
+    ui.btnClearSnap.addEventListener('click', () => {
+      state.snapshot = null; ui.time.min = "0"; toggleSnapshotUI(false); draw();
+    });
+
+    // ====== DIBUJO ======
+    function resizeCanvas(){
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); draw();
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function draw(){
+      const rect = canvas.getBoundingClientRect();
+      const W = rect.width; const H = rect.height;
+      const {l, r, t, b} = state.margin;
+      const midY = (t + (H - b)) / 2;
+
+      ctx.clearRect(0, 0, W, H);
+
+      // Ejes y Grid
+      ctx.save();
+      ctx.beginPath();
+      ctx.strokeStyle = '#e0e0e0'; ctx.lineWidth = 1;
+      // Dibujar lineas verticales donde estarían los nodos teóricos para referencia visual suave
+      const lambda = state.v / state.f;
+      // Nodos en x = n * lambda / 2 (asumiendo sin(kx) inicia en 0)
+      const pxPerMeter = 1; // Aquí x es pixel en canvas, mapeamos directo por simplicidad visual
+      // Mejor dibujar grid fija
+      for(let x = l; x < W - r; x += 50){ ctx.moveTo(x, t); ctx.lineTo(x, H - b); }
+      ctx.stroke();
+      ctx.strokeStyle = '#9aa0a6'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(l, midY); ctx.lineTo(W - r, midY); ctx.stroke();
+      ctx.fillStyle = '#5f6368'; ctx.font = '12px sans-serif';
+      ctx.fillText('x (distancia)', W - r - 60, midY + 20);
+      ctx.fillText('y', l - 25, midY - 5);
+      ctx.restore();
+
+      // Función de dibujo de onda
+      const drawWaveCurve = (time, color, dashed=false) => {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = dashed ? 2 : 3;
+        if(dashed) ctx.setLineDash([5, 5]);
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        for(let x = l; x <= W - r; x += 2){
+          // x relativo al inicio de la gráfica
+          const dx = x - l;
+          const y = midY - getStandingY(dx, time, state);
+          if(x === l) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.restore();
+      };
+
+      // 1. Snapshot (Fantasma)
+      if(state.mode === 'temporal' && state.snapshot){
+        drawWaveCurve(state.snapshot.t, '#9aa0a6', true);
+        
+        // Datos HUD
+        const t1 = state.snapshot.t; const t2 = state.t;
+        const dt = t2 - t1; const T = 1 / state.f; const frac = T > 0 ? (dt / T) : 0;
+        ctx.save(); ctx.fillStyle = '#d93025'; ctx.textAlign = 'right'; ctx.font = 'bold 13px system-ui';
+        const xPos = W - r - 10; let yPos = t + 20;
+        ctx.fillText(`t₁ = ${fmt(t1)} s`, xPos, yPos); yPos += 18;
+        ctx.fillText(`t₂ = ${fmt(t2)} s`, xPos, yPos); yPos += 18;
+        ctx.fillText(`Δt = ${fmt(dt)} s`, xPos, yPos); yPos += 18;
+        ctx.fillText(`Δt = ${fmt(frac)} T`, xPos, yPos);
+        ctx.restore();
+      }
+
+      // 2. Onda Actual
+      drawWaveCurve(state.t, '#d93025', false);
+
+      // Líneas de control
+      drawPhaseTool(W, H, midY);
+
+      // Mostrar Lambda y Distancia en modo espacial
+      if(state.mode === 'spatial'){
+        const lambdaVal = state.v / state.f;
+        ctx.save(); ctx.fillStyle = '#d93025'; ctx.textAlign = 'right'; ctx.font = 'bold 13px system-ui';
+        ctx.fillText(`λ = ${fmt(lambdaVal)} m`, W - r - 10, t + 20);
+        ctx.restore();
+
+        // Línea cota
+        const xA = clamp(state.x1, l, W - r);
+        const xB = clamp(state.x2, l, W - r);
+        const dist = Math.abs(xA - xB);
+        if(dist > 5){
+            const dimY = midY + (2*state.A) + 40;
+            ctx.save(); ctx.strokeStyle = '#d93025'; ctx.fillStyle = '#d93025'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.setLineDash([4, 4]);
+            ctx.moveTo(Math.min(xA,xB), dimY); ctx.lineTo(Math.max(xA,xB), dimY); ctx.stroke(); ctx.setLineDash([]);
+            // Flechas
+            const arrow = (x) => { ctx.beginPath(); ctx.moveTo(x, dimY); ctx.lineTo(x+(x<xA?5:-5), dimY-4); ctx.lineTo(x+(x<xA?5:-5), dimY+4); ctx.fill(); };
+            // Simple markers
+            ctx.fillRect(Math.min(xA,xB), dimY-3, 1, 7); ctx.fillRect(Math.max(xA,xB), dimY-3, 1, 7);
+            
+            ctx.textAlign = 'center'; ctx.font = '12px system-ui';
+            ctx.textBaseline = 'bottom'; ctx.fillText(`Δx = ${fmt(dist)} m`, (xA+xB)/2, dimY - 5);
+            ctx.textBaseline = 'top'; ctx.fillText(`Δx = ${fmt(dist/lambdaVal)} λ`, (xA+xB)/2, dimY + 5);
+            ctx.restore();
+        }
+      }
+
+      // HUD inferior
+      ctx.fillStyle = '#5f6368'; ctx.font = '11px monospace'; ctx.textAlign = 'left';
+      ctx.fillText(`t = ${fmt(state.t)} s`, l, H - 8);
+    }
+
+    function drawPhaseTool(W, H, midY){
+      const {l, r, t, b} = state.margin;
+      const lines = [];
+      if(state.mode === 'spatial'){
+        lines.push({id: 'x1', val: state.x1, label: 'P1'});
+        lines.push({id: 'x2', val: state.x2, label: 'P2'});
+      } else if (state.mode === 'temporal'){
+        lines.push({id: 'x1', val: state.x1, label: 'P1'});
+      }
+
+      lines.forEach(line => {
+        const x = clamp(line.val, l, W - r);
+        const dx = x - l;
+        const yNow = midY - getStandingY(dx, state.t, state);
+        
+        // Línea vertical
+        ctx.save();
+        ctx.strokeStyle = '#d93025'; ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(x, t); ctx.lineTo(x, H - b); ctx.stroke();
+        ctx.restore();
+
+        // Punto Actual
+        ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#d93025'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(x, yNow, 5, 0, 2*Math.PI); ctx.fill(); ctx.stroke();
+
+        // Punto Fantasma (Solo temporal y snapshot)
+        if(state.mode === 'temporal' && state.snapshot){
+           const ySnap = midY - getStandingY(dx, state.snapshot.t, state);
+           ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#9aa0a6';
+           ctx.beginPath(); ctx.arc(x, ySnap, 4, 0, 2*Math.PI); ctx.fill(); ctx.stroke();
+        }
+
+        // Etiqueta
+        ctx.font = '11px sans-serif';
+        const tw = ctx.measureText(line.label).width + 12;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'; ctx.strokeStyle = '#dadce0';
+        ctx.fillRect(x + 8, yNow - 20, tw, 20); ctx.strokeRect(x + 8, yNow - 20, tw, 20);
+        ctx.fillStyle = '#3c4043'; ctx.fillText(line.label, x + 14, yNow - 6);
+        
+        // Tirador
+        ctx.fillStyle = '#d93025';
+        ctx.beginPath(); ctx.moveTo(x, t); ctx.lineTo(x - 6, t - 8); ctx.lineTo(x + 6, t - 8); ctx.fill();
+      });
+    }
+
+    // Interacción
+    function getPointerX(ev){
+      const rect = canvas.getBoundingClientRect();
+      return (ev.clientX - rect.left) * (canvas.width / rect.width / (window.devicePixelRatio||1));
+    }
+    canvas.addEventListener('pointerdown', ev => {
+      const x = getPointerX(ev);
+      if(state.mode === 'temporal'){
+         if(Math.abs(x - state.x1) < 20) state.dragging = 'x1';
+      } else {
+         if(Math.abs(x - state.x1) < 20) state.dragging = 'x1';
+         else if(Math.abs(x - state.x2) < 20) state.dragging = 'x2';
+      }
+      if(state.dragging) canvas.setPointerCapture(ev.pointerId);
+    });
+    canvas.addEventListener('pointermove', ev => {
+      if(!state.dragging) return;
+      const x = getPointerX(ev);
+      const newVal = clamp(x, state.margin.l, canvas.width/(window.devicePixelRatio||1) - state.margin.r);
+      if(state.dragging === 'x1') state.x1 = newVal; else state.x2 = newVal;
+      syncOutputs(); draw();
+    });
+    canvas.addEventListener('pointerup', () => state.dragging = null);
+
+    let lastTime = performance.now();
+    function tick(now){
+      const dt = (now - lastTime) / 1000; lastTime = now;
+      if(state.running && !state.paused){ state.t += dt; syncOutputs(); draw(); }
+      requestAnimationFrame(tick);
+    }
+    resizeCanvas();
+    requestAnimationFrame(tick);
+    
+  </script>
+</body>
+</html>
