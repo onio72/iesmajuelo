@@ -738,6 +738,70 @@
       // Líneas de control
       drawPhaseTool(W, H, midY);
 
+      // Mostrar Lambda y Distancia en modo espacial
+      if(state.mode === 'spatial'){
+        const lambda = state.v / state.f;
+        
+        // HUD Top Right
+        ctx.save();
+        ctx.fillStyle = '#1a73e8';
+        ctx.textAlign = 'right';
+        ctx.font = 'bold 13px system-ui';
+        const xPos = W - r - 10;
+        let yPos = t + 20;
+        ctx.fillText(`λ = ${fmt(lambda)} m`, xPos, yPos);
+        ctx.restore();
+
+        // Línea de dimensión entre P1 y P2
+        const xA = clamp(state.x1, l, W - r);
+        const xB = clamp(state.x2, l, W - r);
+        const xStart = Math.min(xA, xB);
+        const xEnd = Math.max(xA, xB);
+        const dist = xEnd - xStart;
+        
+        if(dist > 5){
+            const dimY = midY + state.A + 35; // Debajo de la onda
+            
+            ctx.save();
+            ctx.strokeStyle = '#1a73e8';
+            ctx.fillStyle = '#1a73e8';
+            ctx.lineWidth = 1.5;
+            
+            // Línea discontinua
+            ctx.beginPath();
+            ctx.setLineDash([4, 4]);
+            ctx.moveTo(xStart, dimY);
+            ctx.lineTo(xEnd, dimY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Flechas
+            const arrowSize = 5;
+            // Flecha izq
+            ctx.beginPath();
+            ctx.moveTo(xStart, dimY);
+            ctx.lineTo(xStart + arrowSize, dimY - arrowSize);
+            ctx.lineTo(xStart + arrowSize, dimY + arrowSize);
+            ctx.fill();
+            // Flecha der
+            ctx.beginPath();
+            ctx.moveTo(xEnd, dimY);
+            ctx.lineTo(xEnd - arrowSize, dimY - arrowSize);
+            ctx.lineTo(xEnd - arrowSize, dimY + arrowSize);
+            ctx.fill();
+
+            // Texto centrado
+            ctx.textAlign = 'center';
+            ctx.font = '12px system-ui';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(`Δx = ${fmt(dist)} m`, (xStart+xEnd)/2, dimY - 5);
+            ctx.textBaseline = 'top';
+            ctx.fillText(`Δx = ${fmt(dist/lambda)} λ`, (xStart+xEnd)/2, dimY + 5);
+            
+            ctx.restore();
+        }
+      }
+
       // HUD inferior
       ctx.fillStyle = '#5f6368'; ctx.font = '11px monospace';
       ctx.textAlign = 'left';
