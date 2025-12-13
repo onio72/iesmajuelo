@@ -1,296 +1,631 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Publicaciones de apps</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    * {
-      box-sizing: border-box;
-      scroll-behavior: smooth;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repositorio de Recursos FQ</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #475569;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 0.75rem;
+        }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      margin: 0;
-      padding-top: 70px;
-      background: #f5f7fa;
-      color: #2c3e50;
-      line-height: 1.6;
-    }
+        * {
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
 
-    /* Barra de navegación */
-    nav {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      background: #ffffffee;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      z-index: 1000;
-    }
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding-top: 80px;
+        }
 
-    nav ul {
-      list-style: none;
-      display: flex;
-      justify-content: center;
-      padding: 0.8em;
-      margin: 0;
-      flex-wrap: wrap;
-    }
+        /* --- Navegación --- */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            padding: 0.5rem 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
 
-    nav li {
-      margin: 0 1em;
-    }
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    nav a {
-      text-decoration: none;
-      color: #1a73e8;
-      font-weight: 600;
-    }
+        .nav-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
-    nav a:hover {
-      text-decoration: underline;
-    }
+        .nav-links {
+            display: flex;
+            gap: 0.5rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
 
-    h1 {
-      font-size: 1.8em;
-      margin-top: 1.5em;
-      border-bottom: 2px solid #ccc;
-      padding-bottom: 0.2em;
-    }
+        .nav-links a {
+            text-decoration: none;
+            color: var(--secondary);
+            font-weight: 500;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
 
-    h2 {
-      font-size: 1.4em;
-      margin-top: 1.2em;
-      color: #34495e;
-    }
+        .nav-links a:hover {
+            background-color: #eff6ff;
+            color: var(--primary);
+        }
 
-    h3 {
-      font-size: 1.2em;
-      margin-top: 0.8em;
-    }
+        /* --- Contenido Principal --- */
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
 
-    h4 {
-      font-size: 1em;
-      margin-top: 0.5em;
-    }
+        @media (min-width: 900px) {
+            main {
+                grid-template-columns: repeat(2, 1fr);
+                align-items: start;
+            }
+        }
 
-    ul {
-      list-style: none;
-      padding-left: 0;
-    }
+        section {
+            background: #fff;
+            border-radius: var(--radius);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            scroll-margin-top: 100px;
+        }
 
-    li {
-      margin-bottom: 0.5em;
-    }
+        /* --- Acordeones (Details/Summary) --- */
+        details {
+            width: 100%;
+            transition: all 0.3s ease;
+        }
 
-    a.resource {
-      display: inline-block;
-      padding: 0.4em 0.6em;
-      background: #e8f0fe;
-      border-radius: 6px;
-      text-decoration: none;
-      color: #1a73e8;
-      font-weight: 500;
-      transition: background 0.3s;
-    }
+        summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 1.5rem;
+            background: linear-gradient(to right, #ffffff, #f8fafc);
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-    a.resource::before {
-      content: "🔗 ";
-    }
+        summary:hover {
+            background: #f1f5f9;
+        }
 
-    a.resource:hover {
-      background: #d2e3fc;
-    }
+        summary::-webkit-details-marker {
+            display: none;
+        }
 
-    section {
-      margin: 2em auto;
-      max-width: 800px;
-      padding: 0 1em;
-    }
+        .section-header-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
 
-    @media (max-width: 600px) {
-      nav ul {
-        flex-direction: column;
-        align-items: center;
-      }
+        .section-title {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--text-main);
+            letter-spacing: -0.025em;
+        }
 
-      nav li {
-        margin: 0.5em 0;
-      }
-    }
-  </style>
+        .toggle-icon {
+            font-size: 1.2rem;
+            color: var(--secondary);
+            transition: transform 0.3s ease;
+        }
+
+        details[open] > summary .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .section-body {
+            padding: 0 1.5rem 1.5rem 1.5rem;
+            border-top: 1px solid var(--border);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- ESTILOS PARA SUBCATEGORÍAS ANIDADAS --- */
+        details details {
+            margin-bottom: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background-color: #fff;
+        }
+        
+        details details:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Summary de subcategorías */
+        details details summary {
+            padding: 1rem;
+            background: #f8fafc;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--primary-dark);
+        }
+        
+        details details summary:hover {
+            background: #eff6ff;
+        }
+
+        /* Cuerpo de subcategorías */
+        details details .section-body {
+            padding: 1rem;
+            background-color: #ffffff;
+            border-top: 1px solid var(--border);
+        }
+
+        .badge {
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        /* Ajustes para H3 dentro de summary */
+        summary h3 {
+            margin: 0;
+            padding: 0;
+            border: none;
+            font-size: inherit;
+            color: inherit;
+        }
+
+        /* Títulos de tercer nivel (h4) */
+        h4 {
+            color: var(--secondary);
+            font-size: 0.9rem;
+            margin: 0.75rem 0 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+        }
+
+        /* --- Grid de Recursos --- */
+        ul {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 0.75rem;
+        }
+
+        a.resource {
+            display: flex;
+            align-items: center;
+            padding: 0.6rem 0.8rem;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            text-decoration: none;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        a.resource:hover {
+            background: white;
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transform: translateX(2px);
+        }
+
+        a.resource::before {
+            content: '📄';
+            margin-right: 8px;
+            font-size: 1rem;
+            filter: grayscale(1);
+        }
+
+        a.resource:hover::before {
+            filter: grayscale(0);
+        }
+
+        /* --- Utilidades --- */
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--primary);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: var(--shadow);
+            opacity: 0.8;
+            transition: all 0.2s;
+            font-size: 1.2rem;
+            z-index: 900;
+        }
+
+        .back-to-top:hover {
+            opacity: 1;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            main { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
 
-  <nav>
-    <ul>
-      <li><a href="#eso">ESO</a></li>
-      <li><a href="#bach">Bachillerato</a></li>
-      <li><a href="#fpb2">FPB2</a></li>
-      <li><a href="#tools">Herramientas</a></li>
-      <li><a href="#cdd">CDD</a></li>
-      <li><a href="#equipo">Equipo directivo</a></li>
-      <li><a href="#departamento">Departamento</a></li>
-      <li><a href="#otros">Otros</a></li>
-    </ul>
-  </nav>
+<header>
+    <nav>
+        <a href="#" class="nav-brand">📚 Recursos FQ</a>
+        <ul class="nav-links">
+            <li><a href="#eso" onclick="openSection('eso')">ESO</a></li>
+            <li><a href="#bach" onclick="openSection('bach')">Bachillerato</a></li>
+            <li><a href="#fpb2" onclick="openSection('fpb2')">FPB2</a></li>
+            <li><a href="#tools" onclick="openSection('tools')">Herramientas</a></li>
+            <li><a href="#cdd" onclick="openSection('cdd')">CDD</a></li>
+            <li><a href="#equipo" onclick="openSection('equipo')">Equipo</a></li>
+            <li><a href="#departamento" onclick="openSection('departamento')">Depto</a></li>
+            <li><a href="#otros" onclick="openSection('otros')">Otros</a></li>
+        </ul>
+    </nav>
+</header>
 
-  
-  <section id="eso">
-    <h2>ESO</h2>
+<main>
+    <!-- SECCIÓN ESO (Abierta por defecto) -->
+    <section id="eso">
+        <details open>
+            <summary>
+                <div class="section-header-content">
+                    <h2 class="section-title">ESO</h2>
+                    <span class="badge">Secundaria</span>
+                </div>
+                <span class="toggle-icon">▼</span>
+            </summary>
+            <div class="section-body">
+                
+                <!-- SUBCATEGORÍA FQ2 -->
+                <details>
+                    <summary>
+                        <h3>FQ2</h3>
+                        <span class="toggle-icon">▼</span>
+                    </summary>
+                    <div class="section-body">
+                        <h4>Formulación</h4>
+                        <ul>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/formulasquimicas/" target="_blank">Fórmulas químicas</a></li>
+                        </ul>
 
-    <h3>FQ2</h3>
-    <h4>Formulación</h4>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/formulasquimicas/" target="_blank">Fórmulas químicas</a></li>
-    </ul>
+                        <h4>TCM</h4>
+                        <ul>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_gas_v02.html" target="_blank">Simulador gases</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_materia_v12.html" target="_blank">Simulador materia</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_solido_v16_quiz.html" target="_blank">Simulador sólidos + Quiz</a></li>
+                        </ul>
 
-    <h4>TCM</h4>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_gas_v02.html" target="_blank">Simulador gases</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_materia_v12.html" target="_blank">Simulador materia</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_solido_v16_quiz.html" target="_blank">Simulador sólidos + Quiz</a></li>
-    </ul>
+                        <h4>Cinemática</h4>
+                        <ul>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/dibujargrafica.html" target="_blank">Dibujar gráfica</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_sentidov.html" target="_blank">MRU sentido velocidad</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_comparav.html" target="_blank">Comparar velocidades MRU</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_comparav2.html" target="_blank">Comparar velocidades MRU 2</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_calculov.html" target="_blank">Cálculo de velocidad</a></li>
+                        </ul>
+                    </div>
+                </details>
 
-    <h4>Cinemática</h4>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/dibujargrafica.html" target="_blank">Dibujar gráfica</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_sentidov.html" target="_blank">MRU sentido velocidad</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_comparav.html" target="_blank">Comparar velocidades MRU</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_comparav2.html" target="_blank">Comparar velocidades MRU 2</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_calculov.html" target="_blank">Cálculo de velocidad</a></li>
-    </ul>
+                <!-- SUBCATEGORÍA FQ3 -->
+                <details>
+                    <summary>
+                        <h3>FQ3</h3>
+                        <span class="toggle-icon">▼</span>
+                    </summary>
+                    <div class="section-body">
+                        <ul>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq3/t01/repasoSI.html" target="_blank">Repaso del Sistema Internacional</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq3/t01/repgrafica.html" target="_blank">Representación gráfica de funciones</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq3/t01/movercoma.html" target="_blank">Cambio de unidades (método coma)</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq3/t01/cambiosvolumen.html" target="_blank">Cambio de unidades de volumen</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq3/formulacion/tabla_valencias.html" target="_blank">Tabla de valencias</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla01/" target="_blank">Ejercicio de masas atómicas y molares</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq3/t02/abundisot/" target="_blank">Abundancia isotópica</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla02/" target="_blank">Trabajando con la tabla periódica</a></li>
+                        </ul>
+                    </div>
+                </details>
 
-    <h3>FQ3</h3>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq3/t01/repasoSI.html" target="_blank">Repaso del Sistema Internacional</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq3/t01/repgrafica.html" target="_blank">Representación gráfica de funciones</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq3/t01/movercoma.html" target="_blank">Cambio de unidades (método coma)</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq3/t01/cambiosvolumen.html" target="_blank">Cambio de unidades de volumen</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq3/formulacion/tabla_valencias.html" target="_blank">Tabla de valencias</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla01/" target="_blank">Ejercicio de masas atómicas y molares</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq3/t02/abundisot/" target="_blank">Abundacia isotópica y masa atómica promedio</a></li>
-       <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla02/" target="_blank">Trabajando con la tabla periódica</a></li>
-    </ul>
+                <!-- SUBCATEGORÍA FQ4 -->
+                <details>
+                    <summary>
+                        <h3>FQ4</h3>
+                        <span class="toggle-icon">▼</span>
+                    </summary>
+                    <div class="section-body">
+                        <ul>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq4/mcu/index.html" target="_blank">MCU</a></li>
+                        </ul>
+                    </div>
+                </details>
+            </div>
+        </details>
+    </section>
 
-    <h3>FQ4</h3>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/eso/fq4/mcu/index.html" target="_blank">MCU</a></li>
-    </ul>
-  </section>
+    <!-- SECCIÓN BACHILLERATO -->
+    <section id="bach">
+        <details>
+            <summary>
+                <div class="section-header-content">
+                    <h2 class="section-title">Bachillerato</h2>
+                    <span class="badge">Superior</span>
+                </div>
+                <span class="toggle-icon">▼</span>
+            </summary>
+            <div class="section-body">
+                
+                <!-- SUBCATEGORÍA FQ1 -->
+                <details>
+                    <summary>
+                        <h3>FQ1</h3>
+                        <span class="toggle-icon">▼</span>
+                    </summary>
+                    <div class="section-body">
+                        <h4>Química</h4>
+                        <ul>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/formulaempirica/" target="_blank">Fórmula empírica</a></li>
+                        </ul>
 
+                        <h4>Física - MRUA</h4>
+                        <ul>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/caidalibre/grifo/index.html" target="_blank">Caída libre - Grifo</a></li>
+                        </ul>
 
-  <section id="bach">
-    <h1>Repositorio de Recursos FQ</h1>
-    <h2>Bachillerato</h2>
+                        <h4>Tiro parabólico</h4>
+                        <ul>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/tiro_parabolico/" target="_blank">Tiro parabólico</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/tiroparabgen/" target="_blank">Generador problemas</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/t10/genprob01/" target="_blank">Cálculo momento lineal</a></li>
+                        </ul>
 
-    <h3>FQ1</h3>
-    <h4>Química</h4>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/formulaempirica/" target="_blank">Fórmula empírica</a></li>
-    </ul>
+                        <h4>Dinámica</h4>
+                        <ul>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/planoinclinado/" target="_blank">Plano inclinado</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/planoincroz/" target="_blank">Plano inclinado con rozamiento</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/planohorizontal/resuelto.html" target="_blank">Plano horizontal - Resuelto</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/planohorizontal/diagrama.html" target="_blank">Plano horizontal - Diagrama</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/cuerposenlazados/" target="_blank">Cuerpos enlazados</a></li>
+                        </ul>
 
-    <h4>Física</h4>
-    <h4>MRUA</h4>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/caidalibre/grifo/index.html" target="_blank">Caída libre - Grifo</a></li>
-    </ul>
-<h4>Tiro parabólico</h4>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/tiro_parabolico/" target="_blank">Tiro parabólico</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/tiroparabgen/" target="_blank">Generador de problemas de tiro parabólico</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/t10/genprob01/" target="_blank">Generador de problemas de cálculo del momento lineal</a></li>
-    </ul>
-    <h4>Dinámica</h4>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/planoinclinado/" target="_blank">Plano inclinado</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/planoincroz/" target="_blank">Plano inclinado con rozamiento</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/planohorizontal/resuelto.html" target="_blank">Plano horizontal - Resuelto</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/planohorizontal/diagrama.html" target="_blank">Plano horizontal - Diagrama</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/cuerposenlazados/" target="_blank">Cuerpos enlazados</a></li>
-    </ul>
+                        <h4>Colisiones</h4>
+                        <ul>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choques.html" target="_blank">Choque inelástico</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque01.html" target="_blank">Choque elástico</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque02.html" target="_blank">Choque inelástico 2</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque03.html" target="_blank">Choque coef. restitución 1</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque04.html" target="_blank">Choque coef. restitución 2</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/colision01.html" target="_blank">Colisión (Beta)</a></li>
+                        </ul>
+                    </div>
+                </details>
 
-    <h4>Colisiones</h4>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choques.html" target="_blank">Choque inelástico</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque01.html" target="_blank">Choque elástico</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque02.html" target="_blank">Choque inelástico 2</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque03.html" target="_blank">Choque con coef. de restitución 1</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque04.html" target="_blank">Choque con coef. de restitución 2</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fq1/choques/colision01.html" target="_blank">No va</a></li>
-    </ul>
+                <!-- SUBCATEGORÍA FÍSICA 2º -->
+                <details>
+                    <summary>
+                        <h3>Física 2º</h3>
+                        <span class="toggle-icon">▼</span>
+                    </summary>
+                    <div class="section-body">
+                        <h4>Campo gravitatorio</h4>
+                        <ul>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t01/campo_gravitatorio/" target="_blank">Campo gravitatorio (2 masas)</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t01/fuerza_gravitatoria/" target="_blank">Fuerza gravitatoria</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t01/potencial_gravitatorio/" target="_blank">Potencial gravitatorio</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t01/energia_potencial/" target="_blank">Energía potencial</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t01/trabajo/" target="_blank">Trabajo traslado masa</a></li>
+                        </ul>
 
-    <h3>Física 2º</h3>
-    <h4>Campo gravitatorio</h4>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t01/campo_gravitatorio/" target="_blank">Calculadora de campo gravitatorio creado por dos masas</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t01/fuerza_gravitatoria/" target="_blank">Calculadora de la fuerza gravitatoria de dos masas sobre una tercera</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t01/potencial_gravitatorio/" target="_blank">Calculadora de potencial gravitatorio debido a dos masas</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t01/energia_potencial/" target="_blank">Calculadora de energía potencial de una masa debida a otras dos</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t01/trabajo/" target="_blank">Calculadora del trabajo para trasladar una masa en el campo gravitatorio creado por otras dos</a></li>
-    <h4>Vibraciones y ondas</h4>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/mas/" target="_blank">MAS: Diferentes fases iniciales</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/huygens/" target="_blank">Principio de Huygens. Reflexión y refracción.</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/modosvib01/" target="_blank">Modos de vibración en una cuerda libre por un extremo.</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/modosvib02/" target="_blank">Modos de vibración en una cuerda fija por los dos extremos.</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/armonicos/" target="_blank">Armónicos en una cuerda fija por los dos extremos.</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/estacionaria/" target="_blank">Laboratorio de ondas estacionarias.</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/desfase/viajera.html" target="_blank">Desfases en una onda viajera.</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/desfase/etacionaria.html" target="_blank">Desfases en una onda estacionaria.</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/ecuacionest/" target="_blank">Ecuaciones de la onda estacionaria.</a></li>
-    </ul>
-      <h4>Campo eléctrico</h4>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t03/campo_electrico/" target="_blank">Calculadora de campo eléctrico creado por dos cargas</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t03/fuerza_electrica/" target="_blank">Calculadora de la fuerza eléctrica de dos cargas sobre una tercera</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t03/potencial_electrico/" target="_blank">Calculadora de potencial eléctrico debido a dos cargas</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t03/energia_potencial/" target="_blank">Calculadora de energía potencial de una carga debida a otras dos</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t03/trabajo/" target="_blank">Calculadora del trabajo para trasladar una carga en el campo gravitatorio creado por otras dos</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t03/potencial_cero/" target="_blank">Test para detectar puntos donde el potencial eléctrico se anula</a></li>
-    </ul>
-  </section>
- <section id="fpb2">
-    <h1>FPB2</h1>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3D/" target="_blank">Reconocer figuras 3D</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3Deuler/" target="_blank">Contar vértices, aristas y caras en figuras 3D</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/fpb2/t04/probvol/" target="_blank">Problemas de cálculos de volumen</a></li>
-    </ul>
-  </section>
-  <section id="tools">
-    <h1>Herramientas</h1>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/tools/atomo.html" target="_blank">Dibuja átomos</a></li>
-    </ul>
-  </section>
-  <section id="cdd">
-    <h1>CDD</h1>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/cdd/" target="_blank">Repositorio de píldoras</a></li>
-    </ul>
-  </section>
-  <section id="equipo">
-    <h1>Equipo directivo</h1>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/ed/calendario.html" target="_blank">Calendario</a></li>
-    </ul>
-  </section>
-  <section id="departamento">
-    <h1>Departamento</h1>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/departamentoFQ/reparto/" target="_blank">Reparto materias</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/departamentoFQ/evalcomp/fisi2.html" target="_blank">Evaluando por competencias Física 2º Bach</a></li>
-      <li><a class="resource" href="https://onio72.github.io/iesmajuelo/departamentoFQ/evalcomp/index.html" target="_blank">Evaluando por competencias</a></li>
-    </ul>
-  </section>
-<section id="otros">
-    <h1>Otros</h1>
-    <ul>
-      <li><a class="resource" href="https://onio72.github.io/bingo/" target="_blank">Bingo viajero</a></li>
-    </ul>
-  </section>
- 
+                        <h4>Vibraciones y ondas</h4>
+                        <ul>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/mas/" target="_blank">MAS: Fases iniciales</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/huygens/" target="_blank">Principio de Huygens</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/modosvib01/" target="_blank">Modos vibración (1 extremo)</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/modosvib02/" target="_blank">Modos vibración (2 extremos)</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/armonicos/" target="_blank">Armónicos cuerda fija</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/estacionaria/" target="_blank">Lab. ondas estacionarias</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/desfase/viajera.html" target="_blank">Desfases onda viajera</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/desfase/etacionaria.html" target="_blank">Desfases onda estacionaria</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t02/ecuacionest/" target="_blank">Ecuaciones onda estacionaria</a></li>
+                        </ul>
+
+                        <h4>Campo eléctrico</h4>
+                        <ul>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t03/campo_electrico/" target="_blank">Campo eléctrico (2 cargas)</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t03/fuerza_electrica/" target="_blank">Fuerza eléctrica</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t03/potencial_electrico/" target="_blank">Potencial eléctrico</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t03/energia_potencial/" target="_blank">Energía potencial eléctrica</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t03/trabajo/" target="_blank">Trabajo campo eléctrico</a></li>
+                            <li><a class="resource" href="https://onio72.github.io/iesmajuelo/bach/fi2/t03/potencial_cero/" target="_blank">Puntos potencial nulo</a></li>
+                        </ul>
+                    </div>
+                </details>
+            </div>
+        </details>
+    </section>
+
+    <!-- OTRAS SECCIONES (Colapsadas por defecto) -->
+    <section id="fpb2">
+        <details>
+            <summary>
+                <div class="section-header-content">
+                    <h2 class="section-title">FPB2</h2>
+                </div>
+                <span class="toggle-icon">▼</span>
+            </summary>
+            <div class="section-body">
+                <ul>
+                    <li><a class="resource" href="https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3D/" target="_blank">Reconocer figuras 3D</a></li>
+                    <li><a class="resource" href="https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3Deuler/" target="_blank">Contar vértices/aristas/caras</a></li>
+                    <li><a class="resource" href="https://onio72.github.io/iesmajuelo/fpb2/t04/probvol/" target="_blank">Problemas de volumen</a></li>
+                </ul>
+            </div>
+        </details>
+    </section>
+
+    <section id="tools">
+        <details>
+            <summary>
+                <div class="section-header-content">
+                    <h2 class="section-title">Herramientas</h2>
+                </div>
+                <span class="toggle-icon">▼</span>
+            </summary>
+            <div class="section-body">
+                <ul>
+                    <li><a class="resource" href="https://onio72.github.io/iesmajuelo/tools/atomo.html" target="_blank">Dibuja átomos</a></li>
+                </ul>
+            </div>
+        </details>
+    </section>
+
+    <section id="cdd">
+        <details>
+            <summary>
+                <div class="section-header-content">
+                    <h2 class="section-title">CDD</h2>
+                </div>
+                <span class="toggle-icon">▼</span>
+            </summary>
+            <div class="section-body">
+                <ul>
+                    <li><a class="resource" href="https://onio72.github.io/cdd/" target="_blank">Repositorio de píldoras</a></li>
+                </ul>
+            </div>
+        </details>
+    </section>
+
+    <section id="equipo">
+        <details>
+            <summary>
+                <div class="section-header-content">
+                    <h2 class="section-title">Equipo Directivo</h2>
+                </div>
+                <span class="toggle-icon">▼</span>
+            </summary>
+            <div class="section-body">
+                <ul>
+                    <li><a class="resource" href="https://onio72.github.io/ed/calendario.html" target="_blank">Calendario</a></li>
+                </ul>
+            </div>
+        </details>
+    </section>
+
+    <section id="departamento">
+        <details>
+            <summary>
+                <div class="section-header-content">
+                    <h2 class="section-title">Departamento</h2>
+                </div>
+                <span class="toggle-icon">▼</span>
+            </summary>
+            <div class="section-body">
+                <ul>
+                    <li><a class="resource" href="https://onio72.github.io/iesmajuelo/departamentoFQ/reparto/" target="_blank">Reparto materias</a></li>
+                    <li><a class="resource" href="https://onio72.github.io/iesmajuelo/departamentoFQ/evalcomp/fisi2.html" target="_blank">Eval. competencias Fís 2º</a></li>
+                    <li><a class="resource" href="https://onio72.github.io/iesmajuelo/departamentoFQ/evalcomp/index.html" target="_blank">Evaluando por competencias</a></li>
+                </ul>
+            </div>
+        </details>
+    </section>
+
+    <section id="otros">
+        <details>
+            <summary>
+                <div class="section-header-content">
+                    <h2 class="section-title">Otros</h2>
+                </div>
+                <span class="toggle-icon">▼</span>
+            </summary>
+            <div class="section-body">
+                <ul>
+                    <li><a class="resource" href="https://onio72.github.io/bingo/" target="_blank">Bingo viajero</a></li>
+                </ul>
+            </div>
+        </details>
+    </section>
+</main>
+
+<a href="#" class="back-to-top" title="Volver arriba">↑</a>
+
+<script>
+    // Script para abrir la sección correspondiente al pulsar en el menú
+    function openSection(id) {
+        const section = document.getElementById(id);
+        const details = section.querySelector('details'); // Main details
+        if (details) {
+            details.open = true;
+            // Opcional: Cerrar otros acordeones si se desea un comportamiento de "acordeón estricto"
+            // pero para usabilidad general es mejor dejar que el usuario controle qué está abierto
+        }
+    }
+</script>
+
 </body>
 </html>
