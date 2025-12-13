@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deducción y Simulación de Ondas Estacionarias</title>
+    <title>Simulación de Ondas Estacionarias Interactiva</title>
     <!-- MathJax for rendering equations cleanly without raw LaTeX -->
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -16,11 +16,15 @@
             --text-color: #0f172a;
             --card-bg: #ffffff;
             
-            /* Nuevos colores: Azul + Rojo = Púrpura */
+            /* Colores de ondas */
             --wave-right: #0ea5e9; /* Azul (Sky 500) */
             --wave-left: #f43f5e;  /* Rojo (Rose 500) */
             --wave-standing: #7c3aed; /* Púrpura (Violet 600) */
             --envelope-color: #94a3b8; /* Gris claro (Slate 400) */
+
+            /* Nuevos colores interactivos */
+            --math-func: #15803d; /* Verde oscuro (Green 700) */
+            --math-arg: #ea580c;  /* Naranja (Orange 600) */
         }
 
         body {
@@ -54,11 +58,6 @@
             flex-grow: 1;
         }
 
-        /* Screen Management */
-        .screen { display: none; animation: fadeIn 0.5s ease; }
-        .screen.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
         /* Card Styles */
         .card {
             background: var(--card-bg);
@@ -69,36 +68,87 @@
             border: 1px solid #e2e8f0;
         }
 
-        /* Selection Screen Grid */
-        .option-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: auto auto;
-            gap: 20px;
-            margin-top: 20px;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .option-btn {
-            background: white;
-            border: 2px solid #cbd5e1;
-            padding: 25px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
+        /* Interactive Equation Header */
+        .interactive-header {
             text-align: center;
-            font-size: 1.2rem;
-            color: var(--text-color);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background: #eff6ff;
+            border: 2px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
         }
 
-        .option-btn:hover {
-            border-color: var(--primary);
-            background-color: #eff6ff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.15);
+        .interactive-eq-display {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 1.8rem;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .eq-line {
+            display: flex;
+            align-items: baseline; /* Alineación perfecta de texto base */
+            gap: 0; /* Eliminamos gaps forzados, usamos espacios naturales */
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* Clickable Math Terms */
+        .math-toggle {
+            cursor: pointer;
+            padding: 0 2px;
+            transition: all 0.2s;
+            position: relative;
+            font-weight: normal; /* Normal para funciones */
+            border-bottom: 1px dashed transparent;
+            margin: 0 2px;
+        }
+
+        .math-toggle:hover {
+            transform: translateY(-1px);
+            background-color: rgba(0,0,0,0.03);
+            border-bottom-color: currentColor;
+        }
+
+        .math-func { 
+            color: var(--math-func); 
+            font-family: 'Times New Roman', Times, serif;
+        }
+        
+        .math-arg { 
+            color: var(--math-arg); 
+            font-style: italic; /* Argumentos en cursiva */
+        }
+
+        /* Variables estáticas en cursiva */
+        .math-var {
+            font-style: italic;
+        }
+
+        .math-toggle::after {
+            content: "cambiar";
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.6rem;
+            font-family: sans-serif;
+            background: #1e293b;
+            color: white;
+            padding: 2px 5px;
+            border-radius: 3px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            white-space: nowrap;
+            font-style: normal;
+        }
+
+        .math-toggle:hover::after {
+            opacity: 1;
         }
 
         /* Canvas */
@@ -149,7 +199,6 @@
         ul { padding-left: 20px; margin: 0; }
         li { margin-bottom: 8px; }
 
-        /* Controls */
         .controls {
             display: flex;
             gap: 12px;
@@ -186,9 +235,9 @@
         .dot { width: 14px; height: 14px; border-radius: 50%; }
 
         @media (max-width: 700px) {
-            .option-grid { grid-template-columns: 1fr; }
             .comparison-grid { grid-template-columns: 1fr; }
             canvas { height: 300px; }
+            .interactive-eq-display { font-size: 1.3rem; }
         }
     </style>
 </head>
@@ -199,85 +248,67 @@
 </header>
 
 <main>
-    <!-- Screen 1: Selection -->
-    <div id="selection-screen" class="screen active">
-        <div class="card">
-            <h2>Paso 1: Elige la forma de las ondas viajeras</h2>
-            <p style="text-align: center; margin-bottom: 25px;">Selecciona la ecuación base. Usaremos \( \pm \) para indicar las direcciones opuestas.</p>
-            <div class="option-grid">
-                <button class="option-btn" onclick="selectWaveType('sin-kx-wt')">
-                    \( y = A \operatorname{sen}(kx \pm \omega t) \)
-                </button>
-                <button class="option-btn" onclick="selectWaveType('cos-kx-wt')">
-                    \( y = A \cos(kx \pm \omega t) \)
-                </button>
-                <button class="option-btn" onclick="selectWaveType('sin-wt-kx')">
-                    \( y = A \operatorname{sen}(\omega t \pm kx) \)
-                </button>
-                <button class="option-btn" onclick="selectWaveType('cos-wt-kx')">
-                    \( y = A \cos(\omega t \pm kx) \)
-                </button>
+    <div class="card">
+        <div class="interactive-header">
+            <p style="margin-top:0; color:#64748b; font-size:0.9rem; margin-bottom:15px;">
+                Haz clic sobre los términos coloreados para modificarlos:
+            </p>
+            <div id="equation-builder" class="interactive-eq-display">
+                <!-- Se inyecta vía JS como HTML puro para evitar fragmentación -->
             </div>
         </div>
-    </div>
 
-    <!-- Screen 2: Derivation & Simulation -->
-    <div id="simulation-screen" class="screen">
-        <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap: wrap; gap:10px;">
-                <h2>Deducción matemática</h2>
-                <button class="control-btn secondary-btn" onclick="resetApp()">← Volver al inicio</button>
+        <!-- Mathematical Derivation Container -->
+        <h2>Deducción matemática dinámica</h2>
+        <div id="math-content" class="math-block">
+            <!-- Content injected by JS -->
+        </div>
+
+        <div style="margin-top: 30px;">
+            <h2 style="margin-bottom: 15px;">Simulación interactiva</h2>
+            
+            <div class="legend">
+                <div class="legend-item"><div class="dot" style="background:#0ea5e9"></div> Viajera + (Azul)</div>
+                <div class="legend-item"><div class="dot" style="background:#f43f5e"></div> Viajera - (Rojo)</div>
+                <div class="legend-item"><div class="dot" style="background:#7c3aed"></div> Estacionaria (Púrpura)</div>
+                <div class="legend-item"><div class="dot" style="border: 2px dashed #94a3b8; background:transparent"></div> Envolvente</div>
             </div>
 
-            <!-- Mathematical Derivation Container -->
-            <div id="math-content" class="math-block">
-                <!-- Content injected by JS -->
+            <canvas id="waveCanvas"></canvas>
+            
+            <div class="controls">
+                <button class="control-btn" id="playPauseBtn" onclick="togglePlay()">Pausar</button>
+                <button class="control-btn secondary-btn" onclick="toggleComponents()">Ocultar/Mostrar Viajeras</button>
             </div>
+        </div>
 
-            <div style="margin-top: 30px;">
-                <h2 style="margin-bottom: 15px;">Simulación interactiva</h2>
-                
-                <div class="legend">
-                    <div class="legend-item"><div class="dot" style="background:#0ea5e9"></div> Viajera + (Azul)</div>
-                    <div class="legend-item"><div class="dot" style="background:#f43f5e"></div> Viajera - (Rojo)</div>
-                    <div class="legend-item"><div class="dot" style="background:#7c3aed"></div> Estacionaria (Púrpura)</div>
-                    <div class="legend-item"><div class="dot" style="border: 2px dashed #94a3b8; background:transparent"></div> Envolvente</div>
-                </div>
-
-                <canvas id="waveCanvas"></canvas>
-                
-                <div class="controls">
-                    <button class="control-btn" id="playPauseBtn" onclick="togglePlay()">Pausar</button>
-                    <button class="control-btn secondary-btn" onclick="toggleComponents()">Ocultar/Mostrar Viajeras</button>
-                </div>
+        <!-- Comparison & Analysis -->
+        <div class="comparison-grid">
+            <div class="comparison-item">
+                <h3>🌊 Ondas viajeras</h3>
+                <ul>
+                    <li><strong>Amplitud:</strong> Es constante \(A\) en todo \(x\).</li>
+                    <li><strong>Movimiento:</strong> La perturbación viaja a velocidad \(v = \omega/k\).</li>
+                    <li><strong>Fase:</strong> Varía continuamente con \(x\) y \(t\).</li>
+                </ul>
             </div>
-
-            <!-- Comparison & Analysis -->
-            <div class="comparison-grid">
-                <div class="comparison-item">
-                    <h3>🌊 Ondas viajeras</h3>
-                    <ul>
-                        <li><strong>Amplitud:</strong> Es constante \(A\) en todo \(x\).</li>
-                        <li><strong>Movimiento:</strong> La perturbación viaja a velocidad \(v = \omega/k\).</li>
-                        <li><strong>Fase:</strong> Varía continuamente con \(x\) y \(t\).</li>
-                    </ul>
-                </div>
-                <div class="comparison-item" style="border: 2px solid #ddd6fe; background: #f5f3ff;">
-                    <h3>⚓ Onda estacionaria</h3>
-                    <ul>
-                        <li><strong>Amplitud:</strong> Variable. Depende de la posición según <span id="amp-text-ref" style="color:#94a3b8; font-weight:bold">2A f(kx)</span>.</li>
-                        <li><strong>Nodos/Antinodos:</strong> Puntos fijos de amplitud cero y puntos de amplitud máxima \(2A\).</li>
-                        <li><strong>Fase:</strong> Puntos entre nodos oscilan en fase.</li>
-                    </ul>
-                </div>
+            <div class="comparison-item" style="border: 2px solid #ddd6fe; background: #f5f3ff;">
+                <h3>⚓ Onda estacionaria</h3>
+                <ul>
+                    <li><strong>Amplitud:</strong> Variable. Depende de la posición según <span id="amp-text-ref" style="color:#94a3b8; font-weight:bold">...</span>.</li>
+                    <li><strong>Nodos/Antinodos:</strong> Puntos fijos de amplitud cero y puntos de amplitud máxima \(2A\).</li>
+                    <li><strong>Fase:</strong> Puntos entre nodos oscilan en fase.</li>
+                </ul>
             </div>
         </div>
     </div>
 </main>
 
 <script>
-    // State
-    let selectedType = '';
+    // State Variables
+    let currentFunc = 'sin'; // 'sin' or 'cos'
+    let currentOrder = 'kxwt'; // 'kxwt' (kx - wt) or 'wtkx' (wt - kx)
+    
     let isPlaying = true;
     let showComponents = true;
     let time = 0;
@@ -306,27 +337,64 @@
     }
     window.addEventListener('resize', resizeCanvas);
 
-    // --- Logic for Selection ---
+    // --- Interactivity Logic ---
 
-    function selectWaveType(type) {
-        selectedType = type;
-        document.getElementById('selection-screen').classList.remove('active');
-        document.getElementById('simulation-screen').classList.add('active');
-        resizeCanvas();
-        updateDerivation();
-        isPlaying = true;
-        draw(); 
+    function toggleFunc() {
+        currentFunc = (currentFunc === 'sin') ? 'cos' : 'sin';
+        updateApp();
     }
 
-    function resetApp() {
-        document.getElementById('simulation-screen').classList.remove('active');
-        document.getElementById('selection-screen').classList.add('active');
-        isPlaying = false;
-        time = 0;
+    function toggleOrder() {
+        currentOrder = (currentOrder === 'kxwt') ? 'wtkx' : 'kxwt';
+        updateApp();
+    }
+
+    function renderEquationHeader() {
+        const container = document.getElementById('equation-builder');
+        const funcText = currentFunc === 'sin' ? 'sen' : 'cos';
+        // Using standard HTML text instead of MathJax for the header 
+        // to prevent fragmentation and layout shifts.
+        const arg1 = currentOrder === 'kxwt' ? 'kx' : '&omega;t';
+        const arg2 = currentOrder === 'kxwt' ? '&omega;t' : 'kx';
+        
+        // Structure: y1 = A func(arg1 - arg2)
+        // We use spans with 'Times New Roman' to mimic math rendering perfectly.
+        
+        container.innerHTML = `
+            <div class="eq-line">
+                <span class="math-var">y</span><sub>1</sub>&nbsp;=&nbsp;<span class="math-var">A</span>
+                <span class="math-toggle math-func" onclick="toggleFunc()">${funcText}</span>
+                (
+                <span class="math-toggle math-arg" onclick="toggleOrder()">${arg1}</span>
+                &minus;
+                <span class="math-toggle math-arg" onclick="toggleOrder()">${arg2}</span>
+                )
+            </div>
+            <div class="eq-line">
+                <span class="math-var">y</span><sub>2</sub>&nbsp;=&nbsp;<span class="math-var">A</span>
+                <span class="math-toggle math-func" onclick="toggleFunc()">${funcText}</span>
+                (
+                <span class="math-toggle math-arg" onclick="toggleOrder()">${arg1}</span>
+                +
+                <span class="math-toggle math-arg" onclick="toggleOrder()">${arg2}</span>
+                )
+            </div>
+        `;
+        // No MathJax call needed for this specific container anymore
+    }
+
+    // --- Derivation Logic ---
+
+    function getSelectedTypeString() {
+        const f = currentFunc;
+        const o = currentOrder === 'kxwt' ? 'kx-wt' : 'wt-kx';
+        return `${f}-${o}`;
     }
 
     function updateDerivation() {
         const container = document.getElementById('math-content');
+        const selectedType = getSelectedTypeString();
+        
         let html = '';
         let envelopeFormula = '';
 
@@ -334,19 +402,19 @@
         const colEnv = "\\color{#94a3b8}"; // Gris claro para envolvente
         const colTime = "\\color{black}";  // Negro para la parte temporal
         
+        // Use HTML for the intro text to ensure subscripts y1, y2 appear correctly
+        const introText = `<p><strong>Aplicamos el principio de superposición (<span style="font-family: 'Times New Roman', serif"><i>y</i> = <i>y</i><sub>1</sub> + <i>y</i><sub>2</sub></span>) y la identidad trigonométrica:</strong></p>`;
+
         if (selectedType === 'sin-kx-wt') {
             envelopeFormula = "2A\\operatorname{sen}(kx)";
             html = `
-                <p><strong>Las ecuaciones de las ondas viajeras son:</strong></p>
-                $$ y_1 = A\\operatorname{sen}(kx - \\omega t) \\quad (\\text{derecha}) $$
-                $$ y_2 = A\\operatorname{sen}(kx + \\omega t) \\quad (\\text{izquierda}) $$
+                ${introText}
+                $$ \\operatorname{sen}(\\alpha \\pm \\beta) = \\operatorname{sen}\\alpha\\cos\\beta \\pm \\cos\\alpha\\operatorname{sen}\\beta $$
                 
-                <p><strong>Aplicamos el principio de superposición (\\(y = y_1 + y_2\\)) y desarrollamos las sumas:</strong></p>
-                Usamos: \\( \\operatorname{sen}(\\alpha \\pm \\beta) = \\operatorname{sen}\\alpha\\cos\\beta \\pm \\cos\\alpha\\operatorname{sen}\\beta \\)
+                <p><strong>Desarrollamos:</strong></p>
                 $$ y = A[ (\\operatorname{sen} kx \\cos \\omega t - \\cos kx \\operatorname{sen} \\omega t) + (\\operatorname{sen} kx \\cos \\omega t + \\cos kx \\operatorname{sen} \\omega t) ] $$
                 
                 <p><strong>Simplificamos términos opuestos:</strong></p>
-                Los términos con \\( \\operatorname{sen} \\omega t \\) se cancelan:
                 $$ y = [2A\\operatorname{sen}(kx)] \\cos(\\omega t) $$
                 
                 <p style="border-top: 1px solid #ccc; margin-top:10px; padding-top:10px;"><strong>Ecuación de la onda estacionaria resultante:</strong></p>
@@ -356,16 +424,13 @@
         else if (selectedType === 'cos-kx-wt') {
             envelopeFormula = "2A\\cos(kx)";
             html = `
-                <p><strong>Las ecuaciones de las ondas viajeras son:</strong></p>
-                $$ y_1 = A\\cos(kx - \\omega t) \\quad (\\text{derecha}) $$
-                $$ y_2 = A\\cos(kx + \\omega t) \\quad (\\text{izquierda}) $$
+                ${introText}
+                $$ \\cos(\\alpha \\pm \\beta) = \\cos\\alpha\\cos\\beta \\mp \\operatorname{sen}\\alpha\\operatorname{sen}\\beta $$
                 
-                <p><strong>Aplicamos el principio de superposición y desarrollamos:</strong></p>
-                Usamos: \\( \\cos(\\alpha \\pm \\beta) = \\cos\\alpha\\cos\\beta \\mp \\operatorname{sen}\\alpha\\operatorname{sen}\\beta \\)
+                <p><strong>Desarrollamos:</strong></p>
                 $$ y = A[ (\\cos kx \\cos \\omega t + \\operatorname{sen} kx \\operatorname{sen} \\omega t) + (\\cos kx \\cos \\omega t - \\operatorname{sen} kx \\operatorname{sen} \\omega t) ] $$
                 
                 <p><strong>Simplificamos términos opuestos:</strong></p>
-                Los términos con seno se cancelan:
                 $$ y = [2A\\cos(kx)] \\cos(\\omega t) $$
                 
                 <p style="border-top: 1px solid #ccc; margin-top:10px; padding-top:10px;"><strong>Ecuación de la onda estacionaria resultante:</strong></p>
@@ -375,15 +440,13 @@
         else if (selectedType === 'sin-wt-kx') {
             envelopeFormula = "2A\\cos(kx)"; 
             html = `
-                <p><strong>Las ecuaciones de las ondas viajeras son:</strong></p>
-                $$ y_1 = A\\operatorname{sen}(\\omega t - kx) \\quad (\\text{derecha}) $$
-                $$ y_2 = A\\operatorname{sen}(\\omega t + kx) \\quad (\\text{izquierda}) $$
+                ${introText}
+                $$ \\operatorname{sen}(\\alpha \\pm \\beta) = \\operatorname{sen}\\alpha\\cos\\beta \\pm \\cos\\alpha\\operatorname{sen}\\beta $$
                 
-                <p><strong>Desarrollamos las sumas angulares:</strong></p>
-                Usamos: \\( \\operatorname{sen}(\\alpha \\pm \\beta) = \\operatorname{sen}\\alpha\\cos\\beta \\pm \\cos\\alpha\\operatorname{sen}\\beta \\)
+                <p><strong>Desarrollamos:</strong></p>
                 $$ y = A[ (\\operatorname{sen} \\omega t \\cos kx - \\cos \\omega t \\operatorname{sen} kx) + (\\operatorname{sen} \\omega t \\cos kx + \\cos \\omega t \\operatorname{sen} kx) ] $$
                 
-                <p><strong>Simplificamos:</strong></p>
+                <p><strong>Simplificamos términos opuestos:</strong></p>
                 $$ y = [2A\\cos(kx)] \\operatorname{sen}(\\omega t) $$
                 
                 <p style="border-top: 1px solid #ccc; margin-top:10px; padding-top:10px;"><strong>Ecuación de la onda estacionaria resultante:</strong></p>
@@ -393,15 +456,13 @@
         else if (selectedType === 'cos-wt-kx') {
             envelopeFormula = "2A\\cos(kx)";
             html = `
-                <p><strong>Las ecuaciones de las ondas viajeras son:</strong></p>
-                $$ y_1 = A\\cos(\\omega t - kx) \\quad (\\text{derecha}) $$
-                $$ y_2 = A\\cos(\\omega t + kx) \\quad (\\text{izquierda}) $$
+                ${introText}
+                $$ \\cos(\\alpha \\pm \\beta) = \\cos\\alpha\\cos\\beta \\mp \\operatorname{sen}\\alpha\\operatorname{sen}\\beta $$
                 
-                <p><strong>Desarrollamos las sumas angulares:</strong></p>
-                Sabemos que \\( \\cos(\\theta) = \\cos(-\\theta) \\), por lo tanto es equivalente al caso \\( \\cos(kx \\pm \\omega t) \\). Aún así, expandiendo:
+                <p><strong>Desarrollamos:</strong></p>
                 $$ y = A[ (\\cos \\omega t \\cos kx + \\operatorname{sen} \\omega t \\operatorname{sen} kx) + (\\cos \\omega t \\cos kx - \\operatorname{sen} \\omega t \\operatorname{sen} kx) ] $$
                 
-                <p><strong>Simplificamos:</strong></p>
+                <p><strong>Simplificamos términos opuestos:</strong></p>
                 $$ y = [2A\\cos(kx)] \\cos(\\omega t) $$
                 
                 <p style="border-top: 1px solid #ccc; margin-top:10px; padding-top:10px;"><strong>Ecuación de la onda estacionaria resultante:</strong></p>
@@ -412,7 +473,6 @@
         container.innerHTML = html;
         document.getElementById('amp-text-ref').innerHTML = `\\( ${envelopeFormula} \\)`;
         
-        // Re-render MathJax
         if (window.MathJax) {
             MathJax.typesetPromise([container, document.getElementById('amp-text-ref')]);
         }
@@ -423,6 +483,7 @@
     function getWaveY(x, t, waveIdx) {
         const k = params.k;
         const w = params.w;
+        const selectedType = getSelectedTypeString();
         
         if (selectedType === 'sin-kx-wt') {
             if (waveIdx === 1) return Math.sin(k*x - w*t);
@@ -441,9 +502,8 @@
     }
 
     function draw() {
-        if (!document.getElementById('simulation-screen').classList.contains('active')) return;
-        
         ctx.clearRect(0, 0, width, height);
+        const selectedType = getSelectedTypeString();
 
         // --- Grid ---
         const scaleX = (Math.PI * 4) / width;
@@ -461,7 +521,7 @@
         ctx.lineTo(width, offsetY);
         ctx.stroke();
 
-        // --- Draw Traveling Waves (Continuous lines) ---
+        // --- Draw Traveling Waves ---
         if (showComponents) {
             ctx.lineWidth = 2;
             ctx.setLineDash([]); // Continuous
@@ -490,7 +550,6 @@
         }
 
         // --- Draw Envelope (Light Gray - Dashed) ---
-        // Drawn BEHIND standing wave
         ctx.beginPath();
         ctx.strokeStyle = '#94a3b8'; // Slate 400 (Light Gray)
         ctx.lineWidth = 2;
@@ -515,7 +574,7 @@
         ctx.stroke();
         ctx.setLineDash([]); // Reset for next draws
 
-        // Label Envelope (Top)
+        // Labels for Envelope
         ctx.fillStyle = '#94a3b8';
         ctx.font = 'bold 16px sans-serif';
         let labelX = width * 0.15; 
@@ -525,7 +584,6 @@
         let labelTextTop = selectedType.includes('sin-kx') ? "2A sen(kx)" : "2A cos(kx)";
         ctx.fillText(labelTextTop, labelX, labelY_top);
 
-        // Label Envelope (Bottom) - ADDED
         let labelY_bottom = offsetY + (2 * params.A * scaleY) + 20;
         let labelTextBottom = selectedType.includes('sin-kx') ? "-2A sen(kx)" : "-2A cos(kx)";
         ctx.fillText(labelTextBottom, labelX, labelY_bottom);
@@ -572,6 +630,16 @@
     function toggleComponents() {
         showComponents = !showComponents;
     }
+
+    function updateApp() {
+        renderEquationHeader();
+        updateDerivation();
+    }
+
+    // Init
+    resizeCanvas();
+    updateApp();
+    draw();
 
 </script>
 
