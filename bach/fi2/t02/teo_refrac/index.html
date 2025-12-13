@@ -1,1 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Cuestiones: Refracción de la Luz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuración MathJax -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Roboto:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .serif {
+            font-family: 'Noto Serif', serif;
+        }
+        .math {
+            font-style: italic;
+            font-family: 'Noto Serif', serif;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        mjx-container {
+            font-size: 1.1em !important;
+        }
+        /* Clases para feedback */
+        .correct-bg { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .incorrect-bg { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-10 px-4">
+
+    <!-- Header & Score -->
+    <header class="w-full max-w-2xl flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <div class="text-center md:text-left">
+            <h1 class="text-2xl font-bold text-blue-800">Física 2º Bachillerato</h1>
+            <h2 class="text-lg text-gray-600">Refracción de la Luz</h2>
+        </div>
+        
+        <div class="bg-white px-6 py-3 rounded-lg shadow-md border border-gray-200 flex flex-col items-center">
+            <span class="text-xs font-bold text-gray-500 uppercase tracking-wide">Puntuación</span>
+            <span id="scoreDisplay" class="text-3xl font-bold text-red-600 transition-colors duration-300">0</span>
+        </div>
+    </header>
+
+    <!-- Main Card -->
+    <main class="bg-white rounded-xl shadow-lg w-full max-w-2xl overflow-hidden border border-gray-200 relative">
+        
+        <!-- Question Section -->
+        <div class="p-6 md:p-8 bg-blue-50 border-b border-blue-100">
+            <h3 class="text-blue-900 font-bold uppercase tracking-wider text-sm mb-3">Enunciado</h3>
+            <div id="questionText" class="text-xl md:text-2xl text-gray-800 serif leading-relaxed min-h-[60px]">
+                Cargando...
+            </div>
+        </div>
+
+        <!-- Options Section -->
+        <div id="optionsContainer" class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Buttons injected by JS -->
+        </div>
+
+        <!-- Feedback Message (Hidden by default) -->
+        <div id="feedbackMsg" class="hidden px-6 pb-2 text-center font-bold text-lg"></div>
+
+        <!-- Controls -->
+        <div class="flex flex-col sm:flex-row gap-4 p-6 pt-2 justify-center items-center bg-white border-t border-gray-100">
+            <button onclick="toggleAnswer()" id="btnToggle" class="hidden w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow transition-all duration-200 flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                Mostrar explicación
+            </button>
+            <button onclick="generateQuestion()" id="btnNext" class="w-full sm:w-auto px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded-lg shadow transition-all duration-200 flex items-center justify-center gap-2">
+                Siguiente pregunta
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Answer Section -->
+        <div id="answerSection" class="hidden bg-gray-50 p-6 md:p-8 border-t border-gray-200">
+            <h3 class="text-green-700 font-bold uppercase tracking-wider text-sm mb-3">Razonamiento Teórico</h3>
+            <div id="answerText" class="text-lg text-gray-800 space-y-4">
+                <!-- Answer injected here -->
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-8 text-center text-gray-400 text-sm max-w-lg">
+        <p>Variables: $n$, $v$, $\lambda$, $\theta$, $f$, $T$.</p>
+    </footer>
+
+    <script>
+        // --- DATA & CONFIG ---
+        const VARS = {
+            n: { symbol: 'n', name: 'índice de refracción', textOp: 'el índice de refracción' },
+            v: { symbol: 'v', name: 'velocidad de propagación', textOp: 'la velocidad de propagación' },
+            lambda: { symbol: '\\lambda', name: 'longitud de onda', textOp: 'la longitud de onda' },
+            theta: { symbol: '\\theta', name: 'ángulo con la normal', textOp: 'el ángulo' },
+            f: { symbol: 'f', name: 'frecuencia', textOp: 'la frecuencia' },
+            T: { symbol: 'T', name: 'periodo', textOp: 'el periodo' }
+        };
+
+        let score = 0;
+        let currentCorrectOption = ""; // Holds the ID of the correct option
+        let answered = false;
+        
+        // History to avoid repetition
+        let lastGivenKey = null;
+        let lastTargetKey = null;
+
+        function getRandomInt(max) {
+            return Math.floor(Math.random() * max);
+        }
+
+        function renderMath() {
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+        }
+
+        // --- SCORE SYSTEM ---
+        function updateScoreDisplay() {
+            const scoreEl = document.getElementById('scoreDisplay');
+            scoreEl.textContent = score;
+            if (score < 5) {
+                scoreEl.classList.remove('text-green-600');
+                scoreEl.classList.add('text-red-600');
+            } else {
+                scoreEl.classList.remove('text-red-600');
+                scoreEl.classList.add('text-green-600');
+            }
+        }
+
+        function handleAnswer(selectedOption) {
+            if (answered) return;
+            answered = true;
+
+            const feedbackEl = document.getElementById('feedbackMsg');
+            const btnToggle = document.getElementById('btnToggle');
+            const options = document.querySelectorAll('.option-btn');
+
+            if (selectedOption === currentCorrectOption) {
+                score++;
+                feedbackEl.textContent = "¡Correcto! +1 punto";
+                feedbackEl.className = "block px-6 pb-2 text-center font-bold text-lg text-green-600 fade-in";
+                document.getElementById('btn-' + selectedOption).classList.add('correct-bg');
+            } else {
+                score--;
+                feedbackEl.textContent = "Incorrecto. -1 punto";
+                feedbackEl.className = "block px-6 pb-2 text-center font-bold text-lg text-red-600 fade-in";
+                document.getElementById('btn-' + selectedOption).classList.add('incorrect-bg');
+                // Highlight correct one
+                document.getElementById('btn-' + currentCorrectOption).classList.add('border-green-500', 'text-green-700', 'bg-green-50');
+            }
+
+            // Disable all buttons
+            options.forEach(btn => btn.disabled = true);
+            
+            // Show explanation button with correct text
+            btnToggle.classList.remove('hidden');
+            btnToggle.classList.add('fade-in');
+            btnToggle.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                Mostrar explicación`;
+            
+            updateScoreDisplay();
+        }
+
+        // --- GENERATOR CORE ---
+
+        function generateQuestion() {
+            // Reset UI
+            answered = false;
+            document.getElementById('answerSection').classList.add('hidden');
+            document.getElementById('btnToggle').classList.add('hidden');
+            document.getElementById('feedbackMsg').classList.add('hidden');
+            document.getElementById('optionsContainer').innerHTML = ''; 
+            
+            // 1. Logic with repetition check
+            let scenario, isN1Greater, givenKey, targetKey;
+            
+            let attempts = 0;
+            do {
+                scenario = getRandomInt(2); // 0: n1 > n2, 1: n1 < n2
+                isN1Greater = scenario === 0;
+
+                const givens = ['n', 'v', 'lambda', 'theta'];
+                givenKey = givens[getRandomInt(givens.length)];
+
+                let targets = ['n', 'v', 'lambda', 'theta', 'f', 'T'];
+                targets = targets.filter(t => t !== givenKey);
+                targetKey = targets[getRandomInt(targets.length)];
+                
+                attempts++;
+                // Avoid infinite loop if somehow choices are limited (unlikely here)
+            } while (attempts < 10 && givenKey === lastGivenKey && targetKey === lastTargetKey);
+            
+            // Store for next time
+            lastGivenKey = givenKey;
+            lastTargetKey = targetKey;
+
+            // Helper for logic
+            const getRel = (key) => {
+                if (key === 'n') return isN1Greater ? 'greater' : 'lesser';
+                return isN1Greater ? 'lesser' : 'greater';
+            };
+            const relGiven = getRel(givenKey);
+
+            // Construct Premise
+            let premiseText = "";
+            if (givenKey === 'theta') {
+                const useApproachWording = Math.random() < 0.5;
+                if (relGiven === 'greater') { // theta1 > theta2
+                    premiseText = useApproachWording 
+                        ? "Un rayo de luz pasa del medio 1 al medio 2. Se observa que el rayo refractado <strong>se acerca</strong> a la normal"
+                        : "Un rayo de luz pasa del medio 1 al medio 2. Si el ángulo de incidencia es <strong>mayor</strong> que el ángulo de refracción";
+                } else { // theta1 < theta2
+                    premiseText = useApproachWording
+                        ? "Un rayo de luz pasa del medio 1 al medio 2. Se observa que el rayo refractado <strong>se aleja</strong> de la normal"
+                        : "Un rayo de luz pasa del medio 1 al medio 2. Si el ángulo de incidencia es <strong>menor</strong> que el ángulo de refracción";
+                }
+            } else {
+                const compText = relGiven === 'greater' ? "mayor" : "menor";
+                premiseText = `Un rayo de luz pasa del medio 1 al medio 2. Se sabe que ${VARS[givenKey].textOp} en el medio 1 ($${VARS[givenKey].symbol}_1$) es <strong>${compText}</strong> que en el medio 2 ($${VARS[givenKey].symbol}_2$)`;
+            }
+
+            // Construct Question & Determine Correct Answer
+            let questionText = "";
+            let optionsHTML = "";
+            
+            // LOGIC FOR CORRECT ANSWER
+            if (targetKey === 'f' || targetKey === 'T') {
+                questionText = `¿Cómo comparas ${VARS[targetKey].textOp} de la onda en ambos medios?`;
+                currentCorrectOption = 'equal';
+                // Options for f/T
+                optionsHTML = `
+                    <button id="btn-equal" onclick="handleAnswer('equal')" class="option-btn w-full p-4 text-lg font-medium bg-white border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
+                        Es igual ($=$)
+                    </button>
+                    <button id="btn-diff" onclick="handleAnswer('diff')" class="option-btn w-full p-4 text-lg font-medium bg-white border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
+                        Es distinta ($\neq$)
+                    </button>
+                `;
+            } else if (targetKey === 'theta') {
+                questionText = `¿El rayo refractado se acerca o se aleja de la normal?`;
+                
+                // Logic: 
+                // if n1 > n2 -> theta1 < theta2 -> Moves AWAY (Aleja)
+                // if n1 < n2 -> theta1 > theta2 -> Moves CLOSER (Acerca)
+                if (isN1Greater) {
+                    currentCorrectOption = 'aleja';
+                } else {
+                    currentCorrectOption = 'acerca';
+                }
+
+                optionsHTML = `
+                    <button id="btn-acerca" onclick="handleAnswer('acerca')" class="option-btn w-full p-4 text-lg font-medium bg-white border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
+                        Se acerca a la normal
+                    </button>
+                    <button id="btn-aleja" onclick="handleAnswer('aleja')" class="option-btn w-full p-4 text-lg font-medium bg-white border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
+                        Se aleja de la normal
+                    </button>
+                `;
+            } else {
+                questionText = `¿Es ${VARS[targetKey].textOp} en el medio 1 mayor o menor que en el medio 2?`;
+                
+                // Logic for n, v, lambda
+                let relTarget = getRel(targetKey); // 'greater' or 'lesser'
+                currentCorrectOption = relTarget;
+
+                optionsHTML = `
+                    <button id="btn-greater" onclick="handleAnswer('greater')" class="option-btn w-full p-4 text-lg font-medium bg-white border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
+                        Mayor ($>$)
+                    </button>
+                    <button id="btn-lesser" onclick="handleAnswer('lesser')" class="option-btn w-full p-4 text-lg font-medium bg-white border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
+                        Menor ($<$)
+                    </button>
+                `;
+            }
+
+            // Render
+            document.getElementById('questionText').innerHTML = `${premiseText}. ${questionText}`;
+            document.getElementById('optionsContainer').innerHTML = optionsHTML;
+            
+            // Generate Explanation (hidden)
+            generateExplanation(givenKey, targetKey, isN1Greater, relGiven);
+            
+            setTimeout(renderMath, 50);
+        }
+
+        // --- EXPLANATION LOGIC (DETAILED VERSION RESTORED) ---
+        function generateExplanation(given, target, isN1Greater, relGiven) {
+            let html = "";
+            const compSymbol = (val) => val === 'greater' ? '>' : '<';
+            const compWord = (val) => val === 'greater' ? 'mayor' : 'menor';
+            const invRel = (val) => val === 'greater' ? 'lesser' : 'greater';
+            
+            // Step 1: Analyze the Constant Case (f, T)
+            if (target === 'f' || target === 'T') {
+                html += `<p class="border-l-4 border-green-500 pl-4 bg-white p-2 shadow-sm">
+                    <strong>Respuesta:</strong> Es la misma en ambos medios ($${VARS[target].symbol}_1 = ${VARS[target].symbol}_2$).
+                </p>`;
+                html += `<p class="mt-2 text-gray-700">
+                    <strong>Justificación:</strong> La <strong>frecuencia ($f$)</strong> es una característica intrínseca de la onda determinada por el foco emisor y <span class="underline">no cambia</span> al cambiar de medio.
+                </p>`;
+                if (target === 'T') {
+                    html += `<p class="mt-2 text-gray-700">
+                        Como el <strong>periodo</strong> es el inverso de la frecuencia ($T = 1/f$), si la frecuencia es constante, el periodo también se mantiene constante.
+                    </p>`;
+                }
+                document.getElementById('answerText').innerHTML = html;
+                return;
+            }
+
+            // Step 2: Establish the link between Given and N (if Given is not N)
+            
+            let relTarget = (target === 'n') 
+                ? (isN1Greater ? 'greater' : 'lesser') 
+                : (isN1Greater ? 'lesser' : 'greater'); // v, lambda, theta act opposite to n
+
+            let answerPhrase = "";
+            if (target === 'theta') {
+                if (isN1Greater) {
+                    answerPhrase = "El rayo se <strong>aleja</strong> de la normal ($\\theta_2 > \\theta_1$).";
+                } else {
+                    answerPhrase = "El rayo se <strong>acerca</strong> a la normal ($\\theta_2 < \\theta_1$).";
+                }
+            } else {
+                answerPhrase = `$${VARS[target].symbol}_1$ es <strong>${compWord(relTarget)}</strong> que $${VARS[target].symbol}_2$.`;
+            }
+
+            html += `<p class="border-l-4 border-indigo-500 pl-4 bg-white p-2 shadow-sm text-lg">
+                <strong>Respuesta:</strong> ${answerPhrase}
+            </p>`;
+
+            // --- Step-by-Step Argumentation (RESTORED DETAILED TEXT) ---
+
+            html += `<div class="mt-4 space-y-3">`;
+
+            // A. Relate Given to N or V
+            if (given === 'n') {
+                html += `<p>1. Partimos del dato: $n_1 ${compSymbol(relGiven)} n_2$.</p>`;
+            } else if (given === 'v') {
+                html += `<p>1. Sabemos que $v_1 ${compSymbol(relGiven)} v_2$.</p>`;
+                html += `<p>Por la definición de índice de refracción ($n = c/v$), el índice es inversamente proporcional a la velocidad. Por tanto, <strong>$n_1 ${compSymbol(invRel(relGiven))} n_2$</strong>.</p>`;
+            } else if (given === 'lambda') {
+                html += `<p>1. Sabemos que $\\lambda_1 ${compSymbol(relGiven)} \\lambda_2$.</p>`;
+                html += `<p>Recordamos la relación entre velocidad, longitud de onda y frecuencia: $v = \\lambda \\cdot f$.</p>`;
+                html += `<p>Como la <strong>frecuencia ($f$) es constante</strong>, la velocidad es directamente proporcional a la longitud de onda. Así que $v_1 ${compSymbol(relGiven)} v_2$.</p>`;
+                html += `<p>A su vez, como $n = c/v$, implica que <strong>$n_1 ${compSymbol(invRel(relGiven))} n_2$</strong>.</p>`;
+            } else if (given === 'theta') {
+                html += `<p>1. Partimos de la relación de ángulos: $\\theta_1 ${compSymbol(relGiven)} \\theta_2$ (o la deducción de que se acerca/aleja).</p>`;
+                html += `<p>Usamos la <strong>Ley de Snell</strong>: $n_1 \\cdot \\sin(\\theta_1) = n_2 \\cdot \\sin(\\theta_2)$.</p>`;
+                html += `<p>Como la función <strong>seno es creciente</strong> para ángulos entre 0º y 90º, si $\\theta_1 ${compSymbol(relGiven)} \\theta_2$, entonces $\\sin(\\theta_1) ${compSymbol(relGiven)} \\sin(\\theta_2)$.</p>`;
+                html += `<p>Para que se cumpla la igualdad de Snell, los índices deben tener la relación inversa: <strong>$n_1 ${compSymbol(invRel(relGiven))} n_2$</strong>.</p>`;
+            }
+
+            // At this point we have established the relation for N (and V implicitly). 
+            // Now we move to Target.
+
+            if (target === 'n') {
+                if (given !== 'n') html += `<p>2. Por lo tanto, esa es la relación entre los índices de refracción.</p>`;
+            }
+            
+            else if (target === 'v') {
+                if (given === 'n') {
+                    html += `<p>2. Usamos la definición $n = c/v$. Como $n$ y $v$ son inversamente proporcionales, si $n_1 ${compSymbol(relGiven)} n_2$, entonces <strong>$v_1 ${compSymbol(invRel(relGiven))} v_2$</strong>.</p>`;
+                } else if (given === 'theta') {
+                    html += `<p>2. Como hemos deducido que $n_1 ${compSymbol(invRel(relGiven))} n_2$, y sabiendo que $v$ es inversamente proporcional a $n$, entonces <strong>$v_1 ${compSymbol(relGiven)} v_2$</strong>.</p>`;
+                }
+            }
+
+            else if (target === 'lambda') {
+                // We usually arrive here having established V relations
+                let vRel = ""; 
+                if (given === 'v') vRel = relGiven;
+                else if (given === 'lambda') vRel = relGiven;
+                else if (given === 'n') vRel = invRel(relGiven);
+                else if (given === 'theta') vRel = relGiven;
+
+                // If not explicitly stated V yet in the text block (e.g. from N)
+                if (given === 'n') {
+                    html += `<p>2. Como $n$ es inversamente proporcional a $v$, tenemos que $v_1 ${compSymbol(vRel)} v_2$.</p>`;
+                }
+                
+                html += `<p>${given === 'n' ? '3' : '2'}. Usamos la relación $v = \\lambda \\cdot f$. Al ser la frecuencia constante, $\\lambda$ es directamente proporcional a $v$.</p>`;
+                html += `<p>Por tanto, <strong>$\\lambda_1 ${compSymbol(vRel)} \\lambda_2$</strong>.</p>`;
+            }
+
+            else if (target === 'theta') {
+                // We need to arrive at Snell's Law
+                let nRel = "";
+                if (given === 'n') nRel = relGiven;
+                else if (given === 'v') nRel = invRel(relGiven);
+                else if (given === 'lambda') nRel = invRel(relGiven);
+
+                html += `<p>${given === 'n' ? '2' : '3'}. Aplicamos la <strong>Ley de Snell</strong>: $n_1 \\cdot \\sin(\\theta_1) = n_2 \\cdot \\sin(\\theta_2)$.</p>`;
+                html += `<p>La ley implica que el medio con mayor índice de refracción tiene menor seno del ángulo (y viceversa) para mantener la igualdad.</p>`;
+                
+                let sineRel = (nRel === 'greater') ? 'lesser' : 'greater'; // If n1 > n2, sin1 < sin2
+                
+                html += `<p>Como tenemos que $n_1 ${compSymbol(nRel)} n_2$, entonces $\\sin(\\theta_1) ${compSymbol(sineRel)} \\sin(\\theta_2)$.</p>`;
+                html += `<p>Dado que la función <strong>seno es creciente</strong> (en el primer cuadrante), la relación entre los ángulos es la misma que entre sus senos: $\\theta_1 ${compSymbol(sineRel)} \\theta_2$.</p>`;
+                
+                if (sineRel === 'lesser') {
+                    html += `<p>El ángulo de incidencia es menor que el de refracción, por lo que el rayo <strong>se aleja</strong> de la normal.</p>`;
+                } else {
+                    html += `<p>El ángulo de incidencia es mayor que el de refracción, por lo que el rayo <strong>se acerca</strong> a la normal.</p>`;
+                }
+            }
+
+            html += `</div>`;
+            document.getElementById('answerText').innerHTML = html;
+        }
+
+        function toggleAnswer() {
+            const section = document.getElementById('answerSection');
+            const btn = document.getElementById('btnToggle');
+            const isHidden = section.classList.contains('hidden');
+            
+            if (isHidden) {
+                section.classList.remove('hidden');
+                section.classList.add('fade-in');
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg> Ocultar explicación`;
+            } else {
+                section.classList.add('hidden');
+                section.classList.remove('fade-in');
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg> Mostrar explicación`;
+            }
+        }
+
+        // Init
+        window.onload = function() {
+            generateQuestion();
+        }
+
+    </script>
+</body>
+</html>
