@@ -1,1 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Ondas Estacionarias</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuración explícita de MathJax para reconocer $ -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <!-- MathJax para LaTeX -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Source+Code+Pro:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f3f4f6;
+        }
+        
+        .math-font {
+            font-family: 'Source Code Pro', monospace;
+        }
 
+        .interactive-term {
+            color: #2563eb; /* blue-600 */
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            text-decoration-thickness: 2px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            padding: 0 4px;
+            background-color: rgba(37, 99, 235, 0.1);
+            border-radius: 4px;
+        }
+
+        .interactive-term:hover {
+            background-color: #2563eb;
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Animación suave para las tarjetas */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen flex flex-col items-center py-10 px-4">
+
+    <!-- Header -->
+    <header class="mb-8 text-center">
+        <h1 class="text-4xl font-bold text-indigo-700 mb-2">Ondas Estacionarias</h1>
+        <p class="text-gray-600">Generador de problemas aleatorios con solución paso a paso</p>
+    </header>
+
+    <!-- Main Card -->
+    <main class="w-full max-w-3xl bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-200">
+        
+        <!-- Problem Statement -->
+        <div class="bg-indigo-50 p-6 border-b border-indigo-100">
+            <div class="flex justify-between items-start mb-4">
+                <span class="bg-indigo-600 text-white text-xs font-bold px-2 py-1 rounded uppercase tracking-wide">Enunciado</span>
+                <button onclick="generateNewProblem()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg transition shadow flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Nuevo Problema
+                </button>
+            </div>
+
+            <p class="text-lg leading-relaxed mb-6">
+                La ecuación de una onda estacionaria en una cuerda viene dada (en unidades del SI) por:
+            </p>
+            
+            <div id="equation-container" class="text-2xl text-center my-6 text-indigo-900 font-bold overflow-x-auto py-2">
+                <!-- Equation will be injected here -->
+                $$ y(x,t) = 0 $$
+            </div>
+
+            <p class="text-lg leading-relaxed">
+                Determine la posición de tres <span id="toggle-type" class="interactive-term" onclick="toggleMode()" title="Haz clic para cambiar entre Nodos y Antinodos">nodos</span> consecutivos y calcule la distancia entre el 1º y el 2º, y entre el 2º y el 3º.
+            </p>
+            <p class="text-sm text-gray-500 mt-2 italic flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Pista: Haz clic en la palabra subrayada para cambiar el enunciado.
+            </p>
+        </div>
+
+        <!-- Solution Section -->
+        <div class="p-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Desarrollo y Solución</h2>
+            
+            <div id="solution-content" class="space-y-6 fade-in">
+                <!-- Dynamic content via JS -->
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="mt-12 text-gray-500 text-sm text-center">
+        <p>Generado con HTML5, JS, Tailwind y MathJax.</p>
+    </footer>
+
+    <script>
+        // State variables
+        let problemData = {
+            A: 0,
+            k: 0,
+            w: 0,
+            spatialFunc: 'sin', // 'sin' or 'cos'
+            temporalFunc: 'cos' // 'cos' or 'sin'
+        };
+        
+        let currentMode = 'nodes'; // 'nodes' or 'antinodes'
+
+        // Initialization
+        window.onload = function() {
+            generateNewProblem();
+        };
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateNewProblem() {
+            // Random Amplitude (0.02 to 0.10 m)
+            problemData.A = (getRandomInt(2, 10) / 100).toFixed(2);
+            
+            // Random k (integers or simple Pi multiples for cleaner visualization)
+            // Let's use integers between 2 and 10 mostly, or pi*int
+            const usePiInK = Math.random() > 0.5;
+            if (usePiInK) {
+                problemData.kVal = getRandomInt(1, 5);
+                problemData.kDisplay = problemData.kVal === 1 ? "\\pi" : `${problemData.kVal}\\pi`;
+                problemData.kNumeric = problemData.kVal * Math.PI;
+            } else {
+                problemData.kVal = getRandomInt(2, 10); // integer k
+                problemData.kDisplay = `${problemData.kVal}`;
+                problemData.kNumeric = problemData.kVal;
+            }
+
+            // Random w (10 to 100 rad/s)
+            problemData.w = getRandomInt(10, 100) * Math.PI; // often w has pi in problems
+            problemData.wDisplay = `${getRandomInt(10, 50)}\\pi`;
+
+            // Randomize Structure: A sin(kx)cos(wt) OR A cos(kx)sin(wt)
+            if (Math.random() > 0.5) {
+                problemData.spatialFunc = 'sin';
+                problemData.temporalFunc = 'cos';
+            } else {
+                problemData.spatialFunc = 'cos';
+                problemData.temporalFunc = 'sin';
+            }
+
+            renderProblem();
+        }
+
+        function toggleMode() {
+            currentMode = (currentMode === 'nodes') ? 'antinodes' : 'nodes';
+            renderProblem(false); // false means don't regenerate numbers, just re-render
+        }
+
+        function renderProblem(regenerate = true) {
+            // 1. Update Equation Display
+            const eqString = `y(x,t) = ${problemData.A} \\, \\${problemData.spatialFunc}(${problemData.kDisplay} x) \\, \\${problemData.temporalFunc}(${problemData.wDisplay} t)`;
+            const eqElement = document.getElementById('equation-container');
+            eqElement.innerHTML = `$$ ${eqString} $$`;
+
+            // 2. Update Interactive Text
+            const toggleBtn = document.getElementById('toggle-type');
+            toggleBtn.innerText = currentMode === 'nodes' ? 'nodos' : 'antinodos';
+            toggleBtn.className = currentMode === 'nodes' 
+                ? "interactive-term text-blue-600 bg-blue-50" 
+                : "interactive-term text-red-600 bg-red-50";
+
+            // 3. Solve Logic
+            solveAndDisplay();
+
+            // 4. Trigger MathJax with a slight delay to ensure DOM is ready and config is applied
+            if (window.MathJax) {
+                 // Clear previous typeset if necessary and re-render
+                 MathJax.typesetPromise().catch((err) => console.log('MathJax error:', err));
+            }
+        }
+
+        function solveAndDisplay() {
+            const contentDiv = document.getElementById('solution-content');
+            let html = "";
+
+            const kDisp = problemData.kDisplay;
+            const kVal = problemData.kNumeric;
+            const isSpatialSin = problemData.spatialFunc === 'sin';
+            const lookingForNodes = currentMode === 'nodes';
+
+            // --- Step 1: Identification ---
+            html += `
+                <div class="bg-white border-l-4 ${lookingForNodes ? 'border-blue-500' : 'border-red-500'} pl-4 py-2">
+                    <h3 class="font-bold text-lg mb-2">1. Identificación de la parte espacial</h3>
+                    <p class="mb-2">La ecuación tiene la forma $y(x,t) = A_{r}(x) \\cdot f(t)$.</p>
+                    <p>La <strong>amplitud resultante</strong> (que depende de $x$) es: $$ A_{r}(x) = ${problemData.A} \\, \\${problemData.spatialFunc}(${kDisp} x) $$</p>
+                    <p>El número de onda es $k = ${kDisp} \\, \\text{m}^{-1}$.</p>
+                </div>
+            `;
+
+            // --- Step 2: Condition Definition ---
+            let conditionLatex = "";
+            let conditionText = "";
+            let formula = "";
+            let positions = [];
+
+            // Logic Tree
+            
+            let usesNPi = false; // True if form is n*pi, False if (2n+1)pi/2
+
+            if (isSpatialSin && lookingForNodes) {
+                conditionText = "Los <strong>nodos</strong> ocurren donde la amplitud resultante es cero:";
+                conditionLatex = `\\sin(${kDisp} x) = 0 \\Rightarrow ${kDisp} x = n\\pi`;
+                formula = `x_n = \\frac{n\\pi}{k}`;
+                usesNPi = true;
+            } else if (isSpatialSin && !lookingForNodes) {
+                conditionText = "Los <strong>antinodos</strong> ocurren donde la amplitud resultante es máxima ($ \\pm 1 $):";
+                // Fixed LaTeX escaping for pi: \\pi inside string
+                conditionLatex = `\\sin(${kDisp} x) = \\pm 1 \\Rightarrow ${kDisp} x = (2n+1)\\frac{\\pi}{2}`;
+                formula = `x_n = \\frac{(2n+1)\\pi}{2k}`;
+                usesNPi = false;
+            } else if (!isSpatialSin && lookingForNodes) {
+                conditionText = "Los <strong>nodos</strong> ocurren donde la amplitud resultante es cero:";
+                // Fixed LaTeX escaping for pi: \\pi inside string
+                conditionLatex = `\\cos(${kDisp} x) = 0 \\Rightarrow ${kDisp} x = (2n+1)\\frac{\\pi}{2}`;
+                formula = `x_n = \\frac{(2n+1)\\pi}{2k}`;
+                usesNPi = false;
+            } else if (!isSpatialSin && !lookingForNodes) {
+                conditionText = "Los <strong>antinodos</strong> ocurren donde la amplitud resultante es máxima ($ \\pm 1 $):";
+                conditionLatex = `\\cos(${kDisp} x) = \\pm 1 \\Rightarrow ${kDisp} x = n\\pi`;
+                formula = `x_n = \\frac{n\\pi}{k}`;
+                usesNPi = true;
+            }
+
+            html += `
+                <div>
+                    <h3 class="font-bold text-lg mb-2">2. Condición de existencia</h3>
+                    <p>${conditionText}</p>
+                    <p class="my-3 text-center text-lg">$$ ${conditionLatex} $$</p>
+                    <p>Despejando $x$:</p>
+                    <p class="my-3 text-center text-lg bg-gray-50 py-2 rounded">$$ ${formula} $$</p>
+                </div>
+            `;
+
+            // --- Step 3: Calculation of 3 consecutive points ---
+            html += `
+                <div>
+                    <h3 class="font-bold text-lg mb-2">3. Cálculo de las 3 posiciones consecutivas</h3>
+                    <p>Tomamos valores consecutivos para $n$ (ej: $n=0, 1, 2$ ó $n=1, 2, 3$).</p>
+                    <ul class="list-disc list-inside mt-2 space-y-2">
+            `;
+
+            
+            let nStart = 0;
+            
+            for(let i=0; i<3; i++) {
+                let n = nStart + i;
+                let num, den;
+                let valStr = "";
+                let valDecimal = 0;
+
+                if (usesNPi) {
+                    // x = n * pi / k
+                    // Logic for display:
+                    if (problemData.kDisplay.includes("\\pi")) {
+                        // k = A \pi. x = n * pi / (A * pi) = n / A
+                        let A = problemData.kVal;
+                        if (n === 0) {
+                            valStr = "0";
+                            valDecimal = 0;
+                        } else {
+                            // simplify fraction n/A ?
+                            valStr = `\\frac{${n}}{${A}}`;
+                            valDecimal = n/A;
+                        }
+                    } else {
+                        // k is integer. x = n * pi / k
+                        let k = problemData.kVal;
+                         if (n === 0) {
+                            valStr = "0";
+                            valDecimal = 0;
+                        } else {
+                            valStr = `\\frac{${n}\\pi}{${k}}`;
+                            valDecimal = (n * Math.PI) / k;
+                        }
+                    }
+                } else {
+                    // x = (2n+1)pi / 2k
+                    let odd = 2*n + 1;
+                    if (problemData.kDisplay.includes("\\pi")) {
+                        // k = A \pi. x = odd * pi / (2 * A * pi) = odd / 2A
+                        let A = problemData.kVal;
+                        let den = 2*A;
+                        valStr = `\\frac{${odd}}{${den}}`;
+                        valDecimal = odd/den;
+                    } else {
+                        // k is int. x = odd * pi / 2k
+                        let k = problemData.kVal;
+                        let den = 2*k;
+                        valStr = `\\frac{${odd}\\pi}{${den}}`;
+                        valDecimal = (odd * Math.PI) / den;
+                    }
+                }
+
+                positions.push({ str: valStr, val: valDecimal, label: i+1 });
+                
+                html += `<li>Para $n=${n}$: $$ x_${i+1} = ${valStr} \\, \\text{m} \\approx ${valDecimal.toFixed(3)} \\, \\text{m} $$</li>`;
+            }
+            
+            html += `</ul></div>`;
+
+            // --- Step 4: Distances ---
+            let d1 = positions[1].val - positions[0].val;
+            let d2 = positions[2].val - positions[1].val;
+            
+            // Check if equal (they should be) with small epsilon
+            let consistent = Math.abs(d1 - d2) < 0.0001;
+
+            html += `
+                <div class="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <h3 class="font-bold text-lg mb-2 text-green-800">4. Cálculo de distancias</h3>
+                    <p>La distancia entre puntos consecutivos debe ser constante ($d = \\frac{\\lambda}{2}$).</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                        <div class="bg-white p-3 rounded shadow-sm">
+                            <span class="font-bold block text-gray-600 mb-1">Distancia 1-2:</span>
+                            $$ \\Delta x_{12} = x_2 - x_1 $$
+                            $$ \\Delta x_{12} = ${positions[1].val.toFixed(3)} - ${positions[0].val.toFixed(3)} = \\mathbf{${d1.toFixed(3)} \\, \\text{m}} $$
+                        </div>
+                        <div class="bg-white p-3 rounded shadow-sm">
+                            <span class="font-bold block text-gray-600 mb-1">Distancia 2-3:</span>
+                            $$ \\Delta x_{23} = x_3 - x_2 $$
+                            $$ \\Delta x_{23} = ${positions[2].val.toFixed(3)} - ${positions[1].val.toFixed(3)} = \\mathbf{${d2.toFixed(3)} \\, \\text{m}} $$
+                        </div>
+                    </div>
+                    
+                    <p class="mt-3 text-sm text-gray-600">
+                        Nota teórica: La distancia entre ${lookingForNodes ? 'nodos' : 'antinodos'} consecutivos es siempre media longitud de onda ($\\lambda/2$). 
+                        <br>En este caso, $k=${problemData.kDisplay}$, así que $\\lambda = 2\\pi/k$. 
+                        <br>La distancia esperada es $\\pi/k$, lo cual coincide con nuestros resultados.
+                    </p>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
