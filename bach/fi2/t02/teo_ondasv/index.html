@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master de Ondas Viajeras - 2º Bachillerato</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- MathJax Configuration -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            startup: {
+                typeset: false 
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .btn-option { transition: all 0.2s ease; }
+        .btn-option:active { transform: scale(0.98); }
+        /* Clases personalizadas para asegurar colores en MathJax si es necesario, 
+           aunque usaremos comandos LaTeX directos */
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Header -->
+    <div class="w-full max-w-2xl flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-indigo-700">Física de Ondas</h1>
+            <p class="text-sm text-gray-500">2º Bachillerato</p>
+        </div>
+        <div class="bg-white px-6 py-3 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center">
+            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Puntuación</span>
+            <span id="score-display" class="text-3xl font-bold text-gray-400 transition-colors duration-300">0</span>
+        </div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden border border-gray-100 fade-in relative">
+        <div class="h-1 w-full bg-gray-100">
+            <div id="progress-bar" class="h-1 bg-indigo-500 transition-all duration-500" style="width: 0%"></div>
+        </div>
+
+        <div id="game-area" class="p-6 md:p-8">
+            <!-- Question -->
+            <div id="question-container" class="mb-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded uppercase tracking-wide mr-2">Pregunta</span>
+                    <span class="text-gray-400 text-sm">Compara las magnitudes</span>
+                </div>
+                <h2 id="question-text" class="text-xl md:text-2xl font-medium leading-relaxed text-gray-800">
+                    Cargando...
+                </h2>
+                <p id="assumption-text" class="mt-2 text-gray-500 text-sm italic border-l-4 border-indigo-200 pl-3 hidden">
+                    Asume que el resto de variables independientes se mantienen constantes.
+                </p>
+            </div>
+
+            <!-- Options -->
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+            <!-- Explanation -->
+            <div id="explanation-container" class="hidden mt-8 bg-blue-50 border border-blue-100 rounded-xl p-5 fade-in">
+                <h3 class="text-lg font-bold text-blue-800 mb-2 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Explicación detallada
+                </h3>
+                <div id="explanation-text" class="text-gray-700 leading-relaxed space-y-2"></div>
+            </div>
+
+            <!-- Next Button -->
+            <div class="mt-8 flex justify-end">
+                <button id="next-btn" onclick="game.nextQuestion()" class="hidden bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                    Siguiente Pregunta &rarr;
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Colores definidos para JS y LaTeX
+        const COLOR_1_CLS = "text-blue-600";
+        const COLOR_2_CLS = "text-red-600";
+        const COLOR_1_TEX = "blue";
+        const COLOR_2_TEX = "red";
+
+        const game = {
+            score: 0,
+            currentQuestion: null,
+            isAnswering: true,
+            scenarioDeck: [], // "Baraja" de escenarios para evitar repeticiones
+            
+            // Diccionario de variables
+            vars: {
+                'A': { tex: 'A', name: 'amplitud', plural: 'amplitudes' },
+                'w': { tex: '\\omega', name: 'frecuencia angular', plural: 'frecuencias angulares' },
+                'T': { tex: 'T', name: 'periodo', plural: 'periodos' },
+                'f': { tex: 'f', name: 'frecuencia', plural: 'frecuencias' },
+                'lambda': { tex: '\\lambda', name: 'longitud de onda', plural: 'longitudes de onda' },
+                'k': { tex: 'k', name: 'número de ondas', plural: 'números de ondas' },
+                'v': { tex: 'v', name: 'velocidad de fase', plural: 'velocidades de fase' },
+                'vmax': { tex: 'v_{\\text{max}}', name: 'velocidad máxima de vibración', plural: 'velocidades máximas de vibración' },
+                'amax': { tex: 'a_{\\text{max}}', name: 'aceleración máxima de vibración', plural: 'aceleraciones máximas de vibración' }
+            },
+
+            // Relaciones numéricas (factores)
+            ratios: [
+                { text: "es el doble que", val: 2, label: "Doble" },
+                { text: "es la mitad que", val: 0.5, label: "Mitad" },
+                { text: "es el cuádruple que", val: 4, label: "Cuádruple" },
+                { text: "es la cuarta parte que", val: 0.25, label: "Cuarta parte" }
+            ],
+
+            // Lógica de Escenarios
+            scenarios: [
+                // --- SIMPLES ---
+                {
+                    id: 'f-T',
+                    type: 'single',
+                    source: 'f', target: 'T',
+                    formula: 'T = \\frac{1}{f}',
+                    calc: (r) => 1 / r,
+                    constText: "La relación es inversa por definición."
+                },
+                {
+                    id: 'T-f',
+                    type: 'single',
+                    source: 'T', target: 'f',
+                    formula: 'f = \\frac{1}{T}',
+                    calc: (r) => 1 / r,
+                    constText: "La relación es inversa por definición."
+                },
+                {
+                    id: 'f-w',
+                    type: 'single',
+                    source: 'f', target: 'w',
+                    formula: '\\omega = 2\\pi f',
+                    calc: (r) => r,
+                    constText: "Son directamente proporcionales."
+                },
+                {
+                    id: 'lambda-k',
+                    type: 'single',
+                    source: 'lambda', target: 'k',
+                    formula: 'k = \\frac{2\\pi}{\\lambda}',
+                    calc: (r) => 1 / r,
+                    constText: "Inversamente proporcionales."
+                },
+                {
+                    id: 'f-lambda',
+                    type: 'single',
+                    source: 'f', target: 'lambda',
+                    formula: '\\lambda = \\frac{v}{f}',
+                    calc: (r) => 1 / r,
+                    constText: "Para una misma velocidad de propagación ($v$), al aumentar la frecuencia disminuye la longitud de onda."
+                },
+                // Casos simples de Vmax y Amax
+                {
+                    id: 'A-vmax',
+                    type: 'single',
+                    source: 'A', target: 'vmax',
+                    formula: 'v_{\\text{max}} = A\\omega',
+                    calc: (r) => r,
+                    constText: "Asumiendo que $\\omega$ es constante."
+                },
+                {
+                    id: 'w-amax',
+                    type: 'single',
+                    source: 'w', target: 'amax',
+                    formula: 'a_{\\text{max}} = A\\omega^2',
+                    calc: (r) => r * r,
+                    constText: "Con Amplitud constante, depende del cuadrado de la frecuencia."
+                },
+
+                // --- COMPUESTOS (2 Variables) ---
+                {
+                    id: 'comp-vmax',
+                    type: 'compound',
+                    inputs: ['A', 'w'],
+                    target: 'vmax',
+                    formulaBase: 'v_{\\text{max}} = A\\omega',
+                    calc: (rA, rw) => rA * rw,
+                    deriveText: "Debemos deducir la expresión a partir de la ecuación de onda."
+                },
+                {
+                    id: 'comp-amax',
+                    type: 'compound',
+                    inputs: ['A', 'w'],
+                    target: 'amax',
+                    formulaBase: 'a_{\\text{max}} = A\\omega^2',
+                    calc: (rA, rw) => rA * (rw * rw),
+                    deriveText: "Debemos deducir la expresión a partir de la ecuación de onda."
+                }
+            ],
+
+            init() {
+                this.updateScoreUI();
+                this.nextQuestion();
+            },
+
+            // --- Lógica de Baraja (Shuffle Deck) para evitar repeticiones ---
+            shuffleDeck() {
+                // Crea un array de índices [0, 1, 2, ..., N]
+                this.scenarioDeck = this.scenarios.map((_, i) => i);
+                
+                // Algoritmo Fisher-Yates para barajar
+                for (let i = this.scenarioDeck.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [this.scenarioDeck[i], this.scenarioDeck[j]] = [this.scenarioDeck[j], this.scenarioDeck[i]];
+                }
+            },
+
+            getNextScenario() {
+                // Si la baraja está vacía, rellenar y barajar
+                if (this.scenarioDeck.length === 0) {
+                    this.shuffleDeck();
+                    
+                    // Comprobación extra: si acabamos de recargar la baraja,
+                    // evitar que la primera carta (que vamos a sacar ahora)
+                    // sea la misma que la última de la ronda anterior.
+                    if (this.currentQuestion) {
+                        const lastScenarioIndex = this.scenarios.indexOf(this.currentQuestion.scenario);
+                        // Miramos la que está al final del array (que es la próxima en salir con pop())
+                        const nextScenarioIndex = this.scenarioDeck[this.scenarioDeck.length - 1];
+                        
+                        // Si coinciden y tenemos más de 1 opción, intercambiamos la próxima con la del fondo (índice 0)
+                        if (lastScenarioIndex === nextScenarioIndex && this.scenarioDeck.length > 1) {
+                            [this.scenarioDeck[0], this.scenarioDeck[this.scenarioDeck.length - 1]] = 
+                            [this.scenarioDeck[this.scenarioDeck.length - 1], this.scenarioDeck[0]];
+                        }
+                    }
+                }
+                
+                // Sacar el índice y devolver el escenario
+                const index = this.scenarioDeck.pop();
+                return this.scenarios[index];
+            },
+
+            // Formateo LaTeX con COLOR
+            fmtVar(key, index) {
+                const tex = this.vars[key].tex;
+                const color = index === 1 ? COLOR_1_TEX : COLOR_2_TEX;
+                
+                let base;
+                if (tex.includes('_') || tex.includes('^')) {
+                    base = `{${tex}}_{${index}}`;
+                } else {
+                    base = `${tex}_{${index}}`;
+                }
+                return `{\\color{${color}} ${base}}`;
+            },
+
+            // Formateo HTML con COLOR
+            fmtHtml(text, index) {
+                const cls = index === 1 ? COLOR_1_CLS : COLOR_2_CLS;
+                return `<span class="${cls} font-bold">${text}</span>`;
+            },
+
+            generateQuestion() {
+                // USAMOS EL NUEVO SISTEMA DE MAZO
+                let scenario = this.getNextScenario();
+                
+                let questionObj = { scenario: scenario };
+
+                // Textos base coloreados
+                const onda1Txt = this.fmtHtml("onda 1", 1);
+                const onda2Txt = this.fmtHtml("onda 2", 2);
+
+                if (scenario.type === 'single') {
+                    // Lógica Simple
+                    const ratio = this.ratios[Math.floor(Math.random() * this.ratios.length)];
+                    const valOut = scenario.calc(ratio.val);
+                    
+                    questionObj.ratios = [ratio];
+                    questionObj.valOut = valOut;
+                    questionObj.correctText = this.getLabelFromVal(valOut);
+                    
+                    const varName = this.vars[scenario.source].name;
+                    const varPlural = this.vars[scenario.target].plural;
+
+                    questionObj.text = `Si la <b>${varName}</b> de la ${onda1Txt} ${ratio.text} la de la ${onda2Txt}...`;
+                    questionObj.question = `¿Cuál es la relación entre sus <b>${varPlural}</b>?`;
+                    
+                    questionObj.mathInput = `${this.fmtVar(scenario.source, 1)} = ${ratio.val} \\cdot ${this.fmtVar(scenario.source, 2)}`;
+
+                } else {
+                    // Lógica Compuesta
+                    const r1 = this.ratios[Math.floor(Math.random() * this.ratios.length)];
+                    const r2 = this.ratios[Math.floor(Math.random() * this.ratios.length)];
+                    
+                    const valOut = scenario.calc(r1.val, r2.val);
+                    
+                    questionObj.ratios = [r1, r2];
+                    questionObj.valOut = valOut;
+                    questionObj.correctText = this.getLabelFromVal(valOut);
+
+                    const n1 = this.vars[scenario.inputs[0]].name;
+                    const n2 = this.vars[scenario.inputs[1]].name;
+
+                    questionObj.text = `Si la <b>${n1}</b> de la ${onda1Txt} ${r1.text} la de la ${onda2Txt}, y su <b>${n2}</b> ${r2.text} la de la ${onda2Txt}...`;
+                    questionObj.question = `¿Cómo comparas sus <b>${this.vars[scenario.target].plural}</b>?`;
+                    
+                    questionObj.mathInput = `${this.fmtVar(scenario.inputs[0], 1)} = ${r1.val} ${this.fmtVar(scenario.inputs[0], 2)}, \\quad ${this.fmtVar(scenario.inputs[1], 1)} = ${r2.val} ${this.fmtVar(scenario.inputs[1], 2)}`;
+                }
+
+                return questionObj;
+            },
+
+            getLabelFromVal(val) {
+                if (val === 1) return "Es igual";
+                if (val === 2) return "Es el doble";
+                if (val === 4) return "Es el cuádruple";
+                if (val === 8) return "Es 8 veces mayor";
+                if (val === 16) return "Es 16 veces mayor";
+                if (val === 0.5) return "Es la mitad";
+                if (val === 0.25) return "Es la cuarta parte";
+                if (val === 0.125) return "Es la octava parte";
+                if (val === 0.0625) return "Es la 1/16 parte";
+                return `Es ${val} veces el valor`;
+            },
+
+            nextQuestion() {
+                this.isAnswering = true;
+                this.currentQuestion = this.generateQuestion();
+                
+                document.getElementById('explanation-container').classList.add('hidden');
+                const nextBtn = document.getElementById('next-btn');
+                nextBtn.classList.add('hidden');
+                
+                // Reset estilos del botón por si venía de estado "Finalizar"
+                nextBtn.innerText = "Siguiente Pregunta \u2192";
+                nextBtn.onclick = () => this.nextQuestion();
+                nextBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                nextBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+
+                document.getElementById('options-container').classList.remove('opacity-50', 'pointer-events-none');
+                
+                const assumption = document.getElementById('assumption-text');
+                if(this.currentQuestion.scenario.type === 'single') assumption.classList.remove('hidden');
+                else assumption.classList.add('hidden');
+
+                const qText = document.getElementById('question-text');
+                const q = this.currentQuestion;
+                qText.innerHTML = `
+                    ${q.text} <br>
+                    ${q.question}
+                    <div class="mt-4 bg-indigo-50 p-3 rounded-lg border border-indigo-100 text-center text-indigo-800 text-lg">
+                        $$${q.mathInput}$$
+                    </div>
+                `;
+
+                this.renderOptions();
+                this.typeset();
+            },
+
+            renderOptions() {
+                const container = document.getElementById('options-container');
+                container.innerHTML = '';
+                let pool = ["Es igual", "Es el doble", "Es la mitad", "Es el cuádruple", "Es la cuarta parte", "Es 8 veces mayor", "Es la octava parte"];
+                const correct = this.currentQuestion.correctText;
+                let options = new Set();
+                options.add(correct);
+                while (options.size < 4) options.add(pool[Math.floor(Math.random() * pool.length)]);
+                let finalOptions = Array.from(options).sort(() => Math.random() - 0.5);
+
+                finalOptions.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = "btn-option w-full bg-white border-2 border-gray-200 text-gray-700 font-medium py-4 px-4 rounded-xl hover:border-indigo-400 hover:text-indigo-600 focus:outline-none text-left flex items-center shadow-sm";
+                    btn.innerHTML = `<span class="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center mr-3 text-xs text-gray-400 font-bold flex-shrink-0">?</span> ${opt}`;
+                    btn.onclick = () => this.checkAnswer(opt, btn);
+                    container.appendChild(btn);
+                });
+            },
+
+            checkAnswer(selected, btnElement) {
+                if (!this.isAnswering) return;
+                this.isAnswering = false;
+
+                const isCorrect = selected === this.currentQuestion.correctText;
+                const container = document.getElementById('options-container');
+
+                if (isCorrect) {
+                    this.score++;
+                    btnElement.className = "btn-option w-full bg-green-50 border-2 border-green-500 text-green-800 font-bold py-4 px-4 rounded-xl flex items-center shadow-md";
+                    btnElement.querySelector('span').innerHTML = '✓';
+                    btnElement.querySelector('span').className = "w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center mr-3 text-xs font-bold flex-shrink-0 border-green-500";
+                } else {
+                    this.score--;
+                    btnElement.className = "btn-option w-full bg-red-50 border-2 border-red-500 text-red-800 font-medium py-4 px-4 rounded-xl flex items-center shadow-md";
+                    btnElement.querySelector('span').innerHTML = '✗';
+                    btnElement.querySelector('span').className = "w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center mr-3 text-xs font-bold flex-shrink-0 border-red-500";
+                    Array.from(container.children).forEach(child => {
+                        if (child.innerText.includes(this.currentQuestion.correctText)) child.classList.add('border-green-500', 'text-green-600', 'bg-green-50');
+                    });
+                }
+                
+                this.updateScoreUI();
+                container.classList.add('pointer-events-none');
+                this.showExplanation();
+                
+                // Lógica de fin de juego (Score >= 10)
+                const nextBtn = document.getElementById('next-btn');
+                nextBtn.classList.remove('hidden');
+
+                if (this.score >= 10) {
+                    nextBtn.innerText = "Finalizar Cuestionario";
+                    nextBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                    nextBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    nextBtn.onclick = () => this.finishGame();
+                }
+            },
+
+            finishGame() {
+                const gameArea = document.getElementById('game-area');
+                gameArea.innerHTML = `
+                    <div class="text-center py-10 fade-in">
+                        <div class="text-6xl mb-6">🏆</div>
+                        <h2 class="text-3xl font-bold text-indigo-700 mb-4">¡Enhorabuena!</h2>
+                        <p class="text-xl text-gray-600 mb-2">Has completado el cuestionario.</p>
+                        <p class="text-lg font-bold text-green-600 mb-8">Puntuación final: 10 puntos</p>
+                        <button onclick="location.reload()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition transform hover:-translate-y-1 focus:outline-none ring-2 ring-offset-2 ring-indigo-500">
+                            Volver a jugar
+                        </button>
+                    </div>
+                `;
+            },
+
+            showExplanation() {
+                const q = this.currentQuestion;
+                const s = q.scenario;
+                const vars = this.vars;
+                let html = "";
+
+                // Helper para deducciones
+                const getDerivationHTML = (targetKey) => {
+                    let dHtml = `<div class="bg-gray-50 p-3 rounded text-sm mb-4 border border-gray-200 text-left">`;
+                    dHtml += `<p class="mb-2 font-semibold text-gray-700">Deducción paso a paso:</p>`;
+                    dHtml += `<p class="mb-1">1. Partimos de la ecuación de la onda armónica:</p>`;
+                    dHtml += `$$y = A \\sin(\\omega t - kx)$$`;
+                    
+                    if (targetKey === 'vmax' || targetKey === 'amax') {
+                        dHtml += `<p class="mt-2 mb-1">2. Derivamos la posición respecto al tiempo ($t$) para obtener la velocidad de vibración:</p>`;
+                        dHtml += `$$v = \\frac{dy}{dt} = A\\omega \\cos(\\omega t - kx)$$`;
+                        if (targetKey === 'vmax') {
+                            dHtml += `<p class="mt-2 text-gray-600 italic">Argumento: La velocidad es máxima cuando el coseno vale 1.</p>`;
+                            dHtml += `$$v_{max} = A\\omega$$`;
+                        }
+                    }
+                    
+                    if (targetKey === 'amax') {
+                        dHtml += `<p class="mt-2 mb-1">3. Derivamos de nuevo para la aceleración:</p>`;
+                        dHtml += `$$a = \\frac{dv}{dt} = -A\\omega^2 \\sin(\\omega t - kx)$$`;
+                        dHtml += `<p class="mt-2 text-gray-600 italic">Argumento: La aceleración es máxima (en módulo) cuando el seno vale $\\pm 1$.</p>`;
+                        dHtml += `$$|a_{max}| = A\\omega^2$$`;
+                    }
+                    dHtml += `</div>`;
+                    return dHtml;
+                };
+
+                if (s.type === 'single') {
+                    html += `<p class="font-bold text-gray-800">1. Identificamos la relación física</p>`;
+                    html += `<p class="mb-2 text-sm">${s.constText}</p>`;
+
+                    if (s.target === 'vmax' || s.target === 'amax') {
+                         html += getDerivationHTML(s.target);
+                    } else {
+                        html += `<p class="mb-4 bg-white p-2 border rounded text-center">$$${s.formula}$$</p>`;
+                    }
+
+                    html += `<p class="font-bold text-gray-800">2. Sustituimos los datos</p>`;
+                    html += `<p class="mb-2 text-sm">Calculamos el cociente entre $\\mathbf{${this.fmtVar(s.target, 1)}}$ y $\\mathbf{${this.fmtVar(s.target, 2)}}$ para ver cómo se relacionan y cancelar constantes:</p>`;
+                    
+                    let fractionMath = "";
+                    let sKey = s.source;
+                    let tKey = s.target;
+                    let sTex = vars[sKey].tex; // variable original LaTeX sin color
+                    // Para la sustitución, usamos los colores
+                    let sTex1 = this.fmtVar(sKey, 1);
+                    let sTex2 = this.fmtVar(sKey, 2);
+                    let tTex1 = this.fmtVar(tKey, 1); 
+                    let tTex2 = this.fmtVar(tKey, 2);
+                    let factor = q.ratios[0].val;
+
+                    if (sKey === 'f' && tKey === 'T') { 
+                         fractionMath = `\\frac{${tTex1}}{${tTex2}} = \\frac{1/${sTex1}}{1/${sTex2}} = \\frac{${sTex2}}{${sTex1}} = \\frac{${sTex2}}{${factor} \\cdot ${sTex2}} = \\frac{1}{${factor}}`;
+                    } 
+                    else if (sKey === 'T' && tKey === 'f') { 
+                         fractionMath = `\\frac{${tTex1}}{${tTex2}} = \\frac{1/${sTex1}}{1/${sTex2}} = \\frac{${sTex2}}{${sTex1}} = \\frac{${sTex2}}{${factor} \\cdot ${sTex2}} = \\frac{1}{${factor}}`;
+                    }
+                    else if (sKey === 'f' && tKey === 'w') { 
+                         fractionMath = `\\frac{${tTex1}}{${tTex2}} = \\frac{2\\pi ${sTex1}}{2\\pi ${sTex2}} = \\frac{${sTex1}}{${sTex2}} = \\frac{${factor} \\cdot ${sTex2}}{${sTex2}} = ${factor}`;
+                    }
+                    else if (sKey === 'lambda' && tKey === 'k') { 
+                         fractionMath = `\\frac{${tTex1}}{${tTex2}} = \\frac{2\\pi / ${sTex1}}{2\\pi / ${sTex2}} = \\frac{${sTex2}}{${sTex1}} = \\frac{${sTex2}}{${factor} \\cdot ${sTex2}} = \\frac{1}{${factor}}`;
+                    }
+                    else if (sKey === 'f' && tKey === 'lambda') { 
+                         fractionMath = `\\frac{${tTex1}}{${tTex2}} = \\frac{v / ${sTex1}}{v / ${sTex2}} = \\frac{${sTex2}}{${sTex1}} = \\frac{${sTex2}}{${factor} \\cdot ${sTex2}} = \\frac{1}{${factor}}`;
+                    }
+                    else if (sKey === 'A' && tKey === 'vmax') { 
+                         fractionMath = `\\frac{${tTex1}}{${tTex2}} = \\frac{${sTex1} \\omega}{${sTex2} \\omega} = \\frac{${sTex1}}{${sTex2}} = \\frac{${factor} \\cdot ${sTex2}}{${sTex2}} = ${factor}`;
+                    }
+                    else if (sKey === 'w' && tKey === 'amax') { 
+                         fractionMath = `\\frac{${tTex1}}{${tTex2}} = \\frac{A ${sTex1}^2}{A ${sTex2}^2} = \\left(\\frac{${sTex1}}{${sTex2}}\\right)^2 = \\left(\\frac{${factor} \\cdot ${sTex2}}{${sTex2}}\\right)^2 = ${factor}^2`; 
+                    }
+
+                    let resultMath = fractionMath + ` \\quad \\Rightarrow \\quad ${this.fmtVar(s.target, 1)} = ${q.valOut} ${this.fmtVar(s.target, 2)}`;
+                    html += `<div class="mb-4 bg-white p-3 border rounded text-center overflow-x-auto text-lg">$$${resultMath}$$</div>`;
+
+                } else {
+                    // --- COMPUESTO ---
+                    html += `<p class="font-bold text-gray-800">1. Deducción de la fórmula</p>`;
+                    html += getDerivationHTML(s.target);
+
+                    html += `<p class="font-bold text-gray-800">2. Sustitución de las dos variables</p>`;
+                    html += `<p class="mb-2 text-sm">Calculamos el cociente entre las magnitudes de la ${this.fmtHtml("onda 1",1)} y la ${this.fmtHtml("onda 2",2)}:</p>`;
+                    
+                    const tTex1 = this.fmtVar(s.target, 1);
+                    const tTex2 = this.fmtVar(s.target, 2);
+                    const v1_1 = this.fmtVar(s.inputs[0], 1); // var 1 onda 1
+                    const v1_2 = this.fmtVar(s.inputs[0], 2); // var 1 onda 2
+                    const v2_1 = this.fmtVar(s.inputs[1], 1); // var 2 onda 1
+                    const v2_2 = this.fmtVar(s.inputs[1], 2); // var 2 onda 2
+                    
+                    const factor1 = q.ratios[0].val;
+                    const factor2 = q.ratios[1].val;
+
+                    let mathStep = "";
+                    if (s.target === 'vmax') {
+                        // vmax = A * w
+                        mathStep = `\\frac{${tTex1}}{${tTex2}} = \\frac{${v1_1} \\cdot ${v2_1}}{${v1_2} \\cdot ${v2_2}}`;
+                        mathStep += ` = \\frac{(${factor1} ${v1_2}) \\cdot (${factor2} ${v2_2})}{${v1_2} \\cdot ${v2_2}}`;
+                        mathStep += ` = ${factor1} \\cdot ${factor2} = ${q.valOut}`;
+                    } else if (s.target === 'amax') {
+                        // amax = A * w^2
+                        mathStep = `\\frac{${tTex1}}{${tTex2}} = \\frac{${v1_1} \\cdot ${v2_1}^2}{${v1_2} \\cdot ${v2_2}^2}`;
+                        mathStep += ` = \\frac{(${factor1} ${v1_2}) \\cdot (${factor2} ${v2_2})^2}{${v1_2} \\cdot ${v2_2}^2}`;
+                        mathStep += ` = ${factor1} \\cdot (${factor2})^2 = ${q.valOut}`;
+                    }
+                    
+                    mathStep += ` \\quad \\Rightarrow \\quad ${tTex1} = ${q.valOut} ${tTex2}`;
+
+                    html += `<div class="bg-indigo-50 p-3 rounded border border-indigo-200 text-center my-2 overflow-x-auto text-lg">$$${mathStep}$$</div>`;
+                }
+
+                html += `<p class="font-bold text-indigo-700 mt-3 border-t pt-2">Conclusión: ${q.correctText}.</p>`;
+
+                document.getElementById('explanation-text').innerHTML = html;
+                document.getElementById('explanation-container').classList.remove('hidden');
+                this.typeset();
+            },
+
+            updateScoreUI() {
+                const display = document.getElementById('score-display');
+                display.innerText = this.score;
+                if (this.score < 5) display.className = "text-3xl font-bold text-red-500 transition-colors duration-300";
+                else display.className = "text-3xl font-bold text-green-500 transition-colors duration-300";
+            },
+
+            typeset() {
+                if (window.MathJax) MathJax.typesetPromise().catch((err) => console.log('MathJax Error:', err));
+            }
+        };
+
+        window.onload = () => game.init();
+
+    </script>
+</body>
+</html>
