@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysTracker - HTML Edition</title>
+    
+    <!-- Librerías Externas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        body { background-color: #020617; color: #f1f5f9; overflow: hidden; }
+        .cursor-crosshair { cursor: crosshair; }
+        .cursor-move { cursor: move; }
+        .step-disabled { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
+        
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        .animate-attention { animation: pulse-ring 2s infinite; }
+    </style>
+</head>
+<body class="flex flex-col h-screen p-4 font-sans">
+
+    <!-- HEADER -->
+    <header class="flex-none flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 p-1.5 rounded-lg"><i data-lucide="activity" class="w-5 h-5 text-white"></i></div>
+            <h1 class="text-lg font-bold">PhysTracker <span class="text-xs font-normal text-slate-500 ml-2">HTML Edition</span></h1>
+        </div>
+        <div class="flex gap-3 items-center">
+            <button onclick="showHelp()" class="text-slate-400 hover:text-white" title="Ayuda"><i data-lucide="help-circle" class="w-5 h-5"></i></button>
+            <div class="flex items-center gap-2 bg-slate-900 px-3 py-1 rounded border border-slate-800">
+                <span class="text-xs font-bold text-slate-400">FPS</span>
+                <input type="number" id="fps-input" value="30" class="w-12 bg-transparent text-right font-mono text-blue-400 focus:outline-none">
+            </div>
+            <label class="cursor-pointer bg-blue-600 hover:bg-blue-500 text-white px-4 py-1 rounded text-sm font-bold flex items-center gap-2 transition">
+               <i data-lucide="upload" class="w-4 h-4"></i> <span id="upload-text">Vídeo</span>
+               <input type="file" id="file-input" accept="video/*" class="hidden">
+            </label>
+        </div>
+    </header>
+
+    <!-- MAIN LAYOUT -->
+    <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-0">
+        
+        <!-- IZQUIERDA: VISUALIZADOR -->
+        <div class="lg:col-span-8 flex flex-col gap-2 relative">
+            
+            <div id="scroll-container" class="relative bg-black rounded-lg flex-1 overflow-auto border border-slate-800 flex items-center justify-center custom-scrollbar shadow-inner">
+                <div id="placeholder" class="text-slate-600 text-center">
+                    <i data-lucide="upload-cloud" class="w-12 h-12 mx-auto mb-2 opacity-50"></i>
+                    <p>Carga un vídeo para analizar el movimiento</p>
+                </div>
+
+                <div id="media-wrapper" class="relative hidden origin-top-left" style="width: 100%; height: 100%;">
+                    <video id="main-video" class="absolute top-0 left-0 w-full h-full object-contain pointer-events-none" playsinline></video>
+                    <canvas id="main-canvas" class="absolute top-0 left-0 w-full h-full object-contain cursor-crosshair"></canvas>
+                </div>
+
+                <!-- Zoom Controls -->
+                <div id="zoom-controls" class="absolute top-4 right-4 bg-slate-900/80 p-1 rounded border border-slate-700 flex flex-col gap-1 backdrop-blur sticky z-10 hidden">
+                    <button onclick="changeZoom(0.5)" class="p-1 hover:bg-slate-700 rounded text-slate-200"><i data-lucide="zoom-in" class="w-5 h-5"></i></button>
+                    <button onclick="changeZoom(-0.5)" class="p-1 hover:bg-slate-700 rounded text-slate-200"><i data-lucide="zoom-out" class="w-5 h-5"></i></button>
+                    <span id="zoom-level" class="text-[10px] text-center font-mono text-slate-400">1.0x</span>
+                    <button onclick="resetZoom()" class="p-1 hover:bg-slate-700 rounded text-red-300 mt-1 border-t border-slate-700 pt-2"><i data-lucide="rotate-ccw" class="w-4 h-4"></i></button>
+                </div>
+
+                <!-- Overlay de Guía -->
+                <div id="guide-overlay" class="absolute top-4 left-1/2 transform -translate-x-1/2 z-40 bg-slate-900/90 border border-slate-700 backdrop-blur-md px-6 py-2 rounded-full shadow-xl flex items-center gap-3 whitespace-nowrap hidden">
+                    <span class="text-slate-400 text-xs font-bold uppercase tracking-wider hidden sm:inline">Paso:</span>
+                    <span id="guide-text" class="font-bold text-white flex items-center gap-2 text-sm"></span>
+                </div>
+            </div>
+
+            <!-- BARRA DE TIEMPO -->
+            <div class="bg-slate-900 p-2 rounded-lg border border-slate-800 flex items-center gap-4">
+                <button id="play-btn" class="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-black disabled:opacity-50">
+                    <i data-lucide="play" class="w-4 h-4 ml-0.5"></i>
+                </button>
+                <div class="flex gap-1">
+                    <button onclick="stepFrame(-1)" class="p-1 text-slate-400 hover:text-white disabled:opacity-50"><i data-lucide="skip-back" class="w-4 h-4"></i></button>
+                    <button onclick="stepFrame(1)" class="p-1 text-slate-400 hover:text-white disabled:opacity-50"><i data-lucide="skip-forward" class="w-4 h-4"></i></button>
+                </div>
+                <div class="flex items-center gap-2 flex-1">
+                    <button onclick="setZeroTime()" id="btn-t0" class="flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-xs px-2 py-1 rounded text-slate-300 border border-slate-700 transition disabled:opacity-50" title="Fijar t=0">
+                        <i data-lucide="crosshair" class="w-3 h-3"></i> T=0
+                    </button>
+                    <input type="range" id="seek-bar" min="0" max="100" step="0.001" value="0" class="flex-1 accent-blue-500 h-1 bg-slate-700 rounded-lg cursor-pointer" disabled>
+                </div>
+                <div class="text-xs font-mono text-blue-400 w-16 text-right"><span id="time-display">0.000</span>s</div>
+            </div>
+        </div>
+
+        <!-- DERECHA: HERRAMIENTAS (ESTRUCTURA FLEX FIXED) -->
+        <div class="lg:col-span-4 bg-slate-900/50 border border-slate-800 rounded-lg flex flex-col overflow-hidden relative h-full">
+            
+            <!-- ÁREA SCROLLABLE PARA HERRAMIENTAS -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                
+                <!-- 1. TIEMPO -->
+                <div id="panel-time" class="p-3 rounded border border-slate-800 bg-slate-900 transition-all duration-300">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase flex gap-2 items-center"><i data-lucide="clock" class="w-3.5 h-3.5"></i> 1. Tiempo</h3>
+                        <span class="text-[10px] font-mono text-slate-500">t₀ = <span id="t0-val">--</span>s</span>
+                    </div>
+                    <button onclick="setZeroTime()" id="btn-set-t0-panel" class="w-full py-2 rounded text-xs font-bold bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700 transition">Fijar T=0 aquí</button>
+                </div>
+
+                <!-- 2. EJES -->
+                <div id="panel-origin" class="p-3 rounded border border-slate-800 bg-slate-900 transition-all duration-300 step-disabled">
+                    <h3 class="text-xs font-bold text-amber-400 uppercase mb-2 flex gap-2 items-center"><i data-lucide="axis-3d" class="w-3.5 h-3.5"></i> 2. Ejes</h3>
+                    <div class="flex gap-2">
+                        <button onclick="setTool('origin')" id="btn-origin-tool" class="flex-1 bg-slate-800 hover:bg-amber-900/30 text-xs py-2 rounded border border-slate-700 text-slate-300 transition">
+                            Mover Origen (0,0)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. CALIBRACIÓN -->
+                <div id="panel-calibration" class="p-3 rounded border border-slate-800 bg-slate-900 transition-all duration-300 step-disabled">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xs font-bold text-blue-400 uppercase flex gap-2 items-center"><i data-lucide="ruler" class="w-3.5 h-3.5"></i> 3. Escala</h3>
+                        <button onclick="resetCalibration()" class="text-slate-500 hover:text-red-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    </div>
+                    <div id="calib-controls" class="space-y-2">
+                        <button onclick="setTool('calibration')" id="btn-calib-tool" class="w-full py-2 rounded text-xs font-bold bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700 transition">Marcar 2 Puntos</button>
+                        <div class="flex gap-2">
+                            <input type="number" id="real-dist" placeholder="Dist (m)" class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-white">
+                            <select id="units-sel" class="bg-slate-950 border border-slate-700 rounded px-1 text-xs text-white"><option value="m">m</option><option value="cm">cm</option></select>
+                            <button onclick="calculateCalibration()" id="btn-calib-calc" class="bg-slate-700 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition">OK</button>
+                        </div>
+                    </div>
+                    <div id="calib-status" class="hidden text-xs text-green-400 mt-2 font-mono flex items-center gap-1">
+                        <i data-lucide="check-circle" class="w-3 h-3"></i> Calibrado: <span id="calib-val"></span> px/ud
+                    </div>
+                </div>
+
+                <!-- 4. TRACKING (SINGLE) -->
+                <div id="panel-tracking" class="p-3 rounded border border-slate-800 bg-slate-900 transition-all duration-300 step-disabled">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xs font-bold text-fuchsia-400 uppercase flex gap-2 items-center"><i data-lucide="move" class="w-3.5 h-3.5"></i> 4. Registro</h3>
+                        <button onclick="resetTracks()"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-slate-500 hover:text-red-400"></i></button>
+                    </div>
+                    
+                    <button onclick="setTool('tracking')" id="btn-track-tool" class="w-full mb-3 py-2 rounded text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700 transition">
+                        ▶ INICIAR REGISTRO
+                    </button>
+                    
+                    <!-- Mini Tabla -->
+                    <div class="bg-slate-950 rounded border border-slate-800 max-h-32 overflow-y-auto custom-scrollbar">
+                        <table class="w-full text-[10px] text-left">
+                            <thead class="text-slate-500 bg-slate-900 sticky top-0"><tr><th class="px-2">#</th><th class="px-2">t</th><th class="px-2">x</th><th class="px-2">y</th></tr></thead>
+                            <tbody id="mini-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EXPORTAR (ZONA FIJA INFERIOR) -->
+            <div class="flex-none p-4 border-t border-slate-800 bg-slate-900/80 backdrop-blur-sm z-10">
+                <div class="text-[10px] text-slate-400 font-bold mb-2 uppercase">Exportar:</div>
+                <div class="flex justify-between gap-2 mb-2 text-xs text-slate-300">
+                    <label class="cursor-pointer"><input type="checkbox" id="chk-t" checked> t</label>
+                    <label class="cursor-pointer"><input type="checkbox" id="chk-x" checked> x</label>
+                    <label class="cursor-pointer"><input type="checkbox" id="chk-y" checked> y</label>
+                    <label class="cursor-pointer"><input type="checkbox" id="chk-vx"> vx</label>
+                    <label class="cursor-pointer"><input type="checkbox" id="chk-vy"> vy</label>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="exportCSV()" class="bg-emerald-700 hover:bg-emerald-600 text-white py-2 rounded text-xs font-bold flex items-center justify-center gap-1 transition">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> CSV
+                    </button>
+                    <button onclick="openSciMode()" class="bg-indigo-700 hover:bg-indigo-600 text-white py-2 rounded text-xs font-bold flex items-center justify-center gap-1 transition">
+                        <i data-lucide="line-chart" class="w-4 h-4"></i> Gráfica
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL BIENVENIDA -->
+    <div id="welcome-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-slate-700 rounded-xl max-w-md w-full p-6 text-center">
+            <h2 class="text-2xl font-bold mb-2 text-white">PhysTracker HTML</h2>
+            <p class="text-slate-400 text-sm mb-6">Herramienta de análisis de movimiento en un solo archivo.</p>
+            <div class="grid grid-cols-2 gap-4 text-left text-xs text-slate-300 mb-6">
+                <div class="bg-slate-800 p-3 rounded">1. Carga y fija T=0.</div>
+                <div class="bg-slate-800 p-3 rounded">2. Coloca los Ejes.</div>
+                <div class="bg-slate-800 p-3 rounded">3. Calibra la distancia.</div>
+                <div class="bg-slate-800 p-3 rounded">4. Registra el movimiento.</div>
+            </div>
+            <button onclick="closeWelcome()" class="bg-blue-600 text-white w-full py-2 rounded font-bold hover:bg-blue-500 transition">Comenzar</button>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-4 py-2 rounded-full border border-slate-600 shadow-xl flex items-center gap-2 text-sm z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <i data-lucide="check-circle" class="w-4 h-4 text-green-400"></i> <span id="toast-msg"></span>
+    </div>
+
+    <!-- SCRIPT PRINCIPAL -->
+    <script>
+        // --- ESTADO ---
+        const state = {
+            videoSrc: null, isPlaying: false, fps: 30, zoom: 1, timeOffset: null,
+            activeTool: 'none', points: [], realDistance: null, calibrationFactor: null,
+            origin: null, tracks: [],
+            videoDims: { w: 0, h: 0 }
+        };
+
+        const els = {
+            video: document.getElementById('main-video'),
+            canvas: document.getElementById('main-canvas'),
+            container: document.getElementById('media-wrapper'),
+            scrollContainer: document.getElementById('scroll-container'),
+            fileInput: document.getElementById('file-input'),
+            uploadText: document.getElementById('upload-text'),
+            fpsInput: document.getElementById('fps-input'),
+            seekBar: document.getElementById('seek-bar'),
+            playBtn: document.getElementById('play-btn'),
+            timeDisplay: document.getElementById('time-display'),
+            zoomLevel: document.getElementById('zoom-level'),
+            zoomControls: document.getElementById('zoom-controls'),
+            welcomeModal: document.getElementById('welcome-modal'),
+            placeholder: document.getElementById('placeholder'),
+            guideOverlay: document.getElementById('guide-overlay'),
+            guideText: document.getElementById('guide-text'),
+            toast: document.getElementById('toast'),
+            toastMsg: document.getElementById('toast-msg'),
+            pTime: document.getElementById('panel-time'),
+            pCalib: document.getElementById('panel-calibration'),
+            pOrigin: document.getElementById('panel-origin'),
+            pTrack: document.getElementById('panel-tracking'),
+            btnCalibTool: document.getElementById('btn-calib-tool'),
+            btnOriginTool: document.getElementById('btn-origin-tool'),
+            btnTrackTool: document.getElementById('btn-track-tool'),
+            realDistInput: document.getElementById('real-dist'),
+            unitsSel: document.getElementById('units-sel'),
+            miniTable: document.getElementById('mini-table-body'),
+            t0Val: document.getElementById('t0-val'),
+            chkT: document.getElementById('chk-t'),
+            chkX: document.getElementById('chk-x'),
+            chkY: document.getElementById('chk-y'),
+            chkVx: document.getElementById('chk-vx'),
+            chkVy: document.getElementById('chk-vy'),
+        };
+
+        lucide.createIcons();
+
+        // --- EVENTS ---
+        els.fileInput.addEventListener('change', handleFileUpload);
+        els.video.addEventListener('loadedmetadata', handleMetadata);
+        els.video.addEventListener('timeupdate', updateTimeUI);
+        els.video.addEventListener('ended', () => { state.isPlaying = false; updatePlayIcon(); });
+        els.fpsInput.addEventListener('change', (e) => state.fps = Number(e.target.value));
+        els.canvas.addEventListener('mousedown', handleCanvasClick);
+        els.seekBar.addEventListener('input', (e) => { els.video.currentTime = Number(e.target.value); updateTimeUI(); });
+        els.playBtn.addEventListener('click', togglePlay);
+        window.addEventListener('resize', updateLayout);
+
+        // --- UPDATE UI STATES (STEP LOCK) ---
+        function updateSteps() {
+            // Reset disabled states
+            els.pOrigin.classList.add('step-disabled');
+            els.pCalib.classList.add('step-disabled');
+            els.pTrack.classList.add('step-disabled');
+
+            // 1. Time is first (always active if video loaded)
+            if (!state.videoSrc) return;
+            
+            // 2. Axes (Needs Time)
+            if (state.timeOffset !== null) {
+                els.pOrigin.classList.remove('step-disabled');
+            }
+
+            // 3. Scale (Needs Origin)
+            if (state.origin) {
+                els.pCalib.classList.remove('step-disabled');
+            }
+
+            // 4. Tracking (Needs Calibration)
+            if (state.calibrationFactor) {
+                els.pTrack.classList.remove('step-disabled');
+            }
+
+            renderGuide();
+        }
+
+        // --- LOGIC ---
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            state.videoSrc = url;
+            state.points = []; state.origin = null; state.tracks = []; state.calibrationFactor = null;
+            state.zoom = 1; state.activeTool = 'none'; state.timeOffset = null;
+            
+            els.video.src = url;
+            els.placeholder.classList.add('hidden');
+            els.container.classList.remove('hidden');
+            els.uploadText.innerText = "Cambiar";
+            els.seekBar.disabled = false;
+            els.playBtn.disabled = false;
+            
+            els.realDistInput.value = '';
+            document.getElementById('calib-status').classList.add('hidden');
+            document.getElementById('calib-controls').classList.remove('hidden');
+            
+            updateMiniTable();
+            updateSteps();
+            showToast("Vídeo cargado");
+        }
+
+        function handleMetadata() {
+            state.videoDims = { w: els.video.videoWidth, h: els.video.videoHeight };
+            els.canvas.width = state.videoDims.w;
+            els.canvas.height = state.videoDims.h;
+            els.seekBar.max = els.video.duration;
+            setTimeout(updateLayout, 100);
+        }
+
+        function updateLayout() {
+            if (!state.videoSrc) return;
+            // Show/Hide Zoom controls
+            if (state.activeTool === 'tracking') els.zoomControls.classList.remove('hidden');
+            else { els.zoomControls.classList.add('hidden'); state.zoom = 1; }
+            els.zoomLevel.innerText = state.zoom.toFixed(1) + 'x';
+
+            // Dimensions logic (Anti-blank screen)
+            if (state.zoom === 1) {
+                els.container.style.width = '100%'; els.container.style.height = '100%';
+                els.container.style.display = 'flex'; els.container.style.justifyContent = 'center'; els.container.style.alignItems = 'center';
+                drawCanvas(); return;
+            }
+
+            els.container.style.display = 'block';
+            const containerW = els.scrollContainer.clientWidth || 800;
+            const containerH = els.scrollContainer.clientHeight || 500;
+            const vidRatio = state.videoDims.w / state.videoDims.h;
+            const contRatio = containerW / containerH;
+            
+            let w, h;
+            if (contRatio > vidRatio) { h = containerH; w = h * vidRatio; } else { w = containerW; h = w / vidRatio; }
+            
+            if (w < 50 || h < 50) { // Fallback
+                els.container.style.width = '100%'; els.container.style.height = '100%';
+            } else {
+                els.container.style.width = `${w * state.zoom}px`; els.container.style.height = `${h * state.zoom}px`;
+            }
+            drawCanvas();
+        }
+
+        function changeZoom(delta) {
+            if (state.activeTool !== 'tracking') return;
+            state.zoom = Math.max(1, Math.min(state.zoom + delta, 5));
+            updateLayout();
+        }
+        function resetZoom() { state.zoom = 1; updateLayout(); }
+
+        function updateTimeUI() {
+            const t = els.video.currentTime;
+            els.seekBar.value = t;
+            const tDisplay = state.timeOffset !== null ? (t - state.timeOffset).toFixed(3) : t.toFixed(3);
+            els.timeDisplay.innerText = tDisplay;
+        }
+
+        function togglePlay() {
+            if (els.video.paused) { els.video.play(); state.isPlaying = true; } 
+            else { els.video.pause(); state.isPlaying = false; }
+            updatePlayIcon();
+        }
+        function updatePlayIcon() {
+            els.playBtn.innerHTML = state.isPlaying ? '<i data-lucide="pause" class="w-4 h-4 ml-0.5"></i>' : '<i data-lucide="play" class="w-4 h-4 ml-0.5"></i>';
+            lucide.createIcons();
+        }
+        function stepFrame(d) {
+            els.video.pause(); state.isPlaying = false; updatePlayIcon();
+            els.video.currentTime = Math.max(0, Math.min(els.video.currentTime + (d * (1/state.fps)), els.video.duration));
+        }
+        function setZeroTime() {
+            state.timeOffset = els.video.currentTime;
+            els.t0Val.innerText = state.timeOffset.toFixed(3);
+            updateTimeUI(); showToast("t=0 establecido"); 
+            updateSteps(); // Habilita siguiente paso
+        }
+
+        // --- CANVAS CLICK ---
+        function handleCanvasClick(e) {
+            const rect = els.container.getBoundingClientRect();
+            // Logic for Zoom 1 black bars
+            let vW = rect.width, vH = rect.height, offX = 0, offY = 0;
+            if (state.zoom === 1 && state.videoDims.w > 0) {
+                const vr = state.videoDims.w / state.videoDims.h;
+                const cr = rect.width / rect.height;
+                if (cr > vr) { vW = rect.height * vr; offX = (rect.width - vW) / 2; } 
+                else { vH = rect.width / vr; offY = (rect.height - vH) / 2; }
+            }
+            
+            const clickX = e.clientX - rect.left - offX;
+            const clickY = e.clientY - rect.top - offY;
+            const x = clickX * (state.videoDims.w / vW);
+            const y = clickY * (state.videoDims.h / vH);
+
+            if (x < 0 || y < 0 || x > state.videoDims.w || y > state.videoDims.h) return;
+
+            if (state.activeTool === 'calibration') {
+                if (state.points.length < 2) { state.points.push({x,y}); drawCanvas(); }
+            } else if (state.activeTool === 'origin') {
+                state.origin = {x,y}; showToast("Origen fijado"); updateSteps(); drawCanvas();
+            } else if (state.activeTool === 'tracking') {
+                if (!state.origin || !state.calibrationFactor) { alert("Configura todo primero"); return; }
+                const t = els.video.currentTime - state.timeOffset;
+                const rx = (x - state.origin.x) / state.calibrationFactor;
+                const ry = (state.origin.y - y) / state.calibrationFactor;
+                state.tracks.push({ id: Date.now(), t, rx, ry, screenX: x, screenY: y });
+                updateMiniTable(); drawCanvas(); stepFrame(1);
+            }
+        }
+
+        function calculateCalibration() {
+            const d = parseFloat(els.realDistInput.value);
+            if (state.points.length !== 2 || !d) return;
+            const dx = state.points[1].x - state.points[0].x;
+            const dy = state.points[1].y - state.points[0].y;
+            state.calibrationFactor = Math.sqrt(dx*dx+dy*dy) / d;
+            document.getElementById('calib-controls').classList.add('hidden');
+            document.getElementById('calib-status').classList.remove('hidden');
+            document.getElementById('calib-val').innerText = state.calibrationFactor.toExponential(2);
+            showToast("Calibrado!");
+            updateSteps(); // Habilita siguiente paso
+            setTool('none');
+        }
+
+        function resetCalibration() {
+            state.points = []; state.calibrationFactor = null;
+            document.getElementById('calib-controls').classList.remove('hidden');
+            document.getElementById('calib-status').classList.add('hidden');
+            drawCanvas(); updateSteps();
+        }
+
+        function resetTracks() {
+            if(confirm("¿Borrar?")) { state.tracks = []; updateMiniTable(); drawCanvas(); }
+        }
+
+        function updateMiniTable() {
+            const list = state.tracks.slice().reverse();
+            els.miniTable.innerHTML = list.map((p, i) => `
+                <tr class="border-b border-slate-800/50">
+                    <td class="px-2 py-1 text-slate-500">${state.tracks.length - i}</td>
+                    <td class="px-2 py-1 text-green-400">${p.t.toFixed(3)}</td>
+                    <td class="px-2 py-1 text-slate-300">${p.rx.toFixed(2)}</td>
+                    <td class="px-2 py-1 text-slate-300">${p.ry.toFixed(2)}</td>
+                </tr>`).join('');
+        }
+
+        function setTool(t) {
+            state.activeTool = t;
+            // Reset Styles
+            [els.btnCalibTool, els.btnOriginTool, els.btnTrackTool].forEach(b => 
+                b.className = "w-full py-2 rounded text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 transition"
+            );
+            els.btnOriginTool.className = "flex-1 bg-slate-800 hover:bg-amber-900/30 text-xs py-2 rounded border border-slate-700 text-slate-300 transition";
+
+            if(t==='calibration') els.btnCalibTool.className = "w-full py-2 rounded text-xs font-bold bg-blue-600 text-white border-blue-500";
+            if(t==='origin') els.btnOriginTool.className = "flex-1 bg-amber-600 text-white text-xs py-2 rounded border border-amber-500";
+            if(t==='tracking') els.btnTrackTool.className = "w-full mb-3 py-2 rounded text-xs font-bold bg-fuchsia-600 text-white border-fuchsia-500";
+            
+            updateLayout(); renderGuide();
+        }
+
+        function drawCanvas() {
+            const ctx = els.canvas.getContext('2d');
+            ctx.clearRect(0, 0, els.canvas.width, els.canvas.height);
+            if (!state.videoDims.w) return;
+            const s = 1/state.zoom; 
+            
+            if (state.origin) {
+                ctx.save(); ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 3*s;
+                ctx.beginPath(); ctx.moveTo(state.origin.x, 0); ctx.lineTo(state.origin.x, els.canvas.height); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, state.origin.y); ctx.lineTo(els.canvas.width, state.origin.y); ctx.stroke();
+                ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(state.origin.x, state.origin.y, 5*s, 0, Math.PI*2); ctx.fill();
+                ctx.restore();
+            }
+            if (state.points.length > 0) {
+                ctx.save(); ctx.fillStyle = '#ef4444'; ctx.font = `${14*s}px sans-serif`;
+                state.points.forEach((p,i)=>{
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 5*s, 0, Math.PI*2); ctx.fill();
+                    ctx.fillText(`P${i+1}`, p.x+8*s, p.y-8*s);
+                });
+                ctx.restore();
+            }
+            if (state.tracks.length > 0) {
+                ctx.save(); ctx.strokeStyle = '#d946ef'; ctx.fillStyle = '#d946ef'; ctx.lineWidth = 2*s;
+                ctx.beginPath();
+                state.tracks.forEach((p,i)=>{ if(i===0)ctx.moveTo(p.screenX,p.screenY); else ctx.lineTo(p.screenX,p.screenY); });
+                ctx.stroke();
+                state.tracks.forEach(p=>{ ctx.beginPath(); ctx.arc(p.screenX, p.screenY, 4*s, 0, Math.PI*2); ctx.fill(); });
+                ctx.restore();
+            }
+        }
+
+        function renderGuide() {
+            if(!state.videoSrc) { els.guideOverlay.classList.add('hidden'); return; }
+            els.guideOverlay.classList.remove('hidden');
+            let h = '';
+            // Reset rings
+            els.pTime.classList.remove('ring-2','ring-blue-500');
+            els.pOrigin.classList.remove('ring-2','ring-amber-500');
+            els.pCalib.classList.remove('ring-2','ring-blue-500');
+            els.pTrack.classList.remove('ring-2','ring-fuchsia-500');
+
+            if (state.timeOffset === null) {
+                h = '<i data-lucide="clock" class="w-4 h-4 text-slate-400"></i> Paso 1: Tiempo';
+                els.pTime.classList.add('ring-2','ring-blue-500');
+            } else if (!state.origin) {
+                h = '<i data-lucide="axis-3d" class="w-4 h-4 text-amber-400"></i> Paso 2: Ejes';
+                els.pOrigin.classList.add('ring-2','ring-amber-500');
+            } else if (!state.calibrationFactor) {
+                h = '<i data-lucide="ruler" class="w-4 h-4 text-blue-400"></i> Paso 3: Escala';
+                els.pCalib.classList.add('ring-2','ring-blue-500');
+            } else {
+                h = '<i data-lucide="move" class="w-4 h-4 text-fuchsia-400"></i> Paso 4: Registro';
+                if(state.activeTool === 'tracking') els.pTrack.classList.add('ring-2','ring-fuchsia-500');
+            }
+            els.guideText.innerHTML = h;
+            lucide.createIcons();
+        }
+
+        function showToast(m) {
+            els.toastMsg.innerText = m;
+            els.toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => els.toast.classList.add('opacity-0', 'pointer-events-none'), 3000);
+        }
+        function showHelp() { els.welcomeModal.classList.remove('hidden'); }
+        function closeWelcome() { els.welcomeModal.classList.add('hidden'); }
+
+        // --- DATA & EXPORT ---
+        function getEnrichedData() {
+            const sorted = [...state.tracks].sort((a,b) => a.t - b.t);
+            return sorted.map((p, i, arr) => {
+                let vx = 0, vy = 0;
+                if (arr.length > 1) {
+                    let dt = 0;
+                    if (i < arr.length-1) { dt = arr[i+1].t - p.t; if(Math.abs(dt)>1e-4) { vx=(arr[i+1].rx-p.rx)/dt; vy=(arr[i+1].ry-p.ry)/dt; } }
+                    else { dt = p.t - arr[i-1].t; if(Math.abs(dt)>1e-4) { vx=(p.rx-arr[i-1].rx)/dt; vy=(p.ry-arr[i-1].ry)/dt; } }
+                }
+                return { ...p, vx, vy };
+            });
+        }
+
+        function exportCSV() {
+            if (state.tracks.length === 0) return;
+            const data = getEnrichedData();
+            const u = els.unitsSel.value;
+            
+            // Check selections
+            const useT = els.chkT.checked;
+            const useX = els.chkX.checked;
+            const useY = els.chkY.checked;
+            const useVx = els.chkVx.checked;
+            const useVy = els.chkVy.checked;
+
+            if(!useT && !useX && !useY && !useVx && !useVy) { alert("Selecciona columnas"); return; }
+
+            let header = [];
+            if(useT) header.push("t (s)");
+            if(useX) header.push(`x (${u})`);
+            if(useY) header.push(`y (${u})`);
+            if(useVx) header.push(`vx (${u}/s)`);
+            if(useVy) header.push(`vy (${u}/s)`);
+            
+            let csv = header.join(",") + "\n";
+            data.forEach(p => {
+                let row = [];
+                if(useT) row.push(p.t.toFixed(4));
+                if(useX) row.push(p.rx.toFixed(4));
+                if(useY) row.push(p.ry.toFixed(4));
+                if(useVx) row.push(p.vx.toFixed(4));
+                if(useVy) row.push(p.vy.toFixed(4));
+                csv += row.join(",") + "\n";
+            });
+
+            // CORREGIDO: Sin prefijo data:
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "datos_fisica.csv";
+            link.click();
+        }
+
+        // --- SCI-MODE WINDOW (FULL GRAPHING) ---
+        function openSciMode() {
+            if (state.tracks.length === 0) return;
+            const data = getEnrichedData();
+            
+            const jsonPoints = JSON.stringify(data.map(p => ({ t: p.t, x: p.rx, y: p.ry, vx: p.vx, vy: p.vy })));
+            const unit = els.unitsSel.value;
+
+            const htmlContent = `
+            <!DOCTYPE html>
+            <html lang="es">
+            <head><title>Análisis Científico</title><meta charset="utf-8">
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>
+            <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"><\/script>
+            <style>
+                body { font-family: sans-serif; padding: 20px; background: #f8fafc; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+                .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+                h2 { margin-top: 0; }
+                select, button, input, label { padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; display:inline-block; }
+                button { background: #3b82f6; color: white; border: none; cursor: pointer; }
+                button.success { background: #10b981; }
+                table { width: 100%; font-size: 0.9em; border-collapse: collapse; }
+                th { background: #eee; position: sticky; top: 0; }
+                td, th { padding: 5px; text-align: center; border-bottom: 1px solid #ddd; }
+                .header-chk { margin: 0 5px; vertical-align: middle; cursor: pointer; }
+                /* Ocultar elementos en la exportación */
+                .hide-on-export { display: none !important; }
+            </style>
+            </head>
+            <body>
+                <div class="card" id="chart-card">
+                    <h2>Gráfica</h2>
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <select id="xVar"><option value="t">Tiempo (t)</option><option value="x">Posición X</option><option value="y">Posición Y</option><option value="vx">Velocidad X</option><option value="vy">Velocidad Y</option></select>
+                        <select id="yVar"><option value="x">Posición X</option><option value="y">Posición Y</option><option value="t">Tiempo (t)</option><option value="vx">Velocidad X</option><option value="vy">Velocidad Y</option></select>
+                        <button onclick="updateChart()">Graficar</button>
+                    </div>
+                    <div style="height: 400px;"><canvas id="chart"></canvas></div>
+                    
+                    <div style="margin-top:20px; padding-top:10px; border-top:1px solid #eee;">
+                        <h3>Ajuste de Curva</h3>
+                        <select id="regType">
+                            <option value="none">-- Sin Ajuste --</option>
+                            <option value="linear">Lineal (mx + n)</option>
+                            <option value="poly2">Cuadrática (ax² + bx + c)</option>
+                            <option value="exp">Exponencial</option>
+                        </select>
+                        <button onclick="calcReg()">Calcular</button>
+                        <div id="regOut" style="margin-top:10px; font-family:monospace; color:#059669; font-weight:bold;"></div>
+                    </div>
+                    <button class="success" onclick="dlG()">📸 Descargar Gráfica</button>
+                </div>
+
+                <div class="card" id="data-card" style="overflow:auto; max-height:800px;">
+                    <h3>Datos</h3>
+                    <button class="success" id="btn-dl-table" onclick="dlT()">📸 Descargar Tabla</button>
+                    <table id="tbl">
+                        <thead>
+                            <tr>
+                                <th class="chk-col">Inc.</th>
+                                <th><label style="cursor:pointer"><input type="checkbox" checked onchange="updateTableHeaders()"> t (s)</label></th>
+                                <th><label style="cursor:pointer"><input type="checkbox" checked onchange="updateTableHeaders()"> x (${unit})</label></th>
+                                <th><label style="cursor:pointer"><input type="checkbox" checked onchange="updateTableHeaders()"> y (${unit})</label></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <script>
+                    const raw = ${jsonPoints};
+                    raw.forEach(p => p.active = true);
+                    let chart = null;
+                    let currentEq = "";
+                    let currentR2 = "";
+
+                    function init() {
+                        const tbody = document.querySelector('#tbl tbody');
+                        tbody.innerHTML = raw.map((p,i) => \`
+                            <tr class="data-row" data-idx="\${i}">
+                                <td class="chk-col"><input type="checkbox" checked onchange="toggle(\${i})"></td>
+                                <td class="col-t">\${p.t.toFixed(3)}</td>
+                                <td class="col-x">\${p.x.toFixed(3)}</td>
+                                <td class="col-y">\${p.y.toFixed(3)}</td>
+                            </tr>
+                        \`).join('');
+                        
+                        const ctx = document.getElementById('chart');
+                        chart = new Chart(ctx, {
+                            type: 'scatter',
+                            data: { datasets: [{ label: 'Datos', data: [], backgroundColor: 'blue' }] },
+                            options: { responsive: true, maintainAspectRatio: false }
+                        });
+                        updateChart();
+                    }
+
+                    function updateTableHeaders() {
+                        // Dummy function if we want live hiding, but user asked for download hiding.
+                        // We will check headers state during dlT execution.
+                    }
+
+                    function toggle(i) {
+                        raw[i].active = !raw[i].active;
+                        const row = document.querySelector(\`.data-row[data-idx="\${i}"]\`);
+                        row.style.opacity = raw[i].active ? 1 : 0.5;
+                        updateChart();
+                    }
+
+                    function updateChart() {
+                        const xv = document.getElementById('xVar').value;
+                        const yv = document.getElementById('yVar').value;
+                        
+                        const data = raw.map(p => ({
+                            x: p[xv], y: p[yv], active: p.active
+                        }));
+
+                        chart.data.datasets[0].data = data;
+                        chart.data.datasets[0].pointBackgroundColor = data.map(p => p.active ? 'blue' : '#ccc');
+                        if(chart.data.datasets.length > 1) chart.data.datasets.pop();
+                        chart.update();
+                    }
+
+                    function dlG() {
+                        const sourceCanvas = document.getElementById('chart');
+                        const baseImage = sourceCanvas.toDataURL("image/png");
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const footerHeight = currentEq ? 60 : 0;
+                        
+                        canvas.width = sourceCanvas.width;
+                        canvas.height = sourceCanvas.height + footerHeight;
+                        
+                        // Fondo blanco
+                        ctx.fillStyle = "#ffffff";
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        
+                        const img = new Image();
+                        img.onload = function() {
+                            ctx.drawImage(img, 0, 0);
+                            
+                            // Escribir Ecuación
+                            if (currentEq) {
+                                ctx.fillStyle = "#1e293b";
+                                ctx.textAlign = "center";
+                                ctx.font = "bold 16px sans-serif";
+                                ctx.fillText(currentEq, canvas.width / 2, sourceCanvas.height + 25);
+                                ctx.fillStyle = "#475569";
+                                ctx.font = "14px sans-serif";
+                                ctx.fillText("R² = " + currentR2, canvas.width / 2, sourceCanvas.height + 45);
+                            }
+                            
+                            const link = document.createElement('a');
+                            link.download = 'grafica_analisis.png';
+                            link.href = canvas.toDataURL();
+                            link.click();
+                        };
+                        img.src = baseImage;
+                    }
+
+                    function dlT() {
+                        const btn = document.getElementById('btn-dl-table');
+                        btn.style.display = 'none';
+
+                        // Hide row checkboxes column
+                        const chkCols = document.querySelectorAll('.chk-col');
+                        chkCols.forEach(el => el.style.display = 'none');
+
+                        // Handle column visibility based on header checks
+                        const headers = document.querySelectorAll('#tbl thead th');
+                        const rows = document.querySelectorAll('#tbl tbody tr');
+                        const hiddenIndices = [];
+
+                        // Identify columns to hide (skipping index 0 which is row-check, already hidden)
+                        headers.forEach((th, index) => {
+                            if (index === 0) return;
+                            const chk = th.querySelector('input[type="checkbox"]');
+                            if (chk && !chk.checked) {
+                                hiddenIndices.push(index);
+                                th.style.display = 'none';
+                            }
+                        });
+
+                        // Hide cells
+                        rows.forEach((row, i) => {
+                            // Handle inactive rows (filtered data)
+                            if (!raw[i].active) {
+                                row.style.display = 'none';
+                            } else {
+                                 // Hide specific columns in active rows
+                                 hiddenIndices.forEach(idx => {
+                                     if (row.cells[idx]) row.cells[idx].style.display = 'none';
+                                 });
+                            }
+                        });
+
+                        html2canvas(document.getElementById('data-card')).then(c => {
+                            const link = document.createElement('a');
+                            link.download = 'tabla.png';
+                            link.href = c.toDataURL();
+                            link.click();
+
+                            // Restore
+                            btn.style.display = '';
+                            chkCols.forEach(el => el.style.display = '');
+                            headers.forEach(th => th.style.display = '');
+                            rows.forEach(row => {
+                                row.style.display = ''; // Let CSS control opacity for inactive
+                                for(let c of row.cells) c.style.display = '';
+                            });
+                        });
+                    }
+
+                    // --- REGRESION ---
+                    function calcReg() {
+                        const type = document.getElementById('regType').value;
+                        const xv = document.getElementById('xVar').value;
+                        const yv = document.getElementById('yVar').value;
+                        
+                        // Variable symbol mapping
+                        const symMap = { t: 't', x: 'x', y: 'y', vx: 'v_x', vy: 'v_y' };
+                        const xSym = symMap[xv] || 'x';
+                        const ySym = symMap[yv] || 'y';
+
+                        const activeData = raw.filter(p => p.active).map(p => ({ x: p[xv], y: p[yv] }));
+                        if(activeData.length < 2) return;
+
+                        let predict = null;
+                        let eq = "";
+                        let r2 = 0;
+
+                        const formatNum = (n) => {
+                            const sign = n < 0 ? " - " : " + ";
+                            return { sign: sign, val: Math.abs(n).toFixed(4) };
+                        };
+
+                        if (type === 'linear') {
+                            const n = activeData.length;
+                            const sx = activeData.reduce((a,b)=>a+b.x,0);
+                            const sy = activeData.reduce((a,b)=>a+b.y,0);
+                            const sxy = activeData.reduce((a,b)=>a+b.x*b.y,0);
+                            const sx2 = activeData.reduce((a,b)=>a+b.x*b.x,0);
+                            
+                            const m = (n*sxy - sx*sy)/(n*sx2 - sx*sx);
+                            const b = (sy - m*sx)/n;
+                            
+                            predict = x => m*x + b;
+                            
+                            // Formato y = mx + b sin doble signo
+                            const bFmt = formatNum(b);
+                            eq = \`\${ySym} = \${m.toFixed(4)}\${xSym}\${bFmt.sign}\${bFmt.val}\`;
+                        } 
+                        else if (type === 'poly2') {
+                            const n = activeData.length;
+                            let sx=0, sx2=0, sx3=0, sx4=0, sy=0, sxy=0, sx2y=0;
+                            activeData.forEach(p => {
+                                const x2 = p.x*p.x;
+                                sx+=p.x; sx2+=x2; sx3+=x2*p.x; sx4+=x2*x2;
+                                sy+=p.y; sxy+=p.x*p.y; sx2y+=x2*p.y;
+                            });
+                            const M = [[n, sx, sx2], [sx, sx2, sx3], [sx2, sx3, sx4]];
+                            const V = [sy, sxy, sx2y];
+                            for(let i=0;i<3;i++) {
+                                let pivot = M[i][i];
+                                for(let j=i+1;j<3;j++) {
+                                    let f = M[j][i]/pivot;
+                                    V[j] -= f*V[i];
+                                    for(let k=i;k<3;k++) M[j][k] -= f*M[i][k];
+                                }
+                            }
+                            const a = V[2]/M[2][2];
+                            const b = (V[1] - M[1][2]*a)/M[1][1];
+                            const c = (V[0] - M[0][1]*b - M[0][2]*a)/M[0][0];
+                            
+                            predict = x => a*x*x + b*x + c;
+                            const bFmt = formatNum(b);
+                            const cFmt = formatNum(c);
+                            eq = \`\${ySym} = \${a.toFixed(4)}\${xSym}²\${bFmt.sign}\${bFmt.val}\${xSym}\${cFmt.sign}\${cFmt.val}\`;
+                        }
+
+                        if (predict) {
+                            const yMean = activeData.reduce((a,b)=>a+b.y,0)/activeData.length;
+                            const ssTot = activeData.reduce((a,b)=>a+(b.y-yMean)**2,0);
+                            const ssRes = activeData.reduce((a,b)=>a+(b.y-predict(b.x))**2,0);
+                            r2 = 1 - (ssRes/ssTot);
+
+                            document.getElementById('regOut').innerHTML = \`\${eq}<br>R² = \${r2.toFixed(4)}\`;
+                            currentEq = eq;
+                            currentR2 = r2.toFixed(4);
+
+                            const allX = raw.map(p => p[xv]);
+                            const minX = Math.min(...allX);
+                            const maxX = Math.max(...allX);
+                            const step = (maxX-minX)/100;
+                            const lineData = [];
+                            for(let x=minX; x<=maxX; x+=step) lineData.push({x, y: predict(x)});
+                            
+                            if(chart.data.datasets.length > 1) chart.data.datasets.pop();
+                            chart.data.datasets.push({
+                                label: 'Ajuste',
+                                data: lineData,
+                                type: 'line',
+                                borderColor: 'red',
+                                pointRadius: 0,
+                                borderWidth: 2
+                            });
+                            chart.update();
+                        }
+                    }
+
+                    init();
+                <\/script>
+            </body>
+            </html>`;
+            
+            const w = window.open('', '_blank');
+            w.document.write(htmlContent);
+            w.document.close();
+        }
+
+    </script>
+</body>
+</html>
