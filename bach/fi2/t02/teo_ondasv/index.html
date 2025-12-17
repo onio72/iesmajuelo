@@ -104,17 +104,17 @@
             isAnswering: true,
             scenarioDeck: [], // "Baraja" de escenarios para evitar repeticiones
             
-            // Diccionario de variables
+            // Diccionario de variables con GÉNERO (m: masculino, f: femenino)
             vars: {
-                'A': { tex: 'A', name: 'amplitud', plural: 'amplitudes' },
-                'w': { tex: '\\omega', name: 'frecuencia angular', plural: 'frecuencias angulares' },
-                'T': { tex: 'T', name: 'periodo', plural: 'periodos' },
-                'f': { tex: 'f', name: 'frecuencia', plural: 'frecuencias' },
-                'lambda': { tex: '\\lambda', name: 'longitud de onda', plural: 'longitudes de onda' },
-                'k': { tex: 'k', name: 'número de ondas', plural: 'números de ondas' },
-                'v': { tex: 'v', name: 'velocidad de fase', plural: 'velocidades de fase' },
-                'vmax': { tex: 'v_{\\text{max}}', name: 'velocidad máxima de vibración', plural: 'velocidades máximas de vibración' },
-                'amax': { tex: 'a_{\\text{max}}', name: 'aceleración máxima de vibración', plural: 'aceleraciones máximas de vibración' }
+                'A': { tex: 'A', name: 'amplitud', plural: 'amplitudes', gender: 'f' },
+                'w': { tex: '\\omega', name: 'frecuencia angular', plural: 'frecuencias angulares', gender: 'f' },
+                'T': { tex: 'T', name: 'periodo', plural: 'periodos', gender: 'm' },
+                'f': { tex: 'f', name: 'frecuencia', plural: 'frecuencias', gender: 'f' },
+                'lambda': { tex: '\\lambda', name: 'longitud de onda', plural: 'longitudes de onda', gender: 'f' },
+                'k': { tex: 'k', name: 'número de ondas', plural: 'números de ondas', gender: 'm' },
+                'v': { tex: 'v', name: 'velocidad de fase', plural: 'velocidades de fase', gender: 'f' },
+                'vmax': { tex: 'v_{\\text{max}}', name: 'velocidad máxima de vibración', plural: 'velocidades máximas de vibración', gender: 'f' },
+                'amax': { tex: 'a_{\\text{max}}', name: 'aceleración máxima de vibración', plural: 'aceleraciones máximas de vibración', gender: 'f' }
             },
 
             // Relaciones numéricas (factores)
@@ -214,10 +214,7 @@
 
             // --- Lógica de Baraja (Shuffle Deck) para evitar repeticiones ---
             shuffleDeck() {
-                // Crea un array de índices [0, 1, 2, ..., N]
                 this.scenarioDeck = this.scenarios.map((_, i) => i);
-                
-                // Algoritmo Fisher-Yates para barajar
                 for (let i = this.scenarioDeck.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [this.scenarioDeck[i], this.scenarioDeck[j]] = [this.scenarioDeck[j], this.scenarioDeck[i]];
@@ -225,27 +222,17 @@
             },
 
             getNextScenario() {
-                // Si la baraja está vacía, rellenar y barajar
                 if (this.scenarioDeck.length === 0) {
                     this.shuffleDeck();
-                    
-                    // Comprobación extra: si acabamos de recargar la baraja,
-                    // evitar que la primera carta (que vamos a sacar ahora)
-                    // sea la misma que la última de la ronda anterior.
                     if (this.currentQuestion) {
                         const lastScenarioIndex = this.scenarios.indexOf(this.currentQuestion.scenario);
-                        // Miramos la que está al final del array (que es la próxima en salir con pop())
                         const nextScenarioIndex = this.scenarioDeck[this.scenarioDeck.length - 1];
-                        
-                        // Si coinciden y tenemos más de 1 opción, intercambiamos la próxima con la del fondo (índice 0)
                         if (lastScenarioIndex === nextScenarioIndex && this.scenarioDeck.length > 1) {
                             [this.scenarioDeck[0], this.scenarioDeck[this.scenarioDeck.length - 1]] = 
                             [this.scenarioDeck[this.scenarioDeck.length - 1], this.scenarioDeck[0]];
                         }
                     }
                 }
-                
-                // Sacar el índice y devolver el escenario
                 const index = this.scenarioDeck.pop();
                 return this.scenarios[index];
             },
@@ -271,9 +258,7 @@
             },
 
             generateQuestion() {
-                // USAMOS EL NUEVO SISTEMA DE MAZO
                 let scenario = this.getNextScenario();
-                
                 let questionObj = { scenario: scenario };
 
                 // Textos base coloreados
@@ -289,11 +274,15 @@
                     questionObj.valOut = valOut;
                     questionObj.correctText = this.getLabelFromVal(valOut);
                     
-                    const varName = this.vars[scenario.source].name;
-                    const varPlural = this.vars[scenario.target].plural;
+                    const srcVar = this.vars[scenario.source];
+                    const targetVar = this.vars[scenario.target];
+                    
+                    // Lógica de artículos y pronombres
+                    const article = srcVar.gender === 'm' ? 'el' : 'la';
+                    const pronoun = srcVar.gender === 'm' ? 'el' : 'la';
 
-                    questionObj.text = `Si la <b>${varName}</b> de la ${onda1Txt} ${ratio.text} la de la ${onda2Txt}...`;
-                    questionObj.question = `¿Cuál es la relación entre sus <b>${varPlural}</b>?`;
+                    questionObj.text = `Si ${article} <b>${srcVar.name}</b> de la ${onda1Txt} ${ratio.text} ${pronoun} de la ${onda2Txt}...`;
+                    questionObj.question = `¿Cuál es la relación entre sus <b>${targetVar.plural}</b>?`;
                     
                     questionObj.mathInput = `${this.fmtVar(scenario.source, 1)} = ${ratio.val} \\cdot ${this.fmtVar(scenario.source, 2)}`;
 
@@ -308,11 +297,18 @@
                     questionObj.valOut = valOut;
                     questionObj.correctText = this.getLabelFromVal(valOut);
 
-                    const n1 = this.vars[scenario.inputs[0]].name;
-                    const n2 = this.vars[scenario.inputs[1]].name;
+                    const v1 = this.vars[scenario.inputs[0]];
+                    const v2 = this.vars[scenario.inputs[1]];
+                    const targetVar = this.vars[scenario.target];
 
-                    questionObj.text = `Si la <b>${n1}</b> de la ${onda1Txt} ${r1.text} la de la ${onda2Txt}, y su <b>${n2}</b> ${r2.text} la de la ${onda2Txt}...`;
-                    questionObj.question = `¿Cómo comparas sus <b>${this.vars[scenario.target].plural}</b>?`;
+                    // Artículos y pronombres para compuesta
+                    const art1 = v1.gender === 'm' ? 'el' : 'la';
+                    const pro1 = v1.gender === 'm' ? 'el' : 'la';
+                    // Nota: Para la segunda variable usamos "y su...", así que solo necesitamos el pronombre comparativo final
+                    const pro2 = v2.gender === 'm' ? 'el' : 'la';
+
+                    questionObj.text = `Si ${art1} <b>${v1.name}</b> de la ${onda1Txt} ${r1.text} ${pro1} de la ${onda2Txt}, y su <b>${v2.name}</b> ${r2.text} ${pro2} de la ${onda2Txt}...`;
+                    questionObj.question = `¿Cómo comparas sus <b>${targetVar.plural}</b>?`;
                     
                     questionObj.mathInput = `${this.fmtVar(scenario.inputs[0], 1)} = ${r1.val} ${this.fmtVar(scenario.inputs[0], 2)}, \\quad ${this.fmtVar(scenario.inputs[1], 1)} = ${r2.val} ${this.fmtVar(scenario.inputs[1], 2)}`;
                 }
@@ -341,7 +337,6 @@
                 const nextBtn = document.getElementById('next-btn');
                 nextBtn.classList.add('hidden');
                 
-                // Reset estilos del botón por si venía de estado "Finalizar"
                 nextBtn.innerText = "Siguiente Pregunta \u2192";
                 nextBtn.onclick = () => this.nextQuestion();
                 nextBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
