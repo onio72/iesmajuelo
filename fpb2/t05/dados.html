@@ -6,6 +6,16 @@
     <title>Laboratorio Probabilidad 3D - FP Básica</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Ocultar flechas en inputs numéricos */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
         .scene { width: 60px; height: 60px; perspective: 300px; margin: 10px; }
         .cube {
             width: 100%; height: 100%; position: relative; transform-style: preserve-3d;
@@ -28,7 +38,7 @@
         .face-5 { transform: rotateY(-90deg) translateZ(30px); }
         .face-6 { transform: rotateY(180deg) translateZ(30px); }
 
-        /* Lógica de puntos: Solo se ven si el contenedor tiene la clase fX */
+        /* Lógica de puntos */
         .f1 .d5, 
         .f2 .d3, .f2 .d7,
         .f3 .d3, .f3 .d5, .f3 .d7,
@@ -51,7 +61,7 @@
         </div>
     </div>
 
-    <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+    <div class="max-w-7xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
         <header class="bg-red-600 p-6 text-white text-center">
             <h1 class="text-3xl font-black uppercase tracking-tighter">Probabilidad: 8 Experimentos</h1>
         </header>
@@ -68,16 +78,16 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full border-collapse">
+                <table class="w-full border-collapse table-fixed">
                     <thead>
                         <tr class="bg-slate-200">
-                            <th class="border-2 border-slate-300 p-3 text-xs uppercase" rowspan="2">Cara</th>
+                            <th class="border-2 border-slate-300 p-3 text-[10px] uppercase w-16" rowspan="2">Cara</th>
                             <th class="border-2 border-slate-300 p-2 text-red-600 font-black uppercase" colspan="8">Experimento</th>
-                            <th class="border-2 border-slate-300 p-3 bg-slate-300 text-xs uppercase" rowspan="2">Suma</th>
-                            <th class="border-2 border-slate-300 p-3 bg-slate-300 text-xs uppercase" rowspan="2">%</th>
+                            <th class="border-2 border-slate-300 p-1 bg-slate-300 text-[10px] uppercase w-14" rowspan="2">Suma</th>
+                            <th class="border-2 border-slate-300 p-1 bg-slate-300 text-[10px] uppercase w-14" rowspan="2">%</th>
                         </tr>
                         <tr class="bg-slate-100">
-                            <script>for(let i=1; i<=8; i++) document.write(`<th id="th-exp-${i}" class="border-2 border-slate-300 p-1 w-12 text-sm">${i}</th>`);</script>
+                            <script>for(let i=1; i<=8; i++) document.write(`<th id="th-exp-${i}" class="border-2 border-slate-300 p-1 w-20 text-sm">${i}</th>`);</script>
                         </tr>
                     </thead>
                     <tbody>
@@ -85,17 +95,17 @@
                             const dotArray = Array(9).fill().map((_,i)=>`<div class="dot d${i+1}"></div>`).join('');
                             for(let i=1; i<=6; i++) {
                                 document.write(`<tr>
-                                    <td class="border-2 border-slate-300 p-2 bg-slate-50">
+                                    <td class="border-2 border-slate-300 p-1 bg-slate-50">
                                         <div class="flex justify-center"><div class="table-face f${i}">${dotArray}</div></div>
                                     </td>`);
                                 for(let j=1; j<=8; j++) {
                                     document.write(`<td class="border-2 border-slate-300 p-0">
-                                        <input type="number" id="input-${i}-${j}" min="0" disabled class="w-full h-full p-3 text-center text-lg outline-none disabled:bg-slate-100">
+                                        <input type="number" id="input-${i}-${j}" min="0" disabled class="w-full h-full p-2 text-center text-lg outline-none disabled:bg-slate-100">
                                     </td>`);
                                 }
                                 document.write(`
-                                    <td class="border-2 border-slate-300 p-0"><input type="number" id="sum-${i}" min="0" disabled class="w-full p-3 text-center font-bold bg-yellow-50 focus:bg-white outline-none"></td>
-                                    <td class="border-2 border-slate-300 p-0"><input type="number" id="perc-${i}" min="0" disabled class="w-full p-3 text-center bg-yellow-50 focus:bg-white outline-none" placeholder="0"></td>
+                                    <td class="border-2 border-slate-300 p-0"><input type="number" id="sum-${i}" min="0" disabled class="w-full p-1 text-center font-bold bg-yellow-50 focus:bg-white outline-none"></td>
+                                    <td class="border-2 border-slate-300 p-0"><input type="number" id="perc-${i}" min="0" disabled class="w-full p-1 text-center bg-yellow-50 focus:bg-white outline-none" placeholder="0"></td>
                                 </tr>`);
                             }
                         </script>
