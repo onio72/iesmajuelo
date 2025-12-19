@@ -1,137 +1,192 @@
-
-You are a knowledgeable and helpful person that can answer any questions. Your task is to answer questions.
-
-
-It's possible that the question, or just a portion of it, requires relevant information from the internet to give a satisfactory answer. The relevant search results provided below, delimited by <search_results></search_results>, are the necessary information already obtained from the internet. The search results set the context for addressing the question, so you don't need to access the internet to answer the question.
-
-
-Write a comprehensive answer to the question in the best way you can. If necessary, use the provided search results.
-
-
-Search results:
-
-<search_results>
-
-NUMBER:1
-
-URL: https://www.youtube.com/watch?v=9s2b3BEv6eo
-
-TITLE: Generador de caras aleatorias con CSS y Javascript (Parte 1/2)
-
-CONTENT: creamos un generador de caras aleatorias con CSS y Javascript. La idea es crear varios componentes con detalles concretos de la cara y luego ...
-
-
-NUMBER:2
-
-URL: https://developer.mozilla.org/es/docs/Web/API/Canvas_API/Tutorial/Drawing_shapes
-
-TITLE: Dibujando formas con canvas - API web - MDN Web Docs
-
-CONTENT: Dibuja un arco con los puntos de control y el radio dados, conectado al punto anterior por una línea recta. Veamos con más detalle el método ...
-
-
-NUMBER:3
-
-URL: https://www.toptal.com/javascript/graficos-3d-un-tutorial-de-webgl
-
-TITLE: Gráficos 3D: Un Tutorial de WebGL
-
-CONTENT: Este tutorial de WebGL te enseñará a usar sombreadores y matrices para reproducir modelos en la pantalla, mientras que los representa con objetos, ...
-
-
-NUMBER:4
-
-URL: https://www.reddit.com/r/learnprogramming/comments/kmlzh8/i_recreated_pokemon_firered_in_the_browser_but/?tl=es-es
-
-TITLE: Recreé Pokémon Rojo Fuego en el navegador pero con ...
-
-CONTENT: Llegué al tercer líder de gimnasio, aún no sé JS así que me jodieron jajaja, me fue muy bien con las preguntas de HTML, CSS y DB aunque :D, esto ...
-
-
-NUMBER:5
-
-URL: https://es.wikiquote.org/wiki/Wikiquote:Caf%C3%A9/Archivo/2020
-
-TITLE: Wikiquote:Café/Archivo/2020
-
-CONTENT: Este Café (área de discusión sobre Wikiquote) ya no está activo. Ahora la página sirve de archivo histórico. Hay un nuevo café que puedes visitar pasando ...
-
-
-NUMBER:6
-
-URL: https://openaccess.uoc.edu/server/api/core/bitstreams/eb6f99fb-6285-4e28-a7fd-55c5c8652111/content
-
-TITLE: Trabajo Final de Grado - Desarrollo e implantación de ...
-
-CONTENT: de DM Hernández · 2021 · Citado por 6 — El objetivo es ofrecer una solución completa y diferenciadora, en tres ejes: imagen corporativa, incluyendo diseño y uso de logotipos, ...
-
-
-
-</search_results>
-
-
-Each search result item provides the following information in this format:
-
-Number: [Index number of the search result]
-
-URL: [URL of the search result]
-
-Title: [Page title of the search result]
-
-Content: [Page content of the search result]
-
-
-If you can't find enough information in the search results and you're not sure about the answer, try your best to give a helpful response by using all the information you have from the search results.
-
-
-For your reference, today's date is 2025-12-20T00:20:41+01:00.
-
-
----
-
-
-You should always respond using the following Markdown format delimited by:
-
-
-# En la columna Cara de la tabla se dibujan siempre 6 puntos.
-
-
-## 🗒️ Answer
-
-<answer to the question>
-
-
-## 🌐 Sources
-
-<numbered list of all the provided search results>
-
-
----
-
-
-Here are more requirements for the response Markdown format described above:
-
-
-For <answer to the question> part in the above Markdown format:
-
-If you use any of the search results in <answer to the question>, always cite the sources at the end of the corresponding line, similar to how Wikipedia.org cites information. Use the citation format [[NUMBER](URL)], where both the NUMBER and URL correspond to the provided search results in <numbered list of all the provided search results>.
-
-
-Present the answer in a clear format.
-
-Use a numbered list if it clarifies things
-
-Make the answer as short as possible, ideally no more than 200 words.
-
-
-For <numbered list of all the provided search results> part in the above Markdown format:
-
-Always list all the search results provided above, delimited by <search_results></search_results>.
-
-Do not miss any search result items, regardless if there are duplicated ones in the provided search results.
-
-Use the following format for each search result item:
-
-[the domain of the URL - TITLE](URL)
-
-Ensure the bullet point's number matches the 'NUMBER' of the corresponding search result item.
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio Probabilidad 3D - FP Básica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .scene { width: 60px; height: 60px; perspective: 300px; margin: 10px; }
+        .cube {
+            width: 100%; height: 100%; position: relative; transform-style: preserve-3d;
+            transition: transform 1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
+        .cube__face, .table-face {
+            position: absolute; width: 60px; height: 60px; border: 2px solid #333;
+            background: white; border-radius: 8px; display: grid;
+            grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: 5px; gap: 2px;
+        }
+        .table-face { position: relative; width: 40px; height: 40px; border-width: 1px; padding: 3px; gap: 1px; }
+        .dot { width: 10px; height: 10px; background: #e11d48; border-radius: 50%; align-self: center; justify-self: center; visibility: hidden; }
+        .table-face .dot { width: 6px; height: 6px; }
+        
+        /* Definición de caras */
+        .face-1 { transform: rotateY(0deg) translateZ(30px); }
+        .face-2 { transform: rotateY(90deg) translateZ(30px); }
+        .face-3 { transform: rotateX(90deg) translateZ(30px); }
+        .face-4 { transform: rotateX(-90deg) translateZ(30px); }
+        .face-5 { transform: rotateY(-90deg) translateZ(30px); }
+        .face-6 { transform: rotateY(180deg) translateZ(30px); }
+
+        /* Lógica de puntos: Solo se ven si el contenedor tiene la clase fX */
+        .f1 .d5, 
+        .f2 .d3, .f2 .d7,
+        .f3 .d3, .f3 .d5, .f3 .d7,
+        .f4 .d1, .f4 .d3, .f4 .d7, .f4 .d9,
+        .f5 .d1, .f5 .d3, .f5 .d5, .f5 .d7, .f5 .d9,
+        .f6 .d1, .f6 .d3, .f6 .d4, .f6 .d6, .f6 .d7, .f6 .d9 { visibility: visible; }
+
+        .highlight-col { background-color: #fef2f2; border: 2px solid #ef4444 !important; }
+        .correct-val { color: #ef4444 !important; font-weight: bold; border: 2px solid #ef4444 !important; background-color: #fff1f2 !important; }
+        .modal { background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; position: fixed; inset: 0; z-index: 50; }
+    </style>
+</head>
+<body class="bg-slate-50 p-4">
+
+    <div id="instructionModal" class="modal">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md text-center border-t-8 border-red-600">
+            <h2 class="text-2xl font-black text-slate-900 mb-4 uppercase">Aviso</h2>
+            <p id="modalText" class="text-slate-600 mb-6"></p>
+            <button onclick="closeModal()" class="bg-red-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-red-700 shadow-lg transition">OK</button>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+        <header class="bg-red-600 p-6 text-white text-center">
+            <h1 class="text-3xl font-black uppercase tracking-tighter">Probabilidad: 8 Experimentos</h1>
+        </header>
+
+        <main class="p-6 md:p-10">
+            <div class="flex flex-col items-center mb-10 bg-slate-50 p-6 rounded-2xl border border-slate-300">
+                <div id="diceArea" class="flex flex-wrap justify-center gap-4 mb-8 min-h-[80px]"></div>
+                <div class="text-center">
+                    <button id="rollBtn" class="bg-slate-900 text-white px-10 py-4 rounded-2xl text-xl font-black hover:bg-slate-800 disabled:bg-slate-300 transition shadow-xl">
+                        Lanzar 10 Dados
+                    </button>
+                    <p id="expStatus" class="mt-4 text-sm font-black uppercase text-red-600 tracking-widest">Experimento 1 de 8</p>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-slate-200">
+                            <th class="border-2 border-slate-300 p-3 text-xs uppercase" rowspan="2">Cara</th>
+                            <th class="border-2 border-slate-300 p-2 text-red-600 font-black uppercase" colspan="8">Experimento</th>
+                            <th class="border-2 border-slate-300 p-3 bg-slate-300 text-xs uppercase" rowspan="2">Suma</th>
+                            <th class="border-2 border-slate-300 p-3 bg-slate-300 text-xs uppercase" rowspan="2">%</th>
+                        </tr>
+                        <tr class="bg-slate-100">
+                            <script>for(let i=1; i<=8; i++) document.write(`<th id="th-exp-${i}" class="border-2 border-slate-300 p-1 w-12 text-sm">${i}</th>`);</script>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <script>
+                            const dotArray = Array(9).fill().map((_,i)=>`<div class="dot d${i+1}"></div>`).join('');
+                            for(let i=1; i<=6; i++) {
+                                document.write(`<tr>
+                                    <td class="border-2 border-slate-300 p-2 bg-slate-50">
+                                        <div class="flex justify-center"><div class="table-face f${i}">${dotArray}</div></div>
+                                    </td>`);
+                                for(let j=1; j<=8; j++) {
+                                    document.write(`<td class="border-2 border-slate-300 p-0">
+                                        <input type="number" id="input-${i}-${j}" min="0" disabled class="w-full h-full p-3 text-center text-lg outline-none disabled:bg-slate-100">
+                                    </td>`);
+                                }
+                                document.write(`
+                                    <td class="border-2 border-slate-300 p-0"><input type="number" id="sum-${i}" min="0" disabled class="w-full p-3 text-center font-bold bg-yellow-50 focus:bg-white outline-none"></td>
+                                    <td class="border-2 border-slate-300 p-0"><input type="number" id="perc-${i}" min="0" disabled class="w-full p-3 text-center bg-yellow-50 focus:bg-white outline-none" placeholder="0"></td>
+                                </tr>`);
+                            }
+                        </script>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-8 flex justify-end">
+                <button id="btnAction" onclick="handleAction()" class="bg-red-600 text-white px-8 py-4 rounded-2xl font-black hover:bg-red-700 shadow-lg uppercase tracking-tighter">Verificar Columna</button>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let currentExp = 1, lastDiceResults = [], canRoll = true, phase = 'collecting';
+
+        const rotations = { 1: 'rotateY(0deg)', 2: 'rotateY(-90deg)', 3: 'rotateX(-90deg)', 4: 'rotateX(90deg)', 5: 'rotateY(90deg)', 6: 'rotateY(180deg)' };
+
+        document.getElementById('rollBtn').onclick = function() {
+            if(!canRoll || currentExp > 8) return;
+            const area = document.getElementById('diceArea');
+            area.innerHTML = ''; lastDiceResults = [];
+            
+            for(let i=0; i<10; i++) {
+                const val = Math.floor(Math.random() * 6) + 1;
+                lastDiceResults.push(val);
+                const scene = document.createElement('div'); scene.className = 'scene';
+                const cube = document.createElement('div'); cube.className = 'cube';
+                for(let f=1; f<=6; f++) cube.innerHTML += `<div class="cube__face face-${f} f${f}">${dotArray}</div>`;
+                scene.appendChild(cube); area.appendChild(scene);
+                setTimeout(() => { 
+                    cube.style.transform = `rotateX(${720+Math.random()*360}deg) rotateY(${720+Math.random()*360}deg)`;
+                    setTimeout(() => { cube.style.transform = rotations[val]; }, 500);
+                }, 50);
+            }
+            canRoll = false; this.disabled = true;
+            setTimeout(() => { 
+                enableColumn(currentExp);
+                showModal(`Experimento ${currentExp}: Cuenta las caras y rellena la columna resaltada.`);
+            }, 2000);
+        };
+
+        function enableColumn(n) {
+            document.querySelectorAll('input').forEach(i => i.disabled = true);
+            document.querySelectorAll('th, td').forEach(el => el.classList.remove('highlight-col'));
+            for(let i=1; i<=6; i++) {
+                const input = document.getElementById(`input-${i}-${n}`);
+                input.disabled = false; input.parentElement.classList.add('highlight-col');
+            }
+            document.getElementById(`th-exp-${n}`).classList.add('highlight-col');
+        }
+
+        function handleAction() {
+            if(phase === 'collecting') {
+                const counts = [0,0,0,0,0,0,0];
+                lastDiceResults.forEach(v => counts[v]++);
+                let sum = 0, correct = true;
+                for(let i=1; i<=6; i++) {
+                    const val = parseInt(document.getElementById(`input-${i}-${currentExp}`).value) || 0;
+                    sum += val; if(val !== counts[i]) correct = false;
+                }
+                if(sum === 10 && correct) {
+                    for(let i=1; i<=6; i++) document.getElementById(`input-${i}-${currentExp}`).classList.add('correct-val');
+                    if(++currentExp <= 8) {
+                        canRoll = true; document.getElementById('rollBtn').disabled = false;
+                        document.getElementById('expStatus').innerText = `Experimento ${currentExp} de 8`;
+                        showModal("¡Correcto! Lanza los dados de nuevo.");
+                    } else {
+                        phase = 'calculating'; document.getElementById('expStatus').innerText = "Cálculos Finales";
+                        document.querySelectorAll('input').forEach(i => i.disabled = true);
+                        for(let i=1; i<=6; i++) { document.getElementById(`sum-${i}`).disabled = false; document.getElementById(`perc-${i}`).disabled = false; }
+                        document.getElementById('btnAction').innerText = "Verificar Cálculos";
+                        showModal("Experimentos terminados. Calcula las sumas y porcentajes finales.");
+                    }
+                } else showModal("Error en los datos. La suma debe ser 10 y coincidir con los dados.");
+            } else {
+                let allOk = true;
+                for(let i=1; i<=6; i++) {
+                    let realSum = 0; for(let j=1; j<=8; j++) realSum += parseInt(document.getElementById(`input-${i}-${j}`).value);
+                    const uSum = parseInt(document.getElementById(`sum-${i}`).value), uPerc = parseInt(document.getElementById(`perc-${i}`).value);
+                    const rPerc = Math.round((realSum / 80) * 100);
+                    if(uSum === realSum) document.getElementById(`sum-${i}`).classList.add('correct-val'); else allOk = false;
+                    if(uPerc === rPerc) document.getElementById(`perc-${i}`).classList.add('correct-val'); else allOk = false;
+                }
+                showModal(allOk ? "¡Perfecto! Laboratorio completado con éxito." : "Revisa tus cálculos finales.");
+            }
+        }
+
+        function showModal(text) { document.getElementById('modalText').innerText = text; document.getElementById('instructionModal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('instructionModal').classList.add('hidden'); }
+        window.onload = () => showModal("Lanza los dados para el Experimento 1.");
+    </script>
+</body>
+</html>
