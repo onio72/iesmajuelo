@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Misión Gravitatoria: Niveles de Dificultad</title>
+    <title>Misión Gravitatoria: Análisis Proporcional</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,10 +13,8 @@
     window.MathJax = {
       tex: {
         inlineMath: [['$', '$'], ['\\(', '\\)']],
-        packages: {'[+]': ['color']}
-      },
-      svg: {
-        fontCache: 'global'
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
       },
       startup: {
         typeset: false
@@ -26,604 +24,368 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8fafc; /* Slate 50 - Modo Claro */
-            color: #1e293b; /* Slate 800 */
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .math-display {
-            overflow-x: auto;
-            overflow-y: hidden;
-            padding: 0.5rem 0;
-        }
-        .option-btn {
-            transition: all 0.2s;
-        }
-        .option-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        /* Animación de Subida de Nivel */
-        @keyframes levelUpSlide {
-            0% { transform: translateY(-50px); opacity: 0; }
-            100% { transform: translateY(0); opacity: 1; }
-        }
-        .level-modal {
-            animation: levelUpSlide 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:hover:not(:disabled) { transform: translateY(-2px); }
+        
+        .text-init { color: #2563eb; } /* Blue 600 - Inicial */
+        .text-mod { color: #dc2626; }  /* Red 600 - Modificado */
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex flex-col items-center p-4">
+<body class="bg-slate-50 min-h-screen flex flex-col items-center p-4 text-slate-800">
 
     <!-- Header -->
-    <header class="w-full max-w-3xl flex justify-between items-center mb-6 bg-white p-5 rounded-xl shadow-sm border-t-4 border-indigo-600">
+    <header class="w-full max-w-3xl flex justify-between items-center mb-6 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
         <div>
-            <h1 class="text-2xl font-bold text-indigo-900 tracking-tight">Misión Gravitatoria</h1>
-            <p class="text-sm text-indigo-500 font-mono font-bold" id="level-indicator">NIVEL 1: CADETE</p>
+            <h1 class="text-2xl font-black text-indigo-900 tracking-tight">Misión Gravitatoria</h1>
+            <div id="level-badge" class="inline-block px-2 py-0.5 bg-indigo-600 text-white text-[10px] font-bold rounded mt-1 uppercase">Nivel 1: Cadete</div>
         </div>
-        <div class="text-right">
-            <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Calificación</div>
-            <div id="score-container" class="text-4xl font-bold text-slate-300 transition-colors duration-300">
-                <span id="score-display">0</span><span class="text-lg text-slate-400">/10</span>
-            </div>
+        <div class="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 text-center">
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Puntuación</div>
+            <div id="score-display" class="text-2xl font-mono font-bold text-slate-400 transition-colors">0.0</div>
         </div>
     </header>
 
-    <!-- Game Area -->
-    <main id="app" class="w-full max-w-3xl space-y-6 relative">
+    <main class="w-full max-w-3xl space-y-4">
         
-        <!-- Notificación de Nivel (Flotante) -->
-        <div id="level-modal" class="hidden absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
-            <div class="level-modal bg-indigo-600 text-white px-8 py-6 rounded-2xl shadow-2xl border-2 border-indigo-400 text-center pointer-events-auto">
-                <div class="text-4xl mb-2">🚀</div>
-                <h3 class="text-2xl font-black italic uppercase tracking-wider mb-1" id="level-title">¡NIVEL DESBLOQUEADO!</h3>
-                <p class="text-indigo-100" id="level-desc">Entrando en fase de maniobras complejas.</p>
-                <button onclick="game.closeLevelModal()" class="mt-4 bg-white text-indigo-700 px-6 py-2 rounded-full font-bold hover:bg-indigo-50 transition">CONTINUAR</button>
+        <!-- Question Card -->
+        <div id="question-card" class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100 fade-in">
+            <div class="h-1.5 w-full bg-slate-100">
+                <div id="progress-bar" class="h-full bg-indigo-500 transition-all duration-700" style="width: 0%"></div>
             </div>
-        </div>
-
-        <!-- Pantalla de Victoria -->
-        <div id="victory-screen" class="hidden bg-white border border-indigo-200 rounded-xl p-10 text-center shadow-lg">
-            <div class="text-6xl mb-4">🏆</div>
-            <h2 class="text-3xl font-bold text-indigo-800 mb-3">¡Misión Cumplida!</h2>
-            <p class="text-slate-600 mb-8 text-lg">Has completado todas las fases del entrenamiento.</p>
-            <p class="text-2xl font-bold text-slate-800 mb-8">Nota Final: <span id="final-score" class="text-indigo-600"></span> / 10</p>
-            <button onclick="game.resetGame()" class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-indigo-700 transition shadow-lg transform hover:-translate-y-1 uppercase tracking-wide">Reiniciar Misión</button>
-        </div>
-
-        <!-- Tarjeta de Pregunta -->
-        <div id="question-card" class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
             
-            <div class="p-8">
-                <!-- Etiqueta del tema -->
-                <div class="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
-                    <span id="topic-tag" class="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold uppercase rounded-full tracking-wide">Fuerza</span>
-                    <span id="difficulty-tag" class="text-xs text-slate-500 italic">Variación de 1 variable</span>
+            <div class="p-6 md:p-10">
+                <div class="flex items-center gap-2 mb-6">
+                    <span id="topic-tag" class="bg-indigo-50 text-indigo-700 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter">Fuerza Gravitatoria</span>
+                    <span class="text-slate-300 text-xs">|</span>
+                    <span id="diff-tag" class="text-slate-400 text-xs italic">Análisis proporcional</span>
                 </div>
-                
-                <!-- El enunciado -->
-                <div id="question-container">
-                    <p id="question-text" class="text-xl text-slate-800 font-medium leading-loose">
-                        <!-- Inyectado por JS -->
+
+                <div id="question-container" class="space-y-4">
+                    <p id="question-text" class="text-lg md:text-xl text-slate-700 leading-relaxed font-medium">
+                        Calculando órbitas...
                     </p>
                 </div>
 
-                <!-- Grid de Opciones -->
-                <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-                    <!-- Botones inyectados por JS -->
+                <!-- Options -->
+                <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-10">
+                    <!-- Inyectado por JS -->
                 </div>
             </div>
         </div>
 
-        <!-- Tarjeta de Explicación -->
-        <div id="explanation-card" class="hidden bg-white rounded-xl shadow-md border-l-4 border-amber-400 p-6 mt-4">
-            <h3 class="text-amber-600 font-bold uppercase text-sm mb-4 tracking-wide">Análisis de Misión</h3>
-            <div id="explanation-content" class="text-sm space-y-5 text-slate-700 math-display leading-relaxed">
-                <!-- LaTeX inyectado aquí -->
+        <!-- Explanation Card -->
+        <div id="explanation-card" class="hidden bg-white rounded-3xl shadow-lg border-t-4 border-indigo-500 p-6 md:p-8 fade-in">
+            <div class="flex items-center gap-2 mb-6 text-indigo-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                <h3 class="text-lg font-bold">Análisis Comparativo</h3>
             </div>
-            <div class="mt-8 text-right">
-                <button onclick="game.nextQuestion()" class="bg-slate-800 text-white px-6 py-2 rounded-lg font-semibold hover:bg-slate-700 shadow-md transition">Siguiente Objetivo &rarr;</button>
+            
+            <div id="explanation-content" class="space-y-6 text-slate-700 leading-relaxed">
+                <!-- LaTeX dinámico -->
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-slate-100 flex justify-end">
+                <button id="next-btn" onclick="game.nextQuestion()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-2xl shadow-lg shadow-indigo-200 transition transform hover:-translate-y-0.5">
+                    Siguiente Objetivo &rarr;
+                </button>
             </div>
         </div>
-
     </main>
 
-    <footer class="mt-12 text-center text-slate-400 text-sm pb-6">
-        &copy; 2024 Física Interactiva.
+    <footer class="mt-12 text-slate-400 text-[10px] font-bold uppercase tracking-widest pb-10">
+        Simulador de Proporcionalidad Física &copy; 2024
     </footer>
 
-    <!-- Lógica del Juego -->
     <script>
-        // --- Utilidades Matemáticas y de Texto ---
+        const COL_INIT = "blue";
+        const COL_MOD = "red";
 
-        const FRACTIONS = {
-            0.0625: "\\frac{1}{16}", 0.111: "\\frac{1}{9}", 0.125: "\\frac{1}{8}", 
-            0.25: "\\frac{1}{4}", 0.333: "\\frac{1}{3}", 0.5: "\\frac{1}{2}", 
-            0.75: "\\frac{3}{4}", 1.5: "\\frac{3}{2}",
-            1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 8: "8", 9: "9", 
-            16: "16", 27: "27", 64: "64"
-        };
-
+        // Función mejorada para convertir decimales a fracciones LaTeX legibles
         const getLatexFrac = (val) => {
-            if (Math.abs(Math.round(val) - val) < 0.001) return Math.round(val).toString();
+            if (Math.abs(val - 1) < 0.0001) return "1";
             
-            for (let k in FRACTIONS) {
-                if (Math.abs(val - parseFloat(k)) < 0.001) return FRACTIONS[k];
-            }
-            
-            // Raíces
-            let sq = val * val; 
-            if (Math.abs(Math.round(sq) - sq) < 0.001) {
-                let r = Math.round(sq);
-                if (r > 1 && r < 100) return `\\sqrt{${r}}`;
-            }
-            
-            // Fracciones generadas
-            for (let den = 2; den <= 50; den++) {
+            // Buscamos una fracción exacta con denominador hasta 256 para cubrir casos como 1/36, 1/64, 1/144...
+            for (let den = 1; den <= 256; den++) {
                 let num = Math.round(val * den);
-                if (Math.abs(val - num/den) < 0.001) {
-                    return `\\frac{${num}}{${den}}`;
+                if (Math.abs(val - num / den) < 0.0001) {
+                    if (den === 1) return num.toString();
+                    return "\\frac{" + num + "}{" + den + "}";
                 }
             }
-            
-            // Inversa Raíz
-            let invSq = 1 / (val * val);
-            if (Math.abs(Math.round(invSq) - invSq) < 0.001) {
-                let r = Math.round(invSq);
-                if (r > 1) return `\\frac{1}{\\sqrt{${r}}}`;
-            }
-            
+            // Fallback por si acaso, aunque con los factores usados siempre debería encontrar fracción
             return val.toFixed(2);
         };
-
-        const FACTORS = [2, 3, 4, 0.5, 0.333333, 0.25];
-        const NICE_NUMBERS = [
-            0.125, 0.25, 0.5, 0.75, 1.5, 2, 3, 4, 5, 6, 8, 9, 16, 
-            1/3, 2/3, 1/9, 4/9, Math.sqrt(2), Math.sqrt(3)
-        ];
-
-        // --- Definición de Magnitudes ---
 
         const TEMPLATES = {
             F: {
                 label: 'Fuerza Gravitatoria',
                 symbol: 'F',
-                formula: 'F = G \\frac{M m}{d^2}', 
-                vars: ['M', 'm', 'd'],
-                dep: { M: 1, m: 1, d: -2 },
-                textGen: (c) => {
-                    let mass_text = "";
-                    if (c.M === 1 && c.m === 1) {
-                        mass_text = "ambas masas se mantienen constantes";
-                    } else {
-                        const M_txt = getChangeText(c.M, "una de las masas", "f");
-                        const m_txt = getChangeText(c.m, "la otra masa", "f");
-                        mass_text = `${M_txt}, ${m_txt}`;
-                    }
-                    const d_txt = getChangeText(c.d, "la distancia que las separa", "f");
-                    return `Dos cuerpos puntuales se atraen con una fuerza gravitatoria de módulo $F$. Si modificamos el sistema de modo que ${mass_text} y ${d_txt}, ¿cuál será el valor de la nueva fuerza de atracción?`;
-                }
+                formula: 'G \\frac{[[M]] \\cdot [[m]]}{[[d]]^2}',
+                vars: { M: 'masa 1', m: 'masa 2', d: 'distancia' },
+                powers: { M: 1, m: 1, d: -2 }
             },
             g: {
                 label: 'Intensidad de Campo',
                 symbol: 'g',
-                formula: 'g = G \\frac{M}{r^2}',
-                vars: ['M', 'r'],
-                dep: { M: 1, r: -2 },
-                textGen: (c) => {
-                    const M_txt = getChangeText(c.M, "la masa del planeta", "f");
-                    const r_txt = getChangeText(c.r, "el radio del planeta", "m");
-                    return `En la superficie de un planeta de masa $M$ y radio $R$, la intensidad del campo gravitatorio es $g$. Determine la intensidad de campo en la superficie de otro planeta donde ${M_txt} y ${r_txt}.`;
-                }
+                formula: 'G \\frac{[[M]]}{[[R]]^2}',
+                vars: { M: 'masa', R: 'radio' },
+                powers: { M: 1, R: -2 }
             },
             Ep: {
                 label: 'Energía Potencial',
-                symbol: '{E_p}', 
-                formula: 'E_p = -G \\frac{M m}{r}',
-                vars: ['M', 'm', 'r'],
-                dep: { M: 1, m: 1, r: -1 },
-                textGen: (c) => {
-                    let mass_text = "";
-                    if (c.M === 1 && c.m === 1) {
-                        mass_text = "ambas masas se mantienen constantes";
-                    } else {
-                        const M_txt = getChangeText(c.M, "la masa generadora", "f");
-                        const m_txt = getChangeText(c.m, "la masa testigo", "f");
-                        mass_text = `${M_txt}, ${m_txt}`;
-                    }
-                    const r_txt = getChangeText(c.r, "la distancia entre ellas", "f");
-                    return `La energía potencial gravitatoria de un sistema formado por dos masas separadas una distancia $r$ es $E_p$. Calcule el valor de dicha energía para un sistema donde ${mass_text} y ${r_txt}.`;
-                }
+                symbol: 'E_p',
+                formula: '-G \\frac{[[M]] \\cdot [[m]]}{[[r]]}',
+                vars: { M: 'masa 1', m: 'masa 2', r: 'distancia' },
+                powers: { M: 1, m: 1, r: -1 }
             },
             V: {
                 label: 'Potencial Gravitatorio',
                 symbol: 'V',
-                formula: 'V = -G \\frac{M}{r}',
-                vars: ['M', 'r'],
-                dep: { M: 1, r: -1 },
-                textGen: (c) => {
-                    const M_txt = getChangeText(c.M, "la masa creadora del campo", "f");
-                    const r_txt = getChangeText(c.r, "la distancia al centro", "f");
-                    return `El potencial gravitatorio creado por una masa puntual a una cierta distancia es $V$. ¿Cuánto valdrá el potencial si consideramos un punto donde ${M_txt} y ${r_txt}?`;
-                }
+                formula: '-G \\frac{[[M]]}{[[r]]}',
+                vars: { M: 'masa', r: 'distancia' },
+                powers: { M: 1, r: -1 }
             }
         };
 
-        function getChangeText(val, name, gender) {
-            if (val === 1) return `${name} se mantiene constante`;
-            let action = "";
-            if (val === 2) action = "se duplica";
-            else if (val === 3) action = "se triplica";
-            else if (val === 4) action = "se cuadruplica";
-            else if (Math.abs(val - 0.5) < 0.001) action = "se reduce a la mitad";
-            else if (Math.abs(val - 0.25) < 0.001) action = "se reduce a la cuarta parte";
-            else if (Math.abs(val - 1/3) < 0.001) action = "se reduce a la tercera parte";
-            else action = `se multiplica por ${getLatexFrac(val)}`;
-            return `${name} ${action}`;
-        }
+        const FACTORS = [
+            { text: 'se duplica', val: 2 },
+            { text: 'se triplica', val: 3 },
+            { text: 'se cuadruplica', val: 4 },
+            { text: 'se reduce a la mitad', val: 0.5 },
+            { text: 'se reduce a la tercera parte', val: 0.3333333333333333 },
+            { text: 'se reduce a la cuarta parte', val: 0.25 }
+        ];
 
-        // --- Motor del Juego ---
-
-        class PhysicsGame {
+        class Game {
             constructor() {
                 this.score = 0;
-                this.deck = []; 
-                this.currentCard = null;
-                this.isProcessing = false;
-                this.currentLevel = 0;
-                
-                this.initDeck();
-                // Retraso inicial para mostrar el primer modal
-                setTimeout(() => {
-                    this.showLevelModal(1, "ENTRENAMIENTO BÁSICO", "Domina los cambios de una sola variable.");
-                    this.nextQuestion();
-                }, 500);
+                this.currentQuestion = null;
+                this.isAnswering = true;
+                this.init();
             }
 
-            initDeck() {
-                let allCards = [];
-                const magKeys = Object.keys(TEMPLATES);
-
-                magKeys.forEach(key => {
-                    const t = TEMPLATES[key];
-                    const nVars = t.vars.length;
-                    const maxComb = Math.pow(2, nVars) - 1;
-
-                    for(let i=1; i<=maxComb; i++) {
-                        let difficulty = 0;
-                        let mask = i;
-                        while(mask > 0) {
-                            if(mask & 1) difficulty++;
-                            mask >>= 1;
-                        }
-                        
-                        allCards.push({
-                            mag: key,
-                            mask: i,
-                            difficulty: difficulty
-                        });
-                    }
-                });
-
-                let level1 = allCards.filter(c => c.difficulty === 1);
-                let level2 = allCards.filter(c => c.difficulty === 2);
-                let level3 = allCards.filter(c => c.difficulty === 3);
-
-                const shuffle = (arr) => arr.sort(() => Math.random() - 0.5);
-                shuffle(level1);
-                shuffle(level2);
-                shuffle(level3);
-
-                this.deck = [...level3, ...level2, ...level1];
+            init() {
+                this.nextQuestion();
             }
 
-            updateScoreDisplay() {
-                const display = document.getElementById('score-display');
-                display.innerText = this.score;
-                
-                const container = document.getElementById('score-container');
-                container.classList.remove('text-red-500', 'text-yellow-500', 'text-emerald-500', 'text-slate-300');
-                
-                if (this.score < 5) {
-                    container.classList.add('text-red-500');
-                } else if (this.score < 7) {
-                    container.classList.add('text-yellow-500');
+            fmtVar(sym, idx) {
+                const col = idx === 1 ? COL_INIT : COL_MOD;
+                let baseLatex = "";
+                if (sym.includes('_')) {
+                    const parts = sym.split('_');
+                    baseLatex = parts[0] + "_{" + parts[1] + "," + idx + "}";
                 } else {
-                    container.classList.add('text-emerald-500');
+                    baseLatex = sym + "_{" + idx + "}";
                 }
-            }
-
-            showLevelModal(level, title, desc) {
-                const modal = document.getElementById('level-modal');
-                document.getElementById('level-title').innerText = title;
-                document.getElementById('level-desc').innerText = desc;
-                
-                modal.classList.remove('hidden');
-                
-                let role = level === 1 ? "CADETE" : (level === 2 ? "PILOTO" : "COMANDANTE");
-                document.getElementById('level-indicator').innerText = `NIVEL ${level}: ${role}`;
-                this.currentLevel = level;
-            }
-
-            closeLevelModal() {
-                document.getElementById('level-modal').classList.add('hidden');
+                return "{\\color{" + col + "} " + baseLatex + "}";
             }
 
             nextQuestion() {
-                if (this.deck.length === 0) {
-                    this.showVictory();
-                    return;
-                }
-
-                this.isProcessing = false;
+                this.isAnswering = true;
                 document.getElementById('explanation-card').classList.add('hidden');
-                document.getElementById('victory-screen').classList.add('hidden');
-                document.getElementById('question-card').classList.remove('hidden');
-
-                const nextCardPreview = this.deck[this.deck.length - 1];
                 
-                if (nextCardPreview.difficulty > this.currentLevel) {
-                    if (nextCardPreview.difficulty === 2) {
-                        this.showLevelModal(2, "FASE 2: PILOTO", "Atención: Dos variables cambian simultáneamente.");
-                    } else if (nextCardPreview.difficulty === 3) {
-                        this.showLevelModal(3, "FASE FINAL: COMANDANTE", "Máxima complejidad. Tres variables alteradas.");
-                    }
-                    this.currentLevel = nextCardPreview.difficulty;
-                }
-
-                const card = this.deck.pop();
-                const template = TEMPLATES[card.mag];
+                const magKeys = Object.keys(TEMPLATES);
+                const magKey = magKeys[Math.floor(Math.random() * magKeys.length)];
+                const template = TEMPLATES[magKey];
                 
-                let changes = {}; 
-                let varsChangingCount = 0;
+                const varKeys = Object.keys(template.vars);
+                const changes = {};
+                let countChanges = 0;
 
-                template.vars.forEach((v, index) => {
-                    const isChanging = (card.mask & (1 << index)) !== 0;
-                    if (isChanging) {
+                varKeys.forEach(v => {
+                    // Probabilidad de cambio aumentada para que haya casos interesantes (como 1/36)
+                    if (Math.random() > 0.4 || countChanges === 0) {
                         changes[v] = FACTORS[Math.floor(Math.random() * FACTORS.length)];
-                        varsChangingCount++;
+                        countChanges++;
                     } else {
-                        changes[v] = 1;
+                        changes[v] = { text: 'se mantiene constante', val: 1 };
                     }
                 });
 
                 let resultFactor = 1;
-                template.vars.forEach(v => {
-                    const exp = template.dep[v];
-                    const val = changes[v];
-                    resultFactor *= Math.pow(val, exp);
+                varKeys.forEach(v => {
+                    resultFactor *= Math.pow(changes[v].val, template.powers[v]);
                 });
 
-                this.currentCard = {
-                    template,
-                    changes,
-                    resultFactor,
-                    difficulty: varsChangingCount
-                };
-
+                this.currentQuestion = { magKey, template, changes, resultFactor };
                 this.render();
             }
 
-            async render() {
-                const c = this.currentCard;
+            render() {
+                const q = this.currentQuestion;
+                document.getElementById('topic-tag').innerText = q.template.label;
+                document.getElementById('diff-tag').innerText = "Variación de " + Object.values(q.changes).filter(c => c.val !== 1).length + " magnitud(es)";
                 
-                document.getElementById('topic-tag').innerText = c.template.label;
-                const diffText = c.difficulty === 1 ? "Variación de 1 variable" : `Variación de ${c.difficulty} variables`;
-                document.getElementById('difficulty-tag').innerText = diffText;
+                const initStyle = `<span class="text-blue-600 font-bold italic">estado inicial</span>`;
+                const modStyle = `<span class="text-red-600 font-bold italic">sistema modificado</span>`;
                 
-                this.updateScoreDisplay();
-
-                const qContainer = document.getElementById('question-text');
-                qContainer.innerHTML = c.template.textGen(c.changes);
-
-                this.renderOptions(c.resultFactor);
-
-                if (window.MathJax) {
-                    await MathJax.typesetPromise([
-                        document.getElementById('question-text'),
-                        document.getElementById('options-container')
-                    ]);
+                let text = "Consideremos un " + initStyle + " donde la magnitud gravitatoria vale $" + q.template.symbol + "$. Si alteramos las condiciones físicas para obtener un " + modStyle + " donde: ";
+                
+                const changeStrings = [];
+                for (let v in q.changes) {
+                    if (q.changes[v].val !== 1) {
+                        changeStrings.push("la <b>" + q.template.vars[v] + "</b> " + q.changes[v].text);
+                    }
                 }
+                text += changeStrings.join(' y ') + ".";
+                text += "<br><br>¿Cuál será el valor de la nueva magnitud en comparación con la del " + initStyle + "?";
+
+                document.getElementById('question-text').innerHTML = text;
+                
+                this.renderOptions();
+                this.typeset();
             }
 
-            renderOptions(correctVal) {
+            renderOptions() {
                 const container = document.getElementById('options-container');
                 container.innerHTML = '';
-
-                let optionsMap = new Map();
-                const addOption = (val) => {
-                    if (!Number.isFinite(val) || val <= 0.001 || isNaN(val)) return;
-                    const latex = getLatexFrac(val);
-                    if (!optionsMap.has(latex)) {
-                        optionsMap.set(latex, { val: val, latex: latex });
-                    }
-                };
-
-                addOption(correctVal);
-                if (correctVal !== 0) addOption(1/correctVal);
-                addOption(Math.pow(correctVal, 2));
-                addOption(Math.sqrt(correctVal));
-                addOption(correctVal * 2);
-                addOption(correctVal / 2);
-
-                let shuffledNice = [...NICE_NUMBERS].sort(() => 0.5 - Math.random());
-                for (let num of shuffledNice) {
-                    if (optionsMap.size >= 4) break;
-                    addOption(num);
-                }
                 
-                let backup = 1;
-                while (optionsMap.size < 4) { addOption(backup++); }
+                const correctVal = this.currentQuestion.resultFactor;
+                // Pool de opciones plausibles basadas en potencias
+                const pool = new Set([correctVal, 1/correctVal, 1/36, 1/16, 1/9, 4, 9, 16, 1/4]);
+                const options = Array.from(pool).filter(v => v > 0 && !isNaN(v)).sort(() => Math.random() - 0.5).slice(0, 4);
+                if (!options.includes(correctVal)) options[0] = correctVal;
 
-                let finalOpts = Array.from(optionsMap.values()).sort((a, b) => a.val - b.val);
-                const correctLatex = getLatexFrac(correctVal);
-                let correctIndex = finalOpts.findIndex(o => o.latex === correctLatex);
-                
-                let selectedOptions = [];
-                if (finalOpts.length <= 4) {
-                    selectedOptions = finalOpts;
-                } else {
-                    let start = Math.max(0, correctIndex - 1);
-                    if (start + 4 > finalOpts.length) start = finalOpts.length - 4;
-                    start = Math.max(0, start); 
-                    selectedOptions = finalOpts.slice(start, start + 4);
-                }
-
-                selectedOptions.forEach(opt => {
+                options.sort(() => Math.random() - 0.5).forEach(val => {
                     const btn = document.createElement('button');
-                    btn.className = "option-btn w-full p-6 text-left border rounded-lg bg-white hover:bg-indigo-50 hover:border-indigo-300 font-medium text-slate-700 border-slate-200 shadow-sm group flex justify-center items-center";
+                    btn.className = "option-btn group p-5 bg-white border-2 border-slate-100 rounded-2xl text-left hover:border-indigo-200 hover:bg-indigo-50/30 transition shadow-sm";
+                    const latex = getLatexFrac(val);
+                    const sym = this.currentQuestion.template.symbol;
+                    const eqPart = (latex === '1') ? '' : latex + ' \\cdot';
                     
-                    const sym = this.currentCard.template.symbol;
-                    let formula = "";
-                    if (opt.val === 1) {
-                        formula = `$ { ${sym} }_2 = { ${sym} }_1 $`;
-                    } else {
-                        formula = `$ { ${sym} }_2 = ${opt.latex} \\cdot { ${sym} }_1 $`;
-                    }
-                    
-                    btn.innerHTML = `<span class="text-xl font-serif">${formula}</span>`;
-                    btn.onclick = () => this.checkAnswer(opt.val, btn);
+                    btn.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="text-lg font-serif">$ ${this.fmtVar(sym, 2)} = ${eqPart} ${this.fmtVar(sym, 1)} $</span>
+                            <div class="w-6 h-6 rounded-full border-2 border-slate-100 group-hover:border-indigo-200 flex items-center justify-center text-[10px] font-bold text-slate-300">?</div>
+                        </div>
+                    `;
+                    btn.onclick = () => this.checkAnswer(val, btn);
                     container.appendChild(btn);
                 });
             }
 
             checkAnswer(val, btn) {
-                if (this.isProcessing) return;
-                this.isProcessing = true;
+                if (!this.isAnswering) return;
+                this.isAnswering = false;
 
-                const correct = this.currentCard.resultFactor;
-                const isCorrect = Math.abs(val - correct) < 0.001;
-
-                document.querySelectorAll('.option-btn').forEach(b => {
-                    b.disabled = true;
-                    b.classList.add('opacity-50', 'cursor-not-allowed');
-                });
-                btn.classList.remove('opacity-50', 'bg-white');
+                const correct = this.currentQuestion.resultFactor;
+                const isCorrect = Math.abs(val - correct) < 0.0001;
 
                 if (isCorrect) {
-                    this.score = Math.min(10, this.score + 0.5);
-                    btn.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-900');
-                    btn.innerHTML += `<span class="ml-2 text-emerald-600 text-xl">✓</span>`;
+                    this.score += 1.0;
+                    btn.classList.replace('border-slate-100', 'border-emerald-500');
+                    btn.classList.add('bg-emerald-50');
                 } else {
-                    this.score = Math.max(0, this.score - 0.25);
-                    btn.classList.add('bg-red-100', 'border-red-500', 'text-red-900');
-                    btn.innerHTML += `<span class="ml-2 text-red-600 text-xl">✗</span>`;
+                    this.score = Math.max(0, this.score - 0.5);
+                    btn.classList.replace('border-slate-100', 'border-red-500');
+                    btn.classList.add('bg-red-50');
                 }
-                
-                this.updateScoreDisplay();
+
+                this.updateUI();
                 this.showExplanation();
             }
 
-            async showExplanation() {
-                const c = this.currentCard;
-                const changes = c.changes;
-                const sym = c.template.symbol;
-
-                const isNegative = c.template.formula.includes("-G");
-                const constPrefix = isNegative ? "-G" : "G";
+            updateUI() {
+                const scoreDisp = document.getElementById('score-display');
+                scoreDisp.innerText = this.score.toFixed(1);
+                scoreDisp.className = "text-2xl font-mono font-bold " + (this.score >= 5 ? 'text-emerald-500' : 'text-indigo-600');
                 
-                let subNumParts = [];
-                let subDenParts = [];
-                let factorNumParts = [];
-                let factorDenParts = [];
+                const progress = (this.score / 10) * 100;
+                document.getElementById('progress-bar').style.width = Math.min(progress, 100) + "%";
+            }
 
-                c.template.vars.forEach(v => {
-                    const exp = c.template.dep[v];
-                    const val = changes[v];
-                    const absExp = Math.abs(exp);
-                    const latexVal = getLatexFrac(val);
+            showExplanation() {
+                const q = this.currentQuestion;
+                const container = document.getElementById('explanation-content');
+                
+                let html = "<div><p class=\"font-bold mb-2\">1. Definición física:</p><p class=\"text-sm\">Partimos de la fórmula general de $" + q.template.symbol + "$: " +
+                    "$$" + q.template.symbol + " = " + q.template.formula.split('[[').join('').split(']]').join('') + "$$</p></div>";
 
-                    let term = v;
-                    if (val !== 1) {
-                        term = `(${latexVal}${v})`;
+                html += "<div><p class=\"font-bold mb-2\">2. Comparación mediante cociente:</p>" +
+                    "<p class=\"text-sm\">Calculamos la relación entre el " +
+                    "<span class=\"text-red-600 font-bold\">estado modificado (2)</span> y el " +
+                    "<span class=\"text-blue-600 font-bold\">estado inicial (1)</span>:</p></div>";
+
+                const sym = q.template.symbol;
+                const v1 = (s) => this.fmtVar(s, 1);
+                const v2 = (s) => this.fmtVar(s, 2);
+
+                const getExpr = (idx) => {
+                    let f = q.template.formula;
+                    for (let v in q.template.vars) {
+                        f = f.split("[[" + v + "]]").join(this.fmtVar(v, idx));
                     }
-                    if (absExp > 1) {
-                        term = `${term}^${absExp}`;
-                    }
+                    return f;
+                };
 
-                    let numTerm = (val !== 1) ? latexVal : "";
-                    if (numTerm !== "" && absExp > 1) numTerm = `(${numTerm})^${absExp}`;
+                html += `<div class="bg-slate-50 p-4 rounded-xl my-4 overflow-x-auto">
+                    $$\\frac{${v2(sym)}}{${v1(sym)}} = \\frac{${getExpr(2)}}{${getExpr(1)}}$$
+                </div>`;
 
-                    if (exp > 0) {
-                        subNumParts.push(term);
-                        if (numTerm) factorNumParts.push(numTerm);
+                html += "<p class=\"text-sm\">Sustituimos las equivalencias de cada magnitud: ";
+                let substList = [];
+                for (let v in q.changes) {
+                    if (q.changes[v].val !== 1) {
+                        substList.push("$" + v2(v) + " = " + getLatexFrac(q.changes[v].val) + " " + v1(v) + "$");
                     } else {
-                        subDenParts.push(term);
-                        if (numTerm) factorDenParts.push(numTerm);
+                        substList.push("$" + v2(v) + " = " + v1(v) + "$");
                     }
-                });
-
-                const subNumTex = subNumParts.join(" \\cdot ");
-                const subDenTex = subDenParts.join(" "); 
-                
-                const factorNumTex = factorNumParts.length > 0 ? factorNumParts.join(" \\cdot ") : "1";
-                const factorDenTex = factorDenParts.length > 0 ? factorDenParts.join(" \\cdot ") : "1";
-
-                let substEq = `{ ${sym} }_2 = ${constPrefix} \\frac{${subNumTex}}{${subDenTex}}`;
-                
-                const baseRightSide = c.template.formula.split("=")[1].trim();
-                
-                let extractionEq = "";
-                let coeffFrac = "";
-                if (factorDenTex === "1") coeffFrac = factorNumTex;
-                else coeffFrac = `\\frac{${factorNumTex}}{${factorDenTex}}`;
-
-                extractionEq = `= ${coeffFrac} \\cdot \\left[ ${baseRightSide} \\right]`;
-
-                const resultStr = getLatexFrac(c.resultFactor);
-                
-                let finalEq = "";
-                if (Math.abs(c.resultFactor - 1) < 0.001) {
-                     finalEq = `{ ${sym} }_2 = { ${sym} }_1`;
-                } else {
-                     finalEq = `{ ${sym} }_2 = ${resultStr} \\cdot { ${sym} }_1`;
                 }
-                
-                const html = `
-                    <p class="font-bold text-indigo-700">1. Sustitución de variables</p>
-                    <p class="ml-4 mb-4">Sustituimos los nuevos valores ($2M, 3d$, etc.) en la fórmula de la Situación 2:
-                    $$ ${substEq} $$</p>
+                html += substList.join(', ') + ".</p>";
 
-                    <p class="font-bold text-indigo-700">2. Extracción de coeficientes (Cancelar)</p>
-                    <p class="ml-4 mb-4">Sacamos los números fuera de la fracción para separar la parte física original:
-                    $$ { ${sym} }_2 ${extractionEq} $$</p>
+                let numFactor = "";
+                let denFactor = "";
+                for (let v in q.changes) {
+                    const power = q.template.powers[v];
+                    const factor = q.changes[v].val;
+                    if (factor === 1) continue;
 
-                    <p class="font-bold text-indigo-700">3. Resultado final</p>
-                    <p class="ml-4">Lo que queda entre corchetes es exactamente la magnitud inicial $${sym}_1$:
-                    $$ ${finalEq} $$</p>
-                `;
+                    let part = getLatexFrac(factor);
+                    // Si el factor es una fracción compleja, lo ponemos entre paréntesis para la potencia
+                    if (part.includes("frac")) part = "\\left(" + part + "\\right)";
+                    
+                    if (Math.abs(power) > 1) part = part + "^{" + Math.abs(power) + "}";
+                    
+                    if (power > 0) numFactor += (numFactor ? ' \\cdot ' : '') + part;
+                    else denFactor += (denFactor ? ' \\cdot ' : '') + part;
+                }
 
-                const expContent = document.getElementById('explanation-content');
-                expContent.innerHTML = html;
+                if (!numFactor) numFactor = "1";
+                if (!denFactor) denFactor = "1";
+
+                html += `<div class="bg-indigo-50/50 p-4 rounded-xl my-4 overflow-x-auto text-indigo-900 font-bold">
+                    $$\\frac{${v2(sym)}}{${v1(sym)}} = \\frac{${numFactor}}{${denFactor}} = ${getLatexFrac(q.resultFactor)}$$
+                </div>`;
+
+                html += "<div><p class=\"font-bold mb-2\">3. Conclusión final:</p>" +
+                    "<p class=\"text-sm\">Al simplificar constantes y variables, obtenemos la fracción exacta del cambio:" +
+                    "$$" + v2(sym) + " = " + getLatexFrac(q.resultFactor) + " \\cdot " + v1(sym) + "$$</p></div>";
+
+                container.innerHTML = html;
                 document.getElementById('explanation-card').classList.remove('hidden');
+                this.typeset();
                 
-                if (window.MathJax) {
-                   await MathJax.typesetPromise([expContent]);
+                setTimeout(() => {
+                    document.getElementById('explanation-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+
+            typeset() {
+                if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
+                    MathJax.typesetPromise().catch(err => console.log('MathJax Error:', err));
                 }
-
-                expContent.scrollIntoView({behavior: "smooth"});
-            }
-
-            resetGame() {
-                this.score = 0;
-                this.initDeck();
-                this.currentLevel = 0;
-                this.showLevelModal(1, "ENTRENAMIENTO BÁSICO", "Domina los cambios de una sola variable.");
-                this.nextQuestion();
-            }
-
-            showVictory() {
-                document.getElementById('question-card').classList.add('hidden');
-                document.getElementById('explanation-card').classList.add('hidden');
-                document.getElementById('victory-screen').classList.remove('hidden');
-                const final = document.getElementById('final-score');
-                final.innerText = this.score;
-                
-                final.className = "text-2xl font-bold mb-8 " + (this.score < 5 ? "text-red-600" : (this.score < 7 ? "text-yellow-600" : "text-emerald-600"));
             }
         }
 
-        const game = new PhysicsGame();
+        let game;
+        window.onload = () => {
+            game = new Game();
+        };
     </script>
 </body>
 </html>
