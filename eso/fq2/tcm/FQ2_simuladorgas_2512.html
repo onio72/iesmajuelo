@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Gas Pro</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --panel-color: #ffffff;
+            --accent-color: #3b82f6;
+            --text-color: #1f2937;
+        }
+        body {
+            margin: 0;
+            background: var(--bg-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+        .header {
+            margin: 20px 0;
+            text-align: center;
+        }
+        #canvas-container {
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+            border: 4px solid #333;
+        }
+        canvas {
+            display: block;
+            cursor: crosshair;
+        }
+        #controls {
+            margin: 20px;
+            padding: 20px;
+            background: var(--panel-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            max-width: 900px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #4b5563;
+        }
+        input[type="range"] {
+            width: 200px;
+        }
+        select {
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            background: white;
+            outline: none;
+        }
+        .stats {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255,255,255,0.8);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            pointer-events: none;
+            font-size: 12px;
+        }
+        .btn-reset {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .btn-reset:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Simulación de Cinética de Gases</h1>
+        <p>Modelo físico con colisiones elásticas y rotación molecular</p>
+    </div>
+
+    <div id="canvas-container">
+        <div class="stats" id="stats">Partículas: 0 | T: 0K</div>
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <div id="controls">
+        <div class="control-group">
+            <label for="tempSlider">Temperatura: <span id="tempValue">150</span> K</label>
+            <input type="range" id="tempSlider" min="0" max="500" step="1" value="150">
+        </div>
+
+        <div class="control-group">
+            <label for="composition">Composición del Sistema</label>
+            <select id="composition">
+                <optgroup label="Sustancias Puras">
+                    <option value="pura_mono">Monoatómica Pura</option>
+                    <option value="pura_di_simple">Diatómica Simple Pura</option>
+                    <option value="pura_di_compuesta">Diatómica Compuesta Pura</option>
+                </optgroup>
+                <optgroup label="Mezclas Homogéneas">
+                    <option value="mezcla_homog_mono">Mezcla Monoatómica (Dos Colores)</option>
+                    <option value="mezcla_homog_di_simple">Mezcla Diatómica Simple</option>
+                    <option value="mezcla_homog_di_mixta">Mezcla (Simple + Compuesta)</option>
+                </optgroup>
+                <optgroup label="Mezclas Heterogéneas (Segregadas)">
+                    <option value="mezcla_hetero_mono">Gases Segregados (Monoatómicos)</option>
+                    <option value="mezcla_hetero_di_simple">Gases Segregados (Diatómicos)</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <button class="btn-reset" id="resetBtn">Reiniciar Posiciones</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const tempSlider = document.getElementById("tempSlider");
+        const tempValueDisplay = document.getElementById("tempValue");
+        const compositionSelect = document.getElementById("composition");
+        const statsDisplay = document.getElementById("stats");
+        const resetBtn = document.getElementById("resetBtn");
+
+        // Configuración
+        let cw, ch;
+        function resizeCanvas() {
+            cw = Math.min(window.innerWidth - 40, 1000);
+            ch = 600;
+            canvas.width = cw;
+            canvas.height = ch;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            initializeParticles();
+        });
+
+        const numParticles = 60;
+        const atomRadius = 12;
+        const bondLength = 10; // Distancia desde el centro a cada átomo en diatómicas
+        let temperature = parseFloat(tempSlider.value);
+        let particles = [];
+
+        // Colores y gradientes
+        const colors = {
+            red: { main: '#ef4444', light: '#fca5a5' },
+            blue: { main: '#3b82f6', light: '#93c5fd' },
+            green: { main: '#10b981', light: '#6ee7b7' },
+            gray: { main: '#6b7280', light: '#d1d5db' }
+        };
+
+        class Particle {
+            constructor(x, y, vx, vy, molType, angle = 0, vr = 0) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.molType = molType;
+                this.radius = atomRadius;
+                this.angle = angle; // Para rotación
+                this.vr = vr;       // Velocidad angular (radianes por frame)
+                this.mass = this.isDiatomic() ? 2 : 1;
+            }
+
+            isDiatomic() {
+                return this.molType.includes('di');
+            }
+
+            update() {
+                // Actualizar posición
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Actualizar rotación
+                if (this.isDiatomic()) {
+                    this.angle += this.vr;
+                }
+
+                // Rebote Paredes
+                const effectiveRadius = this.isDiatomic() ? this.radius + bondLength : this.radius;
+
+                if (this.x - effectiveRadius < 0) {
+                    this.x = effectiveRadius;
+                    this.vx *= -1;
+                } else if (this.x + effectiveRadius > cw) {
+                    this.x = cw - effectiveRadius;
+                    this.vx *= -1;
+                }
+
+                if (this.y - effectiveRadius < 0) {
+                    this.y = effectiveRadius;
+                    this.vy *= -1;
+                } else if (this.y + effectiveRadius > ch) {
+                    this.y = ch - effectiveRadius;
+                    this.vy *= -1;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+
+                if (this.isDiatomic()) {
+                    // Dibujar enlace (opcional, línea sutil)
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#999';
+                    ctx.lineWidth = 4;
+                    ctx.moveTo(-bondLength, 0);
+                    ctx.lineTo(bondLength, 0);
+                    ctx.stroke();
+
+                    // Definir colores de los dos átomos
+                    let c1, c2;
+                    if (this.molType === "di_simple") { c1 = c2 = colors.red; }
+                    else if (this.molType === "di_simple_red") { c1 = c2 = colors.red; }
+                    else if (this.molType === "di_simple_blue") { c1 = c2 = colors.blue; }
+                    else if (this.molType === "di_comp") { c1 = colors.blue; c2 = colors.red; }
+                    else if (this.molType === "di_comp_alt") { c1 = colors.blue; c2 = colors.green; }
+
+                    this.drawAtom(-bondLength, 0, c1);
+                    this.drawAtom(bondLength, 0, c2);
+                } else {
+                    let color = colors.red;
+                    if (this.molType === "mono_blue") color = colors.blue;
+                    this.drawAtom(0, 0, color);
+                }
+
+                ctx.restore();
+            }
+
+            drawAtom(ox, oy, colorSet) {
+                const grad = ctx.createRadialGradient(ox - 4, oy - 4, 2, ox, oy, this.radius);
+                grad.addColorStop(0, colorSet.light);
+                grad.addColorStop(1, colorSet.main);
+                
+                ctx.beginPath();
+                ctx.arc(ox, oy, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = grad;
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        function resolveCollision(p1, p2) {
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // Radio de colisión dinámico
+            const r1 = p1.isDiatomic() ? p1.radius + bondLength : p1.radius;
+            const r2 = p2.isDiatomic() ? p2.radius + bondLength : p2.radius;
+            const minDistance = r1 + r2;
+
+            if (distance < minDistance) {
+                // 1. Resolver superposición (evitar que se peguen)
+                const overlap = minDistance - distance;
+                const nx = dx / distance;
+                const ny = dy / distance;
+                
+                p1.x -= nx * overlap / 2;
+                p1.y -= ny * overlap / 2;
+                p2.x += nx * overlap / 2;
+                p2.y += ny * overlap / 2;
+
+                // 2. Resolver velocidades (Choque elástico simple)
+                // Vector normal y tangencial
+                const v1n = p1.vx * nx + p1.vy * ny;
+                const v2n = p2.vx * nx + p2.vy * ny;
+
+                // Si se están alejando, no procesar choque
+                if (v1n - v2n < 0) return;
+
+                // Conservación de momento unidimensional
+                const m1 = p1.mass;
+                const m2 = p2.mass;
+                
+                const newV1n = (v1n * (m1 - m2) + 2 * m2 * v2n) / (m1 + m2);
+                const newV2n = (v2n * (m2 - m1) + 2 * m1 * v1n) / (m1 + m2);
+
+                p1.vx += (newV1n - v1n) * nx;
+                p1.vy += (newV1n - v1n) * ny;
+                p2.vx += (newV2n - v2n) * nx;
+                p2.vy += (newV2n - v2n) * ny;
+
+                // Transferencia aleatoria a rotación (simula fricción de choque)
+                if (p1.isDiatomic()) p1.vr += (Math.random() - 0.5) * 0.05;
+                if (p2.isDiatomic()) p2.vr += (Math.random() - 0.5) * 0.05;
+            }
+        }
+
+        function getVelocityForTemp(temp) {
+            if (temp === 0) return { v: 0, r: 0 };
+            const baseSpeed = Math.sqrt(temp) * 0.4;
+            const angle = Math.random() * Math.PI * 2;
+            return {
+                vx: Math.cos(angle) * baseSpeed,
+                vy: Math.sin(angle) * baseSpeed,
+                vr: (Math.random() - 0.5) * (temp / 500) * 0.3 // Rotación proporcional a T
+            };
+        }
+
+        function initializeParticles() {
+            particles = [];
+            const comp = compositionSelect.value;
+            
+            for (let i = 0; i < numParticles; i++) {
+                let x, y, molType;
+                const vel = getVelocityForTemp(temperature);
+
+                // Lógica de posicionamiento y tipo
+                if (comp.startsWith("mezcla_hetero")) {
+                    const isTop = i < numParticles / 2;
+                    y = isTop ? Math.random() * (ch/2 - 50) + 25 : Math.random() * (ch/2 - 50) + ch/2 + 25;
+                    x = Math.random() * (cw - 60) + 30;
+                    
+                    if (comp === "mezcla_hetero_mono") {
+                        molType = isTop ? "mono" : "mono_blue";
+                    } else {
+                        molType = isTop ? "di_simple_red" : "di_simple_blue";
+                    }
+                } else {
+                    x = Math.random() * (cw - 60) + 30;
+                    y = Math.random() * (ch - 60) + 30;
+                    
+                    if (comp === "pura_mono") molType = "mono";
+                    else if (comp === "pura_di_simple") molType = "di_simple";
+                    else if (comp === "pura_di_compuesta") molType = "di_comp";
+                    else if (comp === "mezcla_homog_mono") molType = (i % 2 === 0) ? "mono" : "mono_blue";
+                    else if (comp === "mezcla_homog_di_simple") molType = (i % 2 === 0) ? "di_simple_red" : "di_simple_blue";
+                    else if (comp === "mezcla_homog_di_mixta") molType = (i % 2 === 0) ? "di_simple_red" : "di_comp";
+                }
+
+                particles.push(new Particle(x, y, vel.vx, vel.vy, molType, Math.random() * Math.PI, vel.vr));
+            }
+        }
+
+        function updateTemperature() {
+            // Ajustar velocidades existentes sin reiniciar posiciones
+            const factor = temperature === 0 ? 0 : Math.sqrt(temperature) * 0.4;
+            
+            particles.forEach(p => {
+                const currentV = Math.sqrt(p.vx**2 + p.vy**2);
+                if (currentV === 0 && temperature > 0) {
+                    const v = getVelocityForTemp(temperature);
+                    p.vx = v.vx; p.vy = v.vy; p.vr = v.vr;
+                } else if (temperature === 0) {
+                    p.vx = 0; p.vy = 0; p.vr = 0;
+                } else {
+                    // Normalizar y re-escalar para mantener la dirección pero cambiar magnitud
+                    const ratio = factor / currentV;
+                    p.vx *= ratio;
+                    p.vy *= ratio;
+                    p.vr = (p.vr / Math.abs(p.vr || 1)) * (temperature / 500) * 0.15;
+                }
+            });
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, cw, ch);
+
+            // Colisiones entre partículas
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    resolveCollision(particles[i], particles[j]);
+                }
+            }
+
+            // Actualizar y Dibujar
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            statsDisplay.innerText = `Partículas: ${particles.length} | T: ${temperature}K | Energía Sist: ${(temperature * particles.length / 10).toFixed(0)} J`;
+            
+            requestAnimationFrame(animate);
+        }
+
+        // Eventos
+        tempSlider.addEventListener("input", (e) => {
+            temperature = parseFloat(e.target.value);
+            tempValueDisplay.innerText = temperature;
+            updateTemperature();
+        });
+
+        compositionSelect.addEventListener("change", () => {
+            initializeParticles();
+        });
+
+        resetBtn.addEventListener("click", () => {
+            initializeParticles();
+        });
+
+        // Inicio
+        initializeParticles();
+        animate();
+    </script>
+</body>
+</html>
