@@ -99,37 +99,25 @@
             init: function() {
                 var win = window;
                 var tries = 0;
-                // Bucle de búsqueda de API con manejo de SecurityError (CORS)
                 while (tries < 10) {
                     try {
                         if (win.API != null) {
                             this.API = win.API;
                             break;
                         }
-                    } catch (e) {
-                        // Si no podemos acceder a las propiedades de 'win', rompemos el bucle
-                        break;
-                    }
-                    
+                    } catch (e) { break; }
                     try {
                         if (win.parent == null || win.parent == win) break;
                         win = win.parent;
-                    } catch (e) {
-                        // Si no podemos acceder a 'parent' por restricciones de origen, rompemos
-                        break;
-                    }
+                    } catch (e) { break; }
                     tries++;
                 }
-
                 if (this.API) {
                     this.API.LMSInitialize("");
                     this.API.LMSSetValue("cmi.core.score.min", "0");
                     this.API.LMSSetValue("cmi.core.score.max", "10");
                     this.API.LMSSetValue("cmi.core.lesson_status", "incomplete");
                     this.API.LMSCommit("");
-                    console.log("SCORM: API detectada y conectada.");
-                } else {
-                    console.warn("SCORM: No se pudo encontrar la API o el acceso fue denegado (Modo local).");
                 }
             },
             setScore: function(s) {
@@ -199,7 +187,6 @@ Bromo,81Br,81,80.9163,49.31`;
             document.getElementById('symbolText').innerText = data.symbol;
             document.getElementById('atomicNumber').innerText = data.z;
             const massEl = document.getElementById('massNumber'); massEl.innerText = ''; massEl.classList.remove('visible');
-            document.getElementById('isotopeInfo').innerText = "Pulsa en la leyenda o gráfico";
             const colors = ['#FFCE56', '#FF6384', '#36A2EB', '#FF9F40', '#4BC0C0', '#7f8c8d', '#FFD700', '#9b59b6'];
             const ctx = document.getElementById('isotopeChart').getContext('2d');
             if (currentChart) currentChart.destroy();
@@ -225,12 +212,10 @@ Bromo,81Br,81,80.9163,49.31`;
             const mostAbundant = data.isotopes.reduce((p, c) => (p.abundance > c.abundance) ? p : c);
             let pool = [data.z, data.z-1, data.z+1, mostAbundant.mass, mostAbundant.mass+1, mostAbundant.mass-1];
             pool = [...new Set(pool)].sort(() => Math.random() - 0.5);
-            
             container.appendChild(createDropdownQuestion(1, `En la naturaleza encontramos`, `isótopos del ${data.name}.`, [1,2,3,4,5], data.isotopes.length));
             container.appendChild(createDropdownQuestion(2, `Todos los átomos de ${data.name} tienen`, `protones.`, pool, data.z));
             container.appendChild(createDropdownQuestion(3, `El número atómico del ${data.name} es`, `.`, pool, data.z));
             container.appendChild(createDropdownQuestion(4, `El isótopo más abundante tiene una masa de`, `u.`, pool, mostAbundant.mass));
-            
             const q5 = document.createElement('div'); q5.className = 'question-block'; q5.id = 'q5-block'; q5.dataset.correct = mostAbundant.fullSymbol;
             q5.innerHTML = `<p class="question-text">5. ¿Cuál es el isótopo más abundante?</p><div class="iso-btn-group" id="btnGroup5"></div><div class="feedback-msg" id="feedback-5"></div>`;
             container.appendChild(q5);
@@ -239,9 +224,7 @@ Bromo,81Br,81,80.9163,49.31`;
                 b.onclick = () => { document.querySelectorAll('.iso-select-btn').forEach(x => x.classList.remove('selected')); b.classList.add('selected'); selectedIsotopeForQ5 = iso.fullSymbol; };
                 document.getElementById('btnGroup5').appendChild(b);
             });
-            
             container.appendChild(createDropdownQuestion(6, `La masa promedio estará más próxima a`, `u.`, pool, mostAbundant.mass));
-            
             const avg = data.isotopes.reduce((a, i) => a + (i.mass * i.abundance), 0) / 100;
             const q7 = document.createElement('div'); q7.className = 'question-block'; q7.id = 'q7-block'; q7.dataset.correct = avg;
             q7.innerHTML = `<p class="question-text">7. Calcula la masa atómica promedio (2 decimales):</p><input type="number" step="0.01" id="input-7"><div class="feedback-msg" id="feedback-7"></div>`;
@@ -257,19 +240,40 @@ Bromo,81Br,81,80.9163,49.31`;
 
         function checkAnswers() {
             let roundScore = 0;
+            // Nueva puntuación: 1.25 puntos por elemento perfecto (4 elementos = 5.0, 8 elementos = 10.0)
+            // Preguntas 1-6 valen 0.05 cada una (Total 0.30)
             for (let i = 1; i <= 6; i++) {
                 const block = document.getElementById(`q${i}-block`), fb = document.getElementById(`feedback-${i}`), correct = block.dataset.correct;
                 const user = i === 5 ? selectedIsotopeForQ5 : document.getElementById(`input-${i}`).value;
-                if (String(user) === String(correct)) { roundScore += 0.3; fb.innerText = "¡Correcto! (+0.3)"; fb.className = "feedback-msg correct"; }
-                else { globalScore = Math.max(0, globalScore - 0.15); fb.innerText = `Incorrecto. Era ${correct}.`; fb.className = "feedback-msg incorrect"; }
+                if (String(user) === String(correct)) { 
+                    roundScore += 0.05; 
+                    fb.innerText = "¡Correcto! (+0.05)"; 
+                    fb.className = "feedback-msg correct"; 
+                } else { 
+                    globalScore = Math.max(0, globalScore - 0.02); 
+                    fb.innerText = `Incorrecto. Era ${correct}.`; 
+                    fb.className = "feedback-msg incorrect"; 
+                }
                 if (i !== 5) document.getElementById(`input-${i}`).disabled = true; else block.querySelectorAll('button').forEach(b => b.disabled = true);
             }
+            // Pregunta 7 vale 0.95 (Total acumulado: 1.25 por elemento)
             const b7 = document.getElementById('q7-block'), fb7 = document.getElementById('feedback-7'), i7 = document.getElementById('input-7'), correct7 = parseFloat(b7.dataset.correct), user7 = parseFloat(i7.value);
             const diff = Math.abs(user7 - correct7);
-            if (diff < 0.05) { roundScore += 4; fb7.innerText = `¡Correcto! (${correct7.toFixed(2)})`; fb7.className = "feedback-msg correct"; }
-            else if (diff < 0.2) { roundScore += 2; fb7.innerText = `Casi. Era ${correct7.toFixed(2)}`; fb7.className = "feedback-msg regular"; }
-            else { globalScore = Math.max(0, globalScore - 0.5); fb7.innerText = `Incorrecto. Era ${correct7.toFixed(2)}`; fb7.className = "feedback-msg incorrect"; }
-            i7.disabled = true; globalScore = Math.min(10, globalScore + roundScore);
+            if (diff < 0.05) { 
+                roundScore += 0.95; 
+                fb7.innerText = `¡Correcto! (${correct7.toFixed(2)}) (+0.95)`; 
+                fb7.className = "feedback-msg correct"; 
+            } else if (diff < 0.2) { 
+                roundScore += 0.45; 
+                fb7.innerText = `Casi. Era ${correct7.toFixed(2)} (+0.45)`; 
+                fb7.className = "feedback-msg regular"; 
+            } else { 
+                globalScore = Math.max(0, globalScore - 0.1); 
+                fb7.innerText = `Incorrecto. Era ${correct7.toFixed(2)}`; 
+                fb7.className = "feedback-msg incorrect"; 
+            }
+            i7.disabled = true; 
+            globalScore = Math.min(10, globalScore + roundScore);
             document.getElementById('scoreValue').innerText = globalScore.toFixed(2);
             document.getElementById('scoreValue').className = globalScore >= 5 ? "score-value high" : "score-value low";
             SCORM.setScore(globalScore);
