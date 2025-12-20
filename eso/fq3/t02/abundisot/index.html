@@ -13,7 +13,7 @@
             --bg-color: #f4f6f7;
             --card-bg: #ffffff;
             --success-color: #27ae60;
-            --warning-color: #f39c12; /* Nuevo color para Regular */
+            --warning-color: #f39c12;
             --error-color: #c0392b;
             --text-dark: #333333;
         }
@@ -29,13 +29,6 @@
             min-height: 100vh;
         }
 
-        h1 {
-            color: var(--primary-color);
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        /* Layout Principal */
         .main-container {
             display: flex;
             flex-wrap: wrap;
@@ -45,7 +38,6 @@
             justify-content: center;
         }
 
-        /* Tarjeta del Elemento (Izquierda) */
         .card {
             background: var(--card-bg);
             border-radius: 15px;
@@ -60,7 +52,6 @@
             position: relative;
         }
 
-        /* Notación Química */
         .chem-symbol-container {
             font-family: 'Times New Roman', serif;
             position: relative;
@@ -72,53 +63,28 @@
             display: inline-block;
         }
 
-        .atomic-number { /* Z - Abajo Izquierda */
+        .atomic-number {
             position: absolute;
             bottom: 5px;
             left: -85px; 
             font-size: 40px;
             width: 80px;
             text-align: right;
-            pointer-events: none;
         }
 
-        .mass-number { /* A - Arriba Izquierda */
+        .mass-number {
             position: absolute;
             top: 5px;
             left: -85px; 
             font-size: 40px;
             width: 80px;
             text-align: right;
-            color: var(--primary-color); 
             opacity: 0; 
             transition: opacity 0.3s ease;
-            pointer-events: none;
         }
 
-        .mass-number.visible {
-            opacity: 1;
-        }
+        .mass-number.visible { opacity: 1; }
 
-        .element-name {
-            font-size: 24px;
-            font-weight: 600;
-            color: #555;
-            margin-top: 10px;
-        }
-
-        .info-panel {
-            margin-top: 20px;
-            text-align: center;
-            height: 60px; 
-        }
-
-        .info-text {
-            font-size: 18px;
-            color: var(--text-dark);
-            font-weight: bold;
-        }
-
-        /* Gráfico y Leyenda (Derecha) */
         .chart-card {
             background: var(--card-bg);
             border-radius: 15px;
@@ -132,52 +98,12 @@
             justify-content: space-around;
         }
 
-        .chart-wrapper {
-            position: relative;
-            height: 300px;
-            width: 300px;
-        }
+        .chart-wrapper { position: relative; height: 300px; width: 300px; }
 
-        /* Leyenda Personalizada */
-        .custom-legend {
-            list-style: none;
-            padding: 0;
-            margin-left: 20px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
+        .custom-legend { list-style: none; padding: 0; margin-left: 20px; max-height: 300px; overflow-y: auto; }
+        .legend-item { display: flex; align-items: center; margin-bottom: 10px; cursor: pointer; padding: 5px 10px; border-radius: 5px; transition: background 0.2s; }
+        .legend-color { width: 15px; height: 15px; border-radius: 3px; margin-right: 10px; }
 
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 5px;
-            transition: background 0.2s;
-        }
-
-        .legend-item:hover {
-            background-color: #eee;
-        }
-
-        .legend-color {
-            width: 15px;
-            height: 15px;
-            border-radius: 3px;
-            margin-right: 10px;
-        }
-
-        .legend-text {
-            font-size: 16px;
-            font-family: 'Times New Roman', serif;
-        }
-        
-        .legend-text sup {
-            font-size: 0.7em;
-        }
-
-        /* Sección de Preguntas */
         .quiz-section {
             margin-top: 30px;
             background: #fff;
@@ -188,71 +114,10 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
-        .score-board {
-            text-align: right;
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-        
+        .score-board { text-align: right; font-size: 1.5rem; margin-bottom: 20px; font-weight: bold; }
         .score-value.low { color: var(--error-color); }
         .score-value.high { color: var(--success-color); }
 
-        .question-block {
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .question-text {
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        select, input[type="number"] {
-            padding: 5px;
-            font-size: 1rem;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            margin: 0 5px;
-            background-color: #fff;
-        }
-        
-        input[type="number"] {
-            width: 100px;
-        }
-
-        /* Botones de selección de isótopo */
-        .iso-btn-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-
-        .iso-select-btn {
-            background-color: #ecf0f1;
-            border: 2px solid #bdc3c7;
-            color: #333;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: 'Times New Roman', serif;
-        }
-
-        .iso-select-btn.selected {
-            background-color: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
-
-        .iso-select-btn:hover:not(.selected) {
-            background-color: #dfe6e9;
-        }
-
-        /* Botones de acción */
         .action-btn {
             background-color: var(--primary-color);
             color: white;
@@ -261,39 +126,18 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 1.1rem;
-            margin-right: 10px;
-            transition: opacity 0.2s;
+            margin: 5px;
         }
 
-        .action-btn:disabled {
-            background-color: #95a5a6;
-            cursor: not-allowed;
-        }
-
-        .action-btn:hover:not(:disabled) {
-            opacity: 0.9;
-        }
-
-        .check-btn { background-color: var(--accent-color); }
-        .restart-btn { background-color: var(--success-color); display: none; }
-
-        .feedback-msg {
-            margin-top: 5px;
-            font-size: 0.95rem;
-            font-weight: bold;
-        }
+        .iso-btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        .iso-select-btn { padding: 8px 16px; border-radius: 20px; cursor: pointer; border: 2px solid #bdc3c7; }
+        .iso-select-btn.selected { background: var(--primary-color); color: white; }
+        .feedback-msg { margin-top: 5px; font-weight: bold; }
         .feedback-msg.correct { color: var(--success-color); }
-        .feedback-msg.regular { color: var(--warning-color); }
         .feedback-msg.incorrect { color: var(--error-color); }
+        .feedback-msg.regular { color: var(--warning-color); }
 
-        @media (max-width: 768px) {
-            .chart-card {
-                flex-direction: column;
-            }
-            .chem-symbol-container {
-                margin-left: 60px;
-            }
-        }
+        select, input[type=number] { padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
     </style>
 </head>
 <body>
@@ -301,51 +145,38 @@
     <h1>Abundancia Isotópica</h1>
 
     <div class="main-container">
-        <!-- Panel Izquierdo: Ficha del Elemento -->
         <div class="card">
             <div class="element-name" id="elementName">Cargando...</div>
-            
             <div class="chem-symbol-container">
-                <span class="mass-number" id="massNumber">12</span>
-                <span class="atomic-number" id="atomicNumber">6</span>
-                <span id="symbolText">C</span>
+                <span class="mass-number" id="massNumber"></span>
+                <span class="atomic-number" id="atomicNumber"></span>
+                <span id="symbolText"></span>
             </div>
-
-            <div class="info-panel">
-                <div id="isotopeInfo" class="info-text">Pulsa en la leyenda para ver detalles</div>
-            </div>
+            <div id="isotopeInfo" style="margin-top:20px; font-weight:bold;">Pulsa en la leyenda para detalles</div>
         </div>
 
-        <!-- Panel Derecho: Gráfico y Leyenda -->
         <div class="chart-card">
             <div class="chart-wrapper">
                 <canvas id="isotopeChart"></canvas>
             </div>
-            <ul class="custom-legend" id="chartLegend">
-                <!-- La leyenda se genera con JS -->
-            </ul>
+            <ul class="custom-legend" id="chartLegend"></ul>
         </div>
     </div>
 
-    <!-- Panel Inferior: Preguntas -->
     <div class="quiz-section">
         <div class="score-board">
             Puntuación: <span id="scoreValue" class="score-value low">0.00</span> / 10
         </div>
-
-        <div id="questionsContainer">
-            <!-- Las preguntas se generan dinámicamente aquí -->
-        </div>
-
+        <div id="questionsContainer"></div>
         <div style="margin-top: 20px; text-align: center;">
-            <button id="checkBtn" class="action-btn check-btn" onclick="checkAnswers()">Corregir</button>
-            <button id="nextBtn" class="action-btn" onclick="loadNextElement()" style="display:none;">Siguiente Elemento</button>
-            <button id="restartBtn" class="action-btn restart-btn" onclick="restartGame()">Reiniciar Juego</button>
+            <button id="checkBtn" class="action-btn" onclick="checkAnswers()">Corregir</button>
+            <button id="nextBtn" class="action-btn" onclick="loadNextElement()" style="display:none;">Siguiente</button>
+            <button id="restartBtn" class="action-btn" onclick="restartGame()" style="display:none; background-color: var(--success-color);">Reiniciar</button>
         </div>
     </div>
 
     <script>
-        // --- 0. SCORM API WRAPPER (Minificado y Simplificado para SCORM 1.2) ---
+        // --- 0. SCORM API WRAPPER CORREGIDO ---
         var SCORM = {
             API: null,
             init: function() {
@@ -357,50 +188,45 @@
                     this.API.LMSSetValue("cmi.core.score.max", "10");
                     this.API.LMSSetValue("cmi.core.lesson_status", "incomplete");
                     this.API.LMSCommit("");
-                    console.log("SCORM: Conectado.");
+                    console.log("SCORM: Conectado e Inicializado.");
                 } else {
-                    console.warn("SCORM: API no encontrada. Ejecutando en modo local.");
+                    console.warn("SCORM: API no encontrada o bloqueada por seguridad. Modo local activado.");
                 }
             },
             getAPI: function() {
                 var findAPITries = 0;
                 var win = window;
                 try {
+                    // Intentamos buscar la API subiendo por la jerarquía de ventanas (frames)
                     while ((win.API == null) && (win.parent != null) && (win.parent != win)) {
                         findAPITries++;
-                        if (findAPITries > 7) {
-                            console.warn("SCORM: API search depth limit reached.");
-                            return null;
-                        }
+                        if (findAPITries > 10) return null;
                         win = win.parent;
                     }
                     return win.API;
                 } catch (e) {
-                    console.warn("SCORM: Security error while searching for API (likely cross-origin sandbox). Running locally.", e);
+                    // Si hay un SecurityError por Cross-Origin, capturamos el error y devolvemos null
                     return null;
                 }
             },
             setScore: function(score) {
                 if (this.API) {
-                    this.API.LMSSetValue("cmi.core.score.raw", score.toFixed(2));
+                    var formattedScore = score.toFixed(2);
+                    this.API.LMSSetValue("cmi.core.score.raw", formattedScore);
                     this.API.LMSCommit("");
                 }
             },
             setComplete: function() {
                 if (this.API) {
-                    this.API.LMSSetValue("cmi.core.lesson_status", "passed"); // O 'completed'
+                    this.API.LMSSetValue("cmi.core.lesson_status", "passed");
                     this.API.LMSCommit("");
                 }
             },
             terminate: function() {
-                if (this.API) {
-                    this.API.LMSFinish("");
-                }
+                if (this.API) this.API.LMSFinish("");
             }
         };
 
-        // --- 1. PROCESAMIENTO DE DATOS ---
-        
         const csvData = `Elemento,Simbolo,Masa_nominal,Masa_exacta,Abundancia
 Hidrógeno,1H,1,1.00783,99.99
 Hidrógeno,D/2H,2,2.01410,0.01
@@ -446,286 +272,110 @@ Renio,187Re,187,186.955753,62.60`;
         };
 
         let parsedElements = {};
-        let validElementKeys = []; 
+        let validElementKeys = [];
         let currentElementKey = '';
-        let currentElementData = null;
         let currentChart = null;
-        
         let globalScore = 0.0;
         let selectedIsotopeForQ5 = null;
 
-        function parseCSV() {
+        function initData() {
             const lines = csvData.split('\n');
             for (let i = 1; i < lines.length; i++) {
-                const parts = lines[i].split(',');
-                if (parts.length < 5) continue;
-
-                const name = parts[0].trim();
-                const rawSymbol = parts[1].trim();
-                const massNominal = parseInt(parts[2].trim());
-                let abundanceStr = parts[4].trim();
-                const abundance = parseFloat(abundanceStr) || 0;
-
-                const chemSymbol = rawSymbol.replace(/[0-9]/g, '').replace('D/', '').replace('/H', ''); 
-
+                const p = lines[i].split(',');
+                if (p.length < 5) continue;
+                const name = p[0].trim();
+                const symbol = p[1].trim().replace(/[0-9]/g, '').replace('D/', '').replace('/H', '');
                 if (!parsedElements[name]) {
-                    parsedElements[name] = {
-                        name: name,
-                        symbol: chemSymbol,
-                        z: atomicNumbersMap[name] || 0,
-                        isotopes: []
-                    };
+                    parsedElements[name] = { name, symbol, z: atomicNumbersMap[name] || 0, isotopes: [] };
                 }
-
-                parsedElements[name].isotopes.push({
-                    fullSymbol: rawSymbol,
-                    mass: massNominal,
-                    abundance: abundance,
-                    label: rawSymbol
-                });
+                parsedElements[name].isotopes.push({ fullSymbol: p[1].trim(), mass: parseInt(p[2]), abundance: parseFloat(p[4]) });
             }
-
-            validElementKeys = Object.keys(parsedElements).filter(key => parsedElements[key].isotopes.length > 1);
+            validElementKeys = Object.keys(parsedElements).filter(k => parsedElements[k].isotopes.length > 1);
         }
-
-        // --- 2. LÓGICA DE VISUALIZACIÓN ---
 
         function loadNextElement() {
-            if (globalScore >= 10) {
-                endGame();
-                return;
-            }
-            
+            if (globalScore >= 10) { endGame(); return; }
+            document.getElementById('nextBtn').style.display = 'none';
             document.getElementById('checkBtn').style.display = 'inline-block';
             document.getElementById('checkBtn').disabled = false;
-            document.getElementById('nextBtn').style.display = 'none';
 
-            if (validElementKeys.length === 0) {
-                console.error("No hay elementos válidos con >1 isótopo");
-                return;
-            }
-
-            // --- CORRECCIÓN 1: Evitar repetición consecutiva ---
-            let randomKey;
-            if (validElementKeys.length > 1) {
-                // Si hay más de 1 opción, buscamos hasta encontrar una diferente a la actual
-                do {
-                    randomKey = validElementKeys[Math.floor(Math.random() * validElementKeys.length)];
-                } while (randomKey === currentElementKey);
-            } else {
-                // Si solo hay 1, no queda otra que repetir
-                randomKey = validElementKeys[0];
-            }
-
-            currentElementKey = randomKey;
-            currentElementData = parsedElements[randomKey];
+            let key;
+            do { key = validElementKeys[Math.floor(Math.random() * validElementKeys.length)]; } while (key === currentElementKey && validElementKeys.length > 1);
             
-            renderElement(currentElementData);
-            generateFullQuiz(currentElementData);
-        }
-
-        function restartGame() {
-            globalScore = 0.0;
-            updateScoreDisplay();
-            SCORM.setScore(0); // Resetear SCORM
-            document.getElementById('restartBtn').style.display = 'none';
-            document.getElementById('checkBtn').style.display = 'inline-block';
-            loadNextElement();
-        }
-
-        function endGame() {
-            document.getElementById('questionsContainer').innerHTML = `<h3>¡Felicidades! Has alcanzado la puntuación máxima de 10.</h3>`;
-            document.getElementById('checkBtn').style.display = 'none';
-            document.getElementById('nextBtn').style.display = 'none';
-            document.getElementById('restartBtn').style.display = 'inline-block';
-            
-            // --- SCORM: Finalizar curso ---
-            SCORM.setScore(10);
-            SCORM.setComplete();
-            // No cerramos (terminate) aquí para permitir reiniciar si el usuario quiere, 
-            // se cerrará al salir de la página.
+            currentElementKey = key;
+            const data = parsedElements[key];
+            renderElement(data);
+            generateQuiz(data);
         }
 
         function renderElement(data) {
             document.getElementById('elementName').innerText = data.name;
             document.getElementById('symbolText').innerText = data.symbol;
             document.getElementById('atomicNumber').innerText = data.z;
+            document.getElementById('massNumber').classList.remove('visible');
             
-            const massEl = document.getElementById('massNumber');
-            massEl.innerText = '';
-            massEl.classList.remove('visible');
-            
-            document.getElementById('isotopeInfo').innerText = "Pulsa en la leyenda o gráfico";
-
-            const labels = data.isotopes.map(iso => iso.fullSymbol);
-            const abundanceData = data.isotopes.map(iso => iso.abundance);
-
-            const colors = [
-                '#FFCE56', // Amarillo
-                '#FF6384', // Rojo
-                '#36A2EB', // Azul
-                '#FF9F40', // Naranja
-                '#4BC0C0', // Turquesa
-                '#7f8c8d', // Gris Azulado Oscuro
-                '#FFD700', // Oro
-                '#9b59b6'  // Violeta
-            ];
-
+            const labels = data.isotopes.map(i => i.fullSymbol);
+            const abundances = data.isotopes.map(i => i.abundance);
             const ctx = document.getElementById('isotopeChart').getContext('2d');
+            
             if (currentChart) currentChart.destroy();
-
             currentChart = new Chart(ctx, {
                 type: 'pie',
                 data: {
                     labels: labels,
                     datasets: [{
-                        data: abundanceData,
-                        backgroundColor: colors.slice(0, data.isotopes.length),
-                        borderColor: '#fff',
-                        borderWidth: 1 
+                        data: abundances,
+                        backgroundColor: ['#FFCE56', '#FF6384', '#36A2EB', '#FF9F40', '#4BC0C0', '#9b59b6']
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return ` ${context.label}: ${parseFloat(context.raw).toLocaleString('es-ES', {maximumFractionDigits: 3})}%`;
-                                }
-                            }
-                        }
-                    }
-                }
+                options: { responsive: true, plugins: { legend: { display: false } } }
             });
 
-            // Leyenda
-            const legendContainer = document.getElementById('chartLegend');
-            legendContainer.innerHTML = '';
-
-            data.isotopes.forEach((iso, index) => {
+            const legend = document.getElementById('chartLegend');
+            legend.innerHTML = '';
+            data.isotopes.forEach((iso, idx) => {
                 const li = document.createElement('li');
                 li.className = 'legend-item';
-                
-                const colorBox = document.createElement('span');
-                colorBox.className = 'legend-color';
-                const isoColor = colors[index]; 
-                colorBox.style.backgroundColor = isoColor;
-                
-                const text = document.createElement('span');
-                text.className = 'legend-text';
-                
-                // NOTACIÓN CIENTÍFICA: SUPERÍNDICE A LA IZQUIERDA
-                text.innerHTML = `<sup>${iso.mass}</sup>${data.symbol}`;
-
-                li.appendChild(colorBox);
-                li.appendChild(text);
-
-                li.onclick = () => { highlightIsotope(iso.mass, iso.abundance, isoColor); };
-                legendContainer.appendChild(li);
+                li.innerHTML = `<span class="legend-color" style="background:${currentChart.data.datasets[0].backgroundColor[idx]}"></span>
+                                <span><sup>${iso.mass}</sup>${data.symbol}</span>`;
+                li.onclick = () => {
+                    const massEl = document.getElementById('massNumber');
+                    massEl.innerText = iso.mass;
+                    massEl.classList.add('visible');
+                    document.getElementById('isotopeInfo').innerHTML = `Abundancia: ${iso.abundance}%`;
+                };
+                legend.appendChild(li);
             });
         }
 
-        function highlightIsotope(mass, abundance, color) {
-            const massEl = document.getElementById('massNumber');
-            massEl.innerText = mass;
-            massEl.classList.add('visible');
-            
-            if (color) {
-                massEl.style.color = color;
-            }
-
-            const infoEl = document.getElementById('isotopeInfo');
-            const displayAbundance = parseFloat(abundance).toLocaleString('es-ES', {maximumFractionDigits: 4});
-            
-            const colorStyle = color ? `style="color:${color}; font-size:1.4em"` : 'style="font-size:1.4em"';
-            
-            infoEl.innerHTML = `Abundancia: <span ${colorStyle}>${displayAbundance}%</span>`;
-        }
-
-        // --- 3. GENERACIÓN DE PREGUNTAS (QUIZ) ---
-
-        function generateFullQuiz(data) {
+        function generateQuiz(data) {
             const container = document.getElementById('questionsContainer');
             container.innerHTML = '';
             selectedIsotopeForQ5 = null;
 
-            const Z = data.z;
-            const isotopes = data.isotopes;
-            
-            // Calcular más abundante
-            let maxAbundance = -1;
-            let mostAbundantIso = null;
-            
-            isotopes.forEach(iso => {
-                if (iso.abundance > maxAbundance) {
-                    maxAbundance = iso.abundance;
-                    mostAbundantIso = iso;
-                }
-            });
-            
-            const avgMassAnswer = mostAbundantIso.mass; 
+            const mostAbundant = data.isotopes.reduce((prev, curr) => (prev.abundance > curr.abundance) ? prev : curr);
+            const calcMass = data.isotopes.reduce((acc, iso) => acc + (iso.mass * iso.abundance), 0) / 100;
 
-            let optionsPool = [];
-            for(let i = Z-2; i <= Z+2; i++) optionsPool.push(i);
-            isotopes.forEach(iso => optionsPool.push(iso.mass));
-            optionsPool.push(mostAbundantIso.mass + 1);
-            optionsPool.push(mostAbundantIso.mass - 1);
-            
-            optionsPool = [...new Set(optionsPool)].sort(() => Math.random() - 0.5);
+            container.innerHTML = `
+                <div class="question-block" id="q1-block" data-correct="${data.isotopes.length}">
+                    <p>1. Isótopos naturales del ${data.name}: <select id="input-1"><option value="">?</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></p>
+                </div>
+                <div class="question-block" id="q2-block" data-correct="${data.z}">
+                    <p>2. Protones en el núcleo: <input type="number" id="input-2" style="width:60px"></p>
+                </div>
+                <div class="question-block" id="q5-block" data-correct="${mostAbundant.fullSymbol}">
+                    <p>3. Selecciona el isótopo más abundante:</p>
+                    <div class="iso-btn-group" id="btnGroup5"></div>
+                </div>
+                <div class="question-block" id="q7-block" data-correct="${calcMass}">
+                    <p>4. Masa atómica promedio (usa 2 decimales): <input type="number" step="0.01" id="input-7"></p>
+                </div>
+            `;
 
-            // Pregunta 1
-            const q1 = createDropdownQuestion(1, 
-                `En la naturaleza podemos encontrar`, 
-                `isótopos del ${data.name}.`, 
-                [1,2,3,4,5,6], 
-                isotopes.length);
-            container.appendChild(q1);
-
-            // Pregunta 2
-            const q2 = createDropdownQuestion(2,
-                `Todos los átomos de ${data.name} tienen`,
-                `protones.`,
-                optionsPool,
-                Z);
-            container.appendChild(q2);
-
-            // Pregunta 3
-            const q3 = createDropdownQuestion(3,
-                `El número atómico del ${data.name} es`,
-                `.`,
-                optionsPool,
-                Z);
-            container.appendChild(q3);
-
-            // Pregunta 4
-            const q4 = createDropdownQuestion(4,
-                `El isótopo más abundante del ${data.name} tiene una masa atómica de`,
-                `u.`,
-                optionsPool,
-                mostAbundantIso.mass);
-            container.appendChild(q4);
-
-            // Pregunta 5 (Botones)
-            const q5Div = document.createElement('div');
-            q5Div.className = 'question-block';
-            q5Div.dataset.correct = mostAbundantIso.fullSymbol;
-            q5Div.id = 'q5-block';
-            
-            const q5Text = document.createElement('p');
-            q5Text.className = 'question-text';
-            q5Text.innerText = `5. Observando el gráfico, ¿cuál es el isótopo más abundante del ${data.name}?`;
-            q5Div.appendChild(q5Text);
-
-            const btnGroup = document.createElement('div');
-            btnGroup.className = 'iso-btn-group';
-            
-            isotopes.forEach(iso => {
+            const btnGroup = document.getElementById('btnGroup5');
+            data.isotopes.forEach(iso => {
                 const btn = document.createElement('button');
                 btn.className = 'iso-select-btn';
-                // Usamos innerHTML también aquí para consistencia y estilo
                 btn.innerHTML = `<sup>${iso.mass}</sup>${data.symbol}`;
                 btn.onclick = () => {
                     document.querySelectorAll('.iso-select-btn').forEach(b => b.classList.remove('selected'));
@@ -734,199 +384,76 @@ Renio,187Re,187,186.955753,62.60`;
                 };
                 btnGroup.appendChild(btn);
             });
-            q5Div.appendChild(btnGroup);
-            
-            const q5Feedback = document.createElement('div');
-            q5Feedback.className = 'feedback-msg';
-            q5Feedback.id = 'feedback-5';
-            q5Div.appendChild(q5Feedback);
-
-            container.appendChild(q5Div);
-
-            // Pregunta 6 (Estimación)
-            const q6 = createDropdownQuestion(6,
-                `La masa promedio de un átomo de ${data.name} estará más próxima a`,
-                `u.`,
-                optionsPool,
-                avgMassAnswer);
-            container.appendChild(q6);
-
-            // --- Pregunta 7 (Cálculo Exacto) ---
-            const q7Div = document.createElement('div');
-            q7Div.className = 'question-block';
-            q7Div.id = 'q7-block';
-            
-            // Calcular la masa exacta ponderada
-            const calculatedMass = isotopes.reduce((acc, iso) => acc + (iso.mass * iso.abundance), 0) / 100;
-            q7Div.dataset.correct = calculatedMass; 
-
-            const q7Text = document.createElement('p');
-            q7Text.className = 'question-text';
-            q7Text.innerHTML = `7. Calcula la masa atómica promedio del <b>${data.name}</b> teniendo en cuenta la abundancia (usa 2 decimales):`;
-
-            const q7Input = document.createElement('input');
-            q7Input.type = 'number';
-            q7Input.step = '0.01';
-            q7Input.id = 'input-7';
-            q7Input.placeholder = 'Ej: 12.01';
-
-            q7Div.appendChild(q7Text);
-            q7Div.appendChild(q7Input);
-            
-            const q7Feedback = document.createElement('div');
-            q7Feedback.className = 'feedback-msg';
-            q7Feedback.id = 'feedback-7';
-            q7Div.appendChild(q7Feedback);
-
-            container.appendChild(q7Div);
-        }
-
-        function createDropdownQuestion(id, textPre, textPost, options, correctAnswer) {
-            const div = document.createElement('div');
-            div.className = 'question-block';
-            div.dataset.correct = correctAnswer;
-            div.id = `q${id}-block`;
-
-            const p = document.createElement('p');
-            p.className = 'question-text';
-            
-            const select = document.createElement('select');
-            select.id = `input-${id}`;
-            
-            const defaultOpt = document.createElement('option');
-            defaultOpt.value = "";
-            defaultOpt.text = "?";
-            select.appendChild(defaultOpt);
-
-            options.forEach(opt => {
-                const o = document.createElement('option');
-                o.value = opt;
-                o.text = opt;
-                select.appendChild(o);
-            });
-
-            p.appendChild(document.createTextNode(`${id}. ${textPre} `));
-            p.appendChild(select);
-            p.appendChild(document.createTextNode(` ${textPost}`));
-
-            div.appendChild(p);
-            
-            const feedback = document.createElement('div');
-            feedback.className = 'feedback-msg';
-            feedback.id = `feedback-${id}`;
-            div.appendChild(feedback);
-
-            return div;
-        }
-
-        // --- 4. CORRECCIÓN Y PUNTUACIÓN ---
-
-        function updateScoreDisplay() {
-            const scoreEl = document.getElementById('scoreValue');
-            scoreEl.innerText = globalScore.toFixed(2);
-            if (globalScore >= 5) {
-                scoreEl.className = 'score-value high';
-            } else {
-                scoreEl.className = 'score-value low';
-            }
         }
 
         function checkAnswers() {
-            const container = document.getElementById('questionsContainer');
+            let roundPoints = 0;
             
-            document.getElementById('checkBtn').disabled = true;
+            // Q1
+            const q1 = document.getElementById('q1-block');
+            const a1 = document.getElementById('input-1');
+            if(a1.value == q1.dataset.correct) roundPoints += 1;
+            a1.disabled = true;
 
-            // Procesamos preguntas 1 a 6 (lógica original)
-            for (let i = 1; i <= 6; i++) {
-                const block = document.getElementById(`q${i}-block`);
-                const feedback = document.getElementById(`feedback-${i}`);
-                const correctVal = block.dataset.correct;
-                let userVal = '';
-                
-                if (i === 5) {
-                    userVal = selectedIsotopeForQ5;
-                    block.querySelectorAll('button').forEach(b => b.disabled = true);
-                } else {
-                    const select = document.getElementById(`input-${i}`);
-                    userVal = select.value;
-                    select.disabled = true;
-                }
+            // Q2
+            const q2 = document.getElementById('q2-block');
+            const a2 = document.getElementById('input-2');
+            if(a2.value == q2.dataset.correct) roundPoints += 1;
+            a2.disabled = true;
 
-                if (userVal && String(userVal) === String(correctVal)) {
-                    globalScore += 0.3; 
-                    feedback.innerText = "¡Correcto! (+0.3)";
-                    feedback.className = "feedback-msg correct";
-                } else {
-                    if (globalScore > 0) {
-                        globalScore = Math.max(0, globalScore - 0.15);
-                        feedback.innerText = `Incorrecto. La respuesta era ${correctVal}. (-0.15)`;
-                    } else {
-                        feedback.innerText = `Incorrecto. La respuesta era ${correctVal}.`;
-                    }
-                    feedback.className = "feedback-msg incorrect";
-                }
-            }
+            // Q5
+            const q5 = document.getElementById('q5-block');
+            if(selectedIsotopeForQ5 == q5.dataset.correct) roundPoints += 3;
+            document.querySelectorAll('.iso-select-btn').forEach(b => b.disabled = true);
 
-            // --- Procesamos Pregunta 7 (Cálculo) ---
-            const block7 = document.getElementById('q7-block');
-            const feedback7 = document.getElementById('feedback-7');
-            const input7 = document.getElementById('input-7');
-            const correctMass = parseFloat(block7.dataset.correct);
-            const userMass = parseFloat(input7.value);
+            // Q7
+            const q7 = document.getElementById('q7-block');
+            const a7 = document.getElementById('input-7');
+            const diff = Math.abs(parseFloat(a7.value) - parseFloat(q7.dataset.correct));
+            if(diff < 0.05) roundPoints += 5;
+            else if(diff < 0.2) roundPoints += 2;
+            a7.disabled = true;
 
-            input7.disabled = true;
-
-            if (!isNaN(userMass)) {
-                const diff = Math.abs(userMass - correctMass);
-                
-                if (diff < 0.05) {
-                    // Correcto
-                    globalScore += 4;
-                    feedback7.innerText = `¡Correcto! Valor exacto: ${correctMass.toFixed(3)}. (+4.0)`;
-                    feedback7.className = "feedback-msg correct";
-                } else if (diff >= 0.05 && diff < 0.2) {
-                    // Regular
-                    globalScore += 2;
-                    feedback7.innerText = `Regular. Valor exacto: ${correctMass.toFixed(3)}. (+2.0)`;
-                    feedback7.className = "feedback-msg regular";
-                } else {
-                    // Incorrecto (penalización mayor por ser pregunta de 4 puntos)
-                    if (globalScore > 0) globalScore = Math.max(0, globalScore - 0.5);
-                    feedback7.innerText = `Incorrecto. Valor exacto: ${correctMass.toFixed(3)}. (-0.5)`;
-                    feedback7.className = "feedback-msg incorrect";
-                }
-            } else {
-                feedback7.innerText = "Sin respuesta.";
-                feedback7.className = "feedback-msg incorrect";
-            }
-
-            updateScoreDisplay();
-
-            // --- SCORM: Enviar puntuación ---
+            globalScore = Math.min(10, globalScore + (roundPoints / 2)); 
+            updateUI();
             SCORM.setScore(globalScore);
 
-            if (globalScore >= 10) {
-                document.getElementById('nextBtn').style.display = 'none';
+            if (globalScore >= 10) endGame();
+            else {
                 document.getElementById('checkBtn').style.display = 'none';
-                setTimeout(endGame, 1000);
-            } else {
                 document.getElementById('nextBtn').style.display = 'inline-block';
-                document.getElementById('checkBtn').style.display = 'none';
             }
         }
 
-        window.onload = function() {
-            // --- SCORM: Inicializar al cargar ---
+        function updateUI() {
+            const el = document.getElementById('scoreValue');
+            el.innerText = globalScore.toFixed(2);
+            el.className = 'score-value ' + (globalScore >= 5 ? 'high' : 'low');
+        }
+
+        function endGame() {
+            SCORM.setScore(10);
+            SCORM.setComplete();
+            document.getElementById('questionsContainer').innerHTML = "<h2>¡Felicidades! Has completado el ejercicio con éxito.</h2>";
+            document.getElementById('checkBtn').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('restartBtn').style.display = 'inline-block';
+        }
+
+        function restartGame() {
+            globalScore = 0;
+            updateUI();
+            document.getElementById('restartBtn').style.display = 'none';
+            loadNextElement();
+        }
+
+        window.onload = () => {
             SCORM.init();
-            parseCSV();
-            restartGame();
+            initData();
+            loadNextElement();
         };
 
-        // --- SCORM: Cerrar conexión al salir ---
-        window.onbeforeunload = function() {
-            SCORM.terminate();
-        };
-
+        window.onbeforeunload = () => SCORM.terminate();
     </script>
 </body>
 </html>
