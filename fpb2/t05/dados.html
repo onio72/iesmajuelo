@@ -38,12 +38,8 @@
         .face-5 { transform: rotateY(-90deg) translateZ(30px); }
         .face-6 { transform: rotateY(180deg) translateZ(30px); }
 
-        /* Lógica de puntos */
-        .f1 .d5, 
-        .f2 .d3, .f2 .d7,
-        .f3 .d3, .f3 .d5, .f3 .d7,
-        .f4 .d1, .f4 .d3, .f4 .d7, .f4 .d9,
-        .f5 .d1, .f5 .d3, .f5 .d5, .f5 .d7, .f5 .d9,
+        .f1 .d5, .f2 .d3, .f2 .d7, .f3 .d3, .f3 .d5, .f3 .d7,
+        .f4 .d1, .f4 .d3, .f4 .d7, .f4 .d9, .f5 .d1, .f5 .d3, .f5 .d5, .f5 .d7, .f5 .d9,
         .f6 .d1, .f6 .d3, .f6 .d4, .f6 .d6, .f6 .d7, .f6 .d9 { visibility: visible; }
 
         .highlight-col { background-color: #fef2f2; border: 2px solid #ef4444 !important; }
@@ -83,14 +79,14 @@
                         <tr class="bg-slate-200">
                             <th class="border-2 border-slate-300 p-3 text-[10px] uppercase w-16" rowspan="2">Cara</th>
                             <th class="border-2 border-slate-300 p-2 text-red-600 font-black uppercase" colspan="8">Experimento</th>
-                            <th class="border-2 border-slate-300 p-1 bg-slate-300 text-[10px] uppercase w-14" rowspan="2">Suma</th>
-                            <th class="border-2 border-slate-300 p-1 bg-slate-300 text-[10px] uppercase w-14" rowspan="2">%</th>
+                            <th class="border-2 border-slate-300 p-1 bg-slate-300 text-[10px] uppercase w-16" rowspan="2">Suma</th>
+                            <th class="border-2 border-slate-300 p-1 bg-slate-300 text-[10px] uppercase w-24" rowspan="2">%</th>
                         </tr>
                         <tr class="bg-slate-100">
-                            <script>for(let i=1; i<=8; i++) document.write(`<th id="th-exp-${i}" class="border-2 border-slate-300 p-1 w-20 text-sm">${i}</th>`);</script>
+                            <script>for(let i=1; i<=8; i++) document.write(`<th id="th-exp-${i}" class="border-2 border-slate-300 p-1 w-14 text-sm">${i}</th>`);</script>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="mainTableBody">
                         <script>
                             const dotArray = Array(9).fill().map((_,i)=>`<div class="dot d${i+1}"></div>`).join('');
                             for(let i=1; i<=6; i++) {
@@ -105,15 +101,22 @@
                                 }
                                 document.write(`
                                     <td class="border-2 border-slate-300 p-0"><input type="number" id="sum-${i}" min="0" disabled class="w-full p-1 text-center font-bold bg-yellow-50 focus:bg-white outline-none"></td>
-                                    <td class="border-2 border-slate-300 p-0"><input type="number" id="perc-${i}" min="0" disabled class="w-full p-1 text-center bg-yellow-50 focus:bg-white outline-none" placeholder="0"></td>
+                                    <td class="border-2 border-slate-300 p-0"><input type="number" step="0.01" id="perc-${i}" min="0" disabled class="w-full p-1 text-center bg-yellow-50 focus:bg-white outline-none" placeholder="0.00"></td>
                                 </tr>`);
                             }
                         </script>
+                        <tr class="bg-slate-100 font-bold">
+                            <td class="border-2 border-slate-300 p-2 text-center text-xs uppercase">Total</td>
+                            <td colspan="8" class="border-2 border-slate-300 bg-slate-50"></td>
+                            <td class="border-2 border-slate-300 p-0"><input type="number" id="totalSum" min="0" disabled class="w-full p-1 text-center font-bold bg-yellow-100 focus:bg-white outline-none" placeholder="?"></td>
+                            <td class="border-2 border-slate-300 bg-slate-100"></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
 
-            <div class="mt-8 flex justify-end">
+            <div class="mt-8 flex justify-between items-center">
+                <div id="liveScore" class="text-sm font-bold text-slate-500">Puntuación: 0.00 / 10</div>
                 <button id="btnAction" onclick="handleAction()" class="bg-red-600 text-white px-8 py-4 rounded-2xl font-black hover:bg-red-700 shadow-lg uppercase tracking-tighter">Verificar Columna</button>
             </div>
         </main>
@@ -121,8 +124,18 @@
 
     <script>
         let currentExp = 1, lastDiceResults = [], canRoll = true, phase = 'collecting';
+        let successes = 0, failures = 0;
+        const totalItems = 61; // 48 conteos + 7 sumas + 6 porcentajes
+        const stepValue = 10 / totalItems;
 
         const rotations = { 1: 'rotateY(0deg)', 2: 'rotateY(-90deg)', 3: 'rotateX(-90deg)', 4: 'rotateX(90deg)', 5: 'rotateY(90deg)', 6: 'rotateY(180deg)' };
+
+        function updateScoreUI() {
+            const raw = (successes * stepValue) - (failures * stepValue);
+            const final = Math.max(0, Math.min(10, raw)).toFixed(2);
+            document.getElementById('liveScore').innerText = `Puntuación: ${final} / 10`;
+            return final;
+        }
 
         document.getElementById('rollBtn').onclick = function() {
             if(!canRoll || currentExp > 8) return;
@@ -144,7 +157,7 @@
             canRoll = false; this.disabled = true;
             setTimeout(() => { 
                 enableColumn(currentExp);
-                showModal(`Experimento ${currentExp}: Cuenta las caras y rellena la columna resaltada.`);
+                showModal(`Experimento ${currentExp}: Cuenta y anota cuántas veces sale cada cara.`);
             }, 2000);
         };
 
@@ -162,41 +175,85 @@
             if(phase === 'collecting') {
                 const counts = [0,0,0,0,0,0,0];
                 lastDiceResults.forEach(v => counts[v]++);
-                let sum = 0, correct = true;
+                let colSum = 0, colCorrect = true, colErrors = 0;
+                
                 for(let i=1; i<=6; i++) {
-                    const val = parseInt(document.getElementById(`input-${i}-${currentExp}`).value) || 0;
-                    sum += val; if(val !== counts[i]) correct = false;
+                    const el = document.getElementById(`input-${i}-${currentExp}`);
+                    const val = parseInt(el.value) || 0;
+                    colSum += val;
+                    if(val !== counts[i]) { colCorrect = false; colErrors++; }
                 }
-                if(sum === 10 && correct) {
+
+                if(colSum === 10 && colCorrect) {
+                    successes += 6; // 6 celdas de conteo
                     for(let i=1; i<=6; i++) document.getElementById(`input-${i}-${currentExp}`).classList.add('correct-val');
                     if(++currentExp <= 8) {
                         canRoll = true; document.getElementById('rollBtn').disabled = false;
                         document.getElementById('expStatus').innerText = `Experimento ${currentExp} de 8`;
-                        showModal("¡Correcto! Lanza los dados de nuevo.");
+                        updateScoreUI();
+                        showModal("¡Correcto! Lanza los dados para el siguiente experimento.");
                     } else {
-                        phase = 'calculating'; document.getElementById('expStatus').innerText = "Cálculos Finales";
+                        phase = 'sums'; 
+                        document.querySelectorAll('th, td').forEach(el => el.classList.remove('highlight-col'));
+                        document.getElementById('expStatus').innerText = "Cálculo de Sumas";
                         document.querySelectorAll('input').forEach(i => i.disabled = true);
-                        for(let i=1; i<=6; i++) { document.getElementById(`sum-${i}`).disabled = false; document.getElementById(`perc-${i}`).disabled = false; }
-                        document.getElementById('btnAction').innerText = "Verificar Cálculos";
-                        showModal("Experimentos terminados. Calcula las sumas y porcentajes finales.");
+                        for(let i=1; i<=6; i++) document.getElementById(`sum-${i}`).disabled = false;
+                        document.getElementById('totalSum').disabled = false;
+                        document.getElementById('btnAction').innerText = "Verificar Sumas";
+                        updateScoreUI();
+                        showModal("Conteos finalizados. Ahora calcula la suma de cada fila y la suma total de los 80 lanzamientos.");
                     }
-                } else showModal("Error en los datos. La suma debe ser 10 y coincidir con los dados.");
-            } else {
-                let allOk = true;
+                } else {
+                    failures += colErrors;
+                    updateScoreUI();
+                    showModal("Error: La suma debe ser 10 y los valores deben coincidir con los dados.");
+                }
+            } else if (phase === 'sums') {
+                let sumsOk = true, sumErrors = 0, sumSuccess = 0;
+                let globalTotal = 0;
+                
                 for(let i=1; i<=6; i++) {
                     let realSum = 0; for(let j=1; j<=8; j++) realSum += parseInt(document.getElementById(`input-${i}-${j}`).value);
-                    const uSum = parseInt(document.getElementById(`sum-${i}`).value), uPerc = parseInt(document.getElementById(`perc-${i}`).value);
-                    const rPerc = Math.round((realSum / 80) * 100);
-                    if(uSum === realSum) document.getElementById(`sum-${i}`).classList.add('correct-val'); else allOk = false;
-                    if(uPerc === rPerc) document.getElementById(`perc-${i}`).classList.add('correct-val'); else allOk = false;
+                    const userSum = parseInt(document.getElementById(`sum-${i}`).value);
+                    globalTotal += realSum;
+                    if(userSum === realSum) { sumSuccess++; document.getElementById(`sum-${i}`).classList.add('correct-val'); document.getElementById(`sum-${i}`).disabled = true; }
+                    else { sumsOk = false; sumErrors++; }
                 }
-                showModal(allOk ? "¡Perfecto! Laboratorio completado con éxito." : "Revisa tus cálculos finales.");
+                
+                const userTotal = parseInt(document.getElementById('totalSum').value);
+                if(userTotal === 80) { sumSuccess++; document.getElementById('totalSum').classList.add('correct-val'); document.getElementById('totalSum').disabled = true; }
+                else { sumsOk = false; sumErrors++; }
+
+                successes += sumSuccess; failures += sumErrors;
+                updateScoreUI();
+
+                if(sumsOk) {
+                    phase = 'percentages';
+                    document.getElementById('expStatus').innerText = "Cálculo de Porcentajes";
+                    for(let i=1; i<=6; i++) document.getElementById(`perc-${i}`).disabled = false;
+                    document.getElementById('btnAction').innerText = "Finalizar Laboratorio";
+                    showModal("Sumas correctas. Por último, calcula el porcentaje de cada cara (redondeando a la centésima).");
+                } else showModal("Revisa las sumas resaltadas. Recuerda que el total de lanzamientos es 80.");
+
+            } else {
+                let percsOk = true, pErrors = 0, pSuccess = 0;
+                for(let i=1; i<=6; i++) {
+                    let realSum = 0; for(let j=1; j<=8; j++) realSum += parseInt(document.getElementById(`input-${i}-${j}`).value);
+                    const uPerc = parseFloat(document.getElementById(`perc-${i}`).value);
+                    const rPerc = parseFloat(((realSum / 80) * 100).toFixed(2));
+                    if(uPerc === rPerc) { pSuccess++; document.getElementById(`perc-${i}`).classList.add('correct-val'); document.getElementById(`perc-${i}`).disabled = true; }
+                    else { percsOk = false; pErrors++; }
+                }
+                successes += pSuccess; failures += pErrors;
+                const finalGrade = updateScoreUI();
+                if(percsOk) showModal(`¡Enhorabuena! Has completado el laboratorio. Calificación final: ${finalGrade} / 10`);
+                else showModal("Revisa los porcentajes. Debes redondear a la centésima (2 decimales).");
             }
         }
 
         function showModal(text) { document.getElementById('modalText').innerText = text; document.getElementById('instructionModal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('instructionModal').classList.add('hidden'); }
-        window.onload = () => showModal("Lanza los dados para el Experimento 1.");
+        window.onload = () => showModal("Bienvenido. Lanza los dados para iniciar el Experimento 1.");
     </script>
 </body>
 </html>
