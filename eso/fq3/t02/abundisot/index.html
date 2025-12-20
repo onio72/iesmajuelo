@@ -17,7 +17,6 @@
             --error-color: #c0392b;
             --text-dark: #333333;
         }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
@@ -28,191 +27,114 @@
             align-items: center;
             min-height: 100vh;
         }
-
-        .main-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            max-width: 1000px;
-            width: 100%;
-            justify-content: center;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-width: 250px;
-            flex: 1;
-            position: relative;
-        }
-
-        .chem-symbol-container {
-            font-family: 'Times New Roman', serif;
-            position: relative;
-            font-size: 120px;
-            line-height: 1;
-            margin: 30px 0 30px 50px; 
-            color: var(--primary-color);
-            font-weight: bold;
-            display: inline-block;
-        }
-
-        .atomic-number {
-            position: absolute;
-            bottom: 5px;
-            left: -85px; 
-            font-size: 40px;
-            width: 80px;
-            text-align: right;
-        }
-
-        .mass-number {
-            position: absolute;
-            top: 5px;
-            left: -85px; 
-            font-size: 40px;
-            width: 80px;
-            text-align: right;
-            opacity: 0; 
-            transition: opacity 0.3s ease;
-        }
-
+        h1 { color: var(--primary-color); text-align: center; margin-bottom: 20px; }
+        .main-container { display: flex; flex-wrap: wrap; gap: 20px; max-width: 1000px; width: 100%; justify-content: center; }
+        .card { background: var(--card-bg); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 250px; flex: 1; position: relative; }
+        .chem-symbol-container { font-family: 'Times New Roman', serif; position: relative; font-size: 120px; line-height: 1; margin: 30px 0 30px 50px; color: var(--primary-color); font-weight: bold; display: inline-block; }
+        .atomic-number { position: absolute; bottom: 5px; left: -85px; font-size: 40px; width: 80px; text-align: right; pointer-events: none; }
+        .mass-number { position: absolute; top: 5px; left: -85px; font-size: 40px; width: 80px; text-align: right; color: var(--primary-color); opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
         .mass-number.visible { opacity: 1; }
-
-        .chart-card {
-            background: var(--card-bg);
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            padding: 20px;
-            flex: 2;
-            min-width: 300px;
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-around;
-        }
-
+        .element-name { font-size: 24px; font-weight: 600; color: #555; margin-top: 10px; }
+        .info-panel { margin-top: 20px; text-align: center; height: 60px; }
+        .info-text { font-size: 18px; color: var(--text-dark); font-weight: bold; }
+        .chart-card { background: var(--card-bg); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 20px; flex: 2; min-width: 300px; display: flex; flex-direction: row; align-items: center; justify-content: space-around; }
         .chart-wrapper { position: relative; height: 300px; width: 300px; }
-
         .custom-legend { list-style: none; padding: 0; margin-left: 20px; max-height: 300px; overflow-y: auto; }
         .legend-item { display: flex; align-items: center; margin-bottom: 10px; cursor: pointer; padding: 5px 10px; border-radius: 5px; transition: background 0.2s; }
         .legend-color { width: 15px; height: 15px; border-radius: 3px; margin-right: 10px; }
-
-        .quiz-section {
-            margin-top: 30px;
-            background: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            width: 100%;
-            max-width: 900px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
+        .legend-text { font-size: 16px; font-family: 'Times New Roman', serif; }
+        .legend-text sup { font-size: 0.7em; }
+        .quiz-section { margin-top: 30px; background: #fff; padding: 30px; border-radius: 10px; width: 100%; max-width: 900px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .score-board { text-align: right; font-size: 1.5rem; margin-bottom: 20px; font-weight: bold; }
         .score-value.low { color: var(--error-color); }
         .score-value.high { color: var(--success-color); }
-
-        .action-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            margin: 5px;
-        }
-
+        .question-block { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .question-text { font-size: 1.1rem; margin-bottom: 10px; color: #333; }
+        select, input[type=number] { padding: 5px; font-size: 1rem; border-radius: 4px; border: 1px solid #ccc; margin: 0 5px; background-color: #fff; }
+        input[type=number] { width: 100px; }
         .iso-btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-        .iso-select-btn { padding: 8px 16px; border-radius: 20px; cursor: pointer; border: 2px solid #bdc3c7; }
-        .iso-select-btn.selected { background: var(--primary-color); color: white; }
-        .feedback-msg { margin-top: 5px; font-weight: bold; }
+        .iso-select-btn { background-color: #ecf0f1; border: 2px solid #bdc3c7; color: #333; padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s; font-family: 'Times New Roman', serif; }
+        .iso-select-btn.selected { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .action-btn { background-color: var(--primary-color); color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-size: 1.1rem; margin-right: 10px; transition: opacity 0.2s; }
+        .check-btn { background-color: var(--accent-color); }
+        .restart-btn { background-color: var(--success-color); display: none; }
+        .feedback-msg { margin-top: 5px; font-size: 0.95rem; font-weight: bold; }
         .feedback-msg.correct { color: var(--success-color); }
-        .feedback-msg.incorrect { color: var(--error-color); }
         .feedback-msg.regular { color: var(--warning-color); }
-
-        select, input[type=number] { padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+        .feedback-msg.incorrect { color: var(--error-color); }
+        @media (max-width: 768px) { .chart-card { flex-direction: column; } .chem-symbol-container { margin-left: 60px; } }
     </style>
 </head>
 <body>
-
     <h1>Abundancia Isotópica</h1>
-
     <div class="main-container">
         <div class="card">
             <div class="element-name" id="elementName">Cargando...</div>
             <div class="chem-symbol-container">
-                <span class="mass-number" id="massNumber"></span>
-                <span class="atomic-number" id="atomicNumber"></span>
-                <span id="symbolText"></span>
+                <span class="mass-number" id="massNumber">12</span>
+                <span class="atomic-number" id="atomicNumber">6</span>
+                <span id="symbolText">C</span>
             </div>
-            <div id="isotopeInfo" style="margin-top:20px; font-weight:bold;">Pulsa en la leyenda para detalles</div>
+            <div class="info-panel"><div id="isotopeInfo" class="info-text">Pulsa en la leyenda para ver detalles</div></div>
         </div>
-
         <div class="chart-card">
-            <div class="chart-wrapper">
-                <canvas id="isotopeChart"></canvas>
-            </div>
+            <div class="chart-wrapper"><canvas id="isotopeChart"></canvas></div>
             <ul class="custom-legend" id="chartLegend"></ul>
         </div>
     </div>
-
     <div class="quiz-section">
-        <div class="score-board">
-            Puntuación: <span id="scoreValue" class="score-value low">0.00</span> / 10
-        </div>
+        <div class="score-board">Puntuación: <span id="scoreValue" class="score-value low">0.00</span> / 10</div>
         <div id="questionsContainer"></div>
         <div style="margin-top: 20px; text-align: center;">
-            <button id="checkBtn" class="action-btn" onclick="checkAnswers()">Corregir</button>
-            <button id="nextBtn" class="action-btn" onclick="loadNextElement()" style="display:none;">Siguiente</button>
-            <button id="restartBtn" class="action-btn" onclick="restartGame()" style="display:none; background-color: var(--success-color);">Reiniciar</button>
+            <button id="checkBtn" class="action-btn check-btn" onclick="checkAnswers()">Corregir</button>
+            <button id="nextBtn" class="action-btn" onclick="loadNextElement()" style="display:none;">Siguiente Elemento</button>
+            <button id="restartBtn" class="action-btn restart-btn" onclick="restartGame()">Reiniciar Juego</button>
         </div>
     </div>
 
     <script>
-        // --- 0. SCORM API WRAPPER CORREGIDO ---
+        // --- 0. SCORM API WRAPPER ROBUSTO ---
         var SCORM = {
             API: null,
             init: function() {
-                var api = this.getAPI();
-                if (api) {
-                    this.API = api;
+                var win = window;
+                var tries = 0;
+                // Bucle de búsqueda de API con manejo de SecurityError (CORS)
+                while (tries < 10) {
+                    try {
+                        if (win.API != null) {
+                            this.API = win.API;
+                            break;
+                        }
+                    } catch (e) {
+                        // Si no podemos acceder a las propiedades de 'win', rompemos el bucle
+                        break;
+                    }
+                    
+                    try {
+                        if (win.parent == null || win.parent == win) break;
+                        win = win.parent;
+                    } catch (e) {
+                        // Si no podemos acceder a 'parent' por restricciones de origen, rompemos
+                        break;
+                    }
+                    tries++;
+                }
+
+                if (this.API) {
                     this.API.LMSInitialize("");
                     this.API.LMSSetValue("cmi.core.score.min", "0");
                     this.API.LMSSetValue("cmi.core.score.max", "10");
                     this.API.LMSSetValue("cmi.core.lesson_status", "incomplete");
                     this.API.LMSCommit("");
-                    console.log("SCORM: Conectado e Inicializado.");
+                    console.log("SCORM: API detectada y conectada.");
                 } else {
-                    console.warn("SCORM: API no encontrada o bloqueada por seguridad. Modo local activado.");
+                    console.warn("SCORM: No se pudo encontrar la API o el acceso fue denegado (Modo local).");
                 }
             },
-            getAPI: function() {
-                var findAPITries = 0;
-                var win = window;
-                try {
-                    // Intentamos buscar la API subiendo por la jerarquía de ventanas (frames)
-                    while ((win.API == null) && (win.parent != null) && (win.parent != win)) {
-                        findAPITries++;
-                        if (findAPITries > 10) return null;
-                        win = win.parent;
-                    }
-                    return win.API;
-                } catch (e) {
-                    // Si hay un SecurityError por Cross-Origin, capturamos el error y devolvemos null
-                    return null;
-                }
-            },
-            setScore: function(score) {
+            setScore: function(s) {
                 if (this.API) {
-                    var formattedScore = score.toFixed(2);
-                    this.API.LMSSetValue("cmi.core.score.raw", formattedScore);
+                    this.API.LMSSetValue("cmi.core.score.raw", s.toFixed(2));
                     this.API.LMSCommit("");
                 }
             },
@@ -222,9 +144,7 @@
                     this.API.LMSCommit("");
                 }
             },
-            terminate: function() {
-                if (this.API) this.API.LMSFinish("");
-            }
+            terminate: function() { if (this.API) this.API.LMSFinish(""); }
         };
 
         const csvData = `Elemento,Simbolo,Masa_nominal,Masa_exacta,Abundancia
@@ -248,211 +168,122 @@ Azufre,36S,36,35.9671,0.02
 Cloro,35Cl,35,34.9689,75.77
 Cloro,37Cl,37,36.9659,24.23
 Bromo,79Br,79,78.9183,50.69
-Bromo,81Br,81,80.9163,49.31
-Hafnio,174Hf,174,173.940046,0.16
-Hafnio,176Hf,176,175.941402,5.26
-Hafnio,177Hf,177,176.94322,18.60
-Hafnio,178Hf,178,177.943698,27.28
-Hafnio,179Hf,179,178.945815,13.62
-Hafnio,180Hf,180,179.946549,35.08
-Tántalo,180Ta,180,179.947466,0.012
-Tántalo,181Ta,181,180.947996,99.988
-Wolframio,180W,180,179.946706,0.12
-Wolframio,182W,182,181.948206,26.50
-Wolframio,183W,183,182.950224,14.31
-Wolframio,184W,184,183.950933,30.64
-Wolframio,186W,186,185.954362,28.43
-Renio,185Re,185,184.952957,37.40
-Renio,187Re,187,186.955753,62.60`;
+Bromo,81Br,81,80.9163,49.31`;
 
-        const atomicNumbersMap = {
-            'Hidrógeno': 1, 'Carbono': 6, 'Nitrógeno': 7, 'Oxígeno': 8, 'Flúor': 9,
-            'Silicio': 14, 'Azufre': 16, 'Cloro': 17, 'Bromo': 35, 'Hafnio': 72,
-            'Tántalo': 73, 'Wolframio': 74, 'Renio': 75
-        };
+        const atomicNumbersMap = { 'Hidrógeno': 1, 'Carbono': 6, 'Nitrógeno': 7, 'Oxígeno': 8, 'Flúor': 9, 'Silicio': 14, 'Azufre': 16, 'Cloro': 17, 'Bromo': 35 };
+        let parsedElements = {}, validElementKeys = [], currentElementKey = '', currentElementData = null, currentChart = null, globalScore = 0.0, selectedIsotopeForQ5 = null;
 
-        let parsedElements = {};
-        let validElementKeys = [];
-        let currentElementKey = '';
-        let currentChart = null;
-        let globalScore = 0.0;
-        let selectedIsotopeForQ5 = null;
-
-        function initData() {
-            const lines = csvData.split('\n');
-            for (let i = 1; i < lines.length; i++) {
-                const p = lines[i].split(',');
-                if (p.length < 5) continue;
-                const name = p[0].trim();
-                const symbol = p[1].trim().replace(/[0-9]/g, '').replace('D/', '').replace('/H', '');
-                if (!parsedElements[name]) {
-                    parsedElements[name] = { name, symbol, z: atomicNumbersMap[name] || 0, isotopes: [] };
-                }
-                parsedElements[name].isotopes.push({ fullSymbol: p[1].trim(), mass: parseInt(p[2]), abundance: parseFloat(p[4]) });
-            }
+        function parseCSV() {
+            csvData.split('\n').slice(1).forEach(line => {
+                const p = line.split(','); if (p.length < 5) return;
+                const name = p[0].trim(), raw = p[1].trim(), mass = parseInt(p[2]), abundance = parseFloat(p[4]);
+                const sym = raw.replace(/[0-9]/g, '').replace('D/', '').replace('/H', '');
+                if (!parsedElements[name]) parsedElements[name] = { name, symbol: sym, z: atomicNumbersMap[name] || 0, isotopes: [] };
+                parsedElements[name].isotopes.push({ fullSymbol: raw, mass, abundance, label: raw });
+            });
             validElementKeys = Object.keys(parsedElements).filter(k => parsedElements[k].isotopes.length > 1);
         }
 
         function loadNextElement() {
             if (globalScore >= 10) { endGame(); return; }
-            document.getElementById('nextBtn').style.display = 'none';
             document.getElementById('checkBtn').style.display = 'inline-block';
             document.getElementById('checkBtn').disabled = false;
-
-            let key;
-            do { key = validElementKeys[Math.floor(Math.random() * validElementKeys.length)]; } while (key === currentElementKey && validElementKeys.length > 1);
-            
-            currentElementKey = key;
-            const data = parsedElements[key];
-            renderElement(data);
-            generateQuiz(data);
+            document.getElementById('nextBtn').style.display = 'none';
+            let key; do { key = validElementKeys[Math.floor(Math.random() * validElementKeys.length)]; } while (key === currentElementKey && validElementKeys.length > 1);
+            currentElementKey = key; currentElementData = parsedElements[key];
+            renderElement(currentElementData); generateFullQuiz(currentElementData);
         }
 
         function renderElement(data) {
             document.getElementById('elementName').innerText = data.name;
             document.getElementById('symbolText').innerText = data.symbol;
             document.getElementById('atomicNumber').innerText = data.z;
-            document.getElementById('massNumber').classList.remove('visible');
-            
-            const labels = data.isotopes.map(i => i.fullSymbol);
-            const abundances = data.isotopes.map(i => i.abundance);
+            const massEl = document.getElementById('massNumber'); massEl.innerText = ''; massEl.classList.remove('visible');
+            document.getElementById('isotopeInfo').innerText = "Pulsa en la leyenda o gráfico";
+            const colors = ['#FFCE56', '#FF6384', '#36A2EB', '#FF9F40', '#4BC0C0', '#7f8c8d', '#FFD700', '#9b59b6'];
             const ctx = document.getElementById('isotopeChart').getContext('2d');
-            
             if (currentChart) currentChart.destroy();
             currentChart = new Chart(ctx, {
                 type: 'pie',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: abundances,
-                        backgroundColor: ['#FFCE56', '#FF6384', '#36A2EB', '#FF9F40', '#4BC0C0', '#9b59b6']
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } } }
+                data: { labels: data.isotopes.map(i => i.fullSymbol), datasets: [{ data: data.isotopes.map(i => i.abundance), backgroundColor: colors.slice(0, data.isotopes.length), borderColor: '#fff', borderWidth: 1 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
-
-            const legend = document.getElementById('chartLegend');
-            legend.innerHTML = '';
-            data.isotopes.forEach((iso, idx) => {
-                const li = document.createElement('li');
-                li.className = 'legend-item';
-                li.innerHTML = `<span class="legend-color" style="background:${currentChart.data.datasets[0].backgroundColor[idx]}"></span>
-                                <span><sup>${iso.mass}</sup>${data.symbol}</span>`;
-                li.onclick = () => {
-                    const massEl = document.getElementById('massNumber');
-                    massEl.innerText = iso.mass;
-                    massEl.classList.add('visible');
-                    document.getElementById('isotopeInfo').innerHTML = `Abundancia: ${iso.abundance}%`;
+            const legend = document.getElementById('chartLegend'); legend.innerHTML = '';
+            data.isotopes.forEach((iso, index) => {
+                const li = document.createElement('li'); li.className = 'legend-item';
+                li.innerHTML = `<span class="legend-color" style="background:${colors[index]}"></span><span class="legend-text"><sup>${iso.mass}</sup>${data.symbol}</span>`;
+                li.onclick = () => { 
+                    massEl.innerText = iso.mass; massEl.classList.add('visible'); massEl.style.color = colors[index];
+                    document.getElementById('isotopeInfo').innerHTML = `Abundancia: <span style="color:${colors[index]}; font-size:1.4em">${iso.abundance}%</span>`;
                 };
                 legend.appendChild(li);
             });
         }
 
-        function generateQuiz(data) {
-            const container = document.getElementById('questionsContainer');
-            container.innerHTML = '';
-            selectedIsotopeForQ5 = null;
-
-            const mostAbundant = data.isotopes.reduce((prev, curr) => (prev.abundance > curr.abundance) ? prev : curr);
-            const calcMass = data.isotopes.reduce((acc, iso) => acc + (iso.mass * iso.abundance), 0) / 100;
-
-            container.innerHTML = `
-                <div class="question-block" id="q1-block" data-correct="${data.isotopes.length}">
-                    <p>1. Isótopos naturales del ${data.name}: <select id="input-1"><option value="">?</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></p>
-                </div>
-                <div class="question-block" id="q2-block" data-correct="${data.z}">
-                    <p>2. Protones en el núcleo: <input type="number" id="input-2" style="width:60px"></p>
-                </div>
-                <div class="question-block" id="q5-block" data-correct="${mostAbundant.fullSymbol}">
-                    <p>3. Selecciona el isótopo más abundante:</p>
-                    <div class="iso-btn-group" id="btnGroup5"></div>
-                </div>
-                <div class="question-block" id="q7-block" data-correct="${calcMass}">
-                    <p>4. Masa atómica promedio (usa 2 decimales): <input type="number" step="0.01" id="input-7"></p>
-                </div>
-            `;
-
-            const btnGroup = document.getElementById('btnGroup5');
+        function generateFullQuiz(data) {
+            const container = document.getElementById('questionsContainer'); container.innerHTML = ''; selectedIsotopeForQ5 = null;
+            const mostAbundant = data.isotopes.reduce((p, c) => (p.abundance > c.abundance) ? p : c);
+            let pool = [data.z, data.z-1, data.z+1, mostAbundant.mass, mostAbundant.mass+1, mostAbundant.mass-1];
+            pool = [...new Set(pool)].sort(() => Math.random() - 0.5);
+            
+            container.appendChild(createDropdownQuestion(1, `En la naturaleza encontramos`, `isótopos del ${data.name}.`, [1,2,3,4,5], data.isotopes.length));
+            container.appendChild(createDropdownQuestion(2, `Todos los átomos de ${data.name} tienen`, `protones.`, pool, data.z));
+            container.appendChild(createDropdownQuestion(3, `El número atómico del ${data.name} es`, `.`, pool, data.z));
+            container.appendChild(createDropdownQuestion(4, `El isótopo más abundante tiene una masa de`, `u.`, pool, mostAbundant.mass));
+            
+            const q5 = document.createElement('div'); q5.className = 'question-block'; q5.id = 'q5-block'; q5.dataset.correct = mostAbundant.fullSymbol;
+            q5.innerHTML = `<p class="question-text">5. ¿Cuál es el isótopo más abundante?</p><div class="iso-btn-group" id="btnGroup5"></div><div class="feedback-msg" id="feedback-5"></div>`;
+            container.appendChild(q5);
             data.isotopes.forEach(iso => {
-                const btn = document.createElement('button');
-                btn.className = 'iso-select-btn';
-                btn.innerHTML = `<sup>${iso.mass}</sup>${data.symbol}`;
-                btn.onclick = () => {
-                    document.querySelectorAll('.iso-select-btn').forEach(b => b.classList.remove('selected'));
-                    btn.classList.add('selected');
-                    selectedIsotopeForQ5 = iso.fullSymbol;
-                };
-                btnGroup.appendChild(btn);
+                const b = document.createElement('button'); b.className = 'iso-select-btn'; b.innerHTML = `<sup>${iso.mass}</sup>${data.symbol}`;
+                b.onclick = () => { document.querySelectorAll('.iso-select-btn').forEach(x => x.classList.remove('selected')); b.classList.add('selected'); selectedIsotopeForQ5 = iso.fullSymbol; };
+                document.getElementById('btnGroup5').appendChild(b);
             });
+            
+            container.appendChild(createDropdownQuestion(6, `La masa promedio estará más próxima a`, `u.`, pool, mostAbundant.mass));
+            
+            const avg = data.isotopes.reduce((a, i) => a + (i.mass * i.abundance), 0) / 100;
+            const q7 = document.createElement('div'); q7.className = 'question-block'; q7.id = 'q7-block'; q7.dataset.correct = avg;
+            q7.innerHTML = `<p class="question-text">7. Calcula la masa atómica promedio (2 decimales):</p><input type="number" step="0.01" id="input-7"><div class="feedback-msg" id="feedback-7"></div>`;
+            container.appendChild(q7);
+        }
+
+        function createDropdownQuestion(id, pre, post, opts, correct) {
+            const div = document.createElement('div'); div.className = 'question-block'; div.id = `q${id}-block`; div.dataset.correct = correct;
+            const select = `<select id="input-${id}"><option value="">?</option>${opts.map(o => `<option value="${o}">${o}</option>`).join('')}</select>`;
+            div.innerHTML = `<p class="question-text">${id}. ${pre} ${select} ${post}</p><div class="feedback-msg" id="feedback-${id}"></div>`;
+            return div;
         }
 
         function checkAnswers() {
-            let roundPoints = 0;
-            
-            // Q1
-            const q1 = document.getElementById('q1-block');
-            const a1 = document.getElementById('input-1');
-            if(a1.value == q1.dataset.correct) roundPoints += 1;
-            a1.disabled = true;
-
-            // Q2
-            const q2 = document.getElementById('q2-block');
-            const a2 = document.getElementById('input-2');
-            if(a2.value == q2.dataset.correct) roundPoints += 1;
-            a2.disabled = true;
-
-            // Q5
-            const q5 = document.getElementById('q5-block');
-            if(selectedIsotopeForQ5 == q5.dataset.correct) roundPoints += 3;
-            document.querySelectorAll('.iso-select-btn').forEach(b => b.disabled = true);
-
-            // Q7
-            const q7 = document.getElementById('q7-block');
-            const a7 = document.getElementById('input-7');
-            const diff = Math.abs(parseFloat(a7.value) - parseFloat(q7.dataset.correct));
-            if(diff < 0.05) roundPoints += 5;
-            else if(diff < 0.2) roundPoints += 2;
-            a7.disabled = true;
-
-            globalScore = Math.min(10, globalScore + (roundPoints / 2)); 
-            updateUI();
-            SCORM.setScore(globalScore);
-
-            if (globalScore >= 10) endGame();
-            else {
-                document.getElementById('checkBtn').style.display = 'none';
-                document.getElementById('nextBtn').style.display = 'inline-block';
+            let roundScore = 0;
+            for (let i = 1; i <= 6; i++) {
+                const block = document.getElementById(`q${i}-block`), fb = document.getElementById(`feedback-${i}`), correct = block.dataset.correct;
+                const user = i === 5 ? selectedIsotopeForQ5 : document.getElementById(`input-${i}`).value;
+                if (String(user) === String(correct)) { roundScore += 0.3; fb.innerText = "¡Correcto! (+0.3)"; fb.className = "feedback-msg correct"; }
+                else { globalScore = Math.max(0, globalScore - 0.15); fb.innerText = `Incorrecto. Era ${correct}.`; fb.className = "feedback-msg incorrect"; }
+                if (i !== 5) document.getElementById(`input-${i}`).disabled = true; else block.querySelectorAll('button').forEach(b => b.disabled = true);
             }
-        }
-
-        function updateUI() {
-            const el = document.getElementById('scoreValue');
-            el.innerText = globalScore.toFixed(2);
-            el.className = 'score-value ' + (globalScore >= 5 ? 'high' : 'low');
+            const b7 = document.getElementById('q7-block'), fb7 = document.getElementById('feedback-7'), i7 = document.getElementById('input-7'), correct7 = parseFloat(b7.dataset.correct), user7 = parseFloat(i7.value);
+            const diff = Math.abs(user7 - correct7);
+            if (diff < 0.05) { roundScore += 4; fb7.innerText = `¡Correcto! (${correct7.toFixed(2)})`; fb7.className = "feedback-msg correct"; }
+            else if (diff < 0.2) { roundScore += 2; fb7.innerText = `Casi. Era ${correct7.toFixed(2)}`; fb7.className = "feedback-msg regular"; }
+            else { globalScore = Math.max(0, globalScore - 0.5); fb7.innerText = `Incorrecto. Era ${correct7.toFixed(2)}`; fb7.className = "feedback-msg incorrect"; }
+            i7.disabled = true; globalScore = Math.min(10, globalScore + roundScore);
+            document.getElementById('scoreValue').innerText = globalScore.toFixed(2);
+            document.getElementById('scoreValue').className = globalScore >= 5 ? "score-value high" : "score-value low";
+            SCORM.setScore(globalScore);
+            if (globalScore >= 10) endGame(); else { document.getElementById('nextBtn').style.display = 'inline-block'; document.getElementById('checkBtn').style.display = 'none'; }
         }
 
         function endGame() {
-            SCORM.setScore(10);
+            document.getElementById('questionsContainer').innerHTML = "<h3>¡Felicidades! Has alcanzado los 10 puntos.</h3>";
+            document.getElementById('checkBtn').style.display = 'none'; document.getElementById('restartBtn').style.display = 'inline-block';
             SCORM.setComplete();
-            document.getElementById('questionsContainer').innerHTML = "<h2>¡Felicidades! Has completado el ejercicio con éxito.</h2>";
-            document.getElementById('checkBtn').style.display = 'none';
-            document.getElementById('nextBtn').style.display = 'none';
-            document.getElementById('restartBtn').style.display = 'inline-block';
         }
 
-        function restartGame() {
-            globalScore = 0;
-            updateUI();
-            document.getElementById('restartBtn').style.display = 'none';
-            loadNextElement();
-        }
-
-        window.onload = () => {
-            SCORM.init();
-            initData();
-            loadNextElement();
-        };
-
+        function restartGame() { globalScore = 0; SCORM.setScore(0); document.getElementById('restartBtn').style.display = 'none'; loadNextElement(); }
+        window.onload = () => { parseCSV(); SCORM.init(); loadNextElement(); };
         window.onbeforeunload = () => SCORM.terminate();
     </script>
 </body>
