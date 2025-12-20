@@ -1,1 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurador Atómico - Modelo de Bohr</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --bg: #f8f9fa;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            overflow-x: hidden;
+        }
+
+        .atom-container {
+            position: relative;
+            width: 450px;
+            height: 450px;
+            margin: 0 auto;
+        }
+
+        .orbit {
+            fill: none;
+            stroke: #d1d8e0;
+            stroke-width: 2;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .orbit:hover {
+            stroke: var(--accent);
+            stroke-width: 4;
+        }
+
+        .electron {
+            fill: #e74c3c;
+            filter: drop-shadow(0 0 2px rgba(0,0,0,0.3));
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .electron:hover {
+            fill: #c0392b;
+            opacity: 0.7;
+        }
+
+        .nucleus {
+            fill: var(--primary);
+        }
+
+        .score-display {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .btn-validate {
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-validate:hover {
+            transform: scale(1.02);
+            background-color: #34495e;
+        }
+
+        .input-mini {
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            width: 45px;
+            height: 35px;
+            text-align: center;
+            font-weight: bold;
+            outline: none;
+        }
+
+        .input-mini:focus {
+            border-color: var(--accent);
+        }
+
+        .config-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            flex-wrap: wrap;
+        }
+
+        #feedback {
+            min-height: 1.5rem;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl p-6">
+        <div class="flex justify-between items-center mb-6 border-b pb-4">
+            <div>
+                <h1 class="text-2xl font-bold">Laboratorio de Estructura Atómica</h1>
+                <p class="text-sm text-gray-500">Elementos hasta Z=56 - Modelo de Bohr</p>
+            </div>
+            <div class="text-right">
+                <div id="scoreLabel" class="score-display text-red-600">Puntos: 0.0</div>
+                <div id="progressLabel" class="text-xs uppercase tracking-widest text-gray-400">Ejercicio 1 / 12</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            <div class="flex flex-col items-center">
+                <div class="mb-4 text-center">
+                    <h2 class="text-5xl font-black text-blue-600" id="elemSymbol">??</h2>
+                    <p class="text-lg font-medium" id="elemName">Cargando...</p>
+                    <div class="flex flex-col items-center space-y-1">
+                        <p class="text-sm text-gray-400">Z = <span id="elemZ">0</span></p>
+                        <p class="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                            Electrones colocados: <span id="eCount" class="text-blue-600">0</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="atom-container">
+                    <svg viewBox="0 0 450 450" id="atomSvg">
+                        <circle cx="225" cy="225" r="15" class="nucleus" />
+                        <circle cx="225" cy="225" r="35" class="orbit" data-shell="1" onclick="addElectron(1)" />
+                        <circle cx="225" cy="225" r="65" class="orbit" data-shell="2" onclick="addElectron(2)" />
+                        <circle cx="225" cy="225" r="95" class="orbit" data-shell="3" onclick="addElectron(3)" />
+                        <circle cx="225" cy="225" r="125" class="orbit" data-shell="4" onclick="addElectron(4)" />
+                        <circle cx="225" cy="225" r="155" class="orbit" data-shell="5" onclick="addElectron(5)" />
+                        <circle cx="225" cy="225" r="185" class="orbit" data-shell="6" onclick="addElectron(6)" />
+                        <g id="electronsGroup"></g>
+                    </svg>
+                </div>
+                
+                <p class="mt-2 text-xs text-gray-400 italic">Clic en órbita para añadir | Clic en electrón para quitar</p>
+                <button onclick="resetElectrons()" class="mt-2 text-xs text-gray-400 underline hover:text-red-500">Limpiar orbitales</button>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-gray-50 p-6 rounded-xl border border-gray-100">
+                    <h3 class="font-bold mb-2 text-sm uppercase tracking-wide">Restricciones Atómicas:</h3>
+                    <p class="text-xs text-gray-600 mb-4">Las cajas de texto están limitadas por la capacidad real de cada capa (2, 8, 18...). No podrás introducir valores superiores.</p>
+                </div>
+
+                <div class="flex flex-col space-y-6">
+                    <div class="flex flex-col">
+                        <label class="text-sm font-semibold text-gray-700 mb-2">Configuración Electrónica:</label>
+                        <div id="dynamicConfigArea" class="config-container"></div>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <label class="text-sm font-semibold text-gray-700 mb-2">Electrones de Valencia:</label>
+                        <input type="number" id="valenceInput" class="border-2 border-gray-300 rounded p-2 w-24 text-center" placeholder="0">
+                    </div>
+
+                    <div id="feedback" class="text-center font-bold text-sm"></div>
+
+                    <button id="validateBtn" onclick="validateAnswer()" class="btn-validate w-full text-lg font-bold shadow-lg">
+                        Validar y Continuar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="completionModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            <div class="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-sm">
+                <h2 class="text-3xl font-bold mb-4">¡Excelente trabajo!</h2>
+                <div class="text-5xl font-black text-green-600 mb-6" id="finalScore">10.0</div>
+                <button onclick="location.reload()" class="bg-blue-600 text-white px-6 py-2 rounded-lg">Repetir</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const elementsData = [
+            { z: 1, s: "H", n: "Hidrógeno", cfg: [1,0,0,0,0,0], v: 1, diff: 1 },
+            { z: 6, s: "C", n: "Carbono", cfg: [2,4,0,0,0,0], v: 4, diff: 1 },
+            { z: 11, s: "Na", n: "Sodio", cfg: [2,8,1,0,0,0], v: 1, diff: 2 },
+            { z: 18, s: "Ar", n: "Argón", cfg: [2,8,8,0,0,0], v: 8, diff: 2 },
+            { z: 19, s: "K", n: "Potasio", cfg: [2,8,8,1,0,0], v: 1, diff: 3 },
+            { z: 20, s: "Ca", n: "Calcio", cfg: [2,8,8,2,0,0], v: 2, diff: 3 },
+            { z: 21, s: "Sc", n: "Escandio", cfg: [2,8,9,2,0,0], v: 2, diff: 4 },
+            { z: 24, s: "Cr", n: "Cromo", cfg: [2,8,12,2,0,0], v: 2, diff: 4 },
+            { z: 26, s: "Fe", n: "Hierro", cfg: [2,8,14,2,0,0], v: 2, diff: 4 },
+            { z: 29, s: "Cu", n: "Cobre", cfg: [2,8,17,2,0,0], v: 2, diff: 4 },
+            { z: 30, s: "Zn", n: "Zinc", cfg: [2,8,18,2,0,0], v: 2, diff: 4 },
+            { z: 31, s: "Ga", n: "Galio", cfg: [2,8,18,3,0,0], v: 3, diff: 4 },
+            { z: 35, s: "Br", n: "Bromo", cfg: [2,8,18,7,0,0], v: 7, diff: 4 },
+            { z: 36, s: "Kr", n: "Kriptón", cfg: [2,8,18,8,0,0], v: 8, diff: 4 },
+            { z: 37, s: "Rb", n: "Rubidio", cfg: [2,8,18,8,1,0], v: 1, diff: 5 },
+            { z: 38, s: "Sr", n: "Estroncio", cfg: [2,8,18,8,2,0], v: 2, diff: 5 },
+            { z: 39, s: "Y", n: "Itrio", cfg: [2,8,18,9,2,0], v: 2, diff: 6 },
+            { z: 47, s: "Ag", n: "Plata", cfg: [2,8,18,17,2,0], v: 2, diff: 6 },
+            { z: 48, s: "Cd", n: "Cadmio", cfg: [2,8,18,18,2,0], v: 2, diff: 6 },
+            { z: 53, s: "I", n: "Yodo", cfg: [2,8,18,18,7,0], v: 7, diff: 6 },
+            { z: 54, s: "Xe", n: "Xenón", cfg: [2,8,18,18,8,0], v: 8, diff: 6 },
+            { z: 55, s: "Cs", n: "Cesio", cfg: [2,8,18,18,8,1], v: 1, diff: 7 },
+            { z: 56, s: "Ba", n: "Bario", cfg: [2,8,18,18,8,2], v: 2, diff: 7 }
+        ];
+
+        let currentScore = 0;
+        let exercisesDone = 0;
+        let zGreaterThan30Correct = 0;
+        let currentElement = null;
+        let userConfig = [0, 0, 0, 0, 0, 0];
+        let availableElements = [...elementsData];
+
+        function selectNextElement() {
+            if (exercisesDone >= 12) {
+                showFinalResults();
+                return;
+            }
+            let forceHeavy = (currentScore >= 5.7 && zGreaterThan30Correct < 2);
+            let filtered = availableElements.filter(e => {
+                if (forceHeavy) return e.z > 30;
+                if (exercisesDone < 4) return e.diff <= 2;
+                if (exercisesDone < 8) return e.diff <= 4;
+                return true;
+            });
+            if (filtered.length === 0) filtered = availableElements;
+            const idx = Math.floor(Math.random() * filtered.length);
+            currentElement = filtered[idx];
+            availableElements = availableElements.filter(e => e.z !== currentElement.z);
+            renderNewExercise();
+        }
+
+        function renderNewExercise() {
+            document.getElementById('elemSymbol').innerText = currentElement.s;
+            document.getElementById('elemName').innerText = currentElement.n;
+            document.getElementById('elemZ').innerText = currentElement.z;
+            document.getElementById('progressLabel').innerText = `Ejercicio ${exercisesDone + 1} / 12`;
+            document.getElementById('valenceInput').value = "";
+            document.getElementById('feedback').innerText = "";
+            userConfig = [0,0,0,0,0,0];
+            
+            const area = document.getElementById('dynamicConfigArea');
+            area.innerHTML = "";
+
+            const startLabel = document.createElement('span');
+            startLabel.innerHTML = `${currentElement.s} <span class="ml-1">(</span>`;
+            area.appendChild(startLabel);
+            
+            const numShells = currentElement.cfg.filter(n => n > 0).length;
+            const maxPerShell = [2, 8, 18, 32, 50, 72];
+
+            for (let i = 0; i < numShells; i++) {
+                const input = document.createElement('input');
+                input.type = "number";
+                input.className = "input-mini shell-input";
+                input.dataset.idx = i;
+                input.min = 0;
+                input.max = maxPerShell[i]; // Límite en el atributo HTML
+                
+                input.addEventListener('input', (e) => {
+                    let val = parseInt(e.target.value) || 0;
+                    if (val > maxPerShell[i]) {
+                        val = maxPerShell[i]; // Límite por lógica JS
+                        e.target.value = val;
+                    }
+                    if (val < 0) {
+                        val = 0;
+                        e.target.value = 0;
+                    }
+                    userConfig[i] = val;
+                    updateAtomVisual(false);
+                });
+
+                area.appendChild(input);
+                if (i < numShells - 1) area.appendChild(document.createTextNode(", "));
+            }
+            
+            const endLabel = document.createElement('span');
+            endLabel.innerText = ")";
+            area.appendChild(endLabel);
+            
+            updateAtomVisual(true);
+        }
+
+        function addElectron(shell) {
+            const maxPerShell = [2, 8, 18, 32, 50, 72];
+            if (userConfig[shell-1] < maxPerShell[shell-1]) {
+                userConfig[shell-1]++;
+                updateAtomVisual(true);
+            }
+        }
+
+        function removeElectron(shellIdx) {
+            if (userConfig[shellIdx] > 0) {
+                userConfig[shellIdx]--;
+                updateAtomVisual(true);
+            }
+        }
+
+        function resetElectrons() {
+            userConfig = [0,0,0,0,0,0];
+            updateAtomVisual(true);
+        }
+
+        function updateAtomVisual(syncInputs = true) {
+            const group = document.getElementById('electronsGroup');
+            group.innerHTML = "";
+            const radii = [35, 65, 95, 125, 155, 185];
+
+            let totalColocados = 0;
+            userConfig.forEach((count, sIdx) => {
+                totalColocados += count;
+                const r = radii[sIdx];
+                for (let i = 0; i < count; i++) {
+                    const angle = (i / count) * 2 * Math.PI;
+                    const x = 225 + r * Math.cos(angle);
+                    const y = 225 + r * Math.sin(angle);
+                    const electron = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    electron.setAttribute("cx", x); electron.setAttribute("cy", y); electron.setAttribute("r", 5);
+                    electron.classList.add("electron");
+                    electron.onclick = (e) => { e.stopPropagation(); removeElectron(sIdx); };
+                    group.appendChild(electron);
+                }
+
+                if (syncInputs) {
+                    const inputs = document.querySelectorAll('.shell-input');
+                    if (inputs[sIdx]) inputs[sIdx].value = count || "";
+                }
+            });
+            document.getElementById('eCount').innerText = totalColocados;
+        }
+
+        function validateAnswer() {
+            const valenceInput = parseInt(document.getElementById('valenceInput').value);
+            const feedback = document.getElementById('feedback');
+            const shellInputs = document.querySelectorAll('.shell-input');
+            let shellValues = Array.from(shellInputs).map(inp => parseInt(inp.value) || 0);
+
+            const cfgVisualCorrect = userConfig.every((val, idx) => val === currentElement.cfg[idx]);
+            const valenceCorrect = valenceInput === currentElement.v;
+            const expectedCfg = currentElement.cfg.filter(n => n > 0);
+            const textCfgCorrect = shellValues.length === expectedCfg.length && 
+                                  shellValues.every((v, i) => v === expectedCfg[i]);
+
+            if (cfgVisualCorrect && valenceCorrect && textCfgCorrect) {
+                feedback.innerText = "¡Correcto!";
+                feedback.className = "text-green-600 font-bold";
+                if (currentElement.z > 30) zGreaterThan30Correct++;
+                let tempScore = currentScore + (10 / 12);
+                if (tempScore >= 5.9 && zGreaterThan30Correct < 2) {
+                    currentScore = 5.9;
+                    feedback.innerText = "¡Correcto! Nota limitada a 5.9 hasta resolver 2 elementos Z>30.";
+                } else {
+                    currentScore = tempScore;
+                }
+                exercisesDone++;
+                setTimeout(() => { updateScoreUI(); selectNextElement(); }, 1200);
+            } else {
+                feedback.innerText = "Error. Comprueba el dibujo y los niveles.";
+                feedback.className = "text-red-600 font-bold";
+                if (currentScore > 0) currentScore -= 0.15;
+                updateScoreUI();
+            }
+        }
+
+        function updateScoreUI() {
+            const display = document.getElementById('scoreLabel');
+            if (currentScore > 10) currentScore = 10;
+            display.innerText = `Puntos: ${currentScore.toFixed(1)}`;
+            display.className = currentScore < 5 ? "score-display text-red-600" : "score-display text-green-600";
+        }
+
+        function showFinalResults() {
+            document.getElementById('finalScore').innerText = currentScore.toFixed(1);
+            document.getElementById('completionModal').classList.remove('hidden');
+        }
+
+        window.onload = () => { selectNextElement(); };
+    </script>
+</body>
+</html>
