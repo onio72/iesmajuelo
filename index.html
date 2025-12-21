@@ -37,7 +37,6 @@
             flex-direction: column;
         }
 
-        /* --- Header --- */
         header {
             background: white;
             padding: 1rem;
@@ -66,7 +65,6 @@
             cursor: pointer;
         }
 
-        /* --- Barra de Navegación --- */
         .navigation-bar {
             max-width: 1000px;
             margin: 1rem auto 0;
@@ -107,7 +105,6 @@
             white-space: nowrap;
         }
 
-        /* --- Contenido Principal --- */
         main {
             flex: 1;
             max-width: 1000px;
@@ -127,7 +124,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- Cuadrícula de Categorías --- */
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -170,7 +166,6 @@
             margin-bottom: 1rem;
         }
 
-        /* --- Lista de Recursos (Nivel Final) --- */
         .resource-group {
             background: white;
             padding: 1.5rem;
@@ -224,7 +219,6 @@
             font-size: 1.1rem;
         }
 
-        /* --- Utilidades --- */
         .hidden { display: none !important; }
 
         @media (max-width: 600px) {
@@ -254,8 +248,7 @@
 
 <script>
     /**
-     * ESTRUCTURA DE DATOS COMPLETA
-     * Basada exactamente en el archivo original proporcionado.
+     * ESTRUCTURA DE DATOS COMPLETA (Corregida)
      */
     const DATA = {
         root: {
@@ -271,7 +264,6 @@
                 { id: 'otros', title: 'Otros', icon: '✨', desc: 'Recursos Variados' }
             ]
         },
-        // --- Nivel 1: ESO ---
         eso: {
             title: "ESO",
             items: [
@@ -280,7 +272,6 @@
                 { id: 'fq4', title: 'FQ4', icon: '⚛️', desc: '4º de la ESO' }
             ]
         },
-        // --- Nivel 1: Bachillerato ---
         bach: {
             title: "Bachillerato",
             items: [
@@ -288,8 +279,6 @@
                 { id: 'fi2', title: 'Física 2º', icon: '🌌', desc: '2º de Bachillerato' }
             ]
         },
-
-        // --- Nivel Final: ESO Recursos ---
         fq2: {
             title: "FQ2",
             groups: [
@@ -334,9 +323,9 @@
                     links: [
                         { name: "Tabla de valencias", url: "https://onio72.github.io/iesmajuelo/eso/fq3/formulacion/tabla_valencias.html" },
                         { name: "Masas atómicas y molares", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla01/" },
-                        { name: "Cálculos masas", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/calculo_masas/" }
+                        { name: "Cálculos masas", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/calculo_masas/" },
                         { name: "Abundancia isotópica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/abundisot/" },
-                        { name: "Trabajando con la tabla periódica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla02/" }
+                        { name: "Trabajando con la tabla periódica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla02/" },
                         { name: "Configuración electrónica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/configelect/" }
                     ]
                 }
@@ -351,8 +340,6 @@
                 }
             ]
         },
-
-        // --- Nivel Final: Bachillerato Recursos ---
         fq1: {
             title: "FQ1",
             groups: [
@@ -444,8 +431,6 @@
                 }
             ]
         },
-
-        // --- Resto de Categorías Raíz ---
         fpb2: {
             title: "FPB2",
             groups: [{
@@ -453,7 +438,7 @@
                 links: [
                     { name: "Reconocer figuras 3D", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3D/" },
                     { name: "Contar vértices/aristas/caras", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3Deuler/" },
-                    { name: "Problemas de volumen", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/probvol/" }
+                    { name: "Problemas de volumen", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/probvol/" },
                     { name: "Experimento con dados", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/dados.html" }
                 ]
             }]
@@ -499,16 +484,13 @@
         }
     };
 
-    // --- Lógica de la Aplicación ---
     let navigationStack = ['root'];
 
     function navigateTo(id) {
         if (!DATA[id]) return;
-        
         if (id === 'root') {
             navigationStack = ['root'];
         } else {
-            // No repetir el mismo si ya estamos ahí
             if (navigationStack[navigationStack.length - 1] !== id) {
                 navigationStack.push(id);
             }
@@ -531,7 +513,6 @@
         const currentId = navigationStack[navigationStack.length - 1];
         const currentData = DATA[currentId];
 
-        // UI: Botón volver y migas de pan
         if (currentId === 'root') {
             backBtn.classList.add('hidden');
             breadcrumbs.innerHTML = 'Inicio';
@@ -543,7 +524,6 @@
 
         let html = `<div class="view-container">`;
 
-        // Vista de CARPETAS/CATEGORÍAS
         if (currentData.items) {
             html += `<div class="grid">`;
             currentData.items.forEach(item => {
@@ -557,7 +537,6 @@
             });
             html += `</div>`;
         } 
-        // Vista de LISTADO DE RECURSOS
         else if (currentData.groups) {
             currentData.groups.forEach(group => {
                 html += `
