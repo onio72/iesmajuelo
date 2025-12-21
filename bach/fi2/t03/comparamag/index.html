@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Misión Electrostática: Cargas y Campos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- MathJax Configuration -->
+    <script>
+    window.MathJax = {
+      loader: {load: ['[tex]/cancel']},
+      tex: {
+        packages: {'[+]': ['cancel']},
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      startup: {
+        typeset: false
+      }
+    };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:not(:disabled):hover { transform: translateY(-2px); }
+        
+        /* Colores específicos para estados */
+        .text-init { color: #7c3aed; } /* Violet 600 - Inicial */
+        .text-final { color: #db2777; }  /* Pink 600 - Final */
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col items-center p-4 text-slate-800">
+
+    <!-- Header -->
+    <header class="w-full max-w-3xl flex justify-between items-center mb-6 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <div>
+            <h1 class="text-2xl font-black text-violet-900 tracking-tight">Misión Electrostática</h1>
+            <div id="level-badge" class="inline-block px-2 py-0.5 bg-violet-600 text-white text-[10px] font-bold rounded mt-1 uppercase">Nivel: Físico de Partículas</div>
+        </div>
+        <div class="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 text-center">
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Puntuación</div>
+            <div id="score-display" class="text-2xl font-mono font-bold text-slate-400 transition-colors">0.0</div>
+        </div>
+    </header>
+
+    <main class="w-full max-w-3xl space-y-4">
+        
+        <!-- Question Card -->
+        <div id="question-card" class="bg-white rounded-3xl shadow-xl shadow-violet-100 overflow-hidden border border-slate-100 fade-in">
+            <div class="h-1.5 w-full bg-slate-100">
+                <div id="progress-bar" class="h-full bg-violet-500 transition-all duration-700" style="width: 0%"></div>
+            </div>
+            
+            <div class="p-6 md:p-10">
+                <div class="flex items-center gap-2 mb-6">
+                    <span id="topic-tag" class="bg-violet-50 text-violet-700 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter">Ley de Coulomb</span>
+                    <span class="text-slate-300 text-xs">|</span>
+                    <span id="diff-tag" class="text-slate-400 text-xs italic">Análisis de magnitud</span>
+                </div>
+
+                <div id="question-container" class="space-y-4">
+                    <p id="question-text" class="text-lg md:text-xl text-slate-700 leading-relaxed font-medium">
+                        Calibrando electroscopio...
+                    </p>
+                </div>
+
+                <!-- Options -->
+                <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-10">
+                    <!-- Inyectado por JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Explanation Card -->
+        <div id="explanation-card" class="hidden bg-white rounded-3xl shadow-lg border-t-4 border-violet-500 p-6 md:p-8 fade-in">
+            <div class="flex items-center gap-2 mb-6 text-violet-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <h3 class="text-lg font-bold">Análisis de Campo</h3>
+            </div>
+            
+            <div id="explanation-content" class="space-y-6 text-slate-700 leading-relaxed">
+                <!-- LaTeX dinámico -->
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-slate-100 flex justify-end">
+                <button id="next-btn" onclick="game.nextQuestion()" class="bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 px-8 rounded-2xl shadow-lg shadow-violet-200 transition transform hover:-translate-y-0.5">
+                    Siguiente Carga &rarr;
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-12 text-slate-400 text-[10px] font-bold uppercase tracking-widest pb-10">
+        Simulador de Proporcionalidad Electrostática &copy; 2024
+    </footer>
+
+    <script>
+        const COL_INIT = "#7c3aed"; // Violet
+        const COL_FINAL = "#db2777";  // Pink
+
+        // Función para convertir decimales a fracciones LaTeX
+        const getLatexFrac = (val) => {
+            if (Math.abs(val - 1) < 0.0001) return "1";
+            
+            for (let den = 1; den <= 256; den++) {
+                let num = Math.round(val * den);
+                if (Math.abs(val - num / den) < 0.0001) {
+                    if (den === 1) return num.toString();
+                    return "\\frac{" + num + "}{" + den + "}";
+                }
+            }
+            return val.toFixed(2);
+        };
+
+        // Plantillas actualizadas
+        const TEMPLATES = {
+            F: {
+                label: 'Fuerza Eléctrica',
+                symbol: 'F',
+                formula: 'k \\frac{|[[q1]]| \\cdot |[[q2]]|}{[[d]]^2}',
+                vars: { q1: 'carga 1', q2: 'carga 2', d: 'distancia' },
+                powers: { q1: 1, q2: 1, d: -2 }
+            },
+            E: {
+                label: 'Intensidad de Campo',
+                symbol: 'E',
+                formula: 'k \\frac{|[[q]]|}{[[r]]^2}',
+                vars: { q: 'carga fuente', r: 'distancia' },
+                powers: { q: 1, r: -2 }
+            },
+            Ep: {
+                label: 'Energía Potencial',
+                symbol: 'E_p',
+                formula: 'k \\frac{[[q1]] \\cdot [[q2]]}{[[r]]}',
+                vars: { q1: 'carga 1', q2: 'carga 2', r: 'distancia' },
+                powers: { q1: 1, q2: 1, r: -1 }
+            },
+            V: {
+                label: 'Potencial Eléctrico',
+                symbol: 'V',
+                formula: 'k \\frac{[[q]]}{[[r]]}',
+                vars: { q: 'carga fuente', r: 'distancia' },
+                powers: { q: 1, r: -1 }
+            }
+        };
+
+        const FACTORS = [
+            { text: 'se duplica', val: 2 },
+            { text: 'se triplica', val: 3 },
+            { text: 'se cuadruplica', val: 4 },
+            { text: 'se reduce a la mitad', val: 0.5 },
+            { text: 'se reduce a la tercera parte', val: 0.3333333333333333 },
+            { text: 'se reduce a la cuarta parte', val: 0.25 }
+        ];
+
+        class Game {
+            constructor() {
+                this.score = 0;
+                this.currentQuestion = null;
+                this.isAnswering = true;
+                this.init();
+            }
+
+            init() {
+                this.nextQuestion();
+            }
+
+            // Formatea variable con subíndice i o f
+            // SOLUCIONA EL PROBLEMA "DOUBLE SUBSCRIPT" DE LATEX
+            fmtVar(sym, state) { // state: 'i' o 'f'
+                const col = state === 'i' ? COL_INIT : COL_FINAL;
+                
+                let base = sym;
+                let subscript = state;
+
+                // Lógica robusta para combinar subíndices
+                if (sym === 'q1') { base = 'q'; subscript = '1' + state; }
+                else if (sym === 'q2') { base = 'q'; subscript = '2' + state; }
+                else if (sym === 'E_p') { base = 'E'; subscript = 'p' + state; }
+                else if (sym === 'F') { base = 'F'; subscript = state; }
+                // Para d, r, E, V, q genérico, se usa el símbolo tal cual + state
+
+                return `{\\color{${col}} ${base}_{${subscript}}}`;
+            }
+
+            nextQuestion() {
+                this.isAnswering = true;
+                document.getElementById('explanation-card').classList.add('hidden');
+                
+                const magKeys = Object.keys(TEMPLATES);
+                const magKey = magKeys[Math.floor(Math.random() * magKeys.length)];
+                const template = TEMPLATES[magKey];
+                
+                const varKeys = Object.keys(template.vars);
+                const changes = {};
+                let countChanges = 0;
+
+                varKeys.forEach(v => {
+                    if (Math.random() > 0.4 || countChanges === 0) {
+                        changes[v] = FACTORS[Math.floor(Math.random() * FACTORS.length)];
+                        countChanges++;
+                    } else {
+                        changes[v] = { text: 'se mantiene constante', val: 1 };
+                    }
+                });
+
+                let resultFactor = 1;
+                varKeys.forEach(v => {
+                    resultFactor *= Math.pow(changes[v].val, template.powers[v]);
+                });
+
+                this.currentQuestion = { magKey, template, changes, resultFactor };
+                this.render();
+            }
+
+            render() {
+                const q = this.currentQuestion;
+                document.getElementById('topic-tag').innerText = q.template.label;
+                document.getElementById('diff-tag').innerText = "Variación de " + Object.values(q.changes).filter(c => c.val !== 1).length + " variable(s)";
+                
+                // Helper para formatear en texto plano del enunciado
+                const texI = (s) => `$${this.fmtVar(s, 'i')}$`;
+                const texF = (s) => `$${this.fmtVar(s, 'f')}$`;
+                
+                let text = "";
+
+                // Generación de enunciado natural según tipo
+                if (q.magKey === 'F') {
+                    text = `La fuerza entre dos cargas ${texI('q1')} y ${texI('q2')} separadas una distancia ${texI('d')} es ${texI('F')}. `;
+                    text += `¿Cuál será la nueva fuerza ${texF('F')} si `;
+                } else if (q.magKey === 'E') {
+                    text = `La intensidad de campo creada por una carga ${texI('q')} a una distancia ${texI('r')} es ${texI('E')}. `;
+                    text += `¿Cuál será la nueva intensidad ${texF('E')} si `;
+                } else if (q.magKey === 'V') {
+                    text = `El potencial eléctrico creado por una carga ${texI('q')} a una distancia ${texI('r')} es ${texI('V')}. `;
+                    text += `¿Cuál será el nuevo potencial ${texF('V')} si `;
+                } else if (q.magKey === 'Ep') {
+                    text = `La energía potencial entre dos cargas ${texI('q1')} y ${texI('q2')} separadas una distancia ${texI('r')} es ${texI('E_p')}. `;
+                    text += `¿Cuál será la nueva energía ${texF('E_p')} si `;
+                }
+
+                const changeStrings = [];
+                for (let v in q.changes) {
+                    if (q.changes[v].val !== 1) {
+                        changeStrings.push(`la <b>${q.template.vars[v]}</b> ${q.changes[v].text}`);
+                    }
+                }
+                text += changeStrings.join(' y ') + "?";
+
+                document.getElementById('question-text').innerHTML = text;
+                
+                this.renderOptions();
+                this.typeset();
+            }
+
+            renderOptions() {
+                const container = document.getElementById('options-container');
+                container.innerHTML = '';
+                
+                const correctVal = this.currentQuestion.resultFactor;
+                const pool = new Set([correctVal, 1/correctVal, 1/36, 1/16, 1/9, 4, 9, 16, 1/4, 2, 0.5]);
+                const options = Array.from(pool).filter(v => v > 0 && !isNaN(v)).sort(() => Math.random() - 0.5).slice(0, 4);
+                if (!options.includes(correctVal)) options[0] = correctVal;
+
+                options.sort(() => Math.random() - 0.5).forEach(val => {
+                    const btn = document.createElement('button');
+                    btn.className = "option-btn group p-5 bg-white border-2 border-slate-100 rounded-2xl text-left hover:border-violet-200 hover:bg-violet-50/30 transition shadow-sm";
+                    const latex = getLatexFrac(val);
+                    const sym = this.currentQuestion.template.symbol;
+                    const eqPart = (latex === '1') ? '' : latex + ' \\cdot';
+                    
+                    btn.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="text-lg font-serif">$ ${this.fmtVar(sym, 'f')} = ${eqPart} ${this.fmtVar(sym, 'i')} $</span>
+                            <div class="w-6 h-6 rounded-full border-2 border-slate-100 group-hover:border-violet-200 flex items-center justify-center text-[10px] font-bold text-slate-300">?</div>
+                        </div>
+                    `;
+                    btn.onclick = () => this.checkAnswer(val, btn);
+                    container.appendChild(btn);
+                });
+            }
+
+            checkAnswer(val, btn) {
+                if (!this.isAnswering) return;
+                this.isAnswering = false;
+
+                const correct = this.currentQuestion.resultFactor;
+                const isCorrect = Math.abs(val - correct) < 0.0001;
+
+                if (isCorrect) {
+                    this.score += 1.0;
+                    btn.classList.replace('border-slate-100', 'border-emerald-500');
+                    btn.classList.add('bg-emerald-50');
+                } else {
+                    this.score = Math.max(0, this.score - 0.5);
+                    btn.classList.replace('border-slate-100', 'border-red-500');
+                    btn.classList.add('bg-red-50');
+                }
+
+                this.updateUI();
+                this.showExplanation();
+            }
+
+            updateUI() {
+                const scoreDisp = document.getElementById('score-display');
+                scoreDisp.innerText = this.score.toFixed(1);
+                scoreDisp.className = "text-2xl font-mono font-bold " + (this.score >= 5 ? 'text-emerald-500' : 'text-violet-600');
+                
+                const progress = (this.score / 10) * 100;
+                document.getElementById('progress-bar').style.width = Math.min(progress, 100) + "%";
+            }
+
+            showExplanation() {
+                const q = this.currentQuestion;
+                const container = document.getElementById('explanation-content');
+                
+                // 1. Fórmula base - CORREGIDO: uso de fmtVar para variables en fórmula
+                // Reemplazamos los placeholders [[...]] por la versión fmtVar 'i'
+                let baseFormula = q.template.formula;
+                for(let v in q.template.vars) {
+                    baseFormula = baseFormula.replace(`[[${v}]]`, this.fmtVar(v, 'i'));
+                }
+
+                let html = "<div><p class='font-bold mb-2'>1. Fórmula Física:</p><p class='text-sm'>Usamos la expresión para $" + this.fmtVar(q.template.symbol, 'i') + "$: " + 
+                    "$$" + this.fmtVar(q.template.symbol, 'i') + " = " + baseFormula + "$$</p></div>";
+
+                // 2. Sustitución y Cancelación
+                html += "<div><p class='font-bold mb-2'>2. Relación de cambio (Sustitución y Cancelación):</p>" + 
+                    "<p class='text-sm mb-2'>Sustituimos las nuevas variables ($f$) por sus equivalentes iniciales ($i$) y simplificamos los términos comunes:</p></div>";
+
+                const sym = q.template.symbol;
+                const vi = (s) => this.fmtVar(s, 'i');
+                const vf = (s) => this.fmtVar(s, 'f');
+
+                const getCancelTerm = (vName) => {
+                    const factor = q.changes[vName].val;
+                    const varLatex = this.fmtVar(vName, 'i');
+                    if (factor === 1) return `\\cancel{${varLatex}}`;
+                    
+                    let fStr = getLatexFrac(factor);
+                    if (fStr.includes("frac")) fStr = `\\left(${fStr}\\right)`;
+                    return `${fStr} \\cdot \\cancel{${varLatex}}`;
+                };
+
+                let numExpr = "";
+                let denExpr = "";
+
+                // Construcción segura de la fracción de cancelación
+                if (q.magKey === 'F') { 
+                    numExpr = `\\cancel{k} \\frac{|${getCancelTerm('q1')}| \\cdot |${getCancelTerm('q2')}|}{(${getCancelTerm('d')})^2}`;
+                    denExpr = `\\cancel{k} \\frac{|\\cancel{${vi('q1')}}| \\cdot |\\cancel{${vi('q2')}}|}{\\cancel{${vi('d')}}^2}`;
+                } else if (q.magKey === 'E') { 
+                    numExpr = `\\cancel{k} \\frac{|${getCancelTerm('q')}|}{(${getCancelTerm('r')})^2}`;
+                    denExpr = `\\cancel{k} \\frac{|\\cancel{${vi('q')}}|}{\\cancel{${vi('r')}}^2}`;
+                } else if (q.magKey === 'Ep') { 
+                    numExpr = `\\cancel{k} \\frac{${getCancelTerm('q1')} \\cdot ${getCancelTerm('q2')}}{${getCancelTerm('r')}}`;
+                    denExpr = `\\cancel{k} \\frac{\\cancel{${vi('q1')}} \\cdot \\cancel{${vi('q2')}}}{\\cancel{${vi('r')}}}`;
+                } else if (q.magKey === 'V') { 
+                    numExpr = `\\cancel{k} \\frac{${getCancelTerm('q')}}{${getCancelTerm('r')}}`;
+                    denExpr = `\\cancel{k} \\frac{\\cancel{${vi('q')}}}{\\cancel{${vi('r')}}}`;
+                }
+
+                html += `<div class="bg-slate-50 p-4 rounded-xl my-4 overflow-x-auto text-center text-lg">
+                    $\\frac{${vf(sym)}}{${vi(sym)}} = \\frac{${numExpr}}{${denExpr}} = \\mathbf{${getLatexFrac(q.resultFactor)}}$
+                </div>`;
+
+                html += "<div><p class='font-bold mb-2'>3. Resultado:</p>" + 
+                    "<p class='text-sm'>La nueva magnitud es:" + 
+                    "$$" + vf(sym) + " = " + getLatexFrac(q.resultFactor) + " \\cdot " + vi(sym) + "$$</p></div>";
+
+                container.innerHTML = html;
+                document.getElementById('explanation-card').classList.remove('hidden');
+                this.typeset();
+                
+                setTimeout(() => {
+                    document.getElementById('explanation-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+
+            typeset() {
+                if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
+                    MathJax.typesetPromise().catch(err => console.log('MathJax Error:', err));
+                }
+            }
+        }
+
+        let game;
+        window.onload = () => {
+            game = new Game();
+        };
+    </script>
+</body>
+</html>
