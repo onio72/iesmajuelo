@@ -73,6 +73,16 @@
                     <button onclick="resetZoom()" class="p-1 hover:bg-slate-700 rounded text-red-300 mt-1 border-t border-slate-700 pt-2"><i data-lucide="rotate-ccw" class="w-4 h-4"></i></button>
                 </div>
 
+                <!-- Pan Controls: appear when zoom > 1 -->
+                <div id="pan-controls" class="absolute bottom-4 right-4 bg-slate-900/80 p-1 rounded border border-slate-700 flex flex-col gap-1 backdrop-blur sticky z-10 hidden">
+                    <button onclick="pan('up')" class="p-1 hover:bg-slate-700 rounded text-slate-200"><i data-lucide="chevron-up" class="w-5 h-5"></i></button>
+                    <div class="flex">
+                        <button onclick="pan('left')" class="p-1 hover:bg-slate-700 rounded text-slate-200"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                        <button onclick="pan('right')" class="p-1 hover:bg-slate-700 rounded text-slate-200"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                    </div>
+                    <button onclick="pan('down')" class="p-1 hover:bg-slate-700 rounded text-slate-200"><i data-lucide="chevron-down" class="w-5 h-5"></i></button>
+                </div>
+
                 <!-- Overlay de Guía -->
                 <div id="guide-overlay" class="absolute top-4 left-1/2 transform -translate-x-1/2 z-40 bg-slate-900/90 border border-slate-700 backdrop-blur-md px-6 py-2 rounded-full shadow-xl flex items-center gap-3 whitespace-nowrap hidden">
                     <span class="text-slate-400 text-xs font-bold uppercase tracking-wider hidden sm:inline">Paso:</span>
@@ -214,6 +224,8 @@
             videoSrc: null, isPlaying: false, fps: 30, zoom: 1, timeOffset: null,
             activeTool: 'none', points: [], realDistance: null, calibrationFactor: null,
             origin: null, tracks: [],
+            // Pan offsets used when zoom > 1. Represent translation in scaled pixels.
+            panX: 0, panY: 0,
             videoDims: { w: 0, h: 0 }
         };
 
@@ -230,6 +242,7 @@
             timeDisplay: document.getElementById('time-display'),
             zoomLevel: document.getElementById('zoom-level'),
             zoomControls: document.getElementById('zoom-controls'),
+            panControls: document.getElementById('pan-controls'),
             welcomeModal: document.getElementById('welcome-modal'),
             placeholder: document.getElementById('placeholder'),
             guideOverlay: document.getElementById('guide-overlay'),
@@ -302,7 +315,7 @@
             const url = URL.createObjectURL(file);
             state.videoSrc = url;
             state.points = []; state.origin = null; state.tracks = []; state.calibrationFactor = null;
-            state.zoom = 1; state.activeTool = 'none'; state.timeOffset = null;
+            state.zoom = 1; state.panX = 0; state.panY = 0; state.activeTool = 'none'; state.timeOffset = null;
             
             els.video.src = url;
             els.placeholder.classList.add('hidden');
@@ -330,41 +343,137 @@
 
         function updateLayout() {
             if (!state.videoSrc) return;
-            // Show/Hide Zoom controls
-            if (state.activeTool === 'tracking') els.zoomControls.classList.remove('hidden');
-            else { els.zoomControls.classList.add('hidden'); state.zoom = 1; }
+            // Show or hide zoom and pan controls based on current tool and zoom level
+            if (state.activeTool === 'tracking') {
+                els.zoomControls.classList.remove('hidden');
+                if (state.zoom > 1) els.panControls.classList.remove('hidden');
+                else els.panControls.classList.add('hidden');
+            } else {
+                els.zoomControls.classList.add('hidden');
+                els.panControls.classList.add('hidden');
+                // reset zoom and pan when not tracking
+                state.zoom = 1;
+                state.panX = 0;
+                state.panY = 0;
+            }
             els.zoomLevel.innerText = state.zoom.toFixed(1) + 'x';
 
-            // Dimensions logic (Anti-blank screen)
-            if (state.zoom === 1) {
-                els.container.style.width = '100%'; els.container.style.height = '100%';
-                els.container.style.display = 'flex'; els.container.style.justifyContent = 'center'; els.container.style.alignItems = 'center';
-                drawCanvas(); return;
-            }
-
-            els.container.style.display = 'block';
+            // Calculate the base dimensions for the media wrapper without applying zoom
             const containerW = els.scrollContainer.clientWidth || 800;
             const containerH = els.scrollContainer.clientHeight || 500;
-            const vidRatio = state.videoDims.w / state.videoDims.h;
+            const vidRatio = state.videoDims.w > 0 ? state.videoDims.w / state.videoDims.h : 1;
             const contRatio = containerW / containerH;
-            
-            let w, h;
-            if (contRatio > vidRatio) { h = containerH; w = h * vidRatio; } else { w = containerW; h = w / vidRatio; }
-            
-            if (w < 50 || h < 50) { // Fallback
-                els.container.style.width = '100%'; els.container.style.height = '100%';
+            let baseW, baseH;
+            if (contRatio > vidRatio) {
+                baseH = containerH;
+                baseW = baseH * vidRatio;
             } else {
-                els.container.style.width = `${w * state.zoom}px`; els.container.style.height = `${h * state.zoom}px`;
+                baseW = containerW;
+                baseH = baseW / vidRatio;
             }
+            // Avoid extremely small values
+            if (baseW < 50 || baseH < 50) {
+                els.container.style.width = '100%';
+                els.container.style.height = '100%';
+            } else {
+                // Set the size of media wrapper to the base dimensions (do not multiply by zoom)
+                els.container.style.width = `${baseW}px`;
+                els.container.style.height = `${baseH}px`;
+            }
+
+            // Clamp pan values within allowable range whenever layout changes
+            const maxPanX = baseW * state.zoom - baseW;
+            const maxPanY = baseH * state.zoom - baseH;
+            state.panX = Math.min(maxPanX, Math.max(0, state.panX));
+            state.panY = Math.min(maxPanY, Math.max(0, state.panY));
+
+            // Apply pan and zoom transforms to video and canvas
+            applyPanZoom();
             drawCanvas();
+        }
+
+        // Applies the current pan and zoom values as CSS transforms on the video and canvas
+        function applyPanZoom() {
+            // Ensure transform origin is top-left so translation behaves intuitively
+            els.video.style.transformOrigin = 'top left';
+            els.canvas.style.transformOrigin = 'top left';
+            // The translation is negative because moving the content left/up exposes areas to the right/bottom
+            els.video.style.transform = `translate(${-state.panX}px, ${-state.panY}px) scale(${state.zoom})`;
+            els.canvas.style.transform = `translate(${-state.panX}px, ${-state.panY}px) scale(${state.zoom})`;
+        }
+
+        /**
+         * Moves the visible region of the video when zoomed in. Panning is ignored when zoom=1.
+         * @param {'up' | 'down' | 'left' | 'right'} direction The direction to pan.
+         */
+        function pan(direction) {
+            if (state.zoom <= 1) return;
+            // Determine base dimensions (width and height of visible media wrapper) to compute limits
+            const rect = els.container.getBoundingClientRect();
+            const containerW = rect.width;
+            const containerH = rect.height;
+            // Compute the displayed video area (without zoom) inside the container to handle aspect ratio
+            const vidRatio = state.videoDims.w > 0 ? state.videoDims.w / state.videoDims.h : 1;
+            const contRatio = containerW / containerH;
+            let baseW, baseH;
+            if (contRatio > vidRatio) {
+                baseH = containerH;
+                baseW = baseH * vidRatio;
+            } else {
+                baseW = containerW;
+                baseH = baseW / vidRatio;
+            }
+            // Maximum pan in each direction (difference between scaled size and base size)
+            const maxPanX = baseW * state.zoom - baseW;
+            const maxPanY = baseH * state.zoom - baseH;
+            // Determine the step size (scroll amount). A fixed pixel value relative to base dimensions works well.
+            const step = Math.max(20, Math.min(baseW, baseH) * 0.05);
+            switch(direction) {
+                case 'left':
+                    state.panX = Math.max(0, state.panX - step);
+                    break;
+                case 'right':
+                    state.panX = Math.min(maxPanX, state.panX + step);
+                    break;
+                case 'up':
+                    state.panY = Math.max(0, state.panY - step);
+                    break;
+                case 'down':
+                    state.panY = Math.min(maxPanY, state.panY + step);
+                    break;
+            }
+            applyPanZoom();
         }
 
         function changeZoom(delta) {
             if (state.activeTool !== 'tracking') return;
+            // Adjust zoom level within a sensible range
             state.zoom = Math.max(1, Math.min(state.zoom + delta, 5));
+            // When zooming, optionally keep the current pan centered by scaling pan proportionally
+            // Compute base dimensions to properly rescale pan offsets
+            const rect = els.container.getBoundingClientRect();
+            const containerW = rect.width;
+            const containerH = rect.height;
+            const vidRatio = state.videoDims.w > 0 ? state.videoDims.w / state.videoDims.h : 1;
+            const contRatio = containerW / containerH;
+            let baseW, baseH;
+            if (contRatio > vidRatio) {
+                baseH = containerH;
+                baseW = baseH * vidRatio;
+            } else {
+                baseW = containerW;
+                baseH = baseW / vidRatio;
+            }
+            // Recalculate maximum pan and clamp pan values in updateLayout
             updateLayout();
         }
-        function resetZoom() { state.zoom = 1; updateLayout(); }
+        function resetZoom() {
+            // Reset zoom and pan to default
+            state.zoom = 1;
+            state.panX = 0;
+            state.panY = 0;
+            updateLayout();
+        }
 
         function updateTimeUI() {
             const t = els.video.currentTime;
@@ -396,22 +505,38 @@
         // --- CANVAS CLICK ---
         function handleCanvasClick(e) {
             const rect = els.container.getBoundingClientRect();
-            // Logic for Zoom 1 black bars
-            let vW = rect.width, vH = rect.height, offX = 0, offY = 0;
-            if (state.zoom === 1 && state.videoDims.w > 0) {
+            const containerW = rect.width;
+            const containerH = rect.height;
+            // Compute the visible video area (without zoom) and any black bars
+            let vW = containerW, vH = containerH, offX = 0, offY = 0;
+            if (state.videoDims.w > 0 && state.videoDims.h > 0) {
                 const vr = state.videoDims.w / state.videoDims.h;
-                const cr = rect.width / rect.height;
-                if (cr > vr) { vW = rect.height * vr; offX = (rect.width - vW) / 2; } 
-                else { vH = rect.width / vr; offY = (rect.height - vH) / 2; }
+                const cr = containerW / containerH;
+                if (cr > vr) {
+                    vH = containerH;
+                    vW = vH * vr;
+                    offX = (containerW - vW) / 2;
+                } else {
+                    vW = containerW;
+                    vH = vW / vr;
+                    offY = (containerH - vH) / 2;
+                }
             }
-            
-            const clickX = e.clientX - rect.left - offX;
-            const clickY = e.clientY - rect.top - offY;
-            const x = clickX * (state.videoDims.w / vW);
-            const y = clickY * (state.videoDims.h / vH);
-
+            // Raw click coordinates relative to container
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+            // Apply current pan and remove scaled black bar offsets to get coordinate in scaled video
+            const offsetX = state.panX + clickX - offX * state.zoom;
+            const offsetY = state.panY + clickY - offY * state.zoom;
+            const totalWidth = vW * state.zoom;
+            const totalHeight = vH * state.zoom;
+            // Ignore clicks outside the scaled video area
+            if (offsetX < 0 || offsetY < 0 || offsetX > totalWidth || offsetY > totalHeight) return;
+            // Convert from scaled video pixel to original video pixel
+            const x = (offsetX / totalWidth) * state.videoDims.w;
+            const y = (offsetY / totalHeight) * state.videoDims.h;
             if (x < 0 || y < 0 || x > state.videoDims.w || y > state.videoDims.h) return;
-
+            // Tool-specific logic
             if (state.activeTool === 'calibration') {
                 if (state.points.length < 2) { state.points.push({x,y}); drawCanvas(); }
             } else if (state.activeTool === 'origin') {
