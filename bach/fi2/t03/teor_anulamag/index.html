@@ -1,0 +1,916 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anulación de Magnitudes Eléctricas - Física 2º Bach</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f6f1ea;
+            --bg-accent: #fef3c7;
+            --card-bg: rgba(255, 255, 255, 0.92);
+            --text-main: #0f172a;
+            --text-muted: #4b5563;
+            --primary: #0f766e;
+            --primary-strong: #115e59;
+            --accent: #f59e0b;
+            --success: #15803d;
+            --error: #b91c1c;
+            --border: rgba(15, 23, 42, 0.12);
+            --shadow: 0 22px 60px rgba(15, 23, 42, 0.12);
+            --font-body: "Newsreader", "Times New Roman", serif;
+            --font-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: radial-gradient(circle at top, var(--bg-accent), transparent 50%), var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 24px;
+            font-family: var(--font-body);
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(120deg, rgba(15, 118, 110, 0.08), transparent 45%),
+                              radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.12), transparent 55%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        .container {
+            width: 100%;
+            max-width: 760px;
+            background: var(--card-bg);
+            padding: 34px;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(8px);
+            animation: floatIn 0.6s ease both;
+        }
+        
+        .header { text-align: center; margin-bottom: 24px; display: grid; gap: 10px; }
+        .eyebrow { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); font-family: var(--font-display); }
+        h1 { font-size: 2rem; font-weight: 700; margin-bottom: 4px; font-family: var(--font-display); }
+        .subtitle { font-size: 1rem; color: var(--text-muted); max-width: 520px; margin: 0 auto; }
+        .score-panel {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-top: 10px;
+            font-family: var(--font-display);
+        }
+        .score-red { color: var(--error); }
+        .score-green { color: var(--success); }
+
+        .physics-graph {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(180deg, rgba(15, 118, 110, 0.05), transparent);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            margin-bottom: 20px;
+        }
+        .graph-label { font-size: 11px; fill: var(--text-muted); font-weight: bold; }
+        .charge-label { font-size: 13px; font-weight: bold; }
+        .cross-line { stroke: #94a3b8; stroke-width: 2; }
+        .option-point .graph-label { font-size: 10px; font-weight: 600; }
+        .coord-label { font-size: 10px; font-weight: 600; }
+        #yAxis { stroke: #0f766e; stroke-width: 2; }
+        .distance-guide { stroke: #0f766e; stroke-width: 1; }
+        .distance-label { fill: #0f766e; font-size: 11px; font-weight: 700; }
+        .scale-tick { stroke: #cbd5e1; stroke-width: 1; }
+        .scale-label { font-size: 10px; fill: var(--text-muted); font-weight: 600; }
+
+        .enunciado {
+            font-size: 1.05rem;
+            line-height: 1.65;
+            margin-bottom: 20px;
+            padding: 16px 18px;
+            background: rgba(15, 118, 110, 0.08);
+            border-radius: 12px;
+            border-left: 4px solid var(--primary);
+        }
+        .options-grid { display: grid; gap: 12px; }
+        button.option-btn {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid var(--border);
+            padding: 14px 16px;
+            border-radius: 12px;
+            text-align: left;
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            font-size: 1rem;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 12px;
+            align-items: center;
+            animation: rise 0.35s ease both;
+        }
+        button.option-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            box-shadow: 0 10px 24px rgba(15, 118, 110, 0.12);
+            transform: translateY(-2px);
+        }
+        button.option-btn:disabled {
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        button.option-btn:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+        .option-letter {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(15, 118, 110, 0.15);
+            color: var(--primary-strong);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-weight: 600;
+        }
+        button.option-btn.correct { background: #dcfce7; border-color: var(--success); color: #15803d; }
+        button.option-btn.wrong { background: #fee2e2; border-color: var(--error); color: #b91c1c; }
+        button.option-btn.selected { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.15); }
+
+        .feedback { margin-top: 20px; padding: 16px; border-radius: 12px; display: none; background: #f8fafc; border: 1px solid var(--border); }
+        .feedback.visible { display: block; }
+        .explicacion { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; text-align: justify; }
+        
+        .controls { margin-top: 25px; display: flex; justify-content: space-between; gap: 12px; }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 22px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: var(--font-display);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(15, 118, 110, 0.2); }
+        .btn-secondary {
+            background: none;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            padding: 12px 22px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: var(--font-display);
+        }
+        
+        .math-symbol { font-family: "Times New Roman", serif; font-style: italic; }
+        .badge { font-size: 0.7rem; padding: 4px 8px; border-radius: 999px; background: rgba(15, 23, 42, 0.06); margin: 2px; display: inline-block; font-family: var(--font-display); }
+        .badge.active { background: rgba(21, 128, 61, 0.15); color: #166534; }
+
+        .success-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.96);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            text-align: center;
+            padding: 24px;
+        }
+        .success-overlay.visible { display: flex; }
+        .success-overlay h2 { font-family: var(--font-display); }
+
+        @keyframes floatIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 640px) {
+            body { padding: 16px; }
+            .container { padding: 24px; }
+            h1 { font-size: 1.6rem; }
+            .controls { flex-direction: column; }
+            button.option-btn { grid-template-columns: 1fr; }
+            .option-letter { width: 26px; height: 26px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <p class="eyebrow">Física 2º Bach</p>
+            <h1>¿Dónde se anula...?</h1>
+            <p class="subtitle">Localiza el punto donde cada magnitud se anula y desbloquea las cuatro insignias.</p>
+            <div id="scoreDisplay" class="score-panel score-red" aria-live="polite">Puntuación: 0</div>
+            <div id="badges">
+                <span class="badge" id="b-FORCE">Fuerza</span>
+                <span class="badge" id="b-FIELD">Campo</span>
+                <span class="badge" id="b-POT_EN">E. Potencial</span>
+                <span class="badge" id="b-POTENTIAL">Potencial</span>
+            </div>
+        </div>
+
+        <svg class="physics-graph" id="mainGraph" viewBox="0 0 500 120">
+            <defs>
+                <marker id="arrowHead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                    <path d="M0,0 L8,3 L0,6 Z" fill="#0f766e"></path>
+                </marker>
+                <marker id="arrowHeadStart" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto">
+                    <path d="M8,0 L0,3 L8,6 Z" fill="#0f766e"></path>
+                </marker>
+                <marker id="axisArrowUp" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="0">
+                    <path d="M3,0 L6,6 L0,6 Z" fill="#0f766e"></path>
+                </marker>
+            </defs>
+            <line x1="20" y1="70" x2="480" y2="70" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4"/>
+            <line id="yAxis" x1="250" y1="110" x2="250" y2="14" marker-end="url(#axisArrowUp)"/>
+            <line id="q1Guide" class="distance-guide" x1="0" y1="26" x2="0" y2="70"/>
+            <line id="q2Guide" class="distance-guide" x1="0" y1="26" x2="0" y2="70"/>
+            <line id="distanceArrow" class="distance-guide" x1="0" y1="24" x2="0" y2="24" marker-start="url(#arrowHeadStart)" marker-end="url(#arrowHead)"/>
+            <text id="distanceLabel" class="distance-label" x="0" y="18" text-anchor="middle">2 m</text>
+            <g id="scaleTicks" opacity="0.75">
+                <line data-x="0" x1="100" y1="64" x2="100" y2="76" class="scale-tick"/>
+                <line data-x="0.5" x1="150" y1="64" x2="150" y2="76" class="scale-tick"/>
+                <line data-x="1" x1="200" y1="64" x2="200" y2="76" class="scale-tick"/>
+                <line data-x="1.5" x1="250" y1="64" x2="250" y2="76" class="scale-tick"/>
+                <line data-x="2" x1="300" y1="64" x2="300" y2="76" class="scale-tick"/>
+            </g>
+            
+            <!-- Curva de anulación (invisible por defecto) -->
+            <ellipse id="anulacionCurve" cx="250" cy="70" rx="0" ry="0" fill="none" stroke="#0f766e" stroke-width="1.5" stroke-dasharray="3" opacity="0"/>
+            
+            <!-- Líneas de distancia -->
+            <line id="distLine1" x1="0" y1="0" x2="0" y2="0" stroke="#f59e0b" stroke-width="1" stroke-dasharray="2" opacity="0"/>
+            <line id="distLine2" x1="0" y1="0" x2="0" y2="0" stroke="#f59e0b" stroke-width="1" stroke-dasharray="2" opacity="0"/>
+            <text id="distLabel1" x="0" y="0" class="graph-label" fill="#f59e0b" opacity="0">r₁</text>
+            <text id="distLabel2" x="0" y="0" class="graph-label" fill="#f59e0b" opacity="0">r₂</text>
+            
+            <!-- Punto A -->
+            <g id="pointA" transform="translate(100, 70)">
+                <line x1="-5" y1="-5" x2="5" y2="5" class="cross-line" />
+                <line x1="5" y1="-5" x2="-5" y2="5" class="cross-line" />
+                <text id="pointA_label" y="20" text-anchor="middle" class="graph-label coord-label">A</text>
+            </g>
+            
+            <!-- Carga Q1 -->
+            <circle id="q1_circ" cx="150" cy="70" r="10" fill="#2563eb"/>
+            <text id="q1_label" x="150" y="55" text-anchor="middle" class="charge-label">Q₁</text>
+            
+            <!-- Punto M (medio) -->
+            <g id="pointM" transform="translate(250, 70)" opacity="0">
+                <line x1="-5" y1="-5" x2="5" y2="5" class="cross-line" />
+                <line x1="5" y1="-5" x2="-5" y2="5" class="cross-line" />
+                <text id="pointM_label" y="20" text-anchor="middle" class="graph-label coord-label">M</text>
+            </g>
+            
+            <!-- Punto B (ahora dinámico) -->
+            <g id="pointB" transform="translate(250, 70)">
+                <line x1="-5" y1="-5" x2="5" y2="5" class="cross-line" />
+                <line x1="5" y1="-5" x2="-5" y2="5" class="cross-line" />
+                <text id="pointB_label" y="20" text-anchor="middle" class="graph-label coord-label">B</text>
+            </g>
+            
+            <!-- Carga Q2 -->
+            <circle id="q2_circ" cx="350" cy="70" r="10" fill="#2563eb"/>
+            <text id="q2_label" x="350" y="55" text-anchor="middle" class="charge-label">Q₂</text>
+            
+            <!-- Punto C -->
+            <g id="pointC" transform="translate(425, 70)">
+                <line x1="-5" y1="-5" x2="5" y2="5" class="cross-line" />
+                <line x1="5" y1="-5" x2="-5" y2="5" class="cross-line" />
+                <text id="pointC_label" y="20" text-anchor="middle" class="graph-label coord-label">C</text>
+            </g>
+            
+            <!-- Punto D (ahora dinámico) -->
+            <g id="pointD" transform="translate(250, 25)">
+                <line x1="-5" y1="-5" x2="5" y2="5" class="cross-line" />
+                <line x1="5" y1="-5" x2="-5" y2="5" class="cross-line" />
+                <text id="pointD_label" x="10" y="4" class="graph-label coord-label">D</text>
+            </g>
+
+            <g id="optA" class="option-point" transform="translate(0, 0)" opacity="0">
+                <line x1="-5" y1="-5" x2="5" y2="5" class="cross-line" />
+                <line x1="5" y1="-5" x2="-5" y2="5" class="cross-line" />
+                <text id="optA_label" y="20" text-anchor="middle" class="graph-label coord-label">A</text>
+            </g>
+            <g id="optB" class="option-point" transform="translate(0, 0)" opacity="0">
+                <line x1="-5" y1="-5" x2="5" y2="5" class="cross-line" />
+                <line x1="5" y1="-5" x2="-5" y2="5" class="cross-line" />
+                <text id="optB_label" y="20" text-anchor="middle" class="graph-label coord-label">B</text>
+            </g>
+            <g id="optC" class="option-point" transform="translate(0, 0)" opacity="0">
+                <line x1="-5" y1="-5" x2="5" y2="5" class="cross-line" />
+                <line x1="5" y1="-5" x2="-5" y2="5" class="cross-line" />
+                <text id="optC_label" y="20" text-anchor="middle" class="graph-label coord-label">C</text>
+            </g>
+            <g id="optD" class="option-point" transform="translate(0, 0)" opacity="0">
+                <line x1="-5" y1="-5" x2="5" y2="5" class="cross-line" />
+                <line x1="5" y1="-5" x2="-5" y2="5" class="cross-line" />
+                <text id="optD_label" y="20" text-anchor="middle" class="graph-label coord-label">D</text>
+            </g>
+        </svg>
+
+        <div class="question-card">
+            <div class="enunciado" id="enunciadoText"></div>
+            <div class="options-grid" id="optionsGrid"></div>
+        </div>
+
+        <div class="feedback" id="feedbackArea" role="status" aria-live="polite">
+            <div id="feedbackTitle" style="font-weight:bold; margin-bottom:5px;"></div>
+            <div class="explicacion" id="explicacionText"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-secondary" onclick="resetGame()">Reiniciar</button>
+            <button class="btn-secondary" id="checkBtn" style="visibility: hidden;" onclick="checkMultiple()">Comprobar</button>
+            <button class="btn-primary" id="nextBtn" style="visibility: hidden;" onclick="generateQuestion()">Siguiente</button>
+        </div>
+    </div>
+
+    <div class="success-overlay intro-overlay" id="introOverlay">
+        <h2 style="color:var(--primary)">Antes de empezar</h2>
+        <p style="max-width:520px; margin-top:10px; color:var(--text-muted)">
+            Se mostrarán diferentes distribuciones en el plano de dos cargas para determinar
+            en qué punto se anulan distintas magnitudes eléctricas. A veces la respuesta es
+            única y en otras no. La puntuación máxima es 10.
+        </p>
+        <button class="btn-primary" style="margin-top:20px" onclick="startApp()">Empezar</button>
+    </div>
+
+    <div class="success-overlay" id="successOverlay">
+        <h2 style="color:var(--success)">¡Maestría Completada!</h2>
+        <p>Has dominado el equilibrio de las 4 magnitudes.</p>
+        <button class="btn-primary" style="margin-top:20px" onclick="resetGame()">Reiniciar App</button>
+    </div>
+
+    <script>
+        const MAGS = {
+            FORCE: { name: 'la fuerza eléctrica', type: 'vec' },
+            FIELD: { name: 'el campo eléctrico', type: 'vec' },
+            POT_EN: { name: 'la energía potencial eléctrica', type: 'esc' },
+            POTENTIAL: { name: 'el potencial eléctrico', type: 'esc' }
+        };
+
+        let score = 0;
+        let deck = [];
+        let vecDeck = [];
+        let scalarDeck = [];
+        let achieved = { FORCE: false, FIELD: false, POT_EN: false, POTENTIAL: false };
+        let correctCounts = { FORCE: 0, FIELD: 0, POT_EN: 0, POTENTIAL: 0 };
+        let askedCounts = { FORCE: 0, FIELD: 0, POT_EN: 0, POTENTIAL: 0 };
+        let questionNumber = 1;
+        let hasStarted = false;
+        let current = null;
+
+        const SAME_SIGN_BASE = [
+            { q1: 1, q2: 81, correctX: 0.20, d2: 1.80, d3: -0.20 },
+            { q1: 1, q2: 49, correctX: 0.25, d2: 1.75, d3: -0.25 },
+            { q1: 1, q2: 25, correctX: 0.33, d2: 1.67, d3: -0.33 },
+            { q1: 1, q2: 9, correctX: 0.50, d2: 1.50, d3: -0.50 },
+            { q1: 1, q2: 4, correctX: 0.67, d2: 1.33, d3: -0.67 },
+            { q1: 1, q2: 1, correctX: 1.00, d2: 0.00, d3: 2.00 },
+            { q1: 4, q2: 1, correctX: 1.33, d2: 0.67, d3: 2.67 },
+            { q1: 9, q2: 1, correctX: 1.50, d2: 0.50, d3: 2.50 },
+            { q1: 25, q2: 1, correctX: 1.67, d2: 0.33, d3: 2.33 },
+            { q1: 49, q2: 1, correctX: 1.75, d2: 0.25, d3: 2.25 },
+            { q1: 81, q2: 1, correctX: 1.80, d2: 0.20, d3: 2.20 }
+        ];
+
+        const OPP_SIGN_BASE = [
+            { q1: 1, q2: -81, correctX: -0.25, d2: 0.25, d3: 0.20 },
+            { q1: 1, q2: -49, correctX: -0.33, d2: 0.33, d3: 0.25 },
+            { q1: 1, q2: -25, correctX: -0.50, d2: 0.50, d3: 0.33 },
+            { q1: 1, q2: -9, correctX: -1.00, d2: 1.00, d3: 0.50 },
+            { q1: 1, q2: -4, correctX: -2.00, d2: 2.00, d3: 0.67 },
+            { q1: 1, q2: -1, noSolution: true },
+            { q1: 4, q2: -1, correctX: 4.00, d2: -4.00, d3: 1.33 },
+            { q1: 9, q2: -1, correctX: 3.00, d2: -3.00, d3: 1.50 },
+            { q1: 25, q2: -1, correctX: 2.50, d2: -2.50, d3: 1.67 },
+            { q1: 49, q2: -1, correctX: 2.33, d2: -2.33, d3: 1.75 },
+            { q1: 81, q2: -1, correctX: 2.25, d2: -2.25, d3: 1.80 }
+        ];
+
+        const VEC_CASES = [
+            ...SAME_SIGN_BASE.map(entry => ({ ...entry, q1: entry.q1, q2: entry.q2 })),
+            ...SAME_SIGN_BASE.map(entry => ({ ...entry, q1: -entry.q1, q2: -entry.q2 })),
+            ...OPP_SIGN_BASE.map(entry => ({ ...entry, q1: entry.q1, q2: entry.q2 })),
+            ...OPP_SIGN_BASE.map(entry => ({ ...entry, q1: -entry.q1, q2: -entry.q2 }))
+        ];
+
+        const V_SAME_RATIOS = [
+            { a: 1, b: 1, d2: 0.0 },
+            { a: 1, b: 2, d2: 0.67 },
+            { a: 1, b: 3, d2: 0.50 },
+            { a: 1, b: 4, d2: 0.40 },
+            { a: 1, b: 5, d2: 0.33 },
+            { a: 2, b: 1, d2: 1.33 },
+            { a: 3, b: 1, d2: 1.50 },
+            { a: 4, b: 1, d2: 1.60 },
+            { a: 5, b: 1, d2: 1.67 }
+        ];
+
+        const V_OPP_RATIOS = [
+            { a: 1, b: 1, vInt: 1.00, vExt: null, d2: 0.0 },
+            { a: 1, b: 2, vInt: 0.67, vExt: -2.00, d2: -4.0 },
+            { a: 1, b: 3, vInt: 0.50, vExt: -1.00, d2: -2.0 },
+            { a: 1, b: 4, vInt: 0.40, vExt: -0.67, d2: -1.33 },
+            { a: 1, b: 5, vInt: 0.33, vExt: -0.50, d2: -1.0 },
+            { a: 2, b: 1, vInt: 1.33, vExt: 4.00, d2: 6.0 },
+            { a: 3, b: 1, vInt: 1.50, vExt: 3.00, d2: 4.0 },
+            { a: 4, b: 1, vInt: 1.60, vExt: 2.67, d2: 3.33 },
+            { a: 5, b: 1, vInt: 1.67, vExt: 2.50, d2: 3.0 }
+        ];
+
+        const V_CASES = [
+            ...V_SAME_RATIOS.flatMap((entry) => ([
+                { q1: entry.a, q2: entry.b, sameSign: true, vInt: null, vExt: null, d2: entry.d2 },
+                { q1: -entry.a, q2: -entry.b, sameSign: true, vInt: null, vExt: null, d2: entry.d2 }
+            ])),
+            ...V_OPP_RATIOS.flatMap((entry) => ([
+                { q1: entry.a, q2: -entry.b, sameSign: false, vInt: entry.vInt, vExt: entry.vExt, d2: entry.d2 },
+                { q1: -entry.a, q2: entry.b, sameSign: false, vInt: entry.vInt, vExt: entry.vExt, d2: entry.d2 }
+            ]))
+        ];
+
+        function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
+
+        function formatXOption(xValue, label) {
+            const value = Number.isInteger(xValue) ? xValue.toFixed(2) : xValue.toFixed(2);
+            return { text: `En x = ${value} m.`, x: xValue, label };
+        }
+
+        function dedupeOptions(options, fallback) {
+            const used = new Set();
+            return options.map((opt) => {
+                if (typeof opt.x !== 'number') return opt;
+                let xVal = opt.x;
+                while (used.has(xVal) || xVal === 0 || xVal === 2) {
+                    if (!fallback.length) break;
+                    xVal = fallback.shift();
+                }
+                used.add(xVal);
+                return formatXOption(xVal, opt.label);
+            });
+        }
+
+        function formatMath(text) {
+            return text.replace(/\$Q_1\$/g, '<span class="math-symbol">Q<sub>1</sub></span>')
+                       .replace(/\$Q_2\$/g, '<span class="math-symbol">Q<sub>2</sub></span>')
+                       .replace(/\$Q_3\$/g, '<span class="math-symbol">Q<sub>3</sub></span>')
+                       .replace(/Q_1/g, '<span class="math-symbol">Q<sub>1</sub></span>')
+                       .replace(/Q_2/g, '<span class="math-symbol">Q<sub>2</sub></span>')
+                       .replace(/Q_3/g, '<span class="math-symbol">Q<sub>3</sub></span>')
+                       .replace(/\$\|Q_1\|\$/g, '<span class="math-symbol">|Q<sub>1</sub>|</span>')
+                       .replace(/\$\|Q_2\|\$/g, '<span class="math-symbol">|Q<sub>2</sub>|</span>')
+                       .replace(/\$r_1\$/g, '<span class="math-symbol">r<sub>1</sub></span>')
+                       .replace(/\$r_2\$/g, '<span class="math-symbol">r<sub>2</sub></span>');
+        }
+
+        function buildRoundDeck() {
+            const types = ['FORCE', 'FIELD', 'POT_EN', 'POTENTIAL'];
+            const base = types.flatMap(t => [t, t]);
+            let deck = shuffle(base.slice());
+            for (let i = 1; i < deck.length; i++) {
+                if (deck[i] === deck[i - 1]) {
+                    for (let j = i + 1; j < deck.length; j++) {
+                        if (deck[j] !== deck[i - 1]) {
+                            [deck[i], deck[j]] = [deck[j], deck[i]];
+                            break;
+                        }
+                    }
+                }
+            }
+            return deck;
+        }
+
+        function generateQuestion() {
+            if (score >= 10) {
+                updateUI();
+                return;
+            }
+            if (!hasStarted) {
+                hasStarted = true;
+            } else {
+                questionNumber += 1;
+            }
+            updateUI();
+            if (deck.length === 0) deck = buildRoundDeck();
+            const magKey = deck.pop();
+            const mag = MAGS[magKey];
+            askedCounts[magKey] += 1;
+            
+            let q1 = (Math.floor(Math.random() * 5) + 1) * (Math.random() > 0.5 ? 1 : -1);
+            let q2 = (Math.floor(Math.random() * 5) + 1) * (Math.random() > 0.5 ? 1 : -1);
+            let vecCase = null;
+
+            let options = [];
+            let correctIdx = 0;
+            let expl = "";
+
+            if (mag.type === 'vec') {
+                if (vecDeck.length === 0) vecDeck = shuffle(VEC_CASES.slice());
+                vecCase = vecDeck.pop();
+                q1 = vecCase.q1;
+                q2 = vecCase.q2;
+
+                const absQ1 = Math.abs(q1);
+                const absQ2 = Math.abs(q2);
+                const isSameSign = Math.sign(q1) === Math.sign(q2);
+
+                if (vecCase.noSolution) {
+                    options = [
+                        { text: "No se anula en ningún punto.", noPoint: true },
+                        formatXOption(1.0, "medio"),
+                        formatXOption(-0.50, "exterior"),
+                        formatXOption(2.50, "exterior")
+                    ];
+                    correctIdx = 0;
+                    expl = "Si las cargas son de signo contrario pero tienen el mismo valor absoluto, los vectores nunca pueden anularse porque en el interior se refuerzan y en el exterior siempre domina una de ellas.";
+                } else {
+                    const d2Label = isSameSign ? "inverso" : "signo opuesto";
+                    const d3Label = isSameSign ? "zona" : "interior";
+                    options = dedupeOptions([
+                        formatXOption(vecCase.correctX),
+                        formatXOption(1.0, "medio"),
+                        formatXOption(vecCase.d2, d2Label),
+                        formatXOption(vecCase.d3, d3Label)
+                    ], [-0.5, 2.5, -1.0, 3.0]);
+                    correctIdx = 0;
+                    if (isSameSign) {
+                        if (absQ1 === absQ2) {
+                            expl = "Al tratarse de una magnitud vectorial y tener ambas cargas el mismo signo e igual valor absoluto, los vectores se anulan exactamente en el punto medio del segmento (M).";
+                        } else {
+                            const smaller = absQ1 < absQ2 ? '$Q_1$' : '$Q_2$';
+                            const ratio = Math.sqrt(Math.max(absQ1, absQ2) / Math.min(absQ1, absQ2));
+                            const ratioText = Number.isInteger(ratio) ? ratio.toString() : ratio.toFixed(2);
+                            const sentence = absQ1 >= absQ2
+                                ? `Buscamos un punto que diste de $Q_1$ ${ratioText} veces lo que de $Q_2$.`
+                                : `Buscamos un punto que diste de $Q_2$ ${ratioText} veces lo que de $Q_1$.`;
+                            expl = `Al tratarse de una magnitud vectorial y tener ambas cargas el mismo signo, los vectores creados por cada carga tendrán sentidos opuestos únicamente en la región entre ellas. El punto exacto está más cerca de la carga de menor valor absoluto (${smaller}). ${sentence}`;
+                        }
+                    } else {
+                        const bigger = absQ1 >= absQ2 ? 'Q_1' : 'Q_2';
+                        const smaller = absQ1 >= absQ2 ? 'Q_2' : 'Q_1';
+                        const farther = absQ1 >= absQ2 ? 'Q_1' : 'Q_2';
+                        const nearer = absQ1 >= absQ2 ? 'Q_2' : 'Q_1';
+                        const ratio = Math.max(absQ1, absQ2) / Math.min(absQ1, absQ2);
+                        const ratioText = Number.isInteger(ratio) ? ratio.toString() : ratio.toFixed(2);
+                        const sqrtRatioText = Number.isInteger(Math.sqrt(ratio))
+                            ? Math.sqrt(ratio).toString()
+                            : Math.sqrt(ratio).toFixed(2);
+                        expl = `Al ser cargas de signo contrario, los vectores apuntan en el mismo sentido en el segmento interior, por lo que nunca pueden anularse ahí. El equilibrio debe buscarse en el exterior, más cerca de la carga de menor valor absoluto. Como |${bigger}| es ${ratioText} veces mayor que |${smaller}|, la distancia del punto buscado debe ser ${sqrtRatioText} veces mayor a ${farther} que a ${nearer}.`;
+                    }
+                }
+            } else {
+                if (scalarDeck.length === 0) scalarDeck = shuffle(V_CASES.slice());
+                const scalarCase = scalarDeck.pop();
+                q1 = scalarCase.q1;
+                q2 = scalarCase.q2;
+                const isSameSign = scalarCase.sameSign;
+                const correctIndices = [];
+                const distractors = [-0.5, 2.5, -1.0, 3.0];
+
+                if (isSameSign) {
+                    let d2Val = scalarCase.d2;
+                    if (d2Val === 0 || d2Val === 2) d2Val = distractors.shift();
+                    options = dedupeOptions([
+                        { text: "No se anula en ningún punto.", noPoint: true },
+                        formatXOption(1.0, "medio"),
+                        formatXOption(d2Val),
+                        formatXOption(distractors.shift(), "exterior")
+                    ], distractors);
+                    correctIndices.push(0);
+                    if (magKey === 'POT_EN') {
+                        expl = "Las magnitudes escalares como la energía potencial se suman algebraicamente siguiendo la expresión k·Q·q/r. Como ambas cargas creadoras del campo tienen el mismo signo y las distancias r son siempre positivas, ambos sumandos tendrán siempre el mismo signo matemático. Por tanto, es imposible que su suma resulte en cero en cualquier punto del espacio.";
+                    } else {
+                        expl = "Las magnitudes escalares como el potencial se suman algebraicamente siguiendo la expresión k·Q/r. Como ambas cargas tienen el mismo signo y las distancias r son siempre positivas, ambos sumandos tendrán siempre el mismo signo matemático. Por tanto, es imposible que su suma resulte en cero en cualquier punto del espacio.";
+                    }
+                } else {
+                    const hasExt = typeof scalarCase.vExt === 'number' && Number.isFinite(scalarCase.vExt);
+                    options = dedupeOptions([
+                        formatXOption(scalarCase.vInt, "interior"),
+                        hasExt ? formatXOption(scalarCase.vExt, "exterior") : { text: "No existe solución exterior.", noPoint: true },
+                        formatXOption(1.0, "medio"),
+                        formatXOption(scalarCase.d2)
+                    ], distractors);
+                    correctIndices.push(0);
+                    if (hasExt) correctIndices.push(1);
+                    const absQ1 = Math.abs(q1);
+                    const absQ2 = Math.abs(q2);
+                    if (absQ1 === absQ2) {
+                        expl = "En las magnitudes escalares, la anulación ocurre cuando la suma algebraica se anula. En este caso k·Q1/r1 + k·Q2/r2 = 0. En cargas de signo opuesto hay dos soluciones (una interior y otra exterior) salvo que las cargas sean iguales en valor absoluto. En ese caso solo hay una solución: el punto donde se anula el potencial está a la misma distancia de ambas cargas.";
+                    } else {
+                        const bigger = absQ1 > absQ2 ? 'Q_1' : 'Q_2';
+                        const smaller = absQ1 > absQ2 ? 'Q_2' : 'Q_1';
+                        const ratio = Math.max(absQ1, absQ2) / Math.min(absQ1, absQ2);
+                        const ratioText = Number.isInteger(ratio) ? ratio.toString() : ratio.toFixed(2);
+                        expl = `En las magnitudes escalares, la anulación ocurre cuando la suma algebraica se anula. En este caso k·Q1/r1 + k·Q2/r2 = 0. En cargas de signo opuesto hay dos soluciones (una interior y otra exterior) salvo que las cargas sean iguales en valor absoluto. Como abs(${bigger}) es ${ratioText} veces abs(${smaller}), los puntos donde se anula el potencial están a ${ratioText} veces más distancia de la carga ${bigger} que de la carga ${smaller}.`;
+                    }
+                }
+
+                options = options.map((opt, i) => {
+                    const entry = typeof opt === 'string' ? { text: opt } : opt;
+                    return { ...entry, isCorrect: correctIndices.includes(i) };
+                });
+                const mapped = shuffle(options);
+                current = { magKey, q1, q2, options: mapped, expl, vecCase: null };
+                render();
+                return;
+            }
+
+            let mapped = options.map((opt, i) => {
+                const entry = typeof opt === 'string' ? { text: opt } : opt;
+                return { ...entry, isCorrect: i === correctIdx };
+            });
+            shuffle(mapped);
+            current = { magKey, q1, q2, options: mapped, expl, vecCase };
+            render();
+        }
+
+        function render() {
+            const mag = MAGS[current.magKey];
+            let qText = "";
+            
+            if (current.magKey === 'POT_EN') {
+                qText = `Considerando $Q_1$ = ${current.q1} μC y $Q_2$ = ${current.q2} μC situadas a 2 metros, ¿dónde se anula la energía potencial eléctrica de una tercera carga $Q_3$ debida a las dos cargas anteriores?`;
+            } else {
+                qText = `Considerando $Q_1$ = ${current.q1} μC y $Q_2$ = ${current.q2} μC situadas a 2 metros, ¿dónde se anula <b>${mag.name}</b>?`;
+            }
+            
+            qText = qText.charAt(0).toUpperCase() + qText.slice(1);
+            document.getElementById('enunciadoText').innerHTML = formatMath(qText);
+            
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = '';
+            current.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = formatMath(`<span class="option-letter">${String.fromCharCode(65+i)}</span><span>${opt.text}</span>`);
+                btn.onclick = () => {
+                    if (mag.type === 'esc') {
+                        toggleSelection(i, btn);
+                    } else {
+                        check(i, btn);
+                    }
+                };
+                btn.style.animationDelay = `${i * 70}ms`;
+                grid.appendChild(btn);
+            });
+
+            document.getElementById('feedbackArea').classList.remove('visible');
+            document.getElementById('nextBtn').style.visibility = 'hidden';
+            document.getElementById('checkBtn').style.visibility = mag.type === 'esc' ? 'visible' : 'hidden';
+            current.selected = [];
+            
+            // Actualizar visualización de cargas
+            const absQ1 = Math.abs(current.q1);
+            const absQ2 = Math.abs(current.q2);
+            const isEqual = absQ1 === absQ2;
+            const isQ1Bigger = absQ1 > absQ2;
+            const largeR = 12;
+            const smallR = 3;
+            const r1 = isEqual ? largeR : (isQ1Bigger ? largeR : smallR);
+            const r2 = isEqual ? largeR : (isQ1Bigger ? smallR : largeR);
+            
+            document.getElementById('q1_circ').setAttribute('r', r1);
+            document.getElementById('q1_circ').setAttribute('fill', current.q1 > 0 ? '#ef4444' : '#2563eb');
+            document.getElementById('q2_circ').setAttribute('r', r2);
+            document.getElementById('q2_circ').setAttribute('fill', current.q2 > 0 ? '#ef4444' : '#2563eb');
+            
+            const formatNumber = (value) => {
+                if (Math.abs(value) < 1e-6) return '0';
+                const fixed = value.toFixed(2).replace(/\.?0+$/, '');
+                return fixed;
+            };
+            const formatCoord = (xVal, yVal) => `(${formatNumber(xVal)}, ${formatNumber(yVal)})`;
+            const formatYCoord = (yPx) => ((y - yPx) / (q2X - q1X)) * 2;
+            // Posiciones base (q1 en x=0, q2 en x=2)
+            const optionXs = current.options
+                .filter((opt) => typeof opt.x === 'number')
+                .map((opt) => opt.x);
+            const baseXs = [0, 2, ...optionXs];
+            const minX = optionXs.length ? Math.min(...baseXs) : -4.5;
+            const maxX = optionXs.length ? Math.max(...baseXs) : 4.5;
+            const left = 20;
+            const right = 480;
+            const scale = (right - left) / (maxX - minX);
+            const mapX = (xVal) => left + (xVal - minX) * scale;
+            const q1X = mapX(0);
+            const q2X = mapX(2);
+            const y = 70;
+
+            document.getElementById('q1_circ').setAttribute('cx', q1X);
+            document.getElementById('q2_circ').setAttribute('cx', q2X);
+            document.getElementById('q1_label').setAttribute('x', q1X - 10);
+            document.getElementById('q2_label').setAttribute('x', q2X + 10);
+            document.getElementById('pointM').setAttribute('transform', `translate(${mapX(1)}, ${y})`);
+            document.getElementById('pointA').setAttribute('transform', `translate(${mapX(-0.5)}, ${y})`);
+            document.getElementById('pointC').setAttribute('transform', `translate(${mapX(2.5)}, ${y})`);
+            const axisX = mapX(0);
+            document.getElementById('yAxis').setAttribute('x1', axisX);
+            document.getElementById('yAxis').setAttribute('x2', axisX);
+            document.getElementById('pointA_label').textContent = `A ${formatCoord(-0.5, 0)}`;
+            document.getElementById('pointM_label').textContent = `M ${formatCoord(1.0, 0)}`;
+            document.getElementById('pointC_label').textContent = `C ${formatCoord(2.5, 0)}`;
+
+            document.getElementById('q1Guide').setAttribute('x1', q1X);
+            document.getElementById('q1Guide').setAttribute('x2', q1X);
+            document.getElementById('q2Guide').setAttribute('x1', q2X);
+            document.getElementById('q2Guide').setAttribute('x2', q2X);
+            document.getElementById('distanceArrow').setAttribute('x1', q1X);
+            document.getElementById('distanceArrow').setAttribute('x2', q2X);
+            document.getElementById('distanceLabel').setAttribute('x', (q1X + q2X) / 2);
+
+            document.querySelectorAll('#scaleTicks [data-x]').forEach((tick) => {
+                const xVal = parseFloat(tick.dataset.x);
+                const posX = mapX(xVal);
+                if (tick.tagName.toLowerCase() === 'line') {
+                    tick.setAttribute('x1', posX);
+                    tick.setAttribute('x2', posX);
+                } else {
+                    tick.setAttribute('x', posX);
+                }
+            });
+            
+            // Ocultar todos los elementos dinámicos inicialmente
+            document.getElementById('pointM').setAttribute('opacity', '0');
+            document.getElementById('pointB').setAttribute('opacity', '0');
+            document.getElementById('pointD').setAttribute('opacity', '0');
+            document.getElementById('pointA').setAttribute('opacity', '0');
+            document.getElementById('pointC').setAttribute('opacity', '0');
+            ['optA', 'optB', 'optC', 'optD'].forEach(id => {
+                document.getElementById(id).setAttribute('opacity', '0');
+            });
+            document.getElementById('anulacionCurve').setAttribute('opacity', '0');
+            document.getElementById('distLine1').setAttribute('opacity', '0');
+            document.getElementById('distLine2').setAttribute('opacity', '0');
+            document.getElementById('distLabel1').setAttribute('opacity', '0');
+            document.getElementById('distLabel2').setAttribute('opacity', '0');
+            
+            const visibleLabels = [];
+            current.options.forEach((opt, i) => {
+                const optId = ['optA', 'optB', 'optC', 'optD'][i];
+                const labelId = ['optA_label', 'optB_label', 'optC_label', 'optD_label'][i];
+                const optEl = document.getElementById(optId);
+                if (typeof opt.x === 'number') {
+                    optEl.setAttribute('opacity', '1');
+                    optEl.setAttribute('transform', `translate(${mapX(opt.x)}, ${y})`);
+                    const labelEl = document.getElementById(labelId);
+                    labelEl.textContent = `${String.fromCharCode(65 + i)} ${formatCoord(opt.x, 0)}`;
+                    const labelX = mapX(opt.x);
+                    visibleLabels.push({ labelEl, labelX });
+                } else {
+                    optEl.setAttribute('opacity', '0');
+                }
+            });
+            const sortedLabels = visibleLabels.sort((a, b) => a.labelX - b.labelX);
+            const leftLimit = left + 22;
+            const rightLimit = right - 22;
+            sortedLabels.forEach((item, idx) => {
+                let offset = idx % 2 === 0 ? 20 : 34;
+                let dx = idx % 2 === 0 ? -8 : 8;
+                if (item.labelX < leftLimit) dx = 12;
+                if (item.labelX > rightLimit) dx = -12;
+                if (item.labelEl.textContent.startsWith('D') && item.labelX < (left + right) / 2 && item.labelX > leftLimit) {
+                    dx -= 6;
+                }
+                item.labelEl.setAttribute('y', offset);
+                item.labelEl.setAttribute('dx', dx);
+            });
+        }
+
+        function check(idx, btn) {
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(b => b.disabled = true);
+            const isCorrect = current.options[idx].isCorrect;
+            const ft = document.getElementById('feedbackTitle');
+            
+            if (isCorrect) {
+                btn.classList.add('correct');
+                ft.innerText = "¡Correcto!";
+                ft.style.color = "var(--success)";
+                score = Math.min(10, score + 0.5);
+                correctCounts[current.magKey] += 1;
+                achieved[current.magKey] = true;
+            } else {
+                btn.classList.add('wrong');
+                btns[current.options.findIndex(o => o.isCorrect)].classList.add('correct');
+                ft.innerText = "Incorrecto";
+                ft.style.color = "var(--error)";
+                score = Math.max(0, score - 0.5);
+            }
+
+            let feedbackText = current.expl.charAt(0).toUpperCase() + current.expl.slice(1);
+            document.getElementById('explicacionText').innerHTML = formatMath(feedbackText);
+            document.getElementById('feedbackArea').classList.add('visible');
+            document.getElementById('nextBtn').style.visibility = 'visible';
+            updateUI();
+        }
+
+        function toggleSelection(idx, btn) {
+            if (!current.selected) current.selected = [];
+            const exists = current.selected.includes(idx);
+            if (exists) {
+                current.selected = current.selected.filter(i => i !== idx);
+                btn.classList.remove('selected');
+            } else {
+                current.selected.push(idx);
+                btn.classList.add('selected');
+            }
+        }
+
+        function checkMultiple() {
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(b => b.disabled = true);
+            const correctIdxs = current.options
+                .map((opt, i) => (opt.isCorrect ? i : null))
+                .filter(i => i !== null);
+            const selected = current.selected || [];
+            const isCorrect = selected.length === correctIdxs.length
+                && selected.every(i => correctIdxs.includes(i));
+
+            const ft = document.getElementById('feedbackTitle');
+            if (isCorrect) {
+                ft.innerText = "¡Correcto!";
+                ft.style.color = "var(--success)";
+                score = Math.min(10, score + 0.5);
+                correctCounts[current.magKey] += 1;
+                achieved[current.magKey] = true;
+            } else {
+                ft.innerText = "Incorrecto";
+                ft.style.color = "var(--error)";
+                score = Math.max(0, score - 0.5);
+            }
+
+            btns.forEach((btn, i) => {
+                if (correctIdxs.includes(i)) btn.classList.add('correct');
+                if (selected.includes(i) && !correctIdxs.includes(i)) btn.classList.add('wrong');
+            });
+
+            let feedbackText = current.expl.charAt(0).toUpperCase() + current.expl.slice(1);
+            document.getElementById('explicacionText').innerHTML = formatMath(feedbackText);
+            document.getElementById('feedbackArea').classList.add('visible');
+            document.getElementById('nextBtn').style.visibility = 'visible';
+            document.getElementById('checkBtn').style.visibility = 'hidden';
+            updateUI();
+        }
+
+        function displayScore() {
+            return score;
+        }
+
+        function updateUI() {
+            const sd = document.getElementById('scoreDisplay');
+            const shownScore = displayScore();
+            sd.innerText = `Ejercicio nº ${questionNumber}. Puntuación: ${shownScore.toFixed(2)}`;
+            sd.className = "score-panel " + (shownScore >= 5 ? "score-green" : "score-red");
+            for (let k in achieved) {
+                document.getElementById('b-' + k).className = "badge " + (achieved[k] ? "active" : "");
+            }
+            if (score >= 10) {
+                setTimeout(() => document.getElementById('successOverlay').classList.add('visible'), 500);
+            }
+        }
+
+        function resetGame() {
+            score = 0; deck = []; vecDeck = []; scalarDeck = [];
+            achieved = { FORCE: false, FIELD: false, POT_EN: false, POTENTIAL: false };
+            correctCounts = { FORCE: 0, FIELD: 0, POT_EN: 0, POTENTIAL: 0 };
+            askedCounts = { FORCE: 0, FIELD: 0, POT_EN: 0, POTENTIAL: 0 };
+            questionNumber = 1;
+            hasStarted = false;
+            document.getElementById('successOverlay').classList.remove('visible');
+            updateUI(); generateQuestion();
+        }
+
+        function startApp() {
+            document.getElementById('introOverlay').classList.remove('visible');
+            resetGame();
+        }
+
+        window.onload = () => {
+            updateUI();
+            document.getElementById('introOverlay').classList.add('visible');
+        };
+    </script>
+</body>
+</html>
