@@ -19,13 +19,11 @@
             --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             --radius: 1rem;
         }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-body);
@@ -36,7 +34,6 @@
             display: flex;
             flex-direction: column;
         }
-
         header {
             background: white;
             padding: 1rem;
@@ -45,7 +42,6 @@
             top: 0;
             z-index: 100;
         }
-
         nav {
             max-width: 1000px;
             margin: 0 auto;
@@ -53,7 +49,6 @@
             justify-content: space-between;
             align-items: center;
         }
-
         .brand {
             font-weight: 800;
             font-size: 1.25rem;
@@ -64,7 +59,6 @@
             gap: 0.5rem;
             cursor: pointer;
         }
-
         .navigation-bar {
             max-width: 1000px;
             margin: 1rem auto 0;
@@ -74,7 +68,6 @@
             gap: 1rem;
             min-height: 45px;
         }
-
         .btn-back {
             background: white;
             border: 1px solid var(--border);
@@ -88,13 +81,11 @@
             transition: all 0.2s;
             color: var(--text-muted);
         }
-
         .btn-back:hover {
             background: var(--primary-light);
             color: var(--primary-dark);
             border-color: var(--primary);
         }
-
         .breadcrumbs {
             font-size: 0.9rem;
             color: var(--text-muted);
@@ -104,7 +95,6 @@
             overflow-x: auto;
             white-space: nowrap;
         }
-
         main {
             flex: 1;
             max-width: 1000px;
@@ -113,23 +103,19 @@
             padding: 1.5rem 1rem 4rem;
             position: relative;
         }
-
         .view-container {
             width: 100%;
             animation: fadeIn 0.3s ease-out;
         }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1.5rem;
         }
-
         .card {
             background: var(--bg-card);
             padding: 2rem;
@@ -143,29 +129,24 @@
             align-items: center;
             text-align: center;
         }
-
         .card:hover {
             transform: translateY(-5px);
             box-shadow: var(--shadow);
             border-color: var(--primary);
         }
-
         .card h2 {
             font-size: 1.4rem;
             margin-bottom: 0.5rem;
             color: var(--text-main);
         }
-
         .card p {
             color: var(--text-muted);
             font-size: 0.9rem;
         }
-
         .card-icon {
             font-size: 3rem;
             margin-bottom: 1rem;
         }
-
         .resource-group {
             background: white;
             padding: 1.5rem;
@@ -174,7 +155,6 @@
             margin-bottom: 2rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
-
         .resource-group h3 {
             margin-bottom: 1.25rem;
             color: var(--primary-dark);
@@ -184,13 +164,11 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-
         .links-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 0.75rem;
         }
-
         .link-item {
             display: flex;
             align-items: center;
@@ -204,7 +182,6 @@
             font-size: 0.95rem;
             transition: all 0.2s;
         }
-
         .link-item:hover {
             background: white;
             border-color: var(--primary);
@@ -212,15 +189,12 @@
             transform: translateX(4px);
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
-
         .link-item::before {
             content: '📄';
             margin-right: 12px;
             font-size: 1.1rem;
         }
-
         .hidden { display: none !important; }
-
         @media (max-width: 600px) {
             .grid { grid-template-columns: 1fr; }
             .navigation-bar { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
@@ -228,28 +202,20 @@
     </style>
 </head>
 <body>
-
 <header>
     <nav>
         <div class="brand" onclick="navigateTo('root')">📚 Recursos FQ</div>
     </nav>
 </header>
-
 <div class="navigation-bar">
     <button id="backBtn" class="btn-back hidden" onclick="goBack()">
         ← Volver
     </button>
     <div id="breadcrumbs" class="breadcrumbs">Inicio</div>
 </div>
-
-<main id="app">
-    <!-- Contenido dinámico -->
-</main>
+<main id="app"></main>
 
 <script>
-    /**
-     * ESTRUCTURA DE DATOS COMPLETA (Corregida)
-     */
     const DATA = {
         root: {
             title: "Inicio",
@@ -427,8 +393,8 @@
                         { name: "Energía potencial eléctrica", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/energia_potencial/" },
                         { name: "Trabajo campo eléctrico", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/trabajo/" },
                         { name: "Puntos potencial nulo", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/potencial_cero/" },
-                        { name: "Preguntas teóricas sobre magnitudes eléctricas", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/comparamag/" }
-                        { name: "¿Dónde se anulan las magnitudes eléctricas?", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/teor_anulamag/" }
+                        { name: "Magnitudes eléctricas", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/comparamag/" },
+                        { name: "Anulación magnitudes", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/teor_anulamag/" }
                     ]
                 }
             ]
@@ -511,7 +477,6 @@
         const app = document.getElementById('app');
         const backBtn = document.getElementById('backBtn');
         const breadcrumbs = document.getElementById('breadcrumbs');
-        
         const currentId = navigationStack[navigationStack.length - 1];
         const currentData = DATA[currentId];
 
@@ -525,7 +490,6 @@
         }
 
         let html = `<div class="view-container">`;
-
         if (currentData.items) {
             html += `<div class="grid">`;
             currentData.items.forEach(item => {
@@ -538,8 +502,7 @@
                 `;
             });
             html += `</div>`;
-        } 
-        else if (currentData.groups) {
+        } else if (currentData.groups) {
             currentData.groups.forEach(group => {
                 html += `
                     <div class="resource-group">
@@ -555,7 +518,6 @@
                 `;
             });
         }
-
         html += `</div>`;
         app.innerHTML = html;
         window.scrollTo(0, 0);
@@ -563,6 +525,5 @@
 
     window.onload = render;
 </script>
-
 </body>
 </html>
