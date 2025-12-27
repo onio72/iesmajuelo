@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Repositorio FQ - Navegación Inmersiva</title>
+    <title>Recursos creados con IA - Antonio González</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* (Mismo CSS que ya tienes...) */
         :root {
             --primary: #2563eb;
             --primary-light: #dbeafe;
@@ -204,7 +205,7 @@
 <body>
 <header>
     <nav>
-        <div class="brand" onclick="navigateTo('root')">📚 Recursos FQ</div>
+        <div class="brand" onclick="navigateTo('root')">🤖 Recursos creados con IA - Antonio González</div>
     </nav>
 </header>
 <div class="navigation-bar">
@@ -216,6 +217,7 @@
 <main id="app"></main>
 
 <script>
+    // Tu objeto DATA y lógica de navegación...
     const DATA = {
         root: {
             title: "Inicio",
@@ -230,226 +232,20 @@
                 { id: 'otros', title: 'Otros', icon: '✨', desc: 'Recursos Variados' }
             ]
         },
-        eso: {
-            title: "ESO",
-            items: [
-                { id: 'fq2', title: 'FQ2', icon: '🧪', desc: '2º de la ESO' },
-                { id: 'fq3', title: 'FQ3', icon: '⚗️', desc: '3º de la ESO' },
-                { id: 'fq4', title: 'FQ4', icon: '⚛️', desc: '4º de la ESO' }
-            ]
-        },
-        bach: {
-            title: "Bachillerato",
-            items: [
-                { id: 'fq1', title: 'FQ1', icon: '📚', desc: '1º de Bachillerato' },
-                { id: 'fi2', title: 'Física 2º', icon: '🌌', desc: '2º de Bachillerato' }
-            ]
-        },
-        fq2: {
-            title: "FQ2",
-            groups: [
-                {
-                    name: "Formulación",
-                    links: [{ name: "Fórmulas químicas", url: "https://onio72.github.io/iesmajuelo/eso/fq2/formulasquimicas/" }]
-                },
-                {
-                    name: "TCM (Teoría Cinético Molecular)",
-                    links: [
-                        { name: "Simulador gases", url: "https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_gas_v02.html" },
-                        { name: "Simulador materia", url: "https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_materia_v12.html" },
-                        { name: "Simulador sólidos + Quiz", url: "https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_solido_v16_quiz.html" }
-                    ]
-                },
-                {
-                    name: "Cinemática",
-                    links: [
-                        { name: "Dibujar gráfica", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/dibujargrafica.html" },
-                        { name: "MRU sentido velocidad", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_sentidov.html" },
-                        { name: "Comparar velocidades MRU", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_comparav.html" },
-                        { name: "Comparar velocidades MRU 2", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_comparav2.html" },
-                        { name: "Cálculo de velocidad", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_calculov.html" }
-                    ]
-                }
-            ]
-        },
-        fq3: {
-            title: "FQ3",
-            groups: [
-                {
-                    name: "T01 - Método Científico y Unidades",
-                    links: [
-                        { name: "Repaso del Sistema Internacional", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/repasoSI.html" },
-                        { name: "Representación gráfica de funciones", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/repgrafica.html" },
-                        { name: "Cambio de unidades (método coma)", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/movercoma.html" },
-                        { name: "Cambio de unidades de volumen", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/cambiosvolumen.html" }
-                    ]
-                },
-                {
-                    name: "T02 - El Átomo y Tabla Periódica",
-                    links: [
-                        { name: "Tabla de valencias", url: "https://onio72.github.io/iesmajuelo/eso/fq3/formulacion/tabla_valencias.html" },
-                        { name: "Masas atómicas y molares", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla01/" },
-                        { name: "Cálculos masas", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/calculo_masas/" },
-                        { name: "Abundancia isotópica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/abundisot/" },
-                        { name: "Trabajando con la tabla periódica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla02/" },
-                        { name: "Configuración electrónica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/configelect/" }
-                    ]
-                }
-            ]
-        },
-        fq4: {
-            title: "FQ4",
-            groups: [
-                {
-                    name: "Cinemática",
-                    links: [{ name: "MCU (Movimiento Circular)", url: "https://onio72.github.io/iesmajuelo/eso/fq4/mcu/index.html" }]
-                }
-            ]
-        },
-        fq1: {
-            title: "FQ1",
-            groups: [
-                {
-                    name: "Química",
-                    links: [{ name: "Fórmula empírica", url: "https://onio72.github.io/iesmajuelo/bach/fq1/formulaempirica/" }]
-                },
-                {
-                    name: "Laboratorio",
-                    links: [{ name: "Videoanálisis de movimientos", url: "https://onio72.github.io/iesmajuelo/bach/fq1/videoanalisis/" }]
-                },
-                {
-                    name: "Física - MRUA",
-                    links: [{ name: "Caída libre - Grifo", url: "https://onio72.github.io/iesmajuelo/bach/fq1/caidalibre/grifo/index.html" }]
-                },
-                {
-                    name: "Tiro parabólico",
-                    links: [
-                        { name: "Tiro parabólico (Simulador)", url: "https://onio72.github.io/iesmajuelo/bach/fq1/tiro_parabolico/" },
-                        { name: "Generador de problemas", url: "https://onio72.github.io/iesmajuelo/bach/fq1/tiroparabgen/" },
-                        { name: "Cálculo momento lineal", url: "https://onio72.github.io/iesmajuelo/bach/fq1/t10/genprob01/" }
-                    ]
-                },
-                {
-                    name: "Dinámica",
-                    links: [
-                        { name: "Plano inclinado", url: "https://onio72.github.io/iesmajuelo/bach/fq1/planoinclinado/" },
-                        { name: "Plano inclinado con rozamiento", url: "https://onio72.github.io/iesmajuelo/bach/fq1/planoincroz/" },
-                        { name: "Plano horizontal - Resuelto", url: "https://onio72.github.io/iesmajuelo/bach/fq1/planohorizontal/resuelto.html" },
-                        { name: "Plano horizontal - Diagrama", url: "https://onio72.github.io/iesmajuelo/bach/fq1/planohorizontal/diagrama.html" },
-                        { name: "Cuerpos enlazados", url: "https://onio72.github.io/iesmajuelo/bach/fq1/cuerposenlazados/" }
-                    ]
-                },
-                {
-                    name: "Colisiones",
-                    links: [
-                        { name: "Choque inelástico", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choques.html" },
-                        { name: "Choque elástico", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque01.html" },
-                        { name: "Choque inelástico 2", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque02.html" },
-                        { name: "Choque coef. restitución 1", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque03.html" },
-                        { name: "Choque coef. restitución 2", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque04.html" },
-                        { name: "Colisión (Beta)", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/colision01.html" }
-                    ]
-                }
-            ]
-        },
-        fi2: {
-            title: "Física 2º",
-            groups: [
-                {
-                    name: "Campo gravitatorio",
-                    links: [
-                        { name: "Campo gravitatorio (2 masas)", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/campo_gravitatorio/" },
-                        { name: "Fuerza gravitatoria", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/fuerza_gravitatoria/" },
-                        { name: "Potencial gravitatorio", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/potencial_gravitatorio/" },
-                        { name: "Energía potencial", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/energia_potencial/" },
-                        { name: "Trabajo traslado masa", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/trabajo/" },
-                        { name: "Teoría: Campo gravitatorio", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/cuestteor01/" },
-                        { name: "Teoría: Satélites", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/cuestteor02/" }
-                    ]
-                },
-                {
-                    name: "Vibraciones y ondas",
-                    links: [
-                        { name: "MAS: Fases iniciales", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/mas/" },
-                        { name: "Principio de Huygens", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/huygens/" },
-                        { name: "Modos vibración (1 extremo)", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/modosvib01/" },
-                        { name: "Modos vibración (2 extremos)", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/modosvib02/" },
-                        { name: "Armónicos cuerda fija", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/armonicos/" },
-                        { name: "Lab. ondas estacionarias", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/estacionaria/" },
-                        { name: "Desfases onda viajera", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/desfase/viajera.html" },
-                        { name: "Desfases onda estacionaria", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/desfase/etacionaria.html" },
-                        { name: "Ecuaciones onda estacionaria", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/ecuacionest/" },
-                        { name: "Cálculos de nodos y antinodos", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/nodos/" },
-                        { name: "Teoría: Refracción", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/teo_refrac/" },
-                        { name: "Teoría: Magnitudes ondas viajeras", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/teo_ondasv/" }
-                    ]
-                },
-                {
-                    name: "Campo eléctrico",
-                    links: [
-                        { name: "Campo eléctrico (2 cargas)", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/campo_electrico/" },
-                        { name: "Fuerza eléctrica", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/fuerza_electrica/" },
-                        { name: "Potencial eléctrico", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/potencial_electrico/" },
-                        { name: "Energía potencial eléctrica", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/energia_potencial/" },
-                        { name: "Trabajo campo eléctrico", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/trabajo/" },
-                        { name: "Puntos potencial nulo", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/potencial_cero/" },
-                        { name: "Magnitudes eléctricas", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/comparamag/" },
-                        { name: "Anulación magnitudes", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/teor_anulamag/" }
-                    ]
-                }
-            ]
-        },
-        fpb2: {
-            title: "FPB2",
-            groups: [{
-                name: "Geometría y Volumen",
-                links: [
-                    { name: "Reconocer figuras 3D", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3D/" },
-                    { name: "Contar vértices/aristas/caras", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3Deuler/" },
-                    { name: "Problemas de volumen", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/probvol/" },
-                    { name: "Experimento con dados", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/dados.html" }
-                ]
-            }]
-        },
-        tools: {
-            title: "Herramientas",
-            groups: [{
-                name: "Simuladores",
-                links: [{ name: "Dibuja átomos", url: "https://onio72.github.io/tools/atomo.html" }]
-            }]
-        },
-        cdd: {
-            title: "CDD",
-            groups: [{
-                name: "Digital",
-                links: [{ name: "Repositorio de píldoras", url: "https://onio72.github.io/cdd/" }]
-            }]
-        },
-        equipo: {
-            title: "Equipo Directivo",
-            groups: [{
-                name: "Gestión",
-                links: [{ name: "Calendario", url: "https://onio72.github.io/ed/calendario.html" }]
-            }]
-        },
-        departamento: {
-            title: "Departamento",
-            groups: [{
-                name: "Organización",
-                links: [
-                    { name: "Reparto materias", url: "https://onio72.github.io/iesmajuelo/departamentoFQ/reparto/" },
-                    { name: "Eval. competencias Fís 2º", url: "https://onio72.github.io/iesmajuelo/departamentoFQ/evalcomp/fisi2.html" },
-                    { name: "Evaluando por competencias", url: "https://onio72.github.io/iesmajuelo/departamentoFQ/evalcomp/index.html" }
-                ]
-            }]
-        },
-        otros: {
-            title: "Otros",
-            groups: [{
-                name: "Varios",
-                links: [{ name: "Bingo viajero", url: "https://onio72.github.io/bingo/" }]
-            }]
-        }
+        // ...resto de los datos
+        eso: { title: "ESO", items: [{ id: 'fq2', title: 'FQ2', icon: '🧪', desc: '2º de la ESO' }, { id: 'fq3', title: 'FQ3', icon: '⚗️', desc: '3º de la ESO' }, { id: 'fq4', title: 'FQ4', icon: '⚛️', desc: '4º de la ESO' }] },
+        bach: { title: "Bachillerato", items: [{ id: 'fq1', title: 'FQ1', icon: '📚', desc: '1º de Bachillerato' }, { id: 'fi2', title: 'Física 2º', icon: '🌌', desc: '2º de Bachillerato' }] },
+        fq2: { title: "FQ2", groups: [{ name: "Formulación", links: [{ name: "Fórmulas químicas", url: "https://onio72.github.io/iesmajuelo/eso/fq2/formulasquimicas/" }] }, { name: "TCM (Teoría Cinético Molecular)", links: [{ name: "Simulador gases", url: "https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_gas_v02.html" }, { name: "Simulador materia", url: "https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_materia_v12.html" }, { name: "Simulador sólidos + Quiz", url: "https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_solido_v16_quiz.html" }] }, { name: "Cinemática", links: [{ name: "Dibujar gráfica", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/dibujargrafica.html" }, { name: "MRU sentido velocidad", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_sentidov.html" }, { name: "Comparar velocidades MRU", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_comparav.html" }, { name: "Comparar velocidades MRU 2", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_comparav2.html" }, { name: "Cálculo de velocidad", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_calculov.html" }] }] },
+        fq3: { title: "FQ3", groups: [{ name: "T01 - Método Científico y Unidades", links: [{ name: "Repaso del Sistema Internacional", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/repasoSI.html" }, { name: "Representación gráfica de funciones", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/repgrafica.html" }, { name: "Cambio de unidades (método coma)", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/movercoma.html" }, { name: "Cambio de unidades de volumen", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/cambiosvolumen.html" }] }, { name: "T02 - El Átomo y Tabla Periódica", links: [{ name: "Tabla de valencias", url: "https://onio72.github.io/iesmajuelo/eso/fq3/formulacion/tabla_valencias.html" }, { name: "Masas atómicas y molares", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla01/" }, { name: "Cálculos masas", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/calculo_masas/" }, { name: "Abundancia isotópica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/abundisot/" }, { name: "Trabajando con la tabla periódica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla02/" }, { name: "Configuración electrónica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/configelect/" }] }] },
+        fq4: { title: "FQ4", groups: [{ name: "Cinemática", links: [{ name: "MCU (Movimiento Circular)", url: "https://onio72.github.io/iesmajuelo/eso/fq4/mcu/index.html" }] }] },
+        fq1: { title: "FQ1", groups: [{ name: "Química", links: [{ name: "Fórmula empírica", url: "https://onio72.github.io/iesmajuelo/bach/fq1/formulaempirica/" }] }, { name: "Laboratorio", links: [{ name: "Videoanálisis de movimientos", url: "https://onio72.github.io/iesmajuelo/bach/fq1/videoanalisis/" }] }, { name: "Física - MRUA", links: [{ name: "Caída libre - Grifo", url: "https://onio72.github.io/iesmajuelo/bach/fq1/caidalibre/grifo/index.html" }] }, { name: "Tiro parabólico", links: [{ name: "Tiro parabólico (Simulador)", url: "https://onio72.github.io/iesmajuelo/bach/fq1/tiro_parabolico/" }, { name: "Generador de problemas", url: "https://onio72.github.io/iesmajuelo/bach/fq1/tiroparabgen/" }, { name: "Cálculo momento lineal", url: "https://onio72.github.io/iesmajuelo/bach/fq1/t10/genprob01/" }] }, { name: "Dinámica", links: [{ name: "Plano inclinado", url: "https://onio72.github.io/iesmajuelo/bach/fq1/planoinclinado/" }, { name: "Plano inclinado con rozamiento", url: "https://onio72.github.io/iesmajuelo/bach/fq1/planoincroz/" }, { name: "Plano horizontal - Resuelto", url: "https://onio72.github.io/iesmajuelo/bach/fq1/planohorizontal/resuelto.html" }, { name: "Plano horizontal - Diagrama", url: "https://onio72.github.io/iesmajuelo/bach/fq1/planohorizontal/diagrama.html" }, { name: "Cuerpos enlazados", url: "https://onio72.github.io/iesmajuelo/bach/fq1/cuerposenlazados/" }] }, { name: "Colisiones", links: [{ name: "Choque inelástico", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choques.html" }, { name: "Choque elástico", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque01.html" }, { name: "Choque inelástico 2", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque02.html" }, { name: "Choque coef. restitución 1", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque03.html" }, { name: "Choque coef. restitución 2", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque04.html" }, { name: "Colisión (Beta)", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/colision01.html" }] }] },
+        fi2: { title: "Física 2º", groups: [{ name: "Campo gravitatorio", links: [{ name: "Campo gravitatorio (2 masas)", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/campo_gravitatorio/" }, { name: "Fuerza gravitatoria", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/fuerza_gravitatoria/" }, { name: "Potencial gravitatorio", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/potencial_gravitatorio/" }, { name: "Energía potencial", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/energia_potencial/" }, { name: "Trabajo traslado masa", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/trabajo/" }, { name: "Teoría: Campo gravitatorio", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/cuestteor01/" }, { name: "Teoría: Satélites", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/cuestteor02/" }] }, { name: "Vibraciones y ondas", links: [{ name: "MAS: Fases iniciales", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/mas/" }, { name: "Principio de Huygens", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/huygens/" }, { name: "Modos vibración (1 extremo)", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/modosvib01/" }, { name: "Modos vibración (2 extremos)", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/modosvib02/" }, { name: "Armónicos cuerda fija", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/armonicos/" }, { name: "Lab. ondas estacionarias", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/estacionaria/" }, { name: "Desfases onda viajera", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/desfase/viajera.html" }, { name: "Desfases onda estacionaria", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/desfase/etacionaria.html" }, { name: "Ecuaciones onda estacionaria", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/ecuacionest/" }, { name: "Cálculos de nodos y antinodos", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/nodos/" }, { name: "Teoría: Refracción", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/teo_refrac/" }, { name: "Teoría: Magnitudes ondas viajeras", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/teo_ondasv/" }] }, { name: "Campo eléctrico", links: [{ name: "Campo eléctrico (2 cargas)", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/campo_electrico/" }, { name: "Fuerza eléctrica", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/fuerza_electrica/" }, { name: "Potencial eléctrico", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/potencial_electrico/" }, { name: "Energía potencial eléctrica", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/energia_potencial/" }, { name: "Trabajo campo eléctrico", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/trabajo/" }, { name: "Puntos potencial nulo", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/potencial_cero/" }, { name: "Magnitudes eléctricas", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/comparamag/" }, { name: "Anulación magnitudes", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/teor_anulamag/" }] }] },
+        fpb2: { title: "FPB2", groups: [{ name: "Geometría y Volumen", links: [{ name: "Reconocer figuras 3D", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3D/" }, { name: "Contar vértices/aristas/caras", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3Deuler/" }, { name: "Problemas de volumen", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/probvol/" }, { name: "Experimento con dados", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/dados.html" }] }] },
+        tools: { title: "Herramientas", groups: [{ name: "Simuladores", links: [{ name: "Dibuja átomos", url: "https://onio72.github.io/tools/atomo.html" }] }] },
+        cdd: { title: "CDD", groups: [{ name: "Digital", links: [{ name: "Repositorio de píldoras", url: "https://onio72.github.io/cdd/" }] }] },
+        equipo: { title: "Equipo Directivo", groups: [{ name: "Gestión", links: [{ name: "Calendario", url: "https://onio72.github.io/ed/calendario.html" }] }] },
+        departamento: { title: "Departamento", groups: [{ name: "Organización", links: [{ name: "Reparto materias", url: "https://onio72.github.io/iesmajuelo/departamentoFQ/reparto/" }, { name: "Eval. competencias Fís 2º", url: "https://onio72.github.io/iesmajuelo/departamentoFQ/evalcomp/fisi2.html" }, { name: "Evaluando por competencias", url: "https://onio72.github.io/iesmajuelo/departamentoFQ/evalcomp/index.html" }] }] },
+        otros: { title: "Otros", groups: [{ name: "Varios", links: [{ name: "Bingo viajero", url: "https://onio72.github.io/bingo/" }] }] }
     };
 
     let navigationStack = ['root'];
