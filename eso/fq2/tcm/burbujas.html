@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación TCM - Burbujas y Cuestionario Interactivo</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            overflow-y: auto; 
+            overflow-x: hidden;
+        }
+
+        /* --- Estilos de la Simulación --- */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .controls {
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 320px;
+        }
+
+        h1 { margin: 0 0 5px 0; font-size: 1.1rem; color: #2c3e50; }
+
+        button.sim-btn {
+            background-color: #ff5722;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        button.sim-btn:hover { background-color: #f4511e; transform: scale(1.02); }
+        button.sim-btn:active { transform: scale(0.98); }
+        button.sim-btn:disabled { background-color: #bdc3c7; cursor: not-allowed; transform: none; }
+
+        .legend { margin-top: 5px; font-size: 0.85rem; }
+        .legend-item { display: flex; align-items: center; margin-bottom: 6px; }
+        
+        /* Iconos de leyenda */
+        .double-dot { display: flex; align-items: center; margin-right: 8px; }
+        .double-dot span { width: 9px; height: 9px; border-radius: 50%; display: block; }
+        .tri-dot { position: relative; width: 16px; height: 16px; margin-right: 8px; }
+        .tri-center { position: absolute; top: 2px; left: 3px; width: 10px; height: 10px; background: #d32f2f; border-radius: 50%; z-index: 2; }
+        .tri-small { position: absolute; width: 7px; height: 7px; background: #2196f3; border-radius: 50%; z-index: 1; }
+
+        #canvas-wrapper {
+            position: relative;
+            width: 100%;
+            height: 60vh; /* Un poco menos de altura para dejar espacio al quiz */
+            background: linear-gradient(to bottom, #e0f7fa 0%, #b2ebf2 100%);
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        canvas { display: block; }
+        .hint { font-size: 0.8rem; color: #666; margin-top: 5px; font-style: italic; }
+
+        /* --- Estilos del Cuestionario --- */
+        .quiz-section {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px 80px 20px;
+        }
+
+        .score-board {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2c3e50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 2px solid white;
+        }
+
+        .score-value { color: #f1c40f; font-size: 1.4rem; }
+
+        .quiz-header {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            border-left: 6px solid #bdc3c7; /* Gris por defecto */
+        }
+        
+        .question-card.answered-correctly { border-left-color: #2ecc71; }
+        .question-card.answered-wrong { border-left-color: #e74c3c; }
+
+        .question-text {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        @media (min-width: 600px) {
+            .options-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        .option-btn {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 15px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            color: #495057;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: #e3f2fd;
+            border-color: #bbdefb;
+            color: #1565c0;
+        }
+
+        .option-btn.correct {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+            font-weight: bold;
+        }
+
+        .option-btn.incorrect {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+            opacity: 0.8;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+        }
+
+        .feedback-msg {
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            min-height: 20px;
+        }
+        .feedback-correct { color: #27ae60; }
+        .feedback-incorrect { color: #c0392b; }
+
+    </style>
+</head>
+<body>
+
+    <div id="canvas-wrapper">
+        <div id="ui-layer">
+            <div class="controls">
+                <h1>Teoría Cinético Molecular</h1>
+                <button id="popBtn" class="sim-btn">💥 Romper Todas</button>
+                <button id="resetBtn" class="sim-btn" style="background-color: #0288d1; margin-top: 5px;">🔄 Nuevas Burbujas</button>
+                <div class="hint">Toca una burbuja para romperla individualmente.</div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="double-dot">
+                            <span style="background:orange;"></span>
+                            <span style="background:orange; margin-left:-2px;"></span>
+                        </div>
+                        N₂ Gas (70%)
+                    </div>
+                    <div class="legend-item">
+                        <div class="double-dot">
+                            <span style="background:#e53935;"></span>
+                            <span style="background:#e53935; margin-left:-2px;"></span>
+                        </div>
+                        O₂ Gas (30%)
+                    </div>
+                    <div class="legend-item">
+                        <div class="tri-dot">
+                            <div class="tri-center"></div>
+                            <div class="tri-small" style="bottom: 0px; left: -1px;"></div>
+                            <div class="tri-small" style="bottom: 0px; right: -1px;"></div>
+                        </div>
+                        Agua (H₂O) Líquida
+                    </div>
+                </div>
+            </div>
+        </div>
+        <canvas id="simCanvas"></canvas>
+    </div>
+
+    <div class="score-board">
+        Puntuación: <span id="score-display" class="score-value">0</span>
+    </div>
+
+    <div class="quiz-section" id="quiz-container">
+        <h2 class="quiz-header">
+            Comprueba tu comprensión
+            <span style="font-size: 0.9rem; font-weight: normal; color: #7f8c8d;">(+1 Acierto / -1 Fallo)</span>
+        </h2>
+        <!-- Las preguntas se generarán aquí con JS -->
+    </div>
+
+<script>
+/* =========================================
+   LÓGICA DEL CUESTIONARIO
+   ========================================= */
+const questions = [
+    {
+        id: 1,
+        text: "1. ¿En qué estado físico se encuentra el interior de las burbujas?",
+        options: ["Sólido", "Líquido", "Gaseoso"],
+        correct: 2 // Índice del array (0, 1, 2)
+    },
+    {
+        id: 2,
+        text: "2. ¿En qué estado físico se encuentra la superficie de las burbujas?",
+        options: ["Gaseoso", "Líquido", "Sólido"],
+        correct: 1
+    },
+    {
+        id: 3,
+        text: "3. Las burbujas flotan sobre una sustancia, ¿en qué estado se encuentra dicha sustancia?",
+        options: ["Plasma", "Gaseoso", "Líquido"],
+        correct: 2
+    },
+    {
+        id: 4,
+        text: "4. ¿De qué sustancia/s está hecha la superficie de las burbujas?",
+        options: ["Agua", "Aire", "Nitrógeno"],
+        correct: 0
+    },
+    {
+        id: 5,
+        text: "5. ¿De qué sustancia/s está hecho el interior de las burbujas?",
+        options: ["Solo Oxígeno", "Aire (Mezcla de N₂ y O₂)", "Vapor de agua"],
+        correct: 1
+    },
+    {
+        id: 6,
+        text: "6. ¿De qué sustancia/s está hecha el gas que rodea las burbujas?",
+        options: ["Vacío", "Agua", "Aire (Mezcla de N₂ y O₂)"],
+        correct: 2
+    },
+    {
+        id: 7,
+        text: "7. ¿Qué moléculas se mueven con más rapidez?",
+        options: ["Las de Agua líquida", "Las de los gases (N₂ y O₂)", "Todas igual"],
+        correct: 1
+    },
+    {
+        id: 8,
+        text: "8. ¿Qué moléculas son diatómicas?",
+        options: ["El Agua (H₂O)", "El Nitrógeno (N₂) y Oxígeno (O₂)", "Ninguna"],
+        correct: 1
+    },
+    {
+        id: 9,
+        text: "9. ¿Qué moléculas son triatómicas?",
+        options: ["El Nitrógeno (N₂)", "El Oxígeno (O₂)", "El Agua (H₂O)"],
+        correct: 2
+    }
+];
+
+let score = 0;
+const scoreDisplay = document.getElementById('score-display');
+const quizContainer = document.getElementById('quiz-container');
+
+function initQuiz() {
+    questions.forEach((q, index) => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        card.id = `q-card-${index}`;
+
+        const questionTitle = document.createElement('div');
+        questionTitle.className = 'question-text';
+        questionTitle.innerText = q.text;
+        card.appendChild(questionTitle);
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'options-grid';
+
+        const feedbackDiv = document.createElement('div');
+        feedbackDiv.className = 'feedback-msg';
+        feedbackDiv.id = `feedback-${index}`;
+
+        q.options.forEach((opt, optIndex) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => handleAnswer(index, optIndex, q.correct, btn, feedbackDiv, card);
+            optionsDiv.appendChild(btn);
+        });
+
+        card.appendChild(optionsDiv);
+        card.appendChild(feedbackDiv);
+        quizContainer.appendChild(card);
+    });
+}
+
+function handleAnswer(qIndex, optIndex, correctIndex, btnElement, feedbackElement, cardElement) {
+    // Si la pregunta ya fue respondida correctamente (card tiene clase 'answered-correctly'), no hacer nada
+    if (cardElement.classList.contains('answered-correctly')) return;
+
+    // Si ya hizo clic en este botón específico incorrecto, no restar puntos de nuevo
+    if (btnElement.disabled) return;
+
+    if (optIndex === correctIndex) {
+        // Respuesta Correcta
+        score++;
+        btnElement.classList.add('correct');
+        feedbackElement.innerText = "¡Correcto! (+1 punto)";
+        feedbackElement.className = "feedback-msg feedback-correct";
+        cardElement.classList.add('answered-correctly');
+        cardElement.classList.remove('answered-wrong');
+        
+        // Deshabilitar todos los botones de esta pregunta
+        const buttons = cardElement.querySelectorAll('.option-btn');
+        buttons.forEach(b => b.disabled = true);
+    } else {
+        // Respuesta Incorrecta
+        score--;
+        btnElement.classList.add('incorrect');
+        btnElement.disabled = true; // Deshabilitar solo este botón incorrecto
+        feedbackElement.innerText = "Incorrecto, inténtalo de nuevo (-1 punto)";
+        feedbackElement.className = "feedback-msg feedback-incorrect";
+        if (!cardElement.classList.contains('answered-correctly')) {
+            cardElement.classList.add('answered-wrong');
+        }
+    }
+    updateScore();
+}
+
+function updateScore() {
+    scoreDisplay.innerText = score;
+    // Efecto visual simple al cambiar puntos
+    scoreDisplay.style.transform = "scale(1.2)";
+    setTimeout(() => scoreDisplay.style.transform = "scale(1)", 200);
+}
+
+// Iniciar cuestionario al cargar
+initQuiz();
+
+
+/* =========================================
+   LÓGICA DE LA SIMULACIÓN (TCM)
+   ========================================= */
+const CONFIG = {
+    nitrogenColor: '#FF9800', 
+    oxygenColor: '#e53935',   
+    waterOColor: '#d32f2f',   
+    waterHColor: '#2196f3',   
+    nitrogenRadius: 4,        
+    oxygenRadius: 5.5,        
+    waterRadius: 5.5,         
+    gasDensity: 0.00035, 
+    gravity: 0.25,            
+    liquidLevelRatio: 0.85,   
+    minBubbleRadius: 45,
+    maxBubbleRadius: 95,
+    speedGas: 2.2,
+    speedLiquid: 0.5
+};
+
+const wrapper = document.getElementById('canvas-wrapper');
+const canvas = document.getElementById('simCanvas');
+const ctx = canvas.getContext('2d');
+const popBtn = document.getElementById('popBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+let width, height, liquidY;
+let particles = [];
+let bubbles = []; 
+
+class Particle {
+    constructor(x, y, type) {
+        this.x = x;
+        this.y = y;
+        this.type = type; 
+        this.bubbleIndex = -1; 
+        let speed = type === 'H2O' ? CONFIG.speedLiquid : CONFIG.speedGas;
+        speed = speed * (0.8 + Math.random() * 0.4);
+        let angle = Math.random() * Math.PI * 2;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.angle = Math.random() * Math.PI * 2;
+        this.vAngle = (Math.random() - 0.5) * 0.1;
+
+        if (type === 'N2') {
+            this.radius = CONFIG.nitrogenRadius;
+            this.color = CONFIG.nitrogenColor;
+        } else if (type === 'O2') {
+            this.radius = CONFIG.oxygenRadius;
+            this.color = CONFIG.oxygenColor;
+        } else {
+            this.radius = CONFIG.waterRadius;
+            this.color = CONFIG.waterOColor;
+        }
+    }
+
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.angle += this.vAngle;
+        if (this.type === 'H2O') this.updateLiquid();
+        else this.updateGas();
+    }
+
+    updateGas() {
+        if (this.x < this.radius) { this.x = this.radius; this.vx *= -1; }
+        if (this.x > width - this.radius) { this.x = width - this.radius; this.vx *= -1; }
+        if (this.y < this.radius) { this.y = this.radius; this.vy *= -1; }
+        if (this.y > liquidY - this.radius) { this.y = liquidY - this.radius; this.vy *= -1; }
+
+        if (this.bubbleIndex !== -1) {
+            const bubble = bubbles[this.bubbleIndex];
+            if (bubble && bubble.state === 'intact') {
+                const dx = this.x - bubble.x;
+                const dy = this.y - bubble.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                const innerSkinRadius = bubble.radius - (CONFIG.waterRadius * 2.5);
+                if (dist > innerSkinRadius - this.radius) {
+                    const nx = dx / dist;
+                    const ny = dy / dist;
+                    const dot = this.vx * nx + this.vy * ny;
+                    this.vx = this.vx - 2 * dot * nx;
+                    this.vy = this.vy - 2 * dot * ny;
+                    this.x = bubble.x + nx * (innerSkinRadius - this.radius - 1);
+                    this.y = bubble.y + ny * (innerSkinRadius - this.radius - 1);
+                }
+            } else { this.bubbleIndex = -1; }
+        } else {
+            for (let b of bubbles) {
+                if (b.state === 'intact') {
+                    const dx = this.x - b.x;
+                    const dy = this.y - b.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < b.radius + this.radius + 2 && dist > b.radius - 20) {
+                        const nx = dx / dist;
+                        const ny = dy / dist;
+                        const dot = this.vx * nx + this.vy * ny;
+                        this.vx = this.vx - 2 * dot * nx;
+                        this.vy = this.vy - 2 * dot * ny;
+                        this.x = b.x + nx * (b.radius + this.radius + 2);
+                        this.y = b.y + ny * (b.radius + this.radius + 2);
+                    }
+                }
+            }
+        }
+    }
+
+    updateLiquid() {
+        if (this.y < liquidY) {
+             this.vy += CONFIG.gravity;
+             if (this.y >= liquidY) {
+                 this.y = liquidY + Math.random() * (height - liquidY);
+                 this.vy = 0;
+                 this.vx = (Math.random() - 0.5) * CONFIG.speedLiquid;
+             }
+        } else {
+            if (this.x < 0) this.x = width;
+            if (this.x > width) this.x = 0;
+            if (this.y < liquidY) this.y = liquidY;
+            if (this.y > height) this.y = height;
+            this.vx *= 0.95; this.vy *= 0.95;
+            this.vx += (Math.random() - 0.5) * 0.2;
+            this.vy += (Math.random() - 0.5) * 0.2;
+        }
+    }
+
+    draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        if (this.type === 'H2O') {
+            ctx.fillStyle = CONFIG.waterHColor;
+            ctx.beginPath(); ctx.arc(-this.radius * 0.7, this.radius * 0.7, this.radius * 0.6, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(this.radius * 0.7, this.radius * 0.7, this.radius * 0.6, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = CONFIG.waterOColor;
+            ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.beginPath(); ctx.arc(-2, -2, 2.5, 0, Math.PI * 2); ctx.fill();
+        } else {
+            ctx.fillStyle = this.color;
+            ctx.beginPath(); ctx.arc(-this.radius * 0.8, 0, this.radius, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(this.radius * 0.8, 0, this.radius, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.restore();
+    }
+}
+
+class BubbleSkinParticle extends Particle {
+    constructor(x, y, angleOnCircle, bubbleRef, layerOffsetRadius) {
+        super(x, y, 'H2O');
+        this.angleOnCircle = angleOnCircle;
+        this.bubbleRef = bubbleRef;
+        this.layerOffsetRadius = layerOffsetRadius;
+    }
+
+    update() {
+        if (this.bubbleRef.state === 'intact') {
+            const jitter = 1.5;
+            const effectiveRadius = this.bubbleRef.radius + this.layerOffsetRadius;
+            const targetX = this.bubbleRef.x + Math.cos(this.angleOnCircle) * effectiveRadius;
+            const targetY = this.bubbleRef.y + Math.sin(this.angleOnCircle) * effectiveRadius;
+            this.x = targetX + (Math.random() - 0.5) * jitter;
+            this.y = targetY + (Math.random() - 0.5) * jitter;
+            this.angleOnCircle += 0.005;
+        } else {
+            this.vy += CONFIG.gravity;
+            this.x += this.vx;
+            this.y += this.vy;
+            if (this.y >= liquidY) {
+                if (this.y > height - 5) this.y = liquidY;
+                if (Math.abs(this.vy) > 2) {
+                    this.vy *= -0.3; this.vx = (Math.random() - 0.5) * 2;
+                } else { this.vx *= 0.9; }
+            }
+        }
+    }
+}
+
+function init() {
+    width = canvas.width = wrapper.clientWidth;
+    height = canvas.height = wrapper.clientHeight;
+    liquidY = height * CONFIG.liquidLevelRatio;
+    
+    particles = [];
+    bubbles = [];
+    popBtn.disabled = false;
+    popBtn.innerText = "💥 Romper Todas";
+
+    const numBubbles = Math.floor(Math.random() * 3) + 3; 
+    let totalBubbleArea = 0;
+
+    for (let i = 0; i < numBubbles; i++) {
+        let safe = false;
+        let attempts = 0;
+        let b = { x: 0, y: 0, radius: 0, skin: [], state: 'intact', id: i };
+        
+        while(!safe && attempts < 100) {
+            b.radius = CONFIG.minBubbleRadius + Math.random() * (CONFIG.maxBubbleRadius - CONFIG.minBubbleRadius);
+            b.x = b.radius + Math.random() * (width - b.radius * 2);
+            b.y = liquidY - b.radius * (0.85 + Math.random() * 0.3);
+            let overlap = false;
+            for (let existing of bubbles) {
+                const dist = Math.sqrt((b.x - existing.x)**2 + (b.y - existing.y)**2);
+                if (dist < (b.radius + existing.radius + 15)) { overlap = true; break; }
+            }
+            if (!overlap) safe = true;
+            attempts++;
+        }
+        
+        if (safe) {
+            bubbles.push(b);
+            totalBubbleArea += Math.PI * b.radius * b.radius;
+            createDoubleLayerSkin(b);
+            const bubbleArea = Math.PI * b.radius * b.radius;
+            const gasCount = Math.floor(bubbleArea * CONFIG.gasDensity); 
+            createGas(gasCount, i);
+        }
+    }
+
+    const totalAirArea = width * liquidY;
+    const outsideArea = Math.max(0, totalAirArea - totalBubbleArea);
+    const outsideGasCount = Math.floor(outsideArea * CONFIG.gasDensity);
+    createGas(outsideGasCount, -1);
+
+    const liquidAreaHeight = height - liquidY;
+    const liquidParticleCount = Math.floor((width * liquidAreaHeight) / 180); 
+    for (let i = 0; i < liquidParticleCount; i++) {
+        let p = new Particle(Math.random() * width, liquidY + Math.random() * liquidAreaHeight, 'H2O');
+        particles.push(p);
+    }
+}
+
+function createDoubleLayerSkin(bubble) {
+    const circumferenceOut = 2 * Math.PI * bubble.radius;
+    const countOut = Math.floor(circumferenceOut / (CONFIG.waterRadius * 2.1));
+    for (let i = 0; i < countOut; i++) {
+        const angle = (i / countOut) * Math.PI * 2;
+        let p = new BubbleSkinParticle(0, 0, angle, bubble, 0);
+        p.angle = Math.random() * Math.PI * 2;
+        bubble.skin.push(p); particles.push(p);
+    }
+
+    const innerRadiusOffset = -CONFIG.waterRadius * 2.2;
+    const innerRadius = bubble.radius + innerRadiusOffset;
+    const circumferenceIn = 2 * Math.PI * innerRadius;
+    const countIn = Math.floor(circumferenceIn / (CONFIG.waterRadius * 2.1));
+    const angleOffset = (Math.PI * 2) / (countIn * 2); 
+
+    for (let i = 0; i < countIn; i++) {
+        const angle = (i / countIn) * Math.PI * 2 + angleOffset;
+        let p = new BubbleSkinParticle(0, 0, angle, bubble, innerRadiusOffset);
+        p.angle = Math.random() * Math.PI * 2; 
+        bubble.skin.push(p); particles.push(p);
+    }
+}
+
+function createGas(count, bubbleIndex) {
+    for (let i = 0; i < count; i++) {
+        const isNitrogen = Math.random() < 0.7;
+        const type = isNitrogen ? 'N2' : 'O2';
+        let x, y, valid = false, attempts = 0;
+
+        if (bubbleIndex !== -1) {
+            const bubble = bubbles[bubbleIndex];
+            const safeRadius = bubble.radius - (CONFIG.waterRadius * 3.5);
+            while (!valid && attempts < 50) {
+                const r = safeRadius * Math.sqrt(Math.random());
+                const theta = Math.random() * 2 * Math.PI;
+                x = bubble.x + r * Math.cos(theta);
+                y = bubble.y + r * Math.sin(theta);
+                valid = true;
+            }
+        } else {
+            while (!valid && attempts < 100) {
+                x = Math.random() * width;
+                y = Math.random() * liquidY;
+                let insideAny = false;
+                for (let b of bubbles) {
+                    const dx = x - b.x; const dy = y - b.y;
+                    if (Math.sqrt(dx*dx + dy*dy) < b.radius + 10) { insideAny = true; break; }
+                }
+                if (!insideAny) valid = true;
+                attempts++;
+            }
+        }
+        if (valid) {
+            let p = new Particle(x, y, type);
+            p.bubbleIndex = bubbleIndex;
+            particles.push(p);
+        }
+    }
+}
+
+function animate() {
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = 'rgba(33, 150, 243, 0.1)';
+    ctx.fillRect(0, liquidY, width, height - liquidY);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animate);
+}
+
+function popBubble(bubble) {
+    if (bubble.state === 'intact') {
+        bubble.state = 'broken';
+        bubble.skin.forEach(p => {
+            p.vx = (Math.random() - 0.5) * 6;
+            p.vy = (Math.random() - 0.5) * 6;
+        });
+    }
+}
+
+popBtn.addEventListener('click', () => {
+    let anyIntact = false;
+    bubbles.forEach(b => {
+        if (b.state === 'intact') { popBubble(b); anyIntact = true; }
+    });
+    if (anyIntact) { popBtn.innerText = "Reinicia para más"; popBtn.disabled = true; }
+});
+
+resetBtn.addEventListener('click', init);
+window.addEventListener('resize', () => {
+    width = canvas.width = wrapper.clientWidth;
+    height = canvas.height = wrapper.clientHeight;
+    init();
+});
+canvas.addEventListener('mousedown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    bubbles.forEach(b => {
+        if (b.state === 'intact') {
+            const dx = mouseX - b.x; const dy = mouseY - b.y;
+            if (Math.sqrt(dx*dx + dy*dy) < b.radius + 15) { popBubble(b); }
+        }
+    });
+});
+
+init();
+animate();
+
+</script>
+</body>
+</html>
