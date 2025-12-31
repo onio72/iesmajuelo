@@ -3,258 +3,506 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recursos creados con IA - Antonio González</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Recursos con IA - Antonio González</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* (Mismo CSS que ya tienes...) */
         :root {
             --primary: #2563eb;
-            --primary-light: #dbeafe;
-            --primary-dark: #1e40af;
+            --primary-hover: #1d4ed8;
+            --primary-light: #eff6ff;
             --secondary: #64748b;
-            --bg-body: #f1f5f9;
+            --bg-body: #f8fafc;
             --bg-card: #ffffff;
             --text-main: #0f172a;
-            --text-muted: #475569;
+            --text-muted: #64748b;
             --border: #e2e8f0;
-            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            --radius: 1rem;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --radius: 0.75rem;
         }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-body);
             color: var(--text-main);
-            line-height: 1.5;
-            overflow-x: hidden;
+            line-height: 1.6;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
+
+        /* Header & Navigation */
         header {
             background: white;
-            padding: 1rem;
             border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
             z-index: 100;
+            padding: 1rem;
         }
-        nav {
-            max-width: 1000px;
+
+        .header-content {
+            max-width: 1100px;
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 1rem;
         }
+
         .brand {
             font-weight: 800;
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             color: var(--primary);
             text-decoration: none;
             display: flex;
             align-items: center;
             gap: 0.5rem;
             cursor: pointer;
+            white-space: nowrap;
         }
-        .navigation-bar {
-            max-width: 1000px;
-            margin: 1rem auto 0;
-            padding: 0 1rem;
+
+        .search-container {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border-radius: 2rem;
+            border: 1px solid var(--border);
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            background: var(--bg-body);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.4;
+        }
+
+        /* Toolbar / Breadcrumbs */
+        .toolbar {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+        }
+
+        .toolbar-content {
+            max-width: 1100px;
+            margin: 0 auto;
             display: flex;
             align-items: center;
             gap: 1rem;
-            min-height: 45px;
         }
+
         .btn-back {
             background: white;
             border: 1px solid var(--border);
-            padding: 0.5rem 1rem;
+            padding: 0.4rem 0.8rem;
             border-radius: 0.5rem;
             cursor: pointer;
             font-weight: 600;
+            font-size: 0.85rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
             transition: all 0.2s;
             color: var(--text-muted);
         }
+
         .btn-back:hover {
             background: var(--primary-light);
-            color: var(--primary-dark);
+            color: var(--primary);
             border-color: var(--primary);
         }
+
         .breadcrumbs {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: var(--text-muted);
             display: flex;
-            gap: 0.5rem;
+            gap: 0.4rem;
             align-items: center;
             overflow-x: auto;
             white-space: nowrap;
         }
+
+        .breadcrumb-item { cursor: pointer; transition: color 0.2s; }
+        .breadcrumb-item:hover { color: var(--primary); }
+        .breadcrumb-sep { opacity: 0.3; font-weight: 300; }
+
+        /* Main Content */
         main {
             flex: 1;
-            max-width: 1000px;
+            max-width: 1100px;
             width: 100%;
             margin: 0 auto;
-            padding: 1.5rem 1rem 4rem;
-            position: relative;
+            padding: 2rem 1rem;
         }
+
         .view-container {
-            width: 100%;
-            animation: fadeIn 0.3s ease-out;
+            animation: slideUp 0.3s ease-out;
         }
-        @keyframes fadeIn {
+
+        @keyframes slideUp {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Grid Layout */
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 1.5rem;
         }
+
         .card {
             background: var(--bg-card);
-            padding: 2rem;
+            padding: 2rem 1.5rem;
             border-radius: var(--radius);
             border: 1px solid var(--border);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: var(--shadow-sm);
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
+
         .card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-4px);
             box-shadow: var(--shadow);
             border-color: var(--primary);
         }
-        .card h2 {
-            font-size: 1.4rem;
-            margin-bottom: 0.5rem;
-            color: var(--text-main);
+
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: var(--primary);
+            opacity: 0;
+            transition: opacity 0.3s;
         }
+
+        .card:hover::after { opacity: 1; }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1.25rem;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
         .card p {
             color: var(--text-muted);
             font-size: 0.9rem;
+            line-height: 1.4;
         }
-        .card-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+
+        /* Resource Groups */
+        .resource-section-title {
+            margin: 2rem 0 1rem;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
         }
+
         .resource-group {
             background: white;
             padding: 1.5rem;
             border-radius: var(--radius);
             border: 1px solid var(--border);
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
         }
+
         .resource-group h3 {
-            margin-bottom: 1.25rem;
-            color: var(--primary-dark);
-            border-bottom: 2px solid var(--primary-light);
-            padding-bottom: 0.5rem;
-            font-size: 1rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
+
         .links-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 0.75rem;
         }
+
         .link-item {
             display: flex;
             align-items: center;
-            padding: 0.85rem 1rem;
-            background: #f8fafc;
+            padding: 0.8rem 1rem;
+            background: var(--bg-body);
             border: 1px solid var(--border);
-            border-radius: 0.75rem;
+            border-radius: 0.6rem;
             text-decoration: none;
             color: var(--text-main);
             font-weight: 500;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             transition: all 0.2s;
         }
+
         .link-item:hover {
             background: white;
             border-color: var(--primary);
             color: var(--primary);
-            transform: translateX(4px);
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            transform: translateX(3px);
+            box-shadow: var(--shadow-sm);
         }
+
         .link-item::before {
-            content: '📄';
-            margin-right: 12px;
-            font-size: 1.1rem;
+            content: '🔗';
+            margin-right: 10px;
+            font-size: 1rem;
+            filter: grayscale(1);
         }
+
+        .link-item:hover::before { filter: grayscale(0); }
+
+        /* Search Results View */
+        .search-results-info {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: var(--primary-light);
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            color: var(--primary-dark);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
         .hidden { display: none !important; }
+
+        footer {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            background: white;
+            margin-top: auto;
+        }
+
         @media (max-width: 600px) {
+            .header-content { flex-direction: column; align-items: flex-start; }
+            .search-container { max-width: 100%; width: 100%; }
             .grid { grid-template-columns: 1fr; }
-            .navigation-bar { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .links-grid { grid-template-columns: 1fr; }
+            .brand { font-size: 1rem; }
         }
     </style>
 </head>
 <body>
+
 <header>
-    <nav>
-        <div class="brand" onclick="navigateTo('root')">🤖 Recursos creados con IA - Antonio González</div>
-    </nav>
+    <div class="header-content">
+        <div class="brand" onclick="navigateTo('root')">
+            <span>🤖</span> Recursos IA <span style="font-weight: 300; opacity: 0.6">| A. González</span>
+        </div>
+        <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="Buscar temas, ejercicios, simuladores..." oninput="handleSearch()">
+        </div>
+    </div>
 </header>
-<div class="navigation-bar">
-    <button id="backBtn" class="btn-back hidden" onclick="goBack()">
-        ← Volver
-    </button>
-    <div id="breadcrumbs" class="breadcrumbs">Inicio</div>
+
+<div class="toolbar">
+    <div class="toolbar-content">
+        <button id="backBtn" class="btn-back hidden" onclick="goBack()">
+            <span>←</span> Volver
+        </button>
+        <div id="breadcrumbs" class="breadcrumbs">Inicio</div>
+    </div>
 </div>
+
 <main id="app"></main>
 
+<footer>
+    <p>&copy; 2024 Antonio González - Repositorio de Recursos Educativos creados con IA</p>
+    <p style="margin-top: 0.5rem; opacity: 0.7">Hecho con fines educativos para el IES Majuelo</p>
+</footer>
+
 <script>
-    // Tu objeto DATA y lógica de navegación...
     const DATA = {
         root: {
             title: "Inicio",
             items: [
-                { id: 'eso', title: 'ESO', icon: '🎒', desc: 'Educación Secundaria' },
+                { id: 'eso', title: 'ESO', icon: '🎒', desc: 'Educación Secundaria Obligatoria' },
                 { id: 'bach', title: 'Bachillerato', icon: '🎓', desc: 'Ciencias y Tecnología' },
                 { id: 'fpb2', title: 'FPB2', icon: '🛠️', desc: 'Formación Profesional Básica' },
                 { id: 'tools', title: 'Herramientas', icon: '🧪', desc: 'Simuladores y Utilidades' },
-                { id: 'cdd', title: 'CDD', icon: '💻', desc: 'Comp. Digital Docente' },
+                { id: 'cdd', title: 'CDD', icon: '💻', desc: 'Competencia Digital Docente' },
                 { id: 'equipo', title: 'Equipo Directivo', icon: '📋', desc: 'Gestión y Calendario' },
                 { id: 'departamento', title: 'Departamento', icon: '🏫', desc: 'Organización Interna' },
                 { id: 'otros', title: 'Otros', icon: '✨', desc: 'Recursos Variados' }
             ]
         },
-        // ...resto de los datos
-        eso: { title: "ESO", items: [{ id: 'fq2', title: 'FQ2', icon: '🧪', desc: '2º de la ESO' }, { id: 'fq3', title: 'FQ3', icon: '⚗️', desc: '3º de la ESO' }, { id: 'fq4', title: 'FQ4', icon: '⚛️', desc: '4º de la ESO' }] },
-        bach: { title: "Bachillerato", items: [{ id: 'fq1', title: 'FQ1', icon: '📚', desc: '1º de Bachillerato' }, { id: 'fi2', title: 'Física 2º', icon: '🌌', desc: '2º de Bachillerato' }] },
-        fq2: { title: "FQ2", groups: [{ name: "Formulación", links: [{ name: "Fórmulas químicas", url: "https://onio72.github.io/iesmajuelo/eso/fq2/formulasquimicas/" }] }, { name: "TCM (Teoría Cinético Molecular)", links: [{ name: "Simulador gases", url: "https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_gas_v02.html" }, { name: "Simulador materia", url: "https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_materia_v12.html" }, { name: "Simulador sólidos + Quiz", url: "https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_solido_v16_quiz.html" }, { name: "Simulador burbujas", url: "https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_burbujas.html" }] }, { name: "Cinemática", links: [{ name: "Dibujar gráfica", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/dibujargrafica.html" }, { name: "MRU sentido velocidad", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_sentidov.html" }, { name: "Comparar velocidades MRU", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_comparav.html" }, { name: "Comparar velocidades MRU 2", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_comparav2.html" }, { name: "Cálculo de velocidad", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_calculov.html" }] }] },
-        fq3: { title: "FQ3", groups: [{ name: "T01 - Método Científico y Unidades", links: [{ name: "Repaso del Sistema Internacional", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/repasoSI.html" }, { name: "Representación gráfica de funciones", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/repgrafica.html" }, { name: "Cambio de unidades (método coma)", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/movercoma.html" }, { name: "Cambio de unidades de volumen", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/cambiosvolumen.html" }] }, { name: "T02 - El Átomo y Tabla Periódica", links: [{ name: "Tabla de valencias", url: "https://onio72.github.io/iesmajuelo/eso/fq3/formulacion/tabla_valencias.html" }, { name: "Masas atómicas y molares", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla01/" }, { name: "Cálculos masas", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/calculo_masas/" }, { name: "Abundancia isotópica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/abundisot/" }, { name: "Trabajando con la tabla periódica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla02/" }, { name: "Configuración electrónica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/configelect/" }] }] },
-        fq4: { title: "FQ4", groups: [{ name: "Cinemática", links: [{ name: "MCU (Movimiento Circular)", url: "https://onio72.github.io/iesmajuelo/eso/fq4/mcu/index.html" }] }] },
-        fq1: { title: "FQ1", groups: [{ name: "Química", links: [{ name: "Fórmula empírica", url: "https://onio72.github.io/iesmajuelo/bach/fq1/formulaempirica/" }] }, { name: "Laboratorio", links: [{ name: "Videoanálisis de movimientos", url: "https://onio72.github.io/iesmajuelo/bach/fq1/videoanalisis/" }] }, { name: "Física - MRUA", links: [{ name: "Caída libre - Grifo", url: "https://onio72.github.io/iesmajuelo/bach/fq1/caidalibre/grifo/index.html" }] }, { name: "Tiro parabólico", links: [{ name: "Tiro parabólico (Simulador)", url: "https://onio72.github.io/iesmajuelo/bach/fq1/tiro_parabolico/" }, { name: "Generador de problemas", url: "https://onio72.github.io/iesmajuelo/bach/fq1/tiroparabgen/" }, { name: "Cálculo momento lineal", url: "https://onio72.github.io/iesmajuelo/bach/fq1/t10/genprob01/" }] }, { name: "Dinámica", links: [{ name: "Plano inclinado", url: "https://onio72.github.io/iesmajuelo/bach/fq1/planoinclinado/" }, { name: "Plano inclinado con rozamiento", url: "https://onio72.github.io/iesmajuelo/bach/fq1/planoincroz/" }, { name: "Plano horizontal - Resuelto", url: "https://onio72.github.io/iesmajuelo/bach/fq1/planohorizontal/resuelto.html" }, { name: "Plano horizontal - Diagrama", url: "https://onio72.github.io/iesmajuelo/bach/fq1/planohorizontal/diagrama.html" }, { name: "Cuerpos enlazados", url: "https://onio72.github.io/iesmajuelo/bach/fq1/cuerposenlazados/" }] }, { name: "Colisiones", links: [{ name: "Choque inelástico", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choques.html" }, { name: "Choque elástico", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque01.html" }, { name: "Choque inelástico 2", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque02.html" }, { name: "Choque coef. restitución 1", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque03.html" }, { name: "Choque coef. restitución 2", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque04.html" }, { name: "Colisión (Beta)", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/colision01.html" }] }] },
-        fi2: { title: "Física 2º", groups: [{ name: "Campo gravitatorio", links: [{ name: "Campo gravitatorio (2 masas)", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/campo_gravitatorio/" }, { name: "Fuerza gravitatoria", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/fuerza_gravitatoria/" }, { name: "Potencial gravitatorio", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/potencial_gravitatorio/" }, { name: "Energía potencial", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/energia_potencial/" }, { name: "Trabajo traslado masa", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/trabajo/" }, { name: "Teoría: Campo gravitatorio", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/cuestteor01/" }, { name: "Teoría: Satélites", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/cuestteor02/" }] }, { name: "Vibraciones y ondas", links: [{ name: "MAS: Fases iniciales", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/mas/" }, { name: "Principio de Huygens", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/huygens/" }, { name: "Modos vibración (1 extremo)", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/modosvib01/" }, { name: "Modos vibración (2 extremos)", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/modosvib02/" }, { name: "Armónicos cuerda fija", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/armonicos/" }, { name: "Lab. ondas estacionarias", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/estacionaria/" }, { name: "Desfases onda viajera", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/desfase/viajera.html" }, { name: "Desfases onda estacionaria", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/desfase/etacionaria.html" }, { name: "Ecuaciones onda estacionaria", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/ecuacionest/" }, { name: "Cálculos de nodos y antinodos", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/nodos/" }, { name: "Teoría: Refracción", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/teo_refrac/" }, { name: "Teoría: Magnitudes ondas viajeras", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/teo_ondasv/" }] }, { name: "Campo eléctrico", links: [{ name: "Campo eléctrico (2 cargas)", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/campo_electrico/" }, { name: "Fuerza eléctrica", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/fuerza_electrica/" }, { name: "Potencial eléctrico", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/potencial_electrico/" }, { name: "Energía potencial eléctrica", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/energia_potencial/" }, { name: "Trabajo campo eléctrico", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/trabajo/" }, { name: "Puntos potencial nulo", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/potencial_cero/" }, { name: "Magnitudes eléctricas", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/comparamag/" }, { name: "Anulación magnitudes", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/teor_anulamag/" }] }] },
-        fpb2: { title: "FPB2", groups: [{ name: "Geometría y Volumen", links: [{ name: "Reconocer figuras 3D", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3D/" }, { name: "Contar vértices/aristas/caras", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3Deuler/" }, { name: "Problemas de volumen", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/probvol/" }, { name: "Experimento con dados", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/dados.html" }] }] },
+        eso: { 
+            title: "ESO", 
+            items: [
+                { id: 'fq2', title: 'FQ 2º ESO', icon: '🧪', desc: 'Física y Química' }, 
+                { id: 'fq3', title: 'FQ 3º ESO', icon: '⚗️', desc: 'Física y Química' }, 
+                { id: 'fq4', title: 'FQ 4º ESO', icon: '⚛️', desc: 'Física y Química' }
+            ] 
+        },
+        bach: { 
+            title: "Bachillerato", 
+            items: [
+                { id: 'fq1', title: 'FQ 1º Bach', icon: '📚', desc: 'Física y Química' }, 
+                { id: 'fi2', title: 'Física 2º Bach', icon: '🌌', desc: 'Preparación PAU/EBAU' }
+            ] 
+        },
+        fq2: { 
+            title: "FQ 2º ESO", 
+            groups: [
+                { name: "Formulación", links: [{ name: "Fórmulas químicas", url: "https://onio72.github.io/iesmajuelo/eso/fq2/formulasquimicas/" }] },
+                { name: "Teoría Cinético Molecular", links: [
+                    { name: "Simulador gases", url: "https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_gas_v02.html" },
+                    { name: "Simulador materia", url: "https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_materia_v12.html" },
+                    { name: "Simulador sólidos + Quiz", url: "https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_solido_v16_quiz.html" },
+                    { name: "Simulador burbujas", url: "https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_burbujas.html" }
+                ]},
+                { name: "Cinemática", links: [
+                    { name: "Dibujar gráfica", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/dibujargrafica.html" },
+                    { name: "MRU sentido velocidad", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_sentidov.html" },
+                    { name: "Comparar velocidades MRU", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_comparav.html" },
+                    { name: "Cálculo de velocidad", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_calculov.html" }
+                ]}
+            ] 
+        },
+        fq3: { 
+            title: "FQ 3º ESO", 
+            groups: [
+                { name: "T01 - Método Científico", links: [
+                    { name: "Repaso Sistema Internacional", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/repasoSI.html" },
+                    { name: "Representación gráfica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/repgrafica.html" },
+                    { name: "Cambio de unidades (método coma)", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/movercoma.html" },
+                    { name: "Cambio de unidades de volumen", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/cambiosvolumen.html" }
+                ]},
+                { name: "T02 - El Átomo y Tabla Periódica", links: [
+                    { name: "Tabla de valencias", url: "https://onio72.github.io/iesmajuelo/eso/fq3/formulacion/tabla_valencias.html" },
+                    { name: "Masas atómicas y molares", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla01/" },
+                    { name: "Abundancia isotópica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/abundisot/" },
+                    { name: "Configuración electrónica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/configelect/" }
+                ]}
+            ] 
+        },
+        fq4: { title: "FQ 4º ESO", groups: [{ name: "Cinemática", links: [{ name: "MCU (Movimiento Circular)", url: "https://onio72.github.io/iesmajuelo/eso/fq4/mcu/index.html" }] }] },
+        fq1: { 
+            title: "FQ 1º Bach", 
+            groups: [
+                { name: "Química", links: [{ name: "Fórmula empírica", url: "https://onio72.github.io/iesmajuelo/bach/fq1/formulaempirica/" }] },
+                { name: "Física - Cinemática", links: [
+                    { name: "Caída libre - Grifo", url: "https://onio72.github.io/iesmajuelo/bach/fq1/caidalibre/grifo/index.html" },
+                    { name: "Tiro parabólico (Simulador)", url: "https://onio72.github.io/iesmajuelo/bach/fq1/tiro_parabolico/" },
+                    { name: "Generador Tiro Parabólico", url: "https://onio72.github.io/iesmajuelo/bach/fq1/tiroparabgen/" }
+                ]},
+                { name: "Dinámica", links: [
+                    { name: "Plano inclinado", url: "https://onio72.github.io/iesmajuelo/bach/fq1/planoinclinado/" },
+                    { name: "Plano inclinado con rozamiento", url: "https://onio72.github.io/iesmajuelo/bach/fq1/planoincroz/" },
+                    { name: "Cuerpos enlazados", url: "https://onio72.github.io/iesmajuelo/bach/fq1/cuerposenlazados/" }
+                ]},
+                { name: "Colisiones", links: [
+                    { name: "Choque inelástico", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choques.html" },
+                    { name: "Choque elástico", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque01.html" },
+                    { name: "Choque coef. restitución", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque03.html" }
+                ]}
+            ] 
+        },
+        fi2: { 
+            title: "Física 2º Bach", 
+            groups: [
+                { name: "Campo gravitatorio", links: [
+                    { name: "Campo gravitatorio (2 masas)", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/campo_gravitatorio/" },
+                    { name: "Fuerza gravitatoria", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/fuerza_gravitatoria/" },
+                    { name: "Teoría: Campo gravitatorio", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/cuestteor01/" }
+                ]},
+                { name: "Vibraciones y ondas", links: [
+                    { name: "Principio de Huygens", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/huygens/" },
+                    { name: "Modos vibración", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/modosvib01/" },
+                    { name: "Lab. ondas estacionarias", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/estacionaria/" }
+                ]},
+                { name: "Campo eléctrico", links: [
+                    { name: "Campo eléctrico (2 cargas)", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/campo_electrico/" },
+                    { name: "Potencial eléctrico", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/potencial_electrico/" }
+                ]}
+            ] 
+        },
+        fpb2: { 
+            title: "FPB 2", 
+            groups: [
+                { name: "Geometría y Volumen", links: [
+                    { name: "Reconocer figuras 3D", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3D/" },
+                    { name: "Teorema de Euler", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3Deuler/" },
+                    { name: "Problemas de volumen", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/probvol/" }
+                ]}
+            ] 
+        },
         tools: { title: "Herramientas", groups: [{ name: "Simuladores", links: [{ name: "Dibuja átomos", url: "https://onio72.github.io/tools/atomo.html" }] }] },
         cdd: { title: "CDD", groups: [{ name: "Digital", links: [{ name: "Repositorio de píldoras", url: "https://onio72.github.io/cdd/" }] }] },
-        equipo: { title: "Equipo Directivo", groups: [{ name: "Gestión", links: [{ name: "Calendario", url: "https://onio72.github.io/ed/calendario.html" }],[{ name: "Flujos", url: "https://onio72.github.io/ed/flujo/index.html" }] }] },
-        departamento: { title: "Departamento", groups: [{ name: "Organización", links: [{ name: "Reparto materias", url: "https://onio72.github.io/iesmajuelo/departamentoFQ/reparto/" }, { name: "Eval. competencias Fís 2º", url: "https://onio72.github.io/iesmajuelo/departamentoFQ/evalcomp/fisi2.html" }, { name: "Evaluando por competencias", url: "https://onio72.github.io/iesmajuelo/departamentoFQ/evalcomp/index.html" }] }] },
+        equipo: { 
+            title: "Equipo Directivo", 
+            groups: [
+                { name: "Gestión", links: [
+                    { name: "Calendario", url: "https://onio72.github.io/ed/calendario.html" },
+                    { name: "Flujos de trabajo", url: "https://onio72.github.io/ed/flujo/index.html" }
+                ]}
+            ] 
+        },
+        departamento: { title: "Departamento", groups: [{ name: "Organización", links: [{ name: "Reparto materias", url: "https://onio72.github.io/iesmajuelo/departamentoFQ/reparto/" }, { name: "Evaluando por competencias", url: "https://onio72.github.io/iesmajuelo/departamentoFQ/evalcomp/index.html" }] }] },
         otros: { title: "Otros", groups: [{ name: "Varios", links: [{ name: "Bingo viajero", url: "https://onio72.github.io/bingo/" }] }] }
     };
 
     let navigationStack = ['root'];
+    let isSearchActive = false;
 
     function navigateTo(id) {
         if (!DATA[id]) return;
+        
+        // Limpiar búsqueda al navegar
+        document.getElementById('searchInput').value = '';
+        isSearchActive = false;
+
         if (id === 'root') {
             navigationStack = ['root'];
         } else {
+            // Evitar duplicados consecutivos en el stack
             if (navigationStack[navigationStack.length - 1] !== id) {
                 navigationStack.push(id);
             }
@@ -269,23 +517,90 @@
         }
     }
 
+    function handleSearch() {
+        const query = document.getElementById('searchInput').value.toLowerCase().trim();
+        const app = document.getElementById('app');
+        const backBtn = document.getElementById('backBtn');
+        const breadcrumbs = document.getElementById('breadcrumbs');
+
+        if (query.length < 2) {
+            isSearchActive = false;
+            render();
+            return;
+        }
+
+        isSearchActive = true;
+        backBtn.classList.remove('hidden');
+        breadcrumbs.innerHTML = `Resultados de: <strong>${query}</strong>`;
+
+        const results = [];
+        
+        // Buscar en todo el objeto DATA
+        Object.keys(DATA).forEach(key => {
+            const node = DATA[key];
+            if (node.groups) {
+                node.groups.forEach(group => {
+                    group.links.forEach(link => {
+                        if (link.name.toLowerCase().includes(query) || group.name.toLowerCase().includes(query)) {
+                            results.push({ ...link, category: node.title, group: group.name });
+                        }
+                    });
+                });
+            }
+        });
+
+        let html = `<div class="view-container">`;
+        if (results.length > 0) {
+            html += `<div class="search-results-info">Se han encontrado ${results.length} recursos</div>`;
+            html += `<div class="links-grid">`;
+            results.forEach(res => {
+                html += `
+                    <a href="${res.url}" class="link-item" target="_blank">
+                        <div style="display:flex; flex-direction:column">
+                            <span>${res.name}</span>
+                            <small style="font-size:0.7rem; opacity:0.6">${res.category} › ${res.group}</small>
+                        </div>
+                    </a>
+                `;
+            });
+            html += `</div>`;
+        } else {
+            html += `<div class="no-results">
+                <div style="font-size: 3rem; margin-bottom: 1rem">🔍</div>
+                <p>No se encontraron recursos que coincidan con "${query}"</p>
+            </div>`;
+        }
+        html += `</div>`;
+        app.innerHTML = html;
+    }
+
     function render() {
+        if (isSearchActive) return;
+
         const app = document.getElementById('app');
         const backBtn = document.getElementById('backBtn');
         const breadcrumbs = document.getElementById('breadcrumbs');
         const currentId = navigationStack[navigationStack.length - 1];
         const currentData = DATA[currentId];
 
+        // Update Breadcrumbs
         if (currentId === 'root') {
             backBtn.classList.add('hidden');
-            breadcrumbs.innerHTML = 'Inicio';
+            breadcrumbs.innerHTML = '<span class="breadcrumb-item">Inicio</span>';
         } else {
             backBtn.classList.remove('hidden');
-            const pathNames = navigationStack.map(id => DATA[id].title);
-            breadcrumbs.innerHTML = pathNames.join(' <span style="opacity:0.3; margin: 0 4px">›</span> ');
+            let bHtml = '';
+            navigationStack.forEach((id, index) => {
+                bHtml += `<span class="breadcrumb-item" onclick="jumpToStack(${index})">${DATA[id].title}</span>`;
+                if (index < navigationStack.length - 1) {
+                    bHtml += `<span class="breadcrumb-sep">/</span>`;
+                }
+            });
+            breadcrumbs.innerHTML = bHtml;
         }
 
         let html = `<div class="view-container">`;
+        
         if (currentData.items) {
             html += `<div class="grid">`;
             currentData.items.forEach(item => {
@@ -299,10 +614,11 @@
             });
             html += `</div>`;
         } else if (currentData.groups) {
+            html += `<h1 class="resource-section-title">${currentData.title}</h1>`;
             currentData.groups.forEach(group => {
                 html += `
                     <div class="resource-group">
-                        <h3>${group.name}</h3>
+                        <h3><span>📂</span> ${group.name}</h3>
                         <div class="links-grid">
                             ${group.links.map(link => `
                                 <a href="${link.url}" class="link-item" target="_blank" rel="noopener">
@@ -314,12 +630,19 @@
                 `;
             });
         }
+        
         html += `</div>`;
         app.innerHTML = html;
-        window.scrollTo(0, 0);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function jumpToStack(index) {
+        navigationStack = navigationStack.slice(0, index + 1);
+        render();
     }
 
     window.onload = render;
 </script>
+
 </body>
 </html>
