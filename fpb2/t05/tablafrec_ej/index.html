@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicio: Tabla de Frecuencias</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        
+        /* Estilos para inputs */
+        input.cell-input {
+            width: 100%;
+            text-align: center;
+            padding: 8px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-weight: 600;
+            color: #374151;
+        }
+        input.cell-input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        /* Estados de validación */
+        input.correct {
+            background-color: #dcfce7 !important;
+            border-color: #22c55e !important;
+            color: #15803d !important;
+            pointer-events: none; /* Bloquear tras acierto */
+        }
+        input.incorrect {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .score-red { color: #dc2626; }
+        .score-green { color: #16a34a; }
+
+        .highlight-sorted { background-color: #bfdbfe !important; }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen flex flex-col items-center py-6 px-4">
+
+    <!-- Header / Scoreboard -->
+    <header class="w-full max-w-6xl mb-6 flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl shadow-md border border-gray-200 sticky top-0 z-50">
+        <div>
+            <h1 class="text-xl font-bold text-gray-800"><i class="fas fa-edit text-indigo-600 mr-2"></i>Ejercicio de Frecuencias</h1>
+            <p class="text-xs text-gray-500 mt-1">Completa las tablas correctamente.</p>
+        </div>
+        
+        <div class="flex gap-6 mt-3 md:mt-0">
+            <div class="text-center">
+                <div class="text-xs text-gray-400 uppercase font-bold tracking-wider">Ronda</div>
+                <div class="text-2xl font-bold text-indigo-600"><span id="round-current">1</span>/3</div>
+            </div>
+            <div class="text-center border-l pl-6 border-gray-200">
+                <div class="text-xs text-gray-400 uppercase font-bold tracking-wider">Nota</div>
+                <div id="score-display" class="text-3xl font-extrabold score-red">0.00</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Game Over Screen (Hidden by default) -->
+    <div id="game-over" class="hidden fixed inset-0 bg-gray-900 bg-opacity-90 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-2xl transform scale-100">
+            <div class="text-6xl mb-4 text-yellow-400"><i class="fas fa-trophy"></i></div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">¡Ejercicio Completado!</h2>
+            <p class="text-gray-600 mb-6">Has completado las 3 tablas.</p>
+            <div class="bg-indigo-50 rounded-xl p-4 mb-6">
+                <span class="block text-sm text-indigo-600 uppercase font-bold">Nota Final</span>
+                <span id="final-score" class="text-5xl font-extrabold text-indigo-700">0.0</span>
+            </div>
+            <p class="text-sm text-gray-400 mb-4">La calificación se ha enviado a Moodle.</p>
+            <button onclick="location.reload()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition">
+                Volver a practicar
+            </button>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <main class="w-full max-w-6xl flex flex-col gap-6">
+        
+        <!-- Controls & Enunciado -->
+        <div class="bg-indigo-50 p-6 rounded-xl border border-indigo-100 shadow-sm">
+            <div class="flex flex-col md:flex-row justify-between items-start gap-4">
+                <div class="flex-1">
+                    <span class="inline-block px-3 py-1 bg-white text-indigo-800 rounded-full text-xs font-bold uppercase tracking-wide mb-2 shadow-sm border border-indigo-100">Enunciado</span>
+                    <h2 id="problem-text" class="text-lg font-medium text-gray-800">Cargando datos...</h2>
+                </div>
+                <!-- Botón Ordenar -->
+                <button onclick="toggleSort()" id="btn-sort" class="bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
+                    <i class="fas fa-sort-amount-down"></i> Ordenar Datos
+                </button>
+            </div>
+            
+            <!-- Data Grid -->
+            <div class="mt-4">
+                <div class="text-xs font-bold text-gray-500 uppercase mb-2">Muestra de datos (N = <span id="n-value">0</span>)</div>
+                <div id="data-grid" class="flex flex-wrap gap-2 max-h-32 overflow-y-auto custom-scrollbar">
+                    <!-- Data cells generated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- The Table -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-100 border-b-2 border-gray-200">
+                        <tr>
+                            <th class="px-2 py-3 text-center w-1/6">
+                                <div class="font-bold text-indigo-700">Dato</div>
+                                <div class="font-mono text-gray-500 normal-case">\(x_i\)</div>
+                            </th>
+                            <th class="px-2 py-3 text-center w-1/6">
+                                <div class="font-bold text-indigo-700">Frec. Abs.</div>
+                                <div class="font-mono text-gray-500 normal-case">\(n_i\)</div>
+                            </th>
+                            <th class="px-2 py-3 text-center w-1/6">
+                                <div class="font-bold text-indigo-700">Acumulada</div>
+                                <div class="font-mono text-gray-500 normal-case">\(N_i\)</div>
+                            </th>
+                            <th class="px-2 py-3 text-center w-1/6">
+                                <div class="font-bold text-indigo-700">Relativa</div>
+                                <div class="font-mono text-gray-500 normal-case">\(f_i\)</div>
+                            </th>
+                            <th class="px-2 py-3 text-center w-1/6">
+                                <div class="font-bold text-indigo-700">Rel. Acum.</div>
+                                <div class="font-mono text-gray-500 normal-case">\(F_i\)</div>
+                            </th>
+                            <th class="px-2 py-3 text-center w-1/6">
+                                <div class="font-bold text-indigo-700">%</div>
+                                <div class="font-mono text-gray-500 normal-case">%</div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="freq-table-body">
+                        <!-- Inputs will be injected here -->
+                    </tbody>
+                    <tfoot id="freq-table-footer" class="bg-gray-50 font-bold border-t-2 border-gray-300">
+                        <tr>
+                            <td class="px-2 py-3 text-center font-bold text-gray-700">TOTAL</td>
+                            <td class="p-2"><input id="total-ni" class="cell-input" placeholder="N"></td>
+                            <td class="text-center text-gray-300">-</td>
+                            <td class="p-2"><input id="total-fi" class="cell-input" placeholder="1.000"></td>
+                            <td class="text-center text-gray-300">-</td>
+                            <td class="p-2"><input id="total-perc" class="cell-input" placeholder="100%"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- Next Round Button (Hidden until table complete) -->
+        <div id="action-area" class="flex justify-end hidden">
+            <button onclick="nextRound()" class="bg-green-600 hover:bg-green-700 text-white text-lg px-8 py-3 rounded-xl font-bold shadow-lg transition transform hover:scale-105 flex items-center gap-3">
+                Siguiente Tabla <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+
+    </main>
+
+    <script>
+        // --- SCORM API WRAPPER ---
+        const Scorm = {
+            api: null,
+            version: null,
+            init: function() {
+                this.api = this.findAPI(window);
+                if (this.api) {
+                    if (this.version === '2004') {
+                        this.api.Initialize("");
+                        this.api.SetValue("cmi.score.min", "0");
+                        this.api.SetValue("cmi.score.max", "10");
+                        this.api.SetValue("cmi.completion_status", "incomplete");
+                    } else { // 1.2
+                        this.api.LMSInitialize("");
+                        this.api.LMSSetValue("cmi.core.score.min", "0");
+                        this.api.LMSSetValue("cmi.core.score.max", "10");
+                        this.api.LMSSetValue("cmi.core.lesson_status", "incomplete");
+                    }
+                    this.commit();
+                } else {
+                    console.warn("SCORM API not found - Running in standalone mode.");
+                }
+            },
+            findAPI: function(win) {
+                let attempts = 0;
+                while (attempts < 10) {
+                    try {
+                        if (win.API_1484_11) {
+                            this.version = '2004';
+                            return win.API_1484_11;
+                        }
+                        if (win.API) {
+                            this.version = '1.2';
+                            return win.API;
+                        }
+                    } catch (e) {
+                        // Access denied (cross-origin), continue to try parent or exit
+                        // This prevents the SecurityError from stopping execution
+                    }
+
+                    if (win.parent && win.parent !== win) {
+                        attempts++;
+                        try {
+                            win = win.parent;
+                        } catch (e) {
+                            // Cannot access parent
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+                return null;
+            },
+            setScore: function(score) {
+                if (!this.api) return;
+                // Score is 0-10, SCORM usually expects normalized or raw.
+                if (this.version === '2004') {
+                    this.api.SetValue("cmi.score.scaled", score / 10);
+                    this.api.SetValue("cmi.score.raw", score);
+                } else {
+                    this.api.LMSSetValue("cmi.core.score.raw", score);
+                }
+                this.commit();
+            },
+            complete: function(finalScore) {
+                if (!this.api) return;
+                this.setScore(finalScore);
+                if (this.version === '2004') {
+                    this.api.SetValue("cmi.completion_status", "completed");
+                    this.api.SetValue("cmi.success_status", finalScore >= 5 ? "passed" : "failed");
+                    this.api.Terminate("");
+                } else {
+                    this.api.LMSSetValue("cmi.core.lesson_status", finalScore >= 5 ? "passed" : "failed");
+                    this.api.LMSFinish("");
+                }
+            },
+            commit: function() {
+                if (!this.api) return;
+                this.version === '2004' ? this.api.Commit("") : this.api.LMSCommit("");
+            }
+        };
+
+        // --- GAME CONFIGURATION ---
+        const GAME_CONFIG = {
+            maxRounds: 3,
+            maxScore: 10,
+            penaltyPerError: 0.1, // Points subtracted per wrong attempt
+            tolerance: 0.01 // Tolerance for float comparison if needed
+        };
+
+        const scenarios = {
+            numeric: [
+                { text: "Número de hermanos de los alumnos de una clase.", label: "Hermanos" },
+                { text: "Notas de un examen de matemáticas (sobre 10).", label: "Nota" },
+                { text: "Número de coches por unidad familiar.", label: "Coches" },
+                { text: "Número de mascotas en el hogar.", label: "Mascotas" }
+            ],
+            categorical: [
+                { text: "Deporte favorito de los alumnos.", label: "Deporte", options: ["Fútbol", "Baloncesto", "Tenis", "Voley"] },
+                { text: "Color de ojos de los asistentes.", label: "Color", options: ["Marrón", "Azul", "Verde"] },
+                { text: "Fruta preferida en el recreo.", label: "Fruta", options: ["Manzana", "Plátano", "Pera", "Naranja"] }
+            ]
+        };
+
+        let state = {
+            round: 1,
+            score: 0, // Current accumulative score
+            completedCellsInRound: 0,
+            totalCellsInRound: 0,
+            rawData: [],
+            sortedData: [],
+            solution: [], // The correct data for the table
+            dataType: 'numeric',
+            isSorted: false
+        };
+
+        // --- CORE FUNCTIONS ---
+
+        function initGame() {
+            Scorm.init();
+            startRound();
+        }
+
+        function startRound() {
+            state.isSorted = false;
+            state.completedCellsInRound = 0;
+            document.getElementById('action-area').classList.add('hidden');
+            document.getElementById('round-current').textContent = state.round;
+            document.getElementById('btn-sort').innerHTML = '<i class="fas fa-sort-amount-down"></i> Ordenar Datos';
+
+            generateData();
+            calculateSolution();
+            renderUI();
+            updateScoreUI();
+        }
+
+        function generateData() {
+            state.dataType = Math.random() > 0.4 ? 'numeric' : 'categorical';
+            const scenarioList = scenarios[state.dataType];
+            const scenario = scenarioList[Math.floor(Math.random() * scenarioList.length)];
+            
+            document.getElementById('problem-text').textContent = scenario.text;
+
+            const n = Math.floor(Math.random() * 5) + 10; // 10 to 14 data points
+            state.rawData = [];
+
+            if (state.dataType === 'numeric') {
+                const min = 0;
+                const max = Math.floor(Math.random() * 3) + 2; 
+                for(let i=0; i<n; i++) state.rawData.push(Math.floor(Math.random() * (max - min + 1)) + min);
+            } else {
+                for(let i=0; i<n; i++) state.rawData.push(scenario.options[Math.floor(Math.random() * scenario.options.length)]);
+            }
+
+            // Create sorted version but don't show yet
+            state.sortedData = [...state.rawData].sort((a, b) => {
+                if(state.dataType === 'numeric') return a - b;
+                return a.localeCompare(b);
+            });
+        }
+
+        function calculateSolution() {
+            const counts = {};
+            state.sortedData.forEach(x => counts[x] = (counts[x] || 0) + 1);
+            
+            let uniqueValues = Object.keys(counts);
+            if(state.dataType === 'numeric') uniqueValues = uniqueValues.map(Number).sort((a,b) => a - b);
+            else uniqueValues.sort();
+
+            const n = state.rawData.length;
+            state.solution = [];
+            let Ni = 0, Fi = 0;
+            
+            uniqueValues.forEach((val, index) => {
+                let ni = counts[val];
+                Ni += ni;
+                let fi = ni / n;
+                Fi += fi; // Use accumulated float
+                
+                // For last element, force Fi to 1 to avoid rounding errors in solution check
+                if (index === uniqueValues.length - 1) Fi = 1.0;
+
+                state.solution.push({
+                    xi: val.toString(),
+                    ni: ni.toString(),
+                    Ni: Ni.toString(),
+                    fi: fi.toFixed(3), // Standard 3 decimals
+                    Fi: Fi.toFixed(3),
+                    perc: (fi * 100).toFixed(1) // Standard 1 decimal
+                });
+            });
+            
+            // Calculate total cells to determine value of each cell
+            // Rows * 6 columns + 3 footer cells (ni total, fi total, perc total)
+            state.totalCellsInRound = (state.solution.length * 6) + 3;
+        }
+
+        function renderUI() {
+            document.getElementById('n-value').textContent = state.rawData.length;
+            renderDataGrid(state.rawData);
+
+            const tbody = document.getElementById('freq-table-body');
+            tbody.innerHTML = '';
+
+            state.solution.forEach((row, i) => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-gray-100";
+                
+                // Helper to create cell
+                const createInput = (field, placeholder) => `
+                    <td class="p-2">
+                        <input data-row="${i}" data-field="${field}" class="cell-input" placeholder="${placeholder || '?'}" onchange="validateInput(this)">
+                    </td>`;
+
+                tr.innerHTML = `
+                    ${createInput('xi', 'Dato')}
+                    ${createInput('ni', 'n')}
+                    ${createInput('Ni', 'N')}
+                    ${createInput('fi', '0.000')}
+                    ${createInput('Fi', '0.000')}
+                    ${createInput('perc', '%')}
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Reset Footer inputs
+            ['total-ni', 'total-fi', 'total-perc'].forEach(id => {
+                const el = document.getElementById(id);
+                el.value = '';
+                el.className = 'cell-input';
+                el.disabled = false;
+                el.onchange = function() { validateFooter(this); };
+            });
+        }
+
+        function renderDataGrid(data) {
+            const container = document.getElementById('data-grid');
+            container.innerHTML = '';
+            data.forEach(val => {
+                const div = document.createElement('div');
+                div.textContent = val;
+                div.className = "bg-white border border-gray-300 rounded px-3 py-1 text-sm font-medium shadow-sm transition duration-300";
+                if(state.isSorted) div.classList.add('bg-blue-50', 'border-blue-200', 'text-blue-700');
+                container.appendChild(div);
+            });
+        }
+
+        function toggleSort() {
+            state.isSorted = !state.isSorted;
+            renderDataGrid(state.isSorted ? state.sortedData : state.rawData);
+            const btn = document.getElementById('btn-sort');
+            if (state.isSorted) {
+                btn.innerHTML = '<i class="fas fa-random"></i> Desordenar';
+                btn.classList.add('bg-blue-50', 'text-blue-700');
+            } else {
+                btn.innerHTML = '<i class="fas fa-sort-amount-down"></i> Ordenar Datos';
+                btn.classList.remove('bg-blue-50', 'text-blue-700');
+            }
+        }
+
+        // --- VALIDATION LOGIC ---
+
+        function validateInput(input) {
+            const rowIdx = parseInt(input.dataset.row);
+            const field = input.dataset.field;
+            let userVal = input.value.trim().replace(',', '.'); // Allow commas
+            let correctVal = state.solution[rowIdx][field];
+
+            // Normalize user input for %
+            if (field === 'perc') {
+                userVal = userVal.replace('%', '');
+            }
+
+            // Check correctness
+            let isCorrect = false;
+
+            if (field === 'xi') {
+                // String comparison for categorical or exact number
+                isCorrect = userVal.toLowerCase() === correctVal.toString().toLowerCase();
+            } else {
+                // Numeric comparison with slight tolerance or strict string format?
+                // Using string comparison against Fixed(3) helps enforce format, but let's be kind with numbers
+                let numUser = parseFloat(userVal);
+                let numCorrect = parseFloat(correctVal);
+                
+                if (!isNaN(numUser)) {
+                    isCorrect = Math.abs(numUser - numCorrect) < 0.005; // Relaxed tolerance
+                    // Special check for Xi/Ni integer strictness
+                    if (field === 'ni' || field === 'Ni') {
+                        isCorrect = Math.round(numUser) === parseInt(correctVal);
+                    }
+                }
+            }
+
+            handleValidationResult(input, isCorrect);
+        }
+
+        function validateFooter(input) {
+            let userVal = input.value.trim().replace(',', '.').replace('%', '');
+            let correctVal = 0;
+            let id = input.id;
+
+            if (id === 'total-ni') correctVal = state.rawData.length;
+            if (id === 'total-fi') correctVal = 1;
+            if (id === 'total-perc') correctVal = 100;
+
+            let numUser = parseFloat(userVal);
+            let isCorrect = Math.abs(numUser - correctVal) < 0.1; // Allow 99.9% or 100.1%
+
+            handleValidationResult(input, isCorrect);
+        }
+
+        function handleValidationResult(input, isCorrect) {
+            // Avoid double penalizing or scoring if already handled (though 'correct' inputs are disabled)
+            if (input.classList.contains('correct')) return;
+
+            if (isCorrect) {
+                input.classList.remove('incorrect');
+                input.classList.add('correct');
+                input.blur(); // Remove focus
+                
+                let pointsToAdd = 0;
+
+                // Si la celda tuvo errores previos
+                if (input.dataset.hadError === 'true') {
+                    // INSTRUCCIÓN: "Corregir el fallo, suma la mitad que se restó."
+                    pointsToAdd = GAME_CONFIG.penaltyPerError / 2;
+                } else {
+                    // Acierto a la primera: Puntos completos de la celda
+                    // Max points per round = 10 / 3 = 3.333
+                    pointsToAdd = (GAME_CONFIG.maxScore / GAME_CONFIG.maxRounds) / state.totalCellsInRound;
+                }
+                
+                state.score = Math.min(10, state.score + pointsToAdd);
+                state.completedCellsInRound++;
+                
+                checkRoundCompletion();
+            } else {
+                input.classList.add('incorrect');
+                // Marcamos la celda como "sucia" (ha tenido error)
+                input.dataset.hadError = 'true';
+                
+                // Penalty
+                state.score = Math.max(0, state.score - GAME_CONFIG.penaltyPerError);
+            }
+            
+            updateScoreUI();
+        }
+
+        function updateScoreUI() {
+            const scoreEl = document.getElementById('score-display');
+            scoreEl.textContent = state.score.toFixed(2);
+            
+            if (state.score >= 5) {
+                scoreEl.classList.remove('score-red');
+                scoreEl.classList.add('score-green');
+            } else {
+                scoreEl.classList.remove('score-green');
+                scoreEl.classList.add('score-red');
+            }
+
+            // Sync with LMS
+            Scorm.setScore(state.score);
+        }
+
+        function checkRoundCompletion() {
+            if (state.completedCellsInRound >= state.totalCellsInRound) {
+                if (state.round < GAME_CONFIG.maxRounds) {
+                    document.getElementById('action-area').classList.remove('hidden');
+                } else {
+                    finishGame();
+                }
+            }
+        }
+
+        function nextRound() {
+            state.round++;
+            startRound();
+        }
+
+        function finishGame() {
+            // Ensure score is perfectly 10 if they did everything right (fix float rounding)
+            // But we kept track of penalties, so just use current score
+            Scorm.complete(state.score);
+            
+            document.getElementById('final-score').textContent = state.score.toFixed(2);
+            document.getElementById('game-over').classList.remove('hidden');
+        }
+
+        // --- INIT ---
+        window.onload = initGame;
+
+    </script>
+</body>
+</html>
