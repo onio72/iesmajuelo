@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de tabla de frecuencias</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- MathJax for nice formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .data-cell {
+            transition: all 0.3s ease;
+        }
+
+        .highlight-count {
+            background-color: #fcd34d !important; /* Yellow-300 */
+            transform: scale(1.1);
+            font-weight: bold;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-color: #b45309 !important;
+            color: #78350f !important;
+        }
+
+        .highlight-sorted {
+            background-color: #bfdbfe !important; /* Blue-200 */
+        }
+
+        .cell-new {
+            animation: highlightCell 1.5s ease-out;
+            background-color: #dcfce7; /* Green-100 */
+        }
+
+        /* Nuevos estilos para operandos de cálculos */
+        .highlight-operand-1 { 
+            background-color: #dbeafe !important; /* Blue-100 */
+            color: #1e40af !important; /* Blue-800 */
+            font-weight: bold;
+            border: 2px solid #60a5fa !important;
+        }
+
+        .highlight-operand-2 { 
+            background-color: #fef9c3 !important; /* Yellow-100 */
+            color: #854d0e !important; /* Yellow-800 */
+            font-weight: bold;
+            border: 2px solid #facc15 !important;
+        }
+
+        @keyframes highlightCell {
+            0% { background-color: #86efac; transform: scale(1.05); }
+            100% { background-color: white; transform: scale(1); }
+        }
+
+        /* Tooltip personalizado */
+        .header-tooltip {
+            position: relative;
+            cursor: help;
+            border-bottom: 2px dashed #9ca3af;
+        }
+
+        .header-tooltip:hover::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #1f2937;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            width: 220px;
+            z-index: 50;
+            font-weight: normal;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            white-space: normal;
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        .header-tooltip:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 90%; 
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: #1f2937 transparent transparent transparent;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen flex flex-col items-center py-6 px-4">
+
+    <!-- Header -->
+    <header class="text-center mb-6 max-w-4xl w-full">
+        <h1 class="text-2xl md:text-3xl font-bold text-indigo-700 mb-2">Simulador de tabla de frecuencias</h1>
+        <p class="text-gray-600 text-sm md:text-base">Aprende paso a paso cómo se construyen los cálculos estadísticos.</p>
+    </header>
+
+    <!-- Main App Container -->
+    <main class="bg-white rounded-xl shadow-xl w-full max-w-6xl overflow-hidden border border-gray-200 flex flex-col">
+        
+        <!-- Controls & Status -->
+        <div class="bg-indigo-50 p-4 md:p-6 border-b border-indigo-100">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                <div class="flex-1">
+                    <span class="inline-block px-3 py-1 bg-indigo-200 text-indigo-800 rounded-full text-xs font-bold uppercase tracking-wide mb-2">Enunciado</span>
+                    <h2 id="problem-text" class="text-lg md:text-xl font-semibold text-gray-800 leading-snug">Cargando problema...</h2>
+                </div>
+                <button onclick="generateProblem()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg shadow transition flex items-center gap-2 text-sm font-medium whitespace-nowrap shrink-0">
+                    <i class="fas fa-sync-alt"></i> Nuevo Problema
+                </button>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="relative pt-1">
+                <div class="flex mb-2 items-center justify-between">
+                    <div>
+                        <span id="step-badge" class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-indigo-600 bg-indigo-200">
+                            Inicio
+                        </span>
+                    </div>
+                    <div class="text-right">
+                        <span id="step-counter" class="text-xs font-semibold inline-block text-indigo-600">
+                            0%
+                        </span>
+                    </div>
+                </div>
+                <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-indigo-200">
+                    <div id="progress-bar" style="width:0%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500 transition-all duration-300"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row h-full">
+            
+            <!-- Left Column: Data & Explanations -->
+            <div class="lg:w-1/3 p-4 md:p-6 border-b lg:border-b-0 lg:border-r border-gray-200 bg-gray-50 flex flex-col gap-6">
+                
+                <!-- Raw Data Grid -->
+                <div class="bg-white border rounded-lg p-4 shadow-sm flex-grow-0">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-bold text-gray-700 flex items-center gap-2 text-sm uppercase">
+                            <i class="fas fa-th text-indigo-500"></i> Datos <span id="data-status-label" class="text-xs font-normal text-gray-400 normal-case">(En bruto)</span>
+                        </h3>
+                        <span id="total-n-badge" class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded font-mono">N = 0</span>
+                    </div>
+                    <div id="data-grid" class="grid grid-cols-5 gap-2 max-h-48 overflow-y-auto p-1 custom-scrollbar">
+                        <!-- Data cells generated by JS -->
+                    </div>
+                </div>
+
+                <!-- Explanation Box -->
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-5 relative shadow-sm flex-grow">
+                    <div class="absolute -top-3 left-4 bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded border border-yellow-200 font-bold uppercase tracking-wider">
+                        <i class="fas fa-lightbulb mr-1"></i> Explicación
+                    </div>
+                    <div id="explanation-content" class="text-gray-800 text-sm leading-relaxed mt-2 space-y-2">
+                        <!-- Content injected via JS -->
+                        <p>Pulsa "Avanzar" para comenzar.</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="grid grid-cols-2 gap-3 mt-auto">
+                    <button id="btn-prev" onclick="prevStep()" disabled class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-3 rounded-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex justify-center items-center gap-2">
+                        <i class="fas fa-chevron-left"></i> Anterior
+                    </button>
+                    <button id="btn-next" onclick="nextStep()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-semibold shadow transition disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2">
+                        Siguiente <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: The Table -->
+            <div class="lg:w-2/3 p-4 md:p-6 bg-white overflow-x-auto">
+                <table class="w-full text-sm text-left border-collapse">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-100 border-b-2 border-gray-200">
+                        <tr>
+                            <th scope="col" class="px-2 py-3 border-r border-gray-200 header-tooltip text-center w-1/6" data-tip="Dato (xi): Los valores diferentes que aparecen en la muestra.">
+                                <div class="font-bold text-indigo-700 mb-1">Dato</div>
+                                <div class="font-mono text-gray-500 normal-case text-base">\(x_i\)</div>
+                            </th>
+                            <th scope="col" class="px-2 py-3 border-r border-gray-200 header-tooltip text-center w-1/6" data-tip="Frecuencia Absoluta (ni): Cantidad de veces que se repite el dato xi.">
+                                <div class="font-bold text-indigo-700 mb-1">Frec. Abs.</div>
+                                <div class="font-mono text-gray-500 normal-case text-base">\(n_i\)</div>
+                            </th>
+                            <th scope="col" class="px-2 py-3 border-r border-gray-200 header-tooltip text-center w-1/6" data-tip="Frecuencia Absoluta Acumulada (Ni): Suma de las frecuencias absolutas hasta la fila actual.">
+                                <div class="font-bold text-indigo-700 mb-1">Acumulada</div>
+                                <div class="font-mono text-gray-500 normal-case text-base">\(N_i\)</div>
+                            </th>
+                            <th scope="col" class="px-2 py-3 border-r border-gray-200 header-tooltip text-center w-1/6" data-tip="Frecuencia Relativa (fi): Proporción que representa el dato respecto al total (ni / N).">
+                                <div class="font-bold text-indigo-700 mb-1">Relativa</div>
+                                <div class="font-mono text-gray-500 normal-case text-base">\(f_i\)</div>
+                            </th>
+                            <th scope="col" class="px-2 py-3 border-r border-gray-200 header-tooltip text-center w-1/6" data-tip="Frecuencia Relativa Acumulada (Fi): Suma de las frecuencias relativas hasta la fila actual.">
+                                <div class="font-bold text-indigo-700 mb-1">Rel. Acum.</div>
+                                <div class="font-mono text-gray-500 normal-case text-base">\(F_i\)</div>
+                            </th>
+                            <th scope="col" class="px-2 py-3 header-tooltip text-center w-1/6" data-tip="Porcentaje (%): Frecuencia relativa multiplicada por 100.">
+                                <div class="font-bold text-indigo-700 mb-1">%</div>
+                                <div class="font-mono text-gray-500 normal-case text-base">%</div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="freq-table-body">
+                        <!-- Rows will be injected here -->
+                    </tbody>
+                    <tfoot id="freq-table-footer" class="bg-gray-50 font-bold border-t-2 border-gray-300">
+                        <!-- Footer will be injected here -->
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- DATA CONFIGURATION ---
+        const scenarios = {
+            numeric: [
+                { text: "Encuesta: Número de hermanos de los alumnos de una clase.", label: "Hermanos" },
+                { text: "Datos: Notas de un examen de matemáticas (sobre 10).", label: "Nota" },
+                { text: "Encuesta: Número de televisores en los hogares.", label: "TVs" },
+                { text: "Datos: Goles marcados por partido.", label: "Goles" }
+            ],
+            categorical: [
+                { text: "Encuesta: Deporte favorito de los alumnos.", label: "Deporte", options: ["Fútbol", "Baloncesto", "Tenis", "Voley", "Natación"] },
+                { text: "Estudio: Color de ojos de los asistentes.", label: "Color", options: ["Marrón", "Azul", "Verde", "Negro"] },
+                { text: "Encuesta: Medio de transporte para ir al trabajo.", label: "Transporte", options: ["Coche", "Bus", "Metro", "Bici", "Andando"] }
+            ]
+        };
+
+        let state = {
+            rawData: [],
+            sortedData: [],
+            uniqueValues: [],
+            frequencies: [],
+            steps: [], // Array of step objects
+            currentStepIndex: 0,
+            scenario: null,
+            dataType: 'numeric'
+        };
+
+        // --- PROBLEM GENERATION ---
+
+        function generateProblem() {
+            // 1. Setup Data
+            state.dataType = Math.random() > 0.4 ? 'numeric' : 'categorical';
+            const scenarioList = scenarios[state.dataType];
+            state.scenario = scenarioList[Math.floor(Math.random() * scenarioList.length)];
+            
+            const n = Math.floor(Math.random() * 6) + 10; // 10 to 16 data points (smaller for clarity)
+            state.rawData = [];
+
+            if (state.dataType === 'numeric') {
+                const min = 0;
+                const max = Math.floor(Math.random() * 3) + 2; 
+                for(let i=0; i<n; i++) state.rawData.push(Math.floor(Math.random() * (max - min + 1)) + min);
+            } else {
+                for(let i=0; i<n; i++) state.rawData.push(state.scenario.options[Math.floor(Math.random() * state.scenario.options.length)]);
+            }
+
+            state.sortedData = [...state.rawData].sort((a, b) => {
+                if(state.dataType === 'numeric') return a - b;
+                return a.localeCompare(b);
+            });
+
+            // 2. Calculate Table Data (The Answer Key)
+            const counts = {};
+            state.sortedData.forEach(x => counts[x] = (counts[x] || 0) + 1);
+            
+            state.uniqueValues = Object.keys(counts);
+            if(state.dataType === 'numeric') state.uniqueValues = state.uniqueValues.map(Number).sort((a,b) => a - b);
+            else state.uniqueValues.sort();
+
+            state.frequencies = [];
+            let Ni = 0, Fi = 0;
+            state.uniqueValues.forEach(val => {
+                let ni = counts[val];
+                Ni += ni;
+                let fi = ni / n;
+                Fi += fi;
+                state.frequencies.push({ x: val, ni, Ni, fi, Fi, perc: fi * 100 });
+            });
+
+            // 3. GENERATE STEPS SEQUENCE
+            state.steps = [];
+            
+            // Step: Intro
+            state.steps.push({
+                type: 'INTRO',
+                title: 'Inicio',
+                explanation: `Tenemos <strong>${n} datos</strong> obtenidos de: ${state.scenario.text}.<br>Están desordenados, lo cual dificulta el trabajo.`,
+                gridMode: 'raw',
+                highlightVal: null
+            });
+
+            // Step: Sort
+            state.steps.push({
+                type: 'SORT',
+                title: 'Ordenación',
+                explanation: `<strong>Primero ordenamos los datos.</strong><br>Esto es fundamental para contar sin equivocarnos.`,
+                gridMode: 'sorted',
+                highlightVal: null
+            });
+
+            // PHASE 1: Fill Xi Column (Identify Groups)
+            state.uniqueValues.forEach((val, i) => {
+                state.steps.push({
+                    type: 'FILL_CELL',
+                    col: 'xi',
+                    row: i,
+                    val: val,
+                    title: `Columna Datos (\\(x_i\\))`, // ESCAPED
+                    explanation: `Identificamos el grupo de valores <strong>${val}</strong> en nuestros datos ordenados.<br>Escribimos <strong>${val}</strong> en la primera columna.`,
+                    gridMode: 'sorted',
+                    highlightVal: val
+                });
+            });
+
+            // PHASE 2: Fill ni Column (Count Groups)
+            state.uniqueValues.forEach((val, i) => {
+                const row = state.frequencies[i];
+                state.steps.push({
+                    type: 'FILL_CELL',
+                    col: 'ni',
+                    row: i,
+                    val: row.ni,
+                    title: `Frecuencia Absoluta (\\(n_i\\))`, // ESCAPED
+                    explanation: `Contamos cuántas veces aparece el valor <strong>${val}</strong> resaltado en amarillo.<br>Hay <strong>${row.ni}</strong> datos.`,
+                    gridMode: 'sorted',
+                    highlightVal: val
+                });
+            });
+
+            // PHASE 2b: Total of N immediately after ni loop
+            state.steps.push({
+                type: 'TOTAL_NI',
+                title: 'Total de Datos (\\(N\\))', // ESCAPED
+                explanation: `Al terminar de contar todos los datos, sumamos la columna \\(n_i\\).<br>El resultado debe coincidir con el número total de datos que teníamos al principio (<strong>${n}</strong>).`, // ESCAPED
+                gridMode: 'sorted',
+                highlightVal: null,
+                highlights: [] 
+            });
+
+            // PHASE 3: Fill Ni Column (Cumulative)
+            state.frequencies.forEach((row, i) => {
+                const prevNi = i === 0 ? 0 : state.frequencies[i-1].Ni;
+                let mathStr = '';
+                let highlights = [];
+
+                if (i === 0) {
+                    mathStr = `Como es el primer dato, la acumulada es igual a la absoluta: <span class="text-yellow-700 font-bold">${row.ni}</span>.`;
+                    highlights = [
+                        { id: `cell-ni-${i}`, cls: 'highlight-operand-2' } // Yellow
+                    ];
+                } else {
+                    mathStr = `<span class="text-blue-700 font-bold">${prevNi}</span> (acumulada anterior) + <span class="text-yellow-700 font-bold">${row.ni}</span> (absoluta actual) = <strong>${row.Ni}</strong>`;
+                    highlights = [
+                        { id: `cell-Ni-${i-1}`, cls: 'highlight-operand-1' }, // Blue
+                        { id: `cell-ni-${i}`, cls: 'highlight-operand-2' }  // Yellow
+                    ];
+                }
+
+                state.steps.push({
+                    type: 'FILL_CELL',
+                    col: 'Ni',
+                    row: i,
+                    val: row.Ni,
+                    title: `Frecuencia Acumulada (\\(N_i\\))`, // ESCAPED
+                    explanation: `Sumamos acumulando los valores.<br>Cálculo: ${mathStr}`,
+                    gridMode: 'sorted',
+                    highlightVal: null,
+                    highlights: highlights
+                });
+            });
+
+            // PHASE 4: Fill fi Column (Relative)
+            state.frequencies.forEach((row, i) => {
+                const highlights = [
+                    { id: `cell-ni-${i}`, cls: 'highlight-operand-1' }, // Blue (Numerator)
+                    { id: `footer-ni`, cls: 'highlight-operand-2' }   // Yellow (Denominator - Total N)
+                ];
+
+                state.steps.push({
+                    type: 'FILL_CELL',
+                    col: 'fi',
+                    row: i,
+                    val: row.fi.toFixed(3),
+                    title: `Frecuencia Relativa (\\(f_i\\))`, // ESCAPED
+                    explanation: `Dividimos la frecuencia absoluta (<span class="text-blue-700 font-bold">${row.ni}</span>) entre el Total N (<span class="text-yellow-700 font-bold">${n}</span>).<br>Cálculo: \\( \\frac{\\color{blue}{${row.ni}}}{\\color{orange}{${n}}} \\approx ${row.fi.toFixed(3)} \\)`,
+                    gridMode: 'sorted',
+                    highlightVal: null,
+                    highlights: highlights
+                });
+            });
+
+            // PHASE 4b: Totals Check (Relative Frequencies)
+            const lastRowForCheck = state.frequencies[state.frequencies.length-1];
+            state.steps.push({
+                type: 'TOTAL_FI',
+                title: 'Suma de Frecuencias Relativas',
+                explanation: `Sumamos toda la columna \\(f_i\\). El resultado debe ser siempre <strong>1</strong> (o muy cercano a 1 por los decimales).`, // ESCAPED
+                gridMode: 'sorted',
+                highlightVal: null
+            });
+
+            // PHASE 5: Fill Fi Column (Relative Cumulative)
+            state.frequencies.forEach((row, i) => {
+                const prevFi = i === 0 ? 0 : state.frequencies[i-1].Fi;
+                let mathStr = '';
+                let highlights = [];
+
+                if (i === 0) {
+                    mathStr = `Como es el primer dato, la relativa acumulada es igual a la relativa: <span class="text-yellow-700 font-bold">${row.fi.toFixed(3)}</span>.`;
+                    highlights = [
+                         { id: `cell-fi-${i}`, cls: 'highlight-operand-2' } // Yellow
+                    ];
+                } else {
+                    mathStr = `<span class="text-blue-700 font-bold">${prevFi.toFixed(3)}</span> (acumulada anterior) + <span class="text-yellow-700 font-bold">${row.fi.toFixed(3)}</span> (relativa actual) = <strong>${row.Fi.toFixed(3)}</strong>`;
+                    highlights = [
+                        { id: `cell-Fi-${i-1}`, cls: 'highlight-operand-1' }, // Blue
+                        { id: `cell-fi-${i}`, cls: 'highlight-operand-2' }  // Yellow
+                    ];
+                }
+
+                state.steps.push({
+                    type: 'FILL_CELL',
+                    col: 'Fi',
+                    row: i,
+                    val: row.Fi.toFixed(3),
+                    title: `Relativa Acumulada (\\(F_i\\))`, // ESCAPED
+                    explanation: `Sumamos acumulando los valores.<br>Cálculo: ${mathStr}`,
+                    gridMode: 'sorted',
+                    highlightVal: null,
+                    highlights: highlights
+                });
+            });
+
+            // PHASE 6: Fill % Column
+            state.frequencies.forEach((row, i) => {
+                state.steps.push({
+                    type: 'FILL_CELL',
+                    col: 'perc',
+                    row: i,
+                    val: row.perc.toFixed(1) + '%',
+                    title: `Porcentaje (%)`,
+                    explanation: `Multiplicamos la frecuencia relativa (${row.fi.toFixed(3)}) por 100.<br>Cálculo: \\( ${row.fi.toFixed(3)} \\times 100 = ${row.perc.toFixed(1)}\\% \\)`,
+                    gridMode: 'sorted',
+                    highlightVal: null
+                });
+            });
+
+            // Step: Totals Check (Percentages)
+            state.steps.push({
+                type: 'TOTAL_PERC',
+                title: 'Suma de Porcentajes',
+                explanation: `Sumamos la columna %. El resultado debe ser el <strong>100%</strong>.`,
+                gridMode: 'sorted',
+                highlightVal: null
+            });
+
+            state.currentStepIndex = 0;
+            renderProblemHeader();
+            renderStep();
+        }
+
+        function renderProblemHeader() {
+            document.getElementById('problem-text').textContent = state.scenario.text;
+            document.getElementById('total-n-badge').textContent = `N = ${state.rawData.length}`;
+            
+            // Build Table Skeleton
+            const tbody = document.getElementById('freq-table-body');
+            tbody.innerHTML = '';
+            state.frequencies.forEach((row, i) => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-gray-100 hover:bg-gray-50";
+                tr.innerHTML = `
+                    <td id="cell-xi-${i}" class="px-2 py-3 text-center text-gray-800 font-medium border-r border-gray-100 min-h-[40px]"></td>
+                    <td id="cell-ni-${i}" class="px-2 py-3 text-center text-indigo-600 font-bold border-r border-gray-100"></td>
+                    <td id="cell-Ni-${i}" class="px-2 py-3 text-center text-gray-500 border-r border-gray-100"></td>
+                    <td id="cell-fi-${i}" class="px-2 py-3 text-center text-gray-500 border-r border-gray-100"></td>
+                    <td id="cell-Fi-${i}" class="px-2 py-3 text-center text-gray-500 border-r border-gray-100"></td>
+                    <td id="cell-perc-${i}" class="px-2 py-3 text-center text-gray-500 font-medium"></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Footer Skeleton
+            const tfoot = document.getElementById('freq-table-footer');
+            tfoot.innerHTML = `
+                <tr>
+                    <td class="px-2 py-3 text-center font-bold text-gray-700 border-r">TOTAL</td>
+                    <td id="footer-ni" class="px-2 py-3 text-center text-indigo-700 font-bold border-r"></td>
+                    <td class="px-2 py-3 text-center text-gray-300 border-r">-</td>
+                    <td id="footer-fi" class="px-2 py-3 text-center text-green-700 font-bold border-r"></td>
+                    <td class="px-2 py-3 text-center text-gray-300 border-r">-</td>
+                    <td id="footer-perc" class="px-2 py-3 text-center text-green-700 font-bold"></td>
+                </tr>
+            `;
+            // Hide footer content initially
+            document.getElementById('footer-ni').textContent = '';
+            document.getElementById('footer-fi').textContent = '';
+            document.getElementById('footer-perc').textContent = '';
+        }
+
+        function nextStep() {
+            if (state.currentStepIndex < state.steps.length - 1) {
+                state.currentStepIndex++;
+                renderStep();
+            }
+        }
+
+        function prevStep() {
+            if (state.currentStepIndex > 0) {
+                state.currentStepIndex--;
+                renderStep();
+            }
+        }
+
+        // --- CORE RENDERING ---
+
+        function renderStep() {
+            const stepData = state.steps[state.currentStepIndex];
+            
+            // 1. Update UI Text
+            const explanationEl = document.getElementById('explanation-content');
+            explanationEl.innerHTML = `
+                <div class="font-bold text-indigo-800 mb-1">${stepData.title}</div>
+                <div>${stepData.explanation}</div>
+            `;
+            
+            // Trigger MathJax typeset on the new content
+            if (window.MathJax) {
+                MathJax.typesetPromise([explanationEl]);
+            }
+
+            document.getElementById('step-badge').textContent = (state.currentStepIndex === 0) ? 'Inicio' : `Paso ${state.currentStepIndex}`;
+            
+            // Progress Bar
+            const pct = Math.round((state.currentStepIndex / (state.steps.length - 1)) * 100);
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+            document.getElementById('step-counter').textContent = `${pct}%`;
+
+            // Buttons State
+            document.getElementById('btn-prev').disabled = state.currentStepIndex === 0;
+            document.getElementById('btn-next').disabled = state.currentStepIndex === state.steps.length - 1;
+
+            // 2. Render Data Grid
+            renderDataGrid(stepData);
+
+            // 3. Render Table State & Apply Highlights
+            clearTableCells();
+            
+            // Apply logic for ALL previous steps to ensure table state is correct
+            for (let i = 0; i <= state.currentStepIndex; i++) {
+                const s = state.steps[i];
+                if (s.type === 'FILL_CELL') {
+                    const cell = document.getElementById(`cell-${s.col}-${s.row}`);
+                    if (cell) {
+                        cell.textContent = s.val;
+                        if (i === state.currentStepIndex) {
+                            cell.classList.remove('cell-new');
+                            void cell.offsetWidth; 
+                            cell.classList.add('cell-new');
+                        }
+                    }
+                } else if (s.type === 'TOTAL_NI') {
+                    const lastRow = state.frequencies[state.frequencies.length-1];
+                    document.getElementById('footer-ni').textContent = lastRow.Ni;
+                } else if (s.type === 'TOTAL_FI') {
+                    const lastRow = state.frequencies[state.frequencies.length-1];
+                    document.getElementById('footer-fi').textContent = Math.round(lastRow.Fi);
+                } else if (s.type === 'TOTAL_PERC') {
+                    const lastRow = state.frequencies[state.frequencies.length-1];
+                    document.getElementById('footer-perc').textContent = Math.round(lastRow.Fi * 100) + '%';
+                }
+            }
+
+            // Apply specific operand highlights only for the current active step
+            if (stepData.highlights) {
+                stepData.highlights.forEach(h => {
+                    const el = document.getElementById(h.id);
+                    if (el) el.classList.add(h.cls);
+                });
+            }
+        }
+
+        function renderDataGrid(stepData) {
+            const container = document.getElementById('data-grid');
+            container.innerHTML = '';
+            
+            const dataToUse = (stepData.gridMode === 'raw') ? state.rawData : state.sortedData;
+            const highlightVal = stepData.highlightVal;
+
+            dataToUse.forEach((val, idx) => {
+                const div = document.createElement('div');
+                div.textContent = val;
+                div.className = "data-cell border rounded text-center py-2 text-xs md:text-sm font-medium select-none flex items-center justify-center h-10";
+                
+                if (stepData.gridMode === 'raw') {
+                    div.className += " bg-white border-gray-200 text-gray-500";
+                } else {
+                    // Sorted mode
+                    if (highlightVal !== null && val === highlightVal) {
+                        div.className += " highlight-count border-yellow-500 text-yellow-800 font-bold z-10";
+                    } else {
+                        div.className += " bg-indigo-50 border-indigo-100 text-indigo-400 opacity-60";
+                    }
+                }
+                
+                container.appendChild(div);
+            });
+        }
+
+        function clearTableCells() {
+            // Clears content and removes custom classes
+            const cells = document.querySelectorAll('td, th');
+            cells.forEach(c => {
+                if(c.id.startsWith('cell-')) c.textContent = '';
+                c.classList.remove('cell-new', 'highlight-operand-1', 'highlight-operand-2');
+            });
+            
+            // Clear footer only if not filled by logic
+            document.getElementById('footer-ni').textContent = '';
+            document.getElementById('footer-fi').textContent = '';
+            document.getElementById('footer-perc').textContent = '';
+            document.getElementById('footer-ni').classList.remove('highlight-operand-1', 'highlight-operand-2');
+        }
+
+        // Initialize
+        window.onload = generateProblem;
+
+    </script>
+</body>
+</html>
