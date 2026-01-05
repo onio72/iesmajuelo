@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Creación de Gráficos de Barras - Ejercicio SCORM</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Bloqueo de scroll y rebote para experiencia "App" */
+        body {
+            overscroll-behavior: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        .chart-area {
+            touch-action: manipulation; 
+        }
+
+        .bar-transition {
+            transition: height 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s; /* Efecto rebote suave */
+        }
+        
+        /* Botones pulsables */
+        .ctrl-btn:active {
+            transform: scale(0.9);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50 flex-none">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div>
+                <h1 class="text-lg font-bold text-indigo-600"><i class="fa-solid fa-chart-column mr-2"></i>Constructor de Gráficos</h1>
+            </div>
+            <div class="flex items-center gap-3 text-sm">
+                <div class="bg-indigo-50 px-3 py-1 rounded-lg border border-indigo-100 flex flex-col items-center leading-tight">
+                    <span class="text-[10px] uppercase font-bold text-indigo-400">Ronda</span>
+                    <span id="round-display" class="font-bold text-indigo-700 text-base">1</span>
+                </div>
+                <div class="bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100 flex flex-col items-center leading-tight">
+                    <span class="text-[10px] uppercase font-bold text-emerald-400">Puntos</span>
+                    <span id="score-display" class="font-bold text-emerald-700 text-base">0.00</span>
+                    <span class="text-[9px] text-emerald-600 font-semibold tracking-tighter">META: 10</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow p-4 md:p-6 max-w-5xl mx-auto w-full h-full flex flex-col lg:flex-row gap-6 overflow-hidden">
+        
+        <!-- Panel Izquierdo: Datos -->
+        <div class="lg:w-1/3 flex flex-col gap-4 flex-none">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="font-semibold text-slate-700 mb-2 text-sm flex items-center uppercase tracking-wide">
+                    <i class="fa-solid fa-table mr-2 text-slate-400"></i> Tabla de Datos
+                </h2>
+                <div class="overflow-hidden rounded-lg border border-slate-200">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-100 text-slate-600 uppercase text-xs">
+                            <tr>
+                                <th class="px-4 py-2 text-left">Categoría</th>
+                                <th class="px-4 py-2 text-right">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="data-table-body" class="divide-y divide-slate-100 bg-white">
+                            <!-- JS llena esto -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-xs text-blue-800 hidden md:block">
+                <p class="font-bold mb-1"><i class="fa-solid fa-gamepad mr-1"></i> Instrucciones:</p>
+                <p>Usa los botones <strong>(+)</strong> y <strong>(-)</strong> para ajustar las barras.</p>
+                <p class="mt-1 text-blue-600 font-semibold text-[10px] uppercase">¡Llega a 10 puntos para terminar!</p>
+            </div>
+        </div>
+
+        <!-- Panel Derecho: Gráfico -->
+        <div class="lg:w-2/3 flex flex-col h-full min-h-[400px]">
+            <div class="bg-white p-2 md:p-4 rounded-xl shadow-md border border-slate-200 flex-grow flex flex-col relative select-none">
+                
+                <h3 id="chart-title" class="text-center font-bold text-slate-700 mb-4 flex-none">Gráfico</h3>
+
+                <!-- Contenedor del Canvas del Gráfico -->
+                <div class="relative w-full flex-grow chart-area pl-10 pb-32 pr-4" id="chart-area">
+                    
+                    <!-- Fondo y Líneas Guía (Z-0) -->
+                    <div id="grid-container" class="absolute inset-0 pointer-events-none z-0">
+                        <!-- JS genera líneas -->
+                    </div>
+
+                    <!-- Ejes (Z-10) -->
+                    <div class="absolute bottom-32 left-10 right-4 h-0.5 bg-slate-800 z-10"></div>
+                    <div class="absolute top-0 bottom-32 left-10 w-0.5 bg-slate-800 z-10"></div>
+
+                    <!-- Contenedor de Barras (Z-20) -->
+                    <div id="bars-container" class="absolute top-0 bottom-32 left-10 right-4 flex items-end justify-around px-2 md:px-4 z-20 pointer-events-none gap-2">
+                        <!-- JS genera barras -->
+                    </div>
+
+                    <!-- Contenedor de Controles y Etiquetas (Debajo del eje X) -->
+                    <div id="controls-container" class="absolute bottom-0 h-32 left-10 right-4 flex items-start justify-around px-2 md:px-4 z-30 gap-2">
+                        <!-- JS genera botones -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="mt-4 flex justify-end gap-3 flex-none">
+                <button id="check-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition transform active:scale-95 flex items-center w-full md:w-auto justify-center">
+                    <i class="fa-solid fa-check-circle mr-2"></i> Corregir
+                </button>
+                <button id="next-btn" class="hidden bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition transform active:scale-95 flex items-center w-full md:w-auto justify-center">
+                    Siguiente <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Overlay de Resultados -->
+    <div id="results-overlay" class="fixed inset-0 bg-slate-900/90 z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center transform transition-all scale-100">
+            <div id="final-icon" class="text-6xl mb-4">🏆</div>
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">¡Objetivo Alcanzado!</h2>
+            <div class="my-6">
+                <p class="text-slate-500 text-sm uppercase font-bold">Nota Final</p>
+                <div class="text-5xl font-black text-indigo-600" id="final-score">10</div>
+            </div>
+            <p id="scorm-status" class="text-xs text-slate-400 mb-6">Guardando datos...</p>
+            <button onclick="location.reload()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-lg">
+                Jugar de nuevo
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Feedback -->
+    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-xl transition-all duration-300 opacity-0 -translate-y-4 pointer-events-none z-50 text-sm font-medium">
+        Feedback
+    </div>
+
+    <script>
+        // ----------------------------------------------------
+        // API SCORM (Robusto y Silencioso)
+        // ----------------------------------------------------
+        const SCORM = {
+            API: null,
+            version: '1.2',
+            init: function() {
+                try {
+                    let win = window;
+                    let attempts = 0;
+                    while (win && attempts < 10) {
+                        try {
+                            if (win.API_1484_11) { this.API = win.API_1484_11; this.version = '2004'; break; }
+                            if (win.API) { this.API = win.API; this.version = '1.2'; break; }
+                            if (win.parent && win.parent !== win) win = win.parent;
+                            else break;
+                        } catch (e) { break; }
+                        attempts++;
+                    }
+                    
+                    if (this.API) {
+                        this.version === '2004' ? this.API.Initialize("") : this.API.LMSInitialize("");
+                        this.setStatus("incomplete");
+                        console.log(`SCORM ${this.version} Conectado.`);
+                    }
+                } catch (e) { console.warn("Modo Local (Sin SCORM)"); }
+            },
+            setScore: function(raw) {
+                if (!this.API) return;
+                try {
+                    const strScore = raw.toFixed(2);
+                    if (this.version === '2004') {
+                        this.API.SetValue("cmi.score.raw", strScore);
+                        this.API.SetValue("cmi.score.scaled", raw/10);
+                        this.API.Commit("");
+                    } else {
+                        this.API.LMSSetValue("cmi.core.score.raw", strScore);
+                        this.API.LMSCommit("");
+                    }
+                } catch(e){}
+            },
+            setStatus: function(status) {
+                if (!this.API) return;
+                try {
+                    const v = this.version;
+                    if (v === '2004') {
+                        this.API.SetValue("cmi.completion_status", status === 'passed' || status === 'failed' ? 'completed' : status);
+                        this.API.SetValue("cmi.success_status", status);
+                    } else {
+                        this.API.LMSSetValue("cmi.core.lesson_status", status);
+                    }
+                    v === '2004' ? this.API.Commit("") : this.API.LMSCommit("");
+                } catch(e){}
+            },
+            finish: function() {
+                if (!this.API) return;
+                this.version === '2004' ? this.API.Terminate("") : this.API.LMSFinish("");
+            }
+        };
+
+        // ----------------------------------------------------
+        // MOTOR DEL JUEGO
+        // ----------------------------------------------------
+        const Game = {
+            data: [],
+            config: {
+                maxY: 10,
+                tolerance: 0.1,
+                penalty: 0.5,    // Puntos a restar por fallo
+            },
+            state: {
+                round: 1,
+                score: 0,
+                currentHitValue: 0 // Valor dinámico de cada acierto en la ronda actual
+            },
+            themes: [
+                { t: "Ventas (Unidades)", c: ["Norte", "Sur", "Este", "Oeste", "Centro", "Export"] },
+                { t: "Mascotas", c: ["Perros", "Gatos", "Aves", "Peces", "Reptiles", "Roedores"] },
+                { t: "Deportes", c: ["Fútbol", "Basket", "Tenis", "Vóley", "Padel", "Rugby"] },
+                { t: "Frutas (kg)", c: ["Manzana", "Pera", "Plátano", "Uva", "Fresa", "Melón"] },
+                { t: "Asignaturas", c: ["Mates", "Lengua", "Inglés", "Física", "Química", "Arte"] },
+                { t: "Transporte", c: ["Coche", "Bus", "Tren", "Bici", "Moto", "Avión"] }
+            ],
+
+            init: function() {
+                SCORM.init();
+                this.setupEvents();
+                this.newRound();
+            },
+
+            newRound: function() {
+                // 1. Selección de Tema y Columnas
+                const theme = this.themes[Math.floor(Math.random() * this.themes.length)];
+                const numCols = Math.floor(Math.random() * 3) + 4; // Entre 4 y 6 columnas
+                const selectedCats = [...theme.c].sort(() => 0.5 - Math.random()).slice(0, numCols);
+
+                // 2. Generar valores
+                this.data = selectedCats.map(cat => ({ 
+                    cat, 
+                    val: Math.floor(Math.random() * 8) * 2 + 2,
+                    current: 0 
+                }));
+                
+                // 3. CALCULO DE PUNTUACIÓN 
+                // Cada ronda perfecta vale 2 puntos. 
+                // Acierto = 2 / num_cols
+                this.state.currentHitValue = 2 / numCols;
+
+                // 4. Configurar Escala
+                const maxVal = Math.max(...this.data.map(d => d.val));
+                this.config.maxY = Math.ceil((maxVal + 1) / 5) * 5;
+
+                // 5. Renderizar UI
+                document.getElementById('chart-title').innerText = theme.t;
+                document.getElementById('round-display').innerText = `${this.state.round}`; // Mostrar solo número de ronda actual
+                document.getElementById('check-btn').classList.remove('hidden');
+                document.getElementById('next-btn').classList.add('hidden');
+                
+                this.renderTable();
+                this.renderGrid();
+                this.renderBars();
+                this.renderControls();
+            },
+
+            renderTable: function() {
+                const tbody = document.getElementById('data-table-body');
+                tbody.innerHTML = this.data.map(d => `
+                    <tr><td class="px-4 py-2 font-medium text-slate-700">${d.cat}</td>
+                        <td class="px-4 py-2 text-right font-bold text-indigo-600">${d.val}</td></tr>
+                `).join('');
+            },
+
+            renderGrid: function() {
+                const container = document.getElementById('grid-container');
+                container.innerHTML = '';
+                container.style.bottom = "8rem"; 
+                
+                for(let i=0; i<=5; i++) {
+                    const pct = (i/5) * 100;
+                    const val = Math.round((this.config.maxY / 5) * i);
+                    
+                    const line = document.createElement('div');
+                    line.className = `absolute w-full border-b ${i===0 ? 'border-transparent' : 'border-slate-200 border-dashed'}`;
+                    line.style.bottom = `${pct}%`;
+                    container.appendChild(line);
+
+                    const label = document.createElement('div');
+                    label.className = "absolute -left-8 text-xs text-slate-400 w-6 text-right transform translate-y-1/2";
+                    label.style.bottom = `${pct}%`;
+                    label.innerText = val;
+                    container.appendChild(label);
+                }
+            },
+
+            renderBars: function() {
+                const container = document.getElementById('bars-container');
+                container.innerHTML = '';
+
+                this.data.forEach((d, i) => {
+                    const col = document.createElement('div');
+                    col.className = "relative h-full w-full flex items-end";
+                    col.innerHTML = `
+                        <div id="bar-${i}" class="w-full bg-indigo-400/90 rounded-t-md bar-transition shadow-sm relative group" style="height: 0%;">
+                             <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-40" id="tooltip-${i}">0</div>
+                        </div>
+                        <div id="ghost-${i}" class="absolute bottom-0 left-0 right-0 border-t-4 border-emerald-500 border-dashed opacity-0 transition-opacity z-10" style="bottom: ${(d.val/this.config.maxY)*100}%"></div>
+                    `;
+                    container.appendChild(col);
+                });
+            },
+
+            renderControls: function() {
+                const container = document.getElementById('controls-container');
+                container.innerHTML = '';
+
+                this.data.forEach((d, i) => {
+                    const ctrl = document.createElement('div');
+                    ctrl.className = "w-full flex flex-col items-center pt-2";
+                    ctrl.innerHTML = `
+                        <div class="text-[10px] sm:text-xs font-bold text-slate-600 mb-2 text-center leading-tight h-8 flex items-center justify-center w-full overflow-hidden text-ellipsis px-1">${d.cat}</div>
+                        <div class="flex flex-col gap-2 w-full items-center control-group-${i}">
+                            <button onclick="Game.adjustBar(${i}, 1)" class="ctrl-btn w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-indigo-100 hover:bg-indigo-200 text-indigo-600 font-bold shadow-sm flex items-center justify-center transition active:bg-indigo-300">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                            <button onclick="Game.adjustBar(${i}, -1)" class="ctrl-btn w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold shadow-sm flex items-center justify-center transition active:bg-slate-300">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(ctrl);
+                });
+            },
+
+            setupEvents: function() {
+                document.getElementById('check-btn').onclick = () => this.validate();
+                document.getElementById('next-btn').onclick = () => this.nextRound();
+            },
+
+            adjustBar: function(idx, change) {
+                const d = this.data[idx];
+                let newVal = d.current + change;
+                if (newVal < 0) newVal = 0;
+                if (newVal > this.config.maxY) newVal = this.config.maxY;
+                
+                d.current = newVal;
+                
+                const pct = (newVal / this.config.maxY) * 100;
+                const bar = document.getElementById(`bar-${idx}`);
+                const tooltip = document.getElementById(`tooltip-${idx}`);
+                
+                bar.style.height = `${pct}%`;
+                tooltip.innerText = newVal;
+                tooltip.classList.remove('opacity-0');
+                
+                if(this.hideTimeout) clearTimeout(this.hideTimeout);
+                this.hideTimeout = setTimeout(() => {
+                    document.querySelectorAll('[id^="tooltip-"]').forEach(t => t.classList.add('opacity-0'));
+                }, 2000);
+            },
+
+            validate: function() {
+                let roundHits = 0;
+                let roundMisses = 0;
+                
+                this.data.forEach((d, i) => {
+                    const diff = Math.abs(d.current - d.val);
+                    const bar = document.getElementById(`bar-${i}`);
+                    const tooltip = document.getElementById(`tooltip-${i}`);
+                    
+                    document.querySelector(`.control-group-${i}`).classList.add('opacity-50', 'pointer-events-none');
+                    
+                    if (diff <= this.config.tolerance) {
+                        bar.classList.replace('bg-indigo-400/90', 'bg-emerald-500');
+                        tooltip.innerHTML = '<i class="fa fa-check"></i>';
+                        tooltip.classList.replace('bg-slate-800', 'bg-emerald-600');
+                        roundHits++;
+                    } else {
+                        bar.classList.replace('bg-indigo-400/90', 'bg-rose-500');
+                        tooltip.innerHTML = `<i class="fa fa-times"></i> era ${d.val}`;
+                        tooltip.classList.replace('bg-slate-800', 'bg-rose-600');
+                        document.getElementById(`ghost-${i}`).classList.remove('opacity-0');
+                        roundMisses++;
+                    }
+                    tooltip.classList.remove('opacity-0');
+                });
+
+                // Cálculo de Puntos
+                const pointsGained = (roundHits * this.state.currentHitValue) - (roundMisses * this.config.penalty);
+                this.state.score += pointsGained;
+                
+                // Límites de seguridad
+                if (this.state.score < 0) this.state.score = 0;
+                if (this.state.score > 10) this.state.score = 10;
+
+                document.getElementById('score-display').innerText = this.state.score.toFixed(2);
+                
+                this.toast(`Resumen: +${roundHits} aciertos, -${roundMisses} errores.`);
+                
+                document.getElementById('check-btn').classList.add('hidden');
+                document.getElementById('next-btn').classList.remove('hidden');
+            },
+
+            nextRound: function() {
+                // CONDICIÓN DE VICTORIA:
+                // Si la puntuación ha llegado a 10, terminamos.
+                // Si es menor que 10, seguimos jugando.
+                if (this.state.score >= 10) {
+                    this.finishGame();
+                } else {
+                    this.state.round++;
+                    this.newRound();
+                }
+            },
+
+            finishGame: function() {
+                // Como el juego termina al llegar a 10, la nota final es 10.
+                let finalGrade = this.state.score;
+                const finalGradeFixed = finalGrade.toFixed(2);
+                
+                document.getElementById('final-score').innerText = finalGradeFixed;
+                document.getElementById('results-overlay').classList.remove('hidden');
+                
+                SCORM.setScore(parseFloat(finalGradeFixed));
+                SCORM.setStatus("passed"); // Siempre passed si llegan aquí (es un 10)
+                SCORM.finish();
+            },
+
+            toast: function(msg) {
+                const t = document.getElementById('toast');
+                t.innerText = msg;
+                t.classList.remove('opacity-0', '-translate-y-4');
+                setTimeout(() => t.classList.add('opacity-0', '-translate-y-4'), 3000);
+            }
+        };
+
+        window.onload = () => Game.init();
+    </script>
+</body>
+</html>
