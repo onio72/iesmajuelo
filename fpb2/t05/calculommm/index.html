@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Calculadora Estadística - Ejercicio SCORM</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { overscroll-behavior: none; -webkit-user-select: none; user-select: none; }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .number-card { transition: all 0.4s ease; }
+        .fade-enter { opacity: 0; transform: translateY(10px); }
+        .fade-enter-active { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div>
+                <h1 class="text-lg font-bold text-indigo-600"><i class="fa-solid fa-calculator mr-2"></i>Estadística Básica</h1>
+            </div>
+            <div class="flex items-center gap-3 text-sm">
+                <div class="bg-indigo-50 px-3 py-1 rounded-lg border border-indigo-100 flex flex-col items-center leading-tight">
+                    <span class="text-[10px] uppercase font-bold text-indigo-400">Ronda</span>
+                    <span id="round-display" class="font-bold text-indigo-700 text-base">1</span>
+                </div>
+                <div class="bg-slate-50 px-3 py-1 rounded-lg border border-slate-200 flex flex-col items-center leading-tight">
+                    <span class="text-[10px] uppercase font-bold text-slate-400">Nota</span>
+                    <!-- La puntuación se muestra en rojo hasta llegar a 5 -->
+                    <span id="score-display" class="font-bold text-rose-600 text-xl transition-colors duration-500">0.00</span>
+                    <span class="text-[9px] text-slate-400 font-semibold tracking-tighter">META: 10</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow p-4 md:p-6 max-w-4xl mx-auto w-full flex flex-col gap-6">
+        
+        <!-- Contexto del Problema -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-100 text-center">
+            <h2 class="text-slate-500 text-sm font-semibold uppercase tracking-wide mb-1">Datos Recopilados</h2>
+            <p id="topic-display" class="text-xl md:text-2xl font-bold text-slate-800 mb-6">Edades de un grupo de estudiantes</p>
+            
+            <!-- Contenedor de Números -->
+            <div id="numbers-container" class="flex flex-wrap justify-center gap-2 mb-6 min-h-[80px]">
+                <!-- JS inyectará los números aquí -->
+            </div>
+
+            <!-- Botón de Ordenar -->
+            <button onclick="Game.sortNumbers()" id="sort-btn" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-full text-sm font-bold transition flex items-center mx-auto gap-2">
+                <i class="fa-solid fa-arrow-down-1-9"></i> Ordenar de menor a mayor
+            </button>
+        </div>
+
+        <!-- Panel de Respuestas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- MEDIA -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:border-indigo-300 transition group">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="font-bold text-slate-700 block">Media</label>
+                    <i class="fa-solid fa-divide text-indigo-200 group-hover:text-indigo-500 transition"></i>
+                </div>
+                <p class="text-xs text-slate-400 mb-3">Suma todos los valores y divide por el total.</p>
+                <div class="relative">
+                    <input type="number" step="0.01" id="input-mean" placeholder="?" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 text-center font-mono text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                    <div id="feedback-mean" class="absolute right-3 top-3 text-lg hidden"></div>
+                </div>
+            </div>
+
+            <!-- MEDIANA -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:border-indigo-300 transition group">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="font-bold text-slate-700 block">Mediana</label>
+                    <i class="fa-solid fa-arrows-left-right-to-line text-indigo-200 group-hover:text-indigo-500 transition"></i>
+                </div>
+                <p class="text-xs text-slate-400 mb-3">El valor central (ordena los datos primero).</p>
+                <div class="relative">
+                    <input type="number" step="0.01" id="input-median" placeholder="?" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 text-center font-mono text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                    <div id="feedback-median" class="absolute right-3 top-3 text-lg hidden"></div>
+                </div>
+            </div>
+
+            <!-- MODA -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:border-indigo-300 transition group">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="font-bold text-slate-700 block">Moda</label>
+                    <i class="fa-solid fa-layer-group text-indigo-200 group-hover:text-indigo-500 transition"></i>
+                </div>
+                <p class="text-xs text-slate-400 mb-3">El valor que más veces se repite (único).</p>
+                <div class="relative">
+                    <input type="number" step="0.01" id="input-mode" placeholder="?" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 text-center font-mono text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                    <div id="feedback-mode" class="absolute right-3 top-3 text-lg hidden"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex justify-end pt-4">
+            <button id="check-btn" onclick="Game.validate()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-xl shadow-lg transition transform active:scale-95 text-lg w-full md:w-auto">
+                <i class="fa-solid fa-check-circle mr-2"></i> Corregir
+            </button>
+            <button id="next-btn" onclick="Game.nextRound()" class="hidden bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 px-10 rounded-xl shadow-lg transition transform active:scale-95 text-lg w-full md:w-auto">
+                Siguiente Ejercicio <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Modal Resultados -->
+    <div id="results-overlay" class="fixed inset-0 bg-slate-900/90 z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center">
+            <div class="text-6xl mb-4">🎓</div>
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">¡Curso Completado!</h2>
+            <div class="my-6">
+                <p class="text-slate-500 text-sm uppercase font-bold">Nota Final</p>
+                <div class="text-5xl font-black text-emerald-600" id="final-score">10</div>
+            </div>
+            <p class="text-xs text-slate-400 mb-6">Guardando resultados en LMS...</p>
+            <button onclick="location.reload()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-lg">
+                Repetir Práctica
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Feedback -->
+    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-xl transition-all duration-300 opacity-0 -translate-y-4 pointer-events-none z-50 text-sm font-medium"></div>
+
+    <script>
+        // --- SCORM WRAPPER (OPTIMIZADO PARA MOODLE & GUARDADO PROGRESIVO) ---
+        const SCORM = {
+            API: null, version: '1.2',
+            init: function() {
+                try {
+                    let win = window, attempts = 0;
+                    while (win && attempts < 10) {
+                        try { if (win.API_1484_11) { this.API = win.API_1484_11; this.version = '2004'; break; }
+                              if (win.API) { this.API = win.API; this.version = '1.2'; break; }
+                              if (win.parent && win.parent !== win) win = win.parent; else break;
+                        } catch (e) { break; } attempts++;
+                    }
+                    if (this.API) {
+                        this.version==='2004'?this.API.Initialize(""):this.API.LMSInitialize("");
+                        this.setStatus("incomplete");
+                    }
+                } catch (e) {}
+            },
+            
+            // FUNCIÓN CRÍTICA DE GUARDADO PROGRESIVO
+            setScore: function(raw) {
+                if (!this.API) return;
+                try {
+                    const s = raw.toFixed(2);
+                    if (this.version==='2004') {
+                        this.API.SetValue("cmi.score.min","0"); 
+                        this.API.SetValue("cmi.score.max","10");
+                        this.API.SetValue("cmi.score.raw",s); 
+                        this.API.SetValue("cmi.score.scaled",raw/10);
+                        this.API.Commit(""); // Guardado inmediato
+                    } else {
+                        // SCORM 1.2 (Compatibilidad Moodle)
+                        this.API.LMSSetValue("cmi.core.score.min","0"); 
+                        this.API.LMSSetValue("cmi.core.score.max","10");
+                        this.API.LMSSetValue("cmi.core.score.raw",s); 
+                        this.API.LMSCommit(""); // Guardado inmediato
+                    }
+                } catch(e){}
+            },
+            
+            setStatus: function(st) {
+                if(!this.API)return;
+                try{
+                    const v = this.version;
+                    const key = v==='2004'?"cmi.completion_status":"cmi.core.lesson_status";
+                    const val = (v==='2004' && (st==='passed'||st==='failed')) ? 'completed' : st;
+                    this.version==='2004' ? this.API.SetValue(key,val) : this.API.LMSSetValue(key,val);
+                    if(v==='2004' && (st==='passed'||st==='failed')) this.API.SetValue("cmi.success_status", st);
+                    v==='2004'?this.API.Commit(""):this.API.LMSCommit("");
+                }catch(e){}
+            },
+            
+            // FUNCIÓN CRÍTICA DE CIERRE SEGURO
+            finish: function() {
+                if(!this.API)return;
+                try{
+                    if(this.version==='1.2'){
+                        // Requisito: Usar cadena vacía "", NUNCA "logout"
+                        this.API.LMSSetValue("cmi.core.exit",""); 
+                        this.API.LMSCommit(""); // Commit final de seguridad
+                        this.API.LMSFinish("");
+                    } else {
+                        this.API.SetValue("cmi.exit","normal"); 
+                        this.API.Commit(""); 
+                        this.API.Terminate("");
+                    }
+                }catch(e){}
+            }
+        };
+
+        // --- LÓGICA DEL JUEGO ---
+        const Game = {
+            data: [],
+            solutions: { mean: 0, median: 0, mode: [] },
+            state: { 
+                round: 1, 
+                score: 0, 
+                isSorted: false,
+                exercisesCorrect: 0 // Contador de ejercicios perfectos
+            },
+            
+            // Tópicos para generar contexto
+            topics: [
+                { t: "Temperaturas de la semana (ºC)", min: 15, max: 35 },
+                { t: "Notas de un examen", min: 1, max: 10 },
+                { t: "Edades de un equipo", min: 18, max: 30 },
+                { t: "Goles por temporada", min: 0, max: 15 },
+                { t: "Horas de sueño", min: 4, max: 10 },
+                { t: "Precios de menús (€)", min: 8, max: 20 }
+            ],
+
+            init: function() {
+                SCORM.init();
+                this.newRound();
+                // Listener de seguridad para cierre de pestaña
+                window.addEventListener('unload', () => SCORM.finish());
+            },
+
+            generateData: function() {
+                // 1. Elegir Tópico
+                const topic = this.topics[Math.floor(Math.random() * this.topics.length)];
+                document.getElementById('topic-display').innerText = topic.t;
+
+                // 2. Generar longitud del array (6 a 10)
+                const n = Math.floor(Math.random() * 5) + 6; 
+                
+                // 3. Determinar frecuencia de la moda (n_reps)
+                const modeFreq = Math.floor(Math.random() * 2) + 3; // 3 o 4 veces
+                
+                // Elegir valor de la moda
+                const rangeSize = topic.max - topic.min + 1;
+                const modeVal = Math.floor(Math.random() * rangeSize) + topic.min;
+                
+                let nums = Array(modeFreq).fill(modeVal);
+                
+                // 4. Rellenar el resto asegurando UNICIDAD de la moda
+                let attempts = 0;
+                while(nums.length < n && attempts < 1000) {
+                    const candidate = Math.floor(Math.random() * rangeSize) + topic.min;
+                    if(candidate === modeVal) continue;
+                    
+                    const count = nums.filter(x => x === candidate).length;
+                    if (count + 1 < modeFreq) {
+                        nums.push(candidate);
+                    }
+                    attempts++;
+                }
+                
+                // Mezclar
+                this.data = nums.sort(() => Math.random() - 0.5);
+                this.state.isSorted = false;
+
+                // 5. Calcular Soluciones (Internamente)
+                this.calculateSolutions();
+                this.renderNumbers();
+            },
+
+            calculateSolutions: function() {
+                const arr = [...this.data];
+                const sum = arr.reduce((a,b) => a+b, 0);
+                
+                // Media
+                this.solutions.mean = parseFloat((sum / arr.length).toFixed(2));
+
+                // Mediana
+                const sorted = [...arr].sort((a,b) => a-b);
+                const mid = Math.floor(sorted.length / 2);
+                if (sorted.length % 2 !== 0) {
+                    this.solutions.median = sorted[mid];
+                } else {
+                    this.solutions.median = (sorted[mid-1] + sorted[mid]) / 2;
+                }
+                this.solutions.median = parseFloat(this.solutions.median.toFixed(2));
+
+                // Moda
+                const freq = {};
+                let maxFreq = 0;
+                arr.forEach(v => {
+                    freq[v] = (freq[v] || 0) + 1;
+                    if(freq[v] > maxFreq) maxFreq = freq[v];
+                });
+                this.solutions.mode = Object.keys(freq)
+                    .filter(k => freq[k] === maxFreq)
+                    .map(Number);
+            },
+
+            newRound: function() {
+                this.resetInputs();
+                this.generateData();
+                document.getElementById('round-display').innerText = this.state.round;
+                document.getElementById('check-btn').classList.remove('hidden');
+                document.getElementById('next-btn').classList.add('hidden');
+                
+                const sortBtn = document.getElementById('sort-btn');
+                sortBtn.innerHTML = '<i class="fa-solid fa-arrow-down-1-9"></i> Ordenar de menor a mayor';
+                sortBtn.classList.remove('bg-indigo-100', 'text-indigo-700');
+                sortBtn.classList.add('bg-slate-100', 'text-slate-600');
+            },
+
+            resetInputs: function() {
+                ['mean', 'median', 'mode'].forEach(type => {
+                    const input = document.getElementById(`input-${type}`);
+                    const fb = document.getElementById(`feedback-${type}`);
+                    input.value = '';
+                    input.disabled = false;
+                    input.classList.remove('border-emerald-500', 'border-rose-500', 'text-emerald-700', 'text-rose-700', 'bg-white');
+                    input.classList.add('bg-slate-50');
+                    fb.classList.add('hidden');
+                    fb.innerHTML = '';
+                });
+            },
+
+            renderNumbers: function() {
+                const container = document.getElementById('numbers-container');
+                container.innerHTML = '';
+                this.data.forEach((num, index) => {
+                    setTimeout(() => {
+                        const el = document.createElement('div');
+                        el.className = 'number-card bg-indigo-50 border-2 border-indigo-100 text-indigo-700 font-mono text-xl md:text-2xl font-bold w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-lg shadow-sm transform hover:scale-110 fade-enter';
+                        el.innerText = num;
+                        container.appendChild(el);
+                        requestAnimationFrame(() => el.classList.remove('fade-enter'));
+                    }, index * 50);
+                });
+            },
+
+            sortNumbers: function() {
+                if(this.state.isSorted) return;
+                
+                this.data.sort((a,b) => a-b);
+                this.state.isSorted = true;
+                this.renderNumbers();
+                
+                const btn = document.getElementById('sort-btn');
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Ordenado';
+                btn.classList.replace('bg-slate-100', 'bg-indigo-100');
+                btn.classList.replace('text-slate-600', 'text-indigo-700');
+            },
+
+            validate: function() {
+                const uMean = parseFloat(document.getElementById('input-mean').value);
+                const uMedian = parseFloat(document.getElementById('input-median').value);
+                const uMode = parseFloat(document.getElementById('input-mode').value);
+
+                if(isNaN(uMean) || isNaN(uMedian) || isNaN(uMode)) {
+                    this.toast("Por favor, rellena todos los campos.");
+                    return;
+                }
+
+                let hits = 0;
+
+                if (Math.abs(uMean - this.solutions.mean) < 0.011) {
+                    this.markCorrect('mean'); hits++;
+                } else {
+                    this.markIncorrect('mean', this.solutions.mean);
+                }
+
+                if (Math.abs(uMedian - this.solutions.median) < 0.011) {
+                    this.markCorrect('median'); hits++;
+                } else {
+                    this.markIncorrect('median', this.solutions.median);
+                }
+
+                if (this.solutions.mode.includes(uMode)) {
+                    this.markCorrect('mode'); hits++;
+                } else {
+                    this.markIncorrect('mode', this.solutions.mode.join(' o '));
+                }
+
+                // PUNTUACIÓN
+                const pointsPerHit = 1.67 / 3; 
+                const roundPoints = hits * pointsPerHit;
+                
+                this.state.score += roundPoints;
+                if (this.state.score > 10) this.state.score = 10;
+
+                const scoreEl = document.getElementById('score-display');
+                scoreEl.innerText = this.state.score.toFixed(2);
+                if (this.state.score >= 5) {
+                    scoreEl.classList.replace('text-rose-600', 'text-emerald-600');
+                }
+
+                // Guardado Progresivo en tiempo real
+                SCORM.setScore(this.state.score);
+
+                document.getElementById('check-btn').classList.add('hidden');
+                document.getElementById('next-btn').classList.remove('hidden');
+
+                if (hits === 3) {
+                    this.state.exercisesCorrect++;
+                    this.toast("¡Ejercicio Perfecto! 🎉");
+                } else {
+                    this.toast(`Obtuviste ${hits}/3 aciertos.`);
+                }
+            },
+
+            markCorrect: function(type) {
+                const input = document.getElementById(`input-${type}`);
+                const fb = document.getElementById(`feedback-${type}`);
+                input.classList.replace('bg-slate-50', 'bg-emerald-50');
+                input.classList.add('border-emerald-500', 'text-emerald-700');
+                input.disabled = true;
+                fb.innerHTML = '<i class="fa-solid fa-check text-emerald-500"></i>';
+                fb.classList.remove('hidden');
+            },
+
+            markIncorrect: function(type, correctVal) {
+                const input = document.getElementById(`input-${type}`);
+                const fb = document.getElementById(`feedback-${type}`);
+                input.classList.replace('bg-slate-50', 'bg-rose-50');
+                input.classList.add('border-rose-500', 'text-rose-700');
+                input.disabled = true;
+                const solutionDiv = document.createElement('div');
+                solutionDiv.className = "text-xs text-rose-600 font-bold mt-1 text-center";
+                solutionDiv.innerText = `Solución: ${correctVal}`;
+                input.parentNode.appendChild(solutionDiv);
+                
+                fb.innerHTML = '<i class="fa-solid fa-xmark text-rose-500"></i>';
+                fb.classList.remove('hidden');
+            },
+
+            nextRound: function() {
+                if (this.state.score >= 10) {
+                    this.finishGame();
+                } else {
+                    this.state.round++;
+                    this.newRound();
+                }
+            },
+
+            finishGame: function() {
+                document.getElementById('final-score').innerText = this.state.score.toFixed(2);
+                document.getElementById('results-overlay').classList.remove('hidden');
+                SCORM.setStatus("passed");
+                SCORM.finish();
+            },
+
+            toast: function(msg) {
+                const t = document.getElementById('toast');
+                t.innerText = msg;
+                t.classList.remove('opacity-0', '-translate-y-4');
+                setTimeout(() => t.classList.add('opacity-0', '-translate-y-4'), 3000);
+            }
+        };
+
+        window.onload = () => Game.init();
+    </script>
+</body>
+</html>
