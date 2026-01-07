@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cálculo de Vectores en Electrostática</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configuración y carga de MathJax para renderizar LaTeX -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            background-color: #f1f5f9;
+            user-select: none;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+        .score-red { color: #ef4444; }
+        .score-green { color: #22c55e; }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .calc-btn {
+            @apply bg-white hover:bg-slate-50 text-slate-700 font-semibold py-2 rounded border border-slate-200 transition-colors text-sm shadow-sm;
+        }
+        .calc-btn-op {
+            @apply bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200;
+        }
+        .calc-btn-eq {
+            @apply bg-blue-600 hover:bg-blue-700 text-white border-blue-700;
+        }
+        .calc-btn-clr {
+            @apply bg-red-50 hover:bg-red-100 text-red-700 border-red-200;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4">
+
+    <!-- Encabezado y Puntuación -->
+    <div class="max-w-6xl w-full bg-white rounded-2xl shadow-xl p-6 mb-4">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 border-b pb-4 gap-4">
+            <h1 class="text-2xl font-bold text-slate-800">Cargas y Vectores Posición</h1>
+            <div id="scoreDisplay" class="text-4xl font-black score-red bg-slate-50 px-6 py-2 rounded-full border border-slate-100">Puntos: 0</div>
+        </div>
+        
+        <div class="text-slate-600 mb-8 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400 text-sm">
+            <p class="font-medium text-blue-800 mb-1">Sistema de Calificación Progresiva:</p>
+            <p>Cada campo correcto: <b>+0.2 pts</b>. Cada campo incorrecto: <b>-0.2 pts</b>. Total por ejercicio: <b>1.0 pto</b>.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Columna Izquierda: Visualización (Lienzo 1) -->
+            <div class="lg:col-span-5 flex flex-col items-center">
+                <div class="p-2 bg-slate-100 rounded-xl border border-slate-200 shadow-inner">
+                    <canvas id="gridCanvas" class="rounded-lg bg-white"></canvas>
+                </div>
+                <div id="chargeLabels" class="mt-4 flex flex-col gap-2 font-mono text-sm items-center w-full">
+                    <div id="mathLabel1" class="bg-red-50 text-red-700 px-4 py-2 rounded-lg border border-red-100 w-full text-center"></div>
+                    <div id="mathLabel2" class="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg border border-blue-100 w-full text-center"></div>
+                </div>
+            </div>
+
+            <!-- Columna Central: Respuestas -->
+            <div class="lg:col-span-4 flex flex-col gap-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Distancia $d$ (m):</label>
+                    <input type="number" id="inputDist" step="0.01" class="w-full p-3 text-lg border-2 border-slate-100 rounded-lg focus:border-blue-500 outline-none transition-all" placeholder="0.00">
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Vector $\vec{r}_{12}$ (m):</label>
+                    <div class="flex gap-3 items-center">
+                        <span class="text-xl text-slate-400 font-light">(</span>
+                        <input type="number" id="inputVx" class="w-full p-3 border-2 border-slate-100 rounded-lg outline-none focus:border-blue-500" placeholder="x">
+                        <span class="text-xl text-slate-400">,</span>
+                        <input type="number" id="inputVy" class="w-full p-3 border-2 border-slate-100 rounded-lg outline-none focus:border-blue-500" placeholder="y">
+                        <span class="text-xl text-slate-400 font-light">)</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Vector Unitario $\hat{u}_{12}$:</label>
+                    <div class="flex gap-3 items-center">
+                        <span class="text-xl text-slate-400 font-light">(</span>
+                        <input type="number" id="inputUx" step="0.01" class="w-full p-3 border-2 border-slate-100 rounded-lg outline-none focus:border-blue-500" placeholder="ux">
+                        <span class="text-xl text-slate-400">,</span>
+                        <input type="number" id="inputUy" step="0.01" class="w-full p-3 border-2 border-slate-100 rounded-lg outline-none focus:border-blue-500" placeholder="uy">
+                        <span class="text-xl text-slate-400 font-light">)</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-2 mt-2">
+                    <button id="btnCheck" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg active:scale-95">
+                        Verificar Respuesta
+                    </button>
+                    <button id="btnNew" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2 rounded-lg transition-all">
+                        Siguiente Ejercicio
+                    </button>
+                    <div id="feedback" class="text-center font-bold h-6 text-sm mt-1"></div>
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Calculadora -->
+            <div class="lg:col-span-3">
+                <div class="bg-slate-100 p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="text-slate-500 text-[10px] font-black mb-3 uppercase tracking-widest text-center">Calculadora Auxiliar</div>
+                    <input type="text" id="calcDisplay" readonly class="w-full bg-white text-right text-slate-800 font-mono text-xl p-3 rounded-lg mb-4 border border-slate-200 shadow-inner" value="0">
+                    <div class="grid grid-cols-4 gap-2">
+                        <button onclick="calcClear()" class="calc-btn calc-btn-clr col-span-2">Borrar</button>
+                        <button onclick="calcOp('sqrt')" class="calc-btn calc-btn-op">√</button>
+                        <button onclick="calcOp('/')" class="calc-btn calc-btn-op">÷</button>
+                        
+                        <button onclick="calcNum('7')" class="calc-btn">7</button>
+                        <button onclick="calcNum('8')" class="calc-btn">8</button>
+                        <button onclick="calcNum('9')" class="calc-btn">9</button>
+                        <button onclick="calcOp('*')" class="calc-btn calc-btn-op">×</button>
+                        
+                        <button onclick="calcNum('4')" class="calc-btn">4</button>
+                        <button onclick="calcNum('5')" class="calc-btn">5</button>
+                        <button onclick="calcNum('6')" class="calc-btn">6</button>
+                        <button onclick="calcOp('-')" class="calc-btn calc-btn-op">-</button>
+                        
+                        <button onclick="calcNum('1')" class="calc-btn">1</button>
+                        <button onclick="calcNum('2')" class="calc-btn">2</button>
+                        <button onclick="calcNum('3')" class="calc-btn">3</button>
+                        <button onclick="calcOp('+')" class="calc-btn calc-btn-op">+</button>
+                        
+                        <button onclick="calcNum('0')" class="calc-btn col-span-2">0</button>
+                        <button onclick="calcNum('.')" class="calc-btn">.</button>
+                        <button onclick="calcRes()" class="calc-btn calc-btn-eq">=</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Victoria -->
+    <div id="winModal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white p-10 rounded-3xl shadow-2xl text-center max-w-sm border-t-8 border-green-500">
+            <div class="text-6xl mb-6">🎉</div>
+            <h3 class="text-3xl font-bold mb-2 text-slate-800">¡Objetivo Logrado!</h3>
+            <p class="text-slate-600 mb-8">Has alcanzado la máxima puntuación (10 puntos).</p>
+            <button onclick="location.reload()" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold text-lg shadow-lg">Reiniciar Sesión</button>
+        </div>
+    </div>
+
+    <script>
+        /*******************************************************
+         * CONFIGURACIÓN SCORM
+         *******************************************************/
+        let scormAPI = null;
+        function findAPI(win) {
+            let n = 0;
+            while (n < 10) {
+                try { if (win.API != null) return win.API; if (win.API_1484_11 != null) return win.API_1484_11; } catch (e) { break; }
+                if (win.parent == null || win.parent === win) break;
+                win = win.parent; n++;
+            }
+            return null;
+        }
+
+        function initSCORM() {
+            scormAPI = findAPI(window);
+            if (scormAPI) {
+                try {
+                    scormAPI.LMSInitialize("");
+                    scormAPI.LMSSetValue("cmi.core.score.min", "0");
+                    scormAPI.LMSSetValue("cmi.core.score.max", "10");
+                    scormAPI.LMSSetValue("cmi.core.exit", "suspend");
+                    scormAPI.LMSCommit("");
+                } catch (e) {}
+            }
+        }
+
+        function saveScore(scoreValue) {
+            if (scormAPI) {
+                try {
+                    scormAPI.LMSSetValue("cmi.core.score.raw", scoreValue.toFixed(2));
+                    if (scoreValue >= 5) scormAPI.LMSSetValue("cmi.core.lesson_status", "passed");
+                    if (scoreValue >= 10) scormAPI.LMSSetValue("cmi.core.lesson_status", "completed");
+                    scormAPI.LMSCommit("");
+                } catch (e) {}
+            }
+        }
+
+        window.onunload = function() {
+            if (scormAPI) { try { scormAPI.LMSCommit(""); scormAPI.LMSFinish(""); } catch (e) {} }
+        };
+
+        /*******************************************************
+         * LÓGICA DE LA CALCULADORA
+         *******************************************************/
+        const calcDisplay = document.getElementById('calcDisplay');
+        let currentExpr = "";
+
+        function calcNum(n) {
+            if (currentExpr === "0") currentExpr = "";
+            currentExpr += n;
+            calcDisplay.value = currentExpr;
+        }
+
+        function calcOp(op) {
+            if (op === 'sqrt') {
+                try {
+                    let val = eval(currentExpr || "0");
+                    currentExpr = Math.sqrt(val).toFixed(4).toString();
+                } catch(e) { currentExpr = "Error"; }
+            } else { currentExpr += op; }
+            calcDisplay.value = currentExpr;
+        }
+
+        function calcClear() {
+            currentExpr = "";
+            calcDisplay.value = "0";
+        }
+
+        function calcRes() {
+            try {
+                let res = eval(currentExpr);
+                currentExpr = Number.isInteger(res) ? res.toString() : res.toFixed(4).toString();
+                calcDisplay.value = currentExpr;
+            } catch(e) { calcDisplay.value = "Error"; currentExpr = ""; }
+        }
+
+        /*******************************************************
+         * LÓGICA DEL JUEGO
+         *******************************************************/
+        const canvas = document.getElementById('gridCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const feedback = document.getElementById('feedback');
+        
+        const GRID_SIZE = 400;
+        const SCALE = 20; 
+        const OFFSET = GRID_SIZE / 2;
+
+        let score = 0;
+        let exerciseActive = true;
+        let q1, q2;
+
+        canvas.width = GRID_SIZE;
+        canvas.height = GRID_SIZE;
+
+        function init() {
+            initSCORM();
+            generateExercise();
+        }
+
+        function generateExercise() {
+            q1 = {
+                x: Math.floor(Math.random() * 15) - 7,
+                y: Math.floor(Math.random() * 15) - 7,
+                val: Math.floor(Math.random() * 5) + 1 
+            };
+            
+            do {
+                q2 = {
+                    x: Math.floor(Math.random() * 15) - 7,
+                    y: Math.floor(Math.random() * 15) - 7,
+                    val: -(Math.floor(Math.random() * 5) + 1)
+                };
+            } while (q1.x === q2.x && q1.y === q2.y);
+
+            const math1 = document.getElementById('mathLabel1');
+            const math2 = document.getElementById('mathLabel2');
+            math1.innerHTML = `$q_1 = +${q1.val} \\mu\\text{C}$ en $(${q1.x}, ${q1.y})\\text{ m}$`;
+            math2.innerHTML = `$q_2 = ${q2.val} \\mu\\text{C}$ en $(${q2.x}, ${q2.y})\\text{ m}$`;
+            
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([math1, math2]);
+            }
+
+            ['inputDist', 'inputVx', 'inputVy', 'inputUx', 'inputUy'].forEach(id => {
+                const el = document.getElementById(id);
+                el.value = '';
+                el.classList.remove('border-green-500', 'border-red-500');
+                el.classList.add('border-slate-100');
+            });
+            feedback.innerText = '';
+            exerciseActive = true;
+            draw();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Malla
+            ctx.beginPath();
+            ctx.setLineDash([2, 4]);
+            ctx.strokeStyle = '#e2e8f0';
+            for (let i = 0; i <= GRID_SIZE; i += SCALE) {
+                ctx.moveTo(i, 0); ctx.lineTo(i, GRID_SIZE);
+                ctx.moveTo(0, i); ctx.lineTo(GRID_SIZE, i);
+            }
+            ctx.stroke();
+
+            // Ejes
+            ctx.setLineDash([]);
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(OFFSET, 0); ctx.lineTo(OFFSET, GRID_SIZE);
+            ctx.moveTo(0, OFFSET); ctx.lineTo(GRID_SIZE, OFFSET);
+            ctx.stroke();
+
+            // Cargas (Circunferencias suaves)
+            const r1 = q1.val * 3 + 6;
+            drawCharge(q1.x, q1.y, r1, '#ef4444', '+');
+
+            const r2 = Math.abs(q2.val) * 3 + 6;
+            drawCharge(q2.x, q2.y, r2, '#3b82f6', '-');
+        }
+
+        function drawCharge(gx, gy, radius, color, symbol) {
+            const screenX = OFFSET + gx * SCALE;
+            const screenY = OFFSET - gy * SCALE;
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, radius, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${Math.max(10, radius - 2)}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(symbol, screenX, screenY);
+        }
+
+        document.getElementById('btnCheck').onclick = function() {
+            if (!exerciseActive) return;
+
+            const userValues = {
+                dist: parseFloat(document.getElementById('inputDist').value),
+                vx: parseFloat(document.getElementById('inputVx').value),
+                vy: parseFloat(document.getElementById('inputVy').value),
+                ux: parseFloat(document.getElementById('inputUx').value),
+                uy: parseFloat(document.getElementById('inputUy').value)
+            };
+
+            const dx = q2.x - q1.x;
+            const dy = q2.y - q1.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            const ux = dx / dist;
+            const uy = dy / dist;
+
+            const tol = 0.025;
+            let currentExerciseDelta = 0;
+
+            // Validación granular: cada campo es +/- 0.2
+            // 1. Distancia
+            if (!isNaN(userValues.dist) && Math.abs(userValues.dist - dist) <= tol) {
+                currentExerciseDelta += 0.2;
+                document.getElementById('inputDist').classList.replace('border-slate-100', 'border-green-500');
+            } else {
+                currentExerciseDelta -= 0.2;
+                document.getElementById('inputDist').classList.replace('border-slate-100', 'border-red-500');
+            }
+
+            // 2. Vector X
+            if (!isNaN(userValues.vx) && userValues.vx === dx) {
+                currentExerciseDelta += 0.2;
+                document.getElementById('inputVx').classList.replace('border-slate-100', 'border-green-500');
+            } else {
+                currentExerciseDelta -= 0.2;
+                document.getElementById('inputVx').classList.replace('border-slate-100', 'border-red-500');
+            }
+
+            // 3. Vector Y
+            if (!isNaN(userValues.vy) && userValues.vy === dy) {
+                currentExerciseDelta += 0.2;
+                document.getElementById('inputVy').classList.replace('border-slate-100', 'border-green-500');
+            } else {
+                currentExerciseDelta -= 0.2;
+                document.getElementById('inputVy').classList.replace('border-slate-100', 'border-red-500');
+            }
+
+            // 4. Unitario X
+            if (!isNaN(userValues.ux) && Math.abs(userValues.ux - ux) <= tol) {
+                currentExerciseDelta += 0.2;
+                document.getElementById('inputUx').classList.replace('border-slate-100', 'border-green-500');
+            } else {
+                currentExerciseDelta -= 0.2;
+                document.getElementById('inputUx').classList.replace('border-slate-100', 'border-red-500');
+            }
+
+            // 5. Unitario Y
+            if (!isNaN(userValues.uy) && Math.abs(userValues.uy - uy) <= tol) {
+                currentExerciseDelta += 0.2;
+                document.getElementById('inputUy').classList.replace('border-slate-100', 'border-green-500');
+            } else {
+                currentExerciseDelta -= 0.2;
+                document.getElementById('inputUy').classList.replace('border-slate-100', 'border-red-500');
+            }
+
+            // Actualizar puntuación total
+            score = Math.max(0, score + currentExerciseDelta);
+            
+            // Feedback basado en el delta neto del ejercicio
+            const sign = currentExerciseDelta >= 0 ? "+" : "";
+            feedback.innerText = `Resultado ejercicio: ${sign}${currentExerciseDelta.toFixed(1)} puntos.`;
+            feedback.className = `text-center font-bold ${currentExerciseDelta > 0 ? 'text-green-600' : 'text-red-600'}`;
+
+            updateScoreUI();
+            exerciseActive = false;
+        };
+
+        function updateScoreUI() {
+            // Mostrar con un decimal para ver los incrementos de 0.2
+            const displayValue = score.toFixed(1);
+            scoreDisplay.innerText = `Puntos: ${displayValue}`;
+            
+            const isPassing = score >= 5;
+            scoreDisplay.className = `text-4xl font-black ${isPassing ? 'score-green' : 'score-red'} bg-slate-50 px-6 py-2 rounded-full border border-slate-100`;
+            
+            saveScore(score);
+            if (score >= 10) {
+                document.getElementById('winModal').classList.remove('hidden');
+                document.getElementById('winModal').classList.add('flex');
+            }
+        }
+
+        document.getElementById('btnNew').onclick = generateExercise;
+        window.onload = init;
+    </script>
+</body>
+</html>
