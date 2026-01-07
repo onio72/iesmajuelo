@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicio de Electrostática: Fuerza de Coulomb</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- MathJax 3 Configuration -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            startup: {
+                ready: () => {
+                    MathJax.startup.defaultReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .canvas-container { position: relative; width: 400px; height: 400px; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .calculator-screen { font-family: 'Courier New', Courier, monospace; }
+        .btn-calc { @apply bg-white hover:bg-slate-200 py-3 rounded-xl font-bold transition-all border border-slate-200 shadow-sm active:scale-95 text-slate-700; }
+        .btn-calc-op { @apply bg-indigo-50 text-indigo-600 border-indigo-100 hover:bg-indigo-100; }
+        .btn-calc-action { @apply bg-red-50 text-red-600 border-red-100 hover:bg-red-100; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen p-4 md:p-8">
+
+    <!-- Modal de Victoria -->
+    <div id="victory-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl">
+            <div class="text-6xl mb-4">🏆</div>
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">¡Misión Cumplida!</h2>
+            <p class="text-slate-600 mb-6">Has alcanzado 10 puntos. Tu progreso ha sido registrado en el sistema.</p>
+            <button onclick="document.getElementById('victory-modal').classList.add('hidden')" class="bg-indigo-600 text-white px-8 py-3 rounded-full font-bold hover:bg-indigo-700 shadow-lg transition-all">Continuar</button>
+        </div>
+    </div>
+
+    <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Columna Izquierda: Visualización e Instrucciones -->
+        <div class="lg:col-span-4 space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h1 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <span class="w-2 h-6 bg-indigo-500 rounded-full"></span>
+                    Visualización
+                </h1>
+                <div class="canvas-container bg-white border-2 border-slate-200 rounded-2xl overflow-hidden mx-auto shadow-inner">
+                    <canvas id="electroCanvas" width="400" height="400"></canvas>
+                </div>
+                <div id="charge-info" class="mt-4 p-4 bg-slate-50 rounded-xl text-sm text-slate-700 space-y-3 border border-slate-100">
+                    <div id="q1-data">Cargando datos de $q_1$...</div>
+                    <div id="q2-data">Cargando datos de $q_2$...</div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-800 mb-3">Instrucciones</h2>
+                <ul class="text-sm text-slate-600 space-y-3">
+                    <li class="flex gap-2"><span class="font-bold text-indigo-500">1.</span> Calcula $\vec{r}_{12}$ (vector desde $q_1$ hacia $q_2$).</li>
+                    <li class="flex gap-2"><span class="font-bold text-indigo-500">2.</span> Halla el módulo $|\vec{r}_{12}|$ en metros (m).</li>
+                    <li class="flex gap-2"><span class="font-bold text-indigo-500">3.</span> Determina el unitario $\hat{u}_{12} = \vec{r}_{12} / |\vec{r}_{12}|$.</li>
+                    <li class="flex gap-2"><span class="font-bold text-indigo-500">4.</span> Calcula la fuerza vectorial $\vec{F}_{12}$ con dos decimales en la mantisa si usas notación científica.</li>
+                </ul>
+                <div class="mt-6 pt-6 border-t border-slate-100 flex justify-between items-center">
+                    <div>
+                        <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Puntuación</span>
+                        <div id="score-display" class="text-3xl font-bold text-red-500">0.0</div>
+                    </div>
+                    <button onclick="window.generateProblem()" class="bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-700 transition-colors shadow-md">Nuevo Reto</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Central: Formulario de Respuestas -->
+        <div class="lg:col-span-5 space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-full">
+                <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                    <span class="w-2 h-6 bg-emerald-500 rounded-full"></span>
+                    Resolución
+                </h2>
+                
+                <div id="feedback-msg" class="hidden mb-6 p-4 rounded-xl text-sm font-medium border"></div>
+
+                <div class="space-y-8">
+                    <div class="answer-group">
+                        <label class="block text-xs font-bold text-slate-400 tracking-widest mb-3 uppercase">1. Vector Posición <span class="normal-case">(m)</span></label>
+                        <div class="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <span class="text-slate-400 font-serif">$\vec{r}_{12} = ($</span>
+                            <input type="number" id="ans-rx" step="any" placeholder="x" class="w-full bg-transparent border-b-2 border-slate-200 focus:border-indigo-500 outline-none text-center font-bold">
+                            <span class="text-slate-400">,</span>
+                            <input type="number" id="ans-ry" step="any" placeholder="y" class="w-full bg-transparent border-b-2 border-slate-200 focus:border-indigo-500 outline-none text-center font-bold">
+                            <span class="text-slate-400 font-serif">$) $</span>
+                        </div>
+                    </div>
+
+                    <div class="answer-group">
+                        <label class="block text-xs font-bold text-slate-400 tracking-widest mb-3 uppercase">2. Distancia <span class="normal-case">(m)</span></label>
+                        <div class="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <span class="text-slate-400 font-serif">$|\vec{r}_{12}| = $</span>
+                            <input type="number" id="ans-rmod" step="any" placeholder="0.00" class="w-full bg-transparent border-b-2 border-slate-200 focus:border-indigo-500 outline-none text-center font-bold">
+                        </div>
+                    </div>
+
+                    <div class="answer-group">
+                        <label class="block text-xs font-bold text-slate-400 tracking-widest mb-3 uppercase">3. Vector Unitario</label>
+                        <div class="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <span class="text-slate-400 font-serif">$\hat{u}_{12} = ($</span>
+                            <input type="number" id="ans-ux" step="any" placeholder="ux" class="w-full bg-transparent border-b-2 border-slate-200 focus:border-indigo-500 outline-none text-center font-bold">
+                            <span class="text-slate-400">,</span>
+                            <input type="number" id="ans-uy" step="any" placeholder="uy" class="w-full bg-transparent border-b-2 border-slate-200 focus:border-indigo-500 outline-none text-center font-bold">
+                            <span class="text-slate-400 font-serif">$) $</span>
+                        </div>
+                    </div>
+
+                    <div class="answer-group">
+                        <label class="block text-xs font-bold text-slate-400 tracking-widest mb-3 uppercase">4. Vector Fuerza (N) - Notación Científica</label>
+                        <div class="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <span class="text-slate-400 font-serif">$\vec{F}_{12} = ($</span>
+                            <input type="text" id="ans-fx" placeholder="Fx (ej: 1.23e-5)" class="w-full bg-transparent border-b-2 border-slate-200 focus:border-indigo-500 outline-none text-center font-bold">
+                            <span class="text-slate-400">,</span>
+                            <input type="text" id="ans-fy" placeholder="Fy" class="w-full bg-transparent border-b-2 border-slate-200 focus:border-indigo-500 outline-none text-center font-bold">
+                            <span class="text-slate-400 font-serif">$) $</span>
+                        </div>
+                    </div>
+
+                    <button id="btn-verify" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:bg-indigo-700 transition-all transform active:scale-[0.98]">
+                        Verificar Resultados
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Calculadora Clara -->
+        <div class="lg:col-span-3">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 sticky top-4">
+                <h2 class="text-slate-800 font-bold mb-4 flex items-center gap-2 text-xs uppercase tracking-widest">
+                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    Calculadora
+                </h2>
+                <div class="calculator">
+                    <div id="calc-display" class="bg-slate-50 text-slate-800 p-4 rounded-xl mb-4 text-right calculator-screen text-xl h-16 overflow-hidden flex items-center justify-end border border-slate-100 font-mono shadow-inner">0</div>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button onclick="window.calcClear()" class="btn-calc btn-calc-action">C</button>
+                        <button onclick="window.calcOp('sqrt')" class="btn-calc btn-calc-op">√</button>
+                        <button onclick="window.calcNum('e')" class="btn-calc btn-calc-op">exp</button>
+                        <button onclick="window.calcOp('/')" class="btn-calc btn-calc-op">÷</button>
+                        
+                        <button onclick="window.calcNum('7')" class="btn-calc">7</button>
+                        <button onclick="window.calcNum('8')" class="btn-calc">8</button>
+                        <button onclick="window.calcNum('9')" class="btn-calc">9</button>
+                        <button onclick="window.calcOp('*')" class="btn-calc btn-calc-op">×</button>
+                        
+                        <button onclick="window.calcNum('4')" class="btn-calc">4</button>
+                        <button onclick="window.calcNum('5')" class="btn-calc">5</button>
+                        <button onclick="window.calcNum('6')" class="btn-calc">6</button>
+                        <button onclick="window.calcOp('-')" class="btn-calc btn-calc-op">-</button>
+                        
+                        <button onclick="window.calcNum('1')" class="btn-calc">1</button>
+                        <button onclick="window.calcNum('2')" class="btn-calc">2</button>
+                        <button onclick="window.calcNum('3')" class="btn-calc">3</button>
+                        <button onclick="window.calcOp('+')" class="btn-calc btn-calc-op">+</button>
+                        
+                        <button onclick="window.calcNum('0')" class="btn-calc col-span-2">0</button>
+                        <button onclick="window.calcNum('.')" class="btn-calc">.</button>
+                        <button onclick="window.calcEnter()" class="btn-calc bg-indigo-600 text-white border-none hover:bg-indigo-700">=</button>
+                    </div>
+                </div>
+                <div class="mt-6 p-3 bg-indigo-50 rounded-xl text-[10px] text-indigo-700 leading-relaxed border border-indigo-100">
+                    <span class="font-bold block mb-1">RECORDATORIO:</span>
+                    $k = 8.99 \times 10^9 \, \text{N}\cdot\text{m}^2/\text{C}^2$<br>
+                    $1 \, \mu C = 10^{-6} \, C$
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- ENCAPSULACIÓN PARA EVITAR CONFLICTOS GLOBALES ---
+        (function() {
+            // Constantes y Estado
+            var K = 8.99e9;
+            var TOLERANCE = 0.025;
+            var globalScore = 0.0;
+            var currentProblem = null;
+            var scorm = null;
+
+            // --- SCORM: MEJORADO CON MANEJO DE ERRORES CROSS-ORIGIN ---
+            function findAPI(win) {
+                let n = 0;
+                while (n < 10) {
+                    try {
+                        if (win.API) return win.API;
+                        if (win.API_1484_11) return win.API_1484_11;
+                        if (win.parent && win.parent !== win) {
+                            win = win.parent;
+                            n++;
+                        } else { break; }
+                    } catch (e) {
+                        console.warn("Acceso denegado a nivel superior de ventana (Cross-Origin).");
+                        break;
+                    }
+                }
+                return null;
+            }
+
+            function initSCORM() {
+                try {
+                    scorm = findAPI(window);
+                    if (scorm) {
+                        scorm.LMSInitialize("");
+                        const savedScore = scorm.LMSGetValue("cmi.core.score.raw");
+                        if (savedScore) { globalScore = parseFloat(savedScore); updateScoreUI(); }
+                    }
+                } catch (e) { console.error("Error al inicializar SCORM:", e); }
+            }
+
+            function saveSCORM() {
+                if (scorm) {
+                    try {
+                        scorm.LMSSetValue("cmi.core.score.raw", globalScore.toString());
+                        if (globalScore >= 10) scorm.LMSSetValue("cmi.core.lesson_status", "completed");
+                        else if (globalScore >= 5) scorm.LMSSetValue("cmi.core.lesson_status", "passed");
+                        scorm.LMSCommit("");
+                    } catch(e) { console.error("Error al guardar en SCORM:", e); }
+                }
+            }
+
+            // --- LÓGICA DEL PROBLEMA ---
+            window.generateProblem = function() {
+                const pos1 = { x: randInt(-7, 2), y: randInt(-7, 7) };
+                let pos2 = { x: randInt(pos1.x + 2, 7), y: randInt(-7, 7) };
+                
+                while (Math.hypot(pos2.x - pos1.x, pos2.y - pos1.y) < 2.5) {
+                    pos2 = { x: randInt(-7, 7), y: randInt(-7, 7) };
+                }
+
+                const q1Val = randInt(-15, 15) || 2; 
+                const q2Val = randInt(-15, 15) || -2;
+                const q1 = q1Val * 1e-6;
+                const q2 = q2Val * 1e-6;
+
+                const rx = pos2.x - pos1.x;
+                const ry = pos2.y - pos1.y;
+                const rMod = Math.sqrt(rx*rx + ry*ry);
+                const ux = rx / rMod;
+                const uy = ry / rMod;
+                
+                const fMag = (K * q1 * q2) / (rMod * rMod);
+                const fx = fMag * ux;
+                const fy = fMag * uy;
+
+                currentProblem = { pos1, pos2, q1, q2, q1uC: q1Val, q2uC: q2Val, rx, ry, rMod, ux, uy, fx, fy };
+
+                updateVisuals();
+                clearInputs();
+                hideFeedback();
+            };
+
+            function updateVisuals() {
+                const canvas = document.getElementById('electroCanvas');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                const W = canvas.width;
+                const H = canvas.height;
+                const scale = 20;
+
+                ctx.clearRect(0, 0, W, H);
+                
+                // Trama de cuadrícula discontinua
+                ctx.beginPath();
+                ctx.strokeStyle = '#e2e8f0'; 
+                ctx.setLineDash([4, 4]);
+                ctx.lineWidth = 1;
+                for(let i = -10; i <= 10; i++) {
+                    let vx = W/2 + i*scale;
+                    ctx.moveTo(vx, 0); ctx.lineTo(vx, H);
+                    let hy = H/2 + i*scale;
+                    ctx.moveTo(0, hy); ctx.lineTo(W, hy);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]); 
+
+                // Ejes principales
+                ctx.beginPath();
+                ctx.strokeStyle = '#475569';
+                ctx.lineWidth = 2;
+                ctx.moveTo(0, H/2); ctx.lineTo(W, H/2);
+                ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H);
+                ctx.stroke();
+
+                // Marcas
+                ctx.font = "10px sans-serif";
+                ctx.fillStyle = "#64748b";
+                for(let i = -10; i <= 10; i++) {
+                    if(i === 0) continue;
+                    ctx.fillRect(W/2 + i*scale - 1, H/2 - 4, 2, 8);
+                    ctx.fillRect(W/2 - 4, H/2 - i*scale - 1, 8, 2);
+                }
+
+                drawCharge(ctx, W/2 + currentProblem.pos1.x * scale, H/2 - currentProblem.pos1.y * scale, currentProblem.q1uC, "q₁", "#ef4444");
+                drawCharge(ctx, W/2 + currentProblem.pos2.x * scale, H/2 - currentProblem.pos2.y * scale, currentProblem.q2uC, "q₂", "#3b82f6");
+
+                document.getElementById('q1-data').innerHTML = `Carga $q_1 = ${currentProblem.q1uC} \\, \\mu C$ en la posición $(${currentProblem.pos1.x}, ${currentProblem.pos1.y}) \\, m$`;
+                document.getElementById('q2-data').innerHTML = `Carga $q_2 = ${currentProblem.q2uC} \\, \\mu C$ en la posición $(${currentProblem.pos2.x}, ${currentProblem.pos2.y}) \\, m$`;
+                
+                if (window.MathJax && MathJax.typesetPromise) {
+                    MathJax.typesetPromise();
+                }
+            }
+
+            function drawCharge(ctx, x, y, val, label, color) {
+                const radius = 8 + Math.abs(val) * 0.4;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.strokeStyle = "white";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.fillStyle = "white";
+                ctx.font = "bold 14px Arial";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(val > 0 ? "+" : "-", x, y);
+
+                ctx.fillStyle = "#1e293b";
+                ctx.font = "bold 12px sans-serif";
+                ctx.fillText(label, x, y - radius - 10);
+            }
+
+            function checkAnswers() {
+                if (!currentProblem) return;
+
+                const user = {
+                    rx: parseFloat(document.getElementById('ans-rx').value),
+                    ry: parseFloat(document.getElementById('ans-ry').value),
+                    rmod: parseFloat(document.getElementById('ans-rmod').value),
+                    ux: parseFloat(document.getElementById('ans-ux').value),
+                    uy: parseFloat(document.getElementById('ans-uy').value),
+                    fx: parseFloat(document.getElementById('ans-fx').value.replace(',', '.')),
+                    fy: parseFloat(document.getElementById('ans-fy').value.replace(',', '.'))
+                };
+
+                const fields = ['rx', 'ry', 'rmod', 'ux', 'uy', 'fx', 'fy'];
+                const targets = [currentProblem.rx, currentProblem.ry, currentProblem.rMod, currentProblem.ux, currentProblem.uy, currentProblem.fx, currentProblem.fy];
+                
+                let exercisePoints = 0;
+                let mistakes = 0;
+
+                fields.forEach((f, i) => {
+                    const input = document.getElementById('ans-' + f);
+                    let isForce = (f === 'fx' || f === 'fy');
+                    
+                    let isValid = false;
+                    if (isForce) {
+                        isValid = validateRelative(user[f], targets[i], 0.015);
+                    } else {
+                        isValid = validate(user[f], targets[i]);
+                    }
+
+                    if (isValid) {
+                        exercisePoints += 0.2;
+                        input.classList.remove('border-slate-200', 'border-red-500');
+                        input.classList.add('border-green-500');
+                    } else {
+                        exercisePoints -= 0.2;
+                        mistakes++;
+                        input.classList.add('border-red-500');
+                        input.classList.remove('border-slate-200', 'border-green-500');
+                    }
+                });
+
+                globalScore = Math.max(0, globalScore + Math.max(-1.0, Math.min(1.0, exercisePoints)));
+                updateScoreUI();
+                showFeedback(mistakes === 0);
+                saveSCORM();
+
+                if (globalScore >= 10) document.getElementById('victory-modal').classList.remove('hidden');
+            }
+
+            function validate(u, t) { return !isNaN(u) && Math.abs(u - t) < TOLERANCE; }
+            function validateRelative(u, t, rel) { 
+                if (isNaN(u)) return false;
+                if (Math.abs(t) < 1e-12) return Math.abs(u) < 1e-12;
+                return Math.abs(u - t) / Math.abs(t) < rel;
+            }
+
+            function updateScoreUI() {
+                const d = document.getElementById('score-display');
+                if (d) {
+                    d.innerText = globalScore.toFixed(1);
+                    d.className = `text-3xl font-bold ${globalScore >= 5 ? 'text-green-500' : 'text-red-500'}`;
+                }
+            }
+
+            function showFeedback(ok) {
+                const div = document.getElementById('feedback-msg');
+                div.classList.remove('hidden');
+                if (ok) {
+                    div.className = "mb-6 p-4 rounded-xl text-sm font-medium bg-green-50 text-green-700 border-green-200";
+                    div.innerText = "¡Excelente! Todos los cálculos vectoriales y de fuerza son precisos.";
+                } else {
+                    div.className = "mb-6 p-4 rounded-xl text-sm font-medium bg-red-50 text-red-700 border-red-200";
+                    div.innerText = "Revisa los campos en rojo. Asegúrate de incluir 2 decimales en la mantisa para la fuerza.";
+                }
+            }
+
+            function hideFeedback() { 
+                const el = document.getElementById('feedback-msg');
+                if (el) el.classList.add('hidden'); 
+            }
+
+            function clearInputs() {
+                document.querySelectorAll('input').forEach(i => {
+                    i.value = "";
+                    i.classList.remove('border-red-500', 'border-green-500');
+                    i.classList.add('border-slate-200');
+                });
+            }
+
+            // --- CALCULADORA ---
+            let calcBuffer = "0";
+            function updateCalc() { document.getElementById('calc-display').innerText = calcBuffer; }
+            
+            window.calcNum = function(n) { calcBuffer = (calcBuffer === "0") ? n : calcBuffer + n; updateCalc(); };
+            window.calcClear = function() { calcBuffer = "0"; updateCalc(); };
+            window.calcOp = function(op) {
+                if (op === 'sqrt') {
+                    try { calcBuffer = Math.sqrt(eval(calcBuffer)).toString(); } catch(e) { calcBuffer = "Error"; }
+                } else { calcBuffer += op; }
+                updateCalc();
+            };
+            window.calcEnter = function() {
+                try { 
+                    let res = eval(calcBuffer);
+                    if (isNaN(res)) throw "Err";
+                    calcBuffer = (Math.abs(res) < 0.01 || Math.abs(res) > 9999) ? res.toExponential(2) : parseFloat(res.toFixed(4)).toString();
+                } catch(e) { calcBuffer = "Error"; }
+                updateCalc();
+            };
+
+            function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+            // Init
+            window.addEventListener('load', () => {
+                initSCORM();
+                window.generateProblem();
+                const verifyBtn = document.getElementById('btn-verify');
+                if (verifyBtn) verifyBtn.onclick = checkAnswers;
+                window.addEventListener('keydown', (e) => { 
+                    if (e.key === 'Enter' && !document.activeElement.closest('.calculator')) checkAnswers(); 
+                });
+            });
+
+            window.addEventListener('unload', () => {
+                if (scorm) {
+                    try { scorm.LMSFinish(""); } catch(e) {}
+                }
+            });
+
+        })();
+    </script>
+</body>
+</html>
