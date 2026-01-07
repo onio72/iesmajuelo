@@ -1,0 +1,465 @@
+  <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interacción Ley de Coulomb - SCORM</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --grid-color: #cbd5e1;
+            --pos-color: #ef4444;
+            --neg-color: #3b82f6;
+            --text-main: #1e293b;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #ui-container {
+            position: absolute;
+            top: 20px;
+            width: 90%;
+            max-width: 850px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            backdrop-filter: blur(8px);
+        }
+
+        .controls-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .score-box {
+            font-size: 1.4rem;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .score-low { color: #ef4444; }
+        .score-high { color: #22c55e; }
+
+        .checkbox-container {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        button {
+            padding: 10px 18px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            background-color: #0f172a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        button:hover { background-color: #334155; }
+        button:active { transform: translateY(2px); }
+
+        canvas {
+            background-color: white;
+            cursor: crosshair;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            width: 95vw;
+            height: 75vh;
+        }
+
+        #feedback {
+            position: absolute;
+            bottom: 30px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            padding: 12px 24px;
+            border-radius: 30px;
+            opacity: 0;
+            transition: opacity 0.5s;
+            text-align: center;
+            max-width: 80%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            pointer-events: none;
+        }
+
+        .congrats-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            color: white;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui-container">
+        <div class="controls-group">
+            <div id="score-display" class="score-box score-low">Puntuación: 0 / 10</div>
+            <label class="checkbox-container">
+                <input type="checkbox" id="show-line-check"> Mostrar recta que une las cargas
+            </label>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <button onclick="checkAnswer()">Comprobar</button>
+            <button onclick="initExercise()" style="background-color: #64748b;">Nuevo Ejercicio</button>
+        </div>
+    </div>
+
+    <canvas id="simCanvas"></canvas>
+    <div id="feedback"></div>
+
+    <div id="finish-screen" class="congrats-overlay">
+        <h1>¡Misión Cumplida!</h1>
+        <p style="font-size: 1.2rem;">Has alcanzado la puntuación máxima (10/10).</p>
+        <p>Tu calificación ha sido registrada correctamente.</p>
+        <button onclick="location.reload()" style="margin-top: 20px;">Reiniciar Actividad</button>
+    </div>
+
+    <script>
+        /**
+         * SCORM 1.2 WRAPPER
+         */
+        let scorm = null;
+        let scormConnected = false;
+
+        function findLMS(win) {
+            let tries = 0;
+            while (tries < 10) {
+                try {
+                    if (win.API != null) return win.API;
+                    if (win.parent != null && win.parent != win) {
+                        win = win.parent;
+                        tries++;
+                    } else break;
+                } catch (e) { break; }
+            }
+            return null;
+        }
+
+        function initSCORM() {
+            scorm = findLMS(window);
+            if (scorm) {
+                try {
+                    scorm.LMSInitialize("");
+                    scorm.LMSSetValue("cmi.core.score.min", "0");
+                    scorm.LMSSetValue("cmi.core.score.max", "10");
+                    scorm.LMSSetValue("cmi.core.exit", "suspend");
+                    scormConnected = true;
+                } catch (e) { console.warn("SCORM init failed:", e); }
+            }
+        }
+
+        function reportScore(value) {
+            if (scormConnected && scorm) {
+                try {
+                    scorm.LMSSetValue("cmi.core.score.raw", value.toString());
+                    if (value >= 5) scorm.LMSSetValue("cmi.core.lesson_status", "passed");
+                    if (value >= 10) scorm.LMSSetValue("cmi.core.lesson_status", "completed");
+                    scorm.LMSCommit("");
+                } catch (e) { console.error(e); }
+            }
+        }
+
+        window.onunload = function() {
+            if (scormConnected && scorm) {
+                try { scorm.LMSFinish(""); } catch (e) {}
+            }
+        };
+
+        /**
+         * SIMULACIÓN
+         */
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score-display');
+        const feedback = document.getElementById('feedback');
+        const showLineCheck = document.getElementById('show-line-check');
+
+        let score = 0;
+        let q1, q2; 
+        let vectorAngle = 0; 
+        let isDragging = false;
+        let time = 0;
+
+        const MIN_CHARGE_SIZE = 12;
+        const MAX_CHARGE_SIZE = 35;
+
+        class Charge {
+            constructor(label) {
+                this.label = label;
+                this.x = 0;
+                this.y = 0;
+                this.val = 0;
+                this.baseSize = 0;
+            }
+
+            reset() {
+                // Margen de seguridad del 15% del canvas
+                const marginX = canvas.width * 0.15;
+                const marginY = canvas.height * 0.15;
+                this.x = marginX + Math.random() * (canvas.width - marginX * 2);
+                this.y = marginY + Math.random() * (canvas.height - marginY * 2);
+                this.val = (Math.random() > 0.5 ? 1 : -1) * (Math.floor(Math.random() * 9) + 1);
+                this.baseSize = Math.abs(this.val) * ( (MAX_CHARGE_SIZE - MIN_CHARGE_SIZE) / 10 ) + MIN_CHARGE_SIZE;
+            }
+
+            draw() {
+                const pulse = Math.sin(time * 0.05) * 1.2;
+                const r = this.baseSize + pulse;
+                const color = this.val > 0 ? '#ef4444' : '#3b82f6';
+                
+                ctx.save();
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.restore();
+                
+                ctx.fillStyle = 'white';
+                ctx.font = `bold ${Math.max(10, r/1.6)}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const sign = this.val > 0 ? '+' : '';
+                ctx.fillText(`${sign}${this.val}µC`, this.x, this.y);
+
+                ctx.fillStyle = '#1e293b';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.fillText(this.label, this.x, this.y - r - 15);
+            }
+        }
+
+        function initCanvas() {
+            // Seteo de dimensiones internas para evitar distorsión
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+
+        function initExercise() {
+            if (!q1) q1 = new Charge("q₁");
+            if (!q2) q2 = new Charge("q₂");
+
+            let valid = false;
+            let safetyCounter = 0;
+
+            while (!valid && safetyCounter < 100) {
+                safetyCounter++;
+                q1.reset();
+                q2.reset();
+                
+                let dist = Math.hypot(q1.x - q2.x, q1.y - q2.y);
+                
+                // Parámetros dinámicos según el tamaño actual de la pantalla
+                const minDim = Math.min(canvas.width, canvas.height);
+                const minDistRequired = minDim * 0.3; // Al menos 30% de la dimensión menor
+                const vLen = dist * 0.55; 
+                
+                // Comprobamos si el vector cabe en el canvas (margen de seguridad de 40px)
+                const margin = 40;
+                const vectorFits = (
+                    q1.x - vLen > margin && q1.x + vLen < canvas.width - margin &&
+                    q1.y - vLen > margin && q1.y + vLen < canvas.height - margin
+                );
+
+                if (dist > minDistRequired && vectorFits) {
+                    valid = true;
+                }
+            }
+
+            // Fallback si falla la generación aleatoria (pantallas extremadamente pequeñas)
+            if (!valid) {
+                q1.x = canvas.width * 0.3; q1.y = canvas.height * 0.5; q1.val = 5; q1.baseSize = 25;
+                q2.x = canvas.width * 0.7; q2.y = canvas.height * 0.5; q2.val = -5; q2.baseSize = 25;
+            }
+
+            vectorAngle = Math.random() * Math.PI * 2;
+            hideFeedback();
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.setLineDash([3, 6]);
+            ctx.lineWidth = 1;
+            const step = 60;
+            for (let x = 0; x < canvas.width; x += step) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += step) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+            ctx.setLineDash([]);
+        }
+
+        function drawConnectingLine() {
+            if (!showLineCheck.checked) return;
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([15, 5, 2, 5]); 
+            ctx.beginPath();
+            ctx.moveTo(q1.x, q1.y);
+            ctx.lineTo(q2.x, q2.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawVector() {
+            const dist = Math.hypot(q1.x - q2.x, q1.y - q2.y);
+            const vectorLength = dist * 0.55;
+
+            const targetX = q1.x + Math.cos(vectorAngle) * vectorLength;
+            const targetY = q1.y + Math.sin(vectorAngle) * vectorLength;
+
+            ctx.beginPath();
+            ctx.moveTo(q1.x, q1.y);
+            ctx.lineTo(targetX, targetY);
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 3.5;
+            ctx.stroke();
+
+            const headlen = 14;
+            ctx.beginPath();
+            ctx.moveTo(targetX, targetY);
+            ctx.lineTo(targetX - headlen * Math.cos(vectorAngle - Math.PI / 7), targetY - headlen * Math.sin(vectorAngle - Math.PI / 7));
+            ctx.lineTo(targetX - headlen * Math.cos(vectorAngle + Math.PI / 7), targetY - headlen * Math.sin(vectorAngle + Math.PI / 7));
+            ctx.closePath();
+            ctx.fillStyle = '#0f172a';
+            ctx.fill();
+
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'italic bold 18px serif';
+            ctx.fillText('F', targetX + 15 * Math.cos(vectorAngle), targetY + 15 * Math.sin(vectorAngle));
+        }
+
+        function animate() {
+            time++;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+            drawConnectingLine();
+            if(q1 && q2) {
+                q1.draw();
+                q2.draw();
+                drawVector();
+            }
+            requestAnimationFrame(animate);
+        }
+
+        function checkAnswer() {
+            const dx = q1.x - q2.x;
+            const dy = q1.y - q2.y;
+            const angleLine = Math.atan2(dy, dx);
+            
+            let correctAngle = (q1.val * q2.val > 0) ? angleLine : angleLine + Math.PI;
+            
+            let normUser = (vectorAngle % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+            let normCorrect = (correctAngle % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+
+            let diff = Math.abs(normUser - normCorrect);
+            if (diff > Math.PI) diff = 2 * Math.PI - diff;
+
+            if (diff < 0.28) {
+                updateScore(1, "¡Excelente! Has dibujado bien la dirección y el sentido de la fuerza sobre la carga q₁.");
+                setTimeout(initExercise, 1800);
+            } else {
+                let oppositeCorrect = (normCorrect + Math.PI) % (Math.PI * 2);
+                let diffOpp = Math.abs(normUser - oppositeCorrect);
+                if (diffOpp > Math.PI) diffOpp = 2 * Math.PI - diffOpp;
+
+                if (diffOpp < 0.28) {
+                    updateScore(-1, "Dirección correcta, pero sentido incorrecto sobre q₁.");
+                } else {
+                    updateScore(-1, "La dirección y el sentido son incorrectos para la fuerza sobre q₁.");
+                }
+            }
+        }
+
+        function updateScore(points, msg) {
+            score += points;
+            if (score < 0) score = 0;
+            
+            scoreDisplay.innerText = `Puntuación: ${score} / 10`;
+            scoreDisplay.className = score >= 5 ? "score-box score-high" : "score-box score-low";
+
+            showFeedback(msg, points > 0 ? '#10b981' : '#f43f5e');
+            reportScore(score);
+
+            if (score >= 10) {
+                setTimeout(() => document.getElementById('finish-screen').style.display = 'flex', 1000);
+            }
+        }
+
+        function showFeedback(text, color) {
+            feedback.innerText = text;
+            feedback.style.backgroundColor = color;
+            feedback.style.color = 'white';
+            feedback.style.opacity = 1;
+            setTimeout(hideFeedback, 3500);
+        }
+
+        function hideFeedback() { feedback.style.opacity = 0; }
+
+        function handleMove(e) {
+            if (!isDragging) return;
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            vectorAngle = Math.atan2((clientY - rect.top) - q1.y, (clientX - rect.left) - q1.x);
+        }
+
+        // Listeners
+        canvas.addEventListener('mousedown', () => isDragging = true);
+        window.addEventListener('mouseup', () => isDragging = false);
+        window.addEventListener('mousemove', handleMove);
+        canvas.addEventListener('touchstart', (e) => { isDragging = true; e.preventDefault(); }, {passive: false});
+        window.addEventListener('touchend', () => isDragging = false);
+        window.addEventListener('touchmove', handleMove, {passive: false});
+
+        window.onload = () => {
+            initCanvas();
+            initExercise();
+            initSCORM();
+            animate();
+        };
+
+        window.addEventListener('resize', () => {
+            initCanvas();
+            initExercise();
+        });
+
+    </script>
+</body>
+</html>
