@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configurador Atómico - Modelo de Bohr</title>
+    <title>Laboratorio de Estructura Atómica (SCORM)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
-            --primary: #2c3e50;
-            --accent: #3498db;
-            --bg: #f8f9fa;
+            --primary: #0f172a;
+            --accent: #3b82f6;
+            --bg: #f1f5f9;
+            --success: #16a34a;
+            --error: #dc2626;
         }
 
         body {
@@ -19,366 +21,838 @@
             overflow-x: hidden;
         }
 
+        /* --- ATOM VISUALIZER --- */
         .atom-container {
             position: relative;
-            width: 450px;
-            height: 450px;
+            width: 100%;
+            max-width: 450px;
+            aspect-ratio: 1;
             margin: 0 auto;
+            user-select: none;
         }
 
         .orbit {
-            fill: none;
-            stroke: #d1d8e0;
+            fill: transparent; 
+            stroke: #cbd5e1;
             stroke-width: 2;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             cursor: pointer;
         }
 
         .orbit:hover {
             stroke: var(--accent);
             stroke-width: 4;
+            filter: drop-shadow(0 0 4px var(--accent));
+            fill: rgba(59, 130, 246, 0.05);
         }
 
         .electron {
-            fill: #e74c3c;
+            fill: #ef4444;
             filter: drop-shadow(0 0 2px rgba(0,0,0,0.3));
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        .electron:hover {
-            fill: #c0392b;
-            opacity: 0.7;
+            transition: transform 0.2s, opacity 0.2s;
+            pointer-events: none; /* El clic pasa a través hacia la órbita para simplificar */
         }
 
         .nucleus {
             fill: var(--primary);
+            pointer-events: none;
         }
 
-        .score-display {
-            font-weight: bold;
-            font-size: 1.5rem;
+        /* --- UI ELEMENTS --- */
+        input {
+            user-select: text !important;
+            -webkit-user-select: text !important;
+            pointer-events: auto !important;
         }
 
         .btn-validate {
             background-color: var(--primary);
             color: white;
-            padding: 10px 25px;
+            padding: 12px 25px;
             border-radius: 8px;
             transition: all 0.2s;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            cursor: pointer; 
+            position: relative;
+            z-index: 10;
         }
 
         .btn-validate:hover {
-            transform: scale(1.02);
-            background-color: #34495e;
+            transform: translateY(-2px);
+            background-color: #334155;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
+        .btn-validate:active {
+            transform: translateY(0);
+        }
+
+        .btn-reset {
+            color: #64748b;
+            font-size: 0.8rem;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .btn-reset:hover { color: var(--error); }
+
         .input-mini {
-            border: 2px solid #ddd;
-            border-radius: 4px;
-            width: 45px;
-            height: 35px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            width: 50px;
+            height: 40px;
             text-align: center;
             font-weight: bold;
+            font-size: 1.1rem;
             outline: none;
+            transition: border-color 0.2s;
+            background: white;
+            cursor: text;
+            -moz-appearance: textfield; /* Quitar spinner nativo */
+        }
+        .input-mini::-webkit-outer-spin-button,
+        .input-mini::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
 
         .input-mini:focus {
             border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
 
         .config-container {
             display: flex;
-            align-items: center;
+            align-items: flex-start; /* Alinear arriba para acomodar botones abajo */
             gap: 4px;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: bold;
             flex-wrap: wrap;
+            justify-content: center;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
         }
 
-        #feedback {
-            min-height: 1.5rem;
+        /* Controles +/- */
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            margin: 0 4px;
+        }
+        
+        .btn-step {
+            width: 24px;
+            height: 24px;
+            background: #e2e8f0;
+            color: #475569;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.1s;
+            font-weight: bold;
+            border: 1px solid #cbd5e1;
+            user-select: none;
+        }
+        .btn-step:hover {
+            background: #cbd5e1;
+            color: #1e293b;
+        }
+        .btn-step:active {
+            background: #94a3b8;
+            transform: scale(0.95);
+        }
+
+        .shell-label {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+        }
+
+        .stats-badge {
+            background: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 60px;
+        }
+
+        .stats-badge span.count {
+            font-size: 1rem;
+            color: #334155;
+        }
+        
+        .stats-badge span.label {
+            text-transform: uppercase;
+            font-size: 0.6rem;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+        }
+
+        .stats-badge.done {
+            background-color: #dcfce7;
+            border-color: #86efac;
+        }
+        .stats-badge.done span.count { color: #166534; }
+
+        .element-card {
+            border: 4px solid #1e293b;
+            border-radius: 16px;
+            padding: 20px 10px;
+            width: 180px;
+            height: 260px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            background: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            position: relative;
+            gap: 5px;
+        }
+
+        /* --- MODAL --- */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 50;
+        }
+        .modal-backdrop.active {
+            opacity: 1;
+            pointer-events: all;
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-2 md:p-6 min-h-screen flex items-center justify-center">
 
-    <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl p-6">
-        <div class="flex justify-between items-center mb-6 border-b pb-4">
+    <div class="w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden">
+        
+        <!-- HEADER -->
+        <div class="bg-slate-900 text-white p-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
-                <h1 class="text-2xl font-bold">Laboratorio de Estructura Atómica</h1>
-                <p class="text-sm text-gray-500">Elementos hasta Z=56 - Modelo de Bohr</p>
+                <h1 class="text-2xl md:text-3xl font-bold flex items-center gap-2">
+                    <span class="text-blue-400">⚛</span> Estructura Atómica
+                </h1>
+                <p class="text-slate-400 text-sm">Configuración electrónica y valencia</p>
             </div>
-            <div class="text-right">
-                <div id="scoreLabel" class="score-display text-red-600">Puntos: 0.0</div>
-                <div id="progressLabel" class="text-xs uppercase tracking-widest text-gray-400">Ejercicio 1 / 12</div>
+            
+            <!-- STATS PANEL -->
+            <div class="flex flex-col items-end gap-2">
+                <div class="flex gap-2 justify-end">
+                    <div id="badgeEasy" class="stats-badge">
+                        <span class="label">Fácil (Z&lt;11)</span>
+                        <span class="count"><span id="lblEasy">0</span>/2</span>
+                    </div>
+                    <div id="badgeMedium" class="stats-badge">
+                        <span class="label">Medio</span>
+                        <span class="count"><span id="lblMedium">0</span>/4</span>
+                    </div>
+                    <div id="badgeHard" class="stats-badge">
+                        <span class="label">Difícil</span>
+                        <span class="count"><span id="lblHard">0</span>/4</span>
+                    </div>
+                </div>
+                <div class="text-2xl font-black text-white bg-slate-800 px-4 py-1 rounded-lg border border-slate-700 mt-1">
+                    <span id="scoreLabel">0.0</span> <span class="text-sm text-slate-500 font-normal">/ 10 pts</span>
+                </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <div class="flex flex-col items-center">
-                <div class="mb-4 text-center">
-                    <h2 class="text-5xl font-black text-blue-600" id="elemSymbol">??</h2>
-                    <p class="text-lg font-medium" id="elemName">Cargando...</p>
-                    <div class="flex flex-col items-center space-y-1">
-                        <p class="text-sm text-gray-400">Z = <span id="elemZ">0</span></p>
-                        <p class="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                            Electrones colocados: <span id="eCount" class="text-blue-600">0</span>
-                        </p>
+        <div class="grid grid-cols-1 lg:grid-cols-2">
+            
+            <!-- LEFT: INTERACTIVE ATOM -->
+            <div class="p-6 md:p-10 flex flex-col items-center bg-slate-50 border-r border-slate-100">
+                
+                <!-- ELEMENT DISPLAY -->
+                <div class="mb-8">
+                    <div class="element-card">
+                        <!-- Z Centrado Arriba -->
+                        <div class="w-full text-center">
+                            <span class="text-sm font-bold text-slate-400 block uppercase tracking-wider">Nº Atómico</span>
+                            <span class="text-5xl font-black text-blue-600 block mt-1" id="elemZ">1</span>
+                        </div>
+                        
+                        <!-- Símbolo Grande -->
+                        <div class="flex-1 flex items-center justify-center -mt-2">
+                            <h2 class="text-8xl font-black text-slate-800 tracking-tighter" id="elemSymbol">H</h2>
+                        </div>
+                        
+                        <!-- Nombre Abajo con separador -->
+                        <div class="w-full text-center border-t-2 border-slate-100 pt-3 mt-2">
+                            <p class="text-lg font-bold text-slate-600 truncate px-2" id="elemName">Hidrógeno</p>
+                        </div>
                     </div>
                 </div>
 
                 <div class="atom-container">
                     <svg viewBox="0 0 450 450" id="atomSvg">
+                        <!-- Capas en orden inverso para priorizar clic en las interiores -->
+                        <circle cx="225" cy="225" r="185" class="orbit" onclick="game.toggleElectron(6)" />
+                        <circle cx="225" cy="225" r="155" class="orbit" onclick="game.toggleElectron(5)" />
+                        <circle cx="225" cy="225" r="125" class="orbit" onclick="game.toggleElectron(4)" />
+                        <circle cx="225" cy="225" r="95" class="orbit" onclick="game.toggleElectron(3)" />
+                        <circle cx="225" cy="225" r="65" class="orbit" onclick="game.toggleElectron(2)" />
+                        <circle cx="225" cy="225" r="35" class="orbit" onclick="game.toggleElectron(1)" />
+                        
                         <circle cx="225" cy="225" r="15" class="nucleus" />
-                        <circle cx="225" cy="225" r="35" class="orbit" data-shell="1" onclick="addElectron(1)" />
-                        <circle cx="225" cy="225" r="65" class="orbit" data-shell="2" onclick="addElectron(2)" />
-                        <circle cx="225" cy="225" r="95" class="orbit" data-shell="3" onclick="addElectron(3)" />
-                        <circle cx="225" cy="225" r="125" class="orbit" data-shell="4" onclick="addElectron(4)" />
-                        <circle cx="225" cy="225" r="155" class="orbit" data-shell="5" onclick="addElectron(5)" />
-                        <circle cx="225" cy="225" r="185" class="orbit" data-shell="6" onclick="addElectron(6)" />
                         <g id="electronsGroup"></g>
                     </svg>
                 </div>
                 
-                <p class="mt-2 text-xs text-gray-400 italic">Clic en órbita para añadir | Clic en electrón para quitar</p>
-                <button onclick="resetElectrons()" class="mt-2 text-xs text-gray-400 underline hover:text-red-500">Limpiar orbitales</button>
+                <div class="mt-4 flex flex-col items-center gap-2">
+                    <p class="text-sm text-slate-500 bg-white px-3 py-1 rounded-full shadow-sm border border-slate-200">
+                        Electrones colocados: <strong id="eCount" class="text-blue-600">0</strong>
+                    </p>
+                    <button onclick="game.resetElectrons()" class="btn-reset">Limpiar orbitales</button>
+                    <p class="text-xs text-slate-400 italic mt-1 font-medium">Usa los controles numéricos o haz clic en las órbitas.</p>
+                </div>
             </div>
 
-            <div class="space-y-6">
-                <div class="bg-gray-50 p-6 rounded-xl border border-gray-100">
-                    <h3 class="font-bold mb-2 text-sm uppercase tracking-wide">Restricciones Atómicas:</h3>
-                    <p class="text-xs text-gray-600 mb-4">Las cajas de texto están limitadas por la capacidad real de cada capa (2, 8, 18...). No podrás introducir valores superiores.</p>
+            <!-- RIGHT: CONTROLS & VALIDATION -->
+            <div class="p-6 md:p-10 flex flex-col justify-center space-y-8 bg-white">
+                
+                <!-- Info Box -->
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-blue-900 text-sm">
+                    <p class="font-bold mb-1">ℹ️ Instrucciones:</p>
+                    <ul class="list-disc list-inside space-y-1 opacity-90">
+                        <li>Escribe el número de electrones o usa los botones <strong>+/-</strong>.</li>
+                        <li>Indica los electrones de la capa de valencia (última capa).</li>
+                    </ul>
                 </div>
 
-                <div class="flex flex-col space-y-6">
-                    <div class="flex flex-col">
-                        <label class="text-sm font-semibold text-gray-700 mb-2">Configuración Electrónica:</label>
-                        <div id="dynamicConfigArea" class="config-container"></div>
+                <!-- Step 1: Config -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">1. Configuración por Capas</label>
+                    <div id="dynamicConfigArea" class="config-container">
+                        <!-- Inputs generados dinámicamente -->
                     </div>
+                </div>
 
-                    <div class="flex flex-col">
-                        <label class="text-sm font-semibold text-gray-700 mb-2">Electrones de Valencia:</label>
-                        <input type="number" id="valenceInput" class="border-2 border-gray-300 rounded p-2 w-24 text-center" placeholder="0">
+                <!-- Step 2: Valencia -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">2. Electrones de Valencia</label>
+                    <div class="flex items-center gap-3">
+                        <div class="control-group">
+                            <span class="shell-label">Val.</span>
+                            <!-- FIX: Se usa game.adjustValence y type="button" -->
+                            <button type="button" class="btn-step" onclick="game.adjustValence(1)">+</button>
+                            <input type="number" id="valenceInput" class="input-mini w-24" placeholder="?" min="0" oninput="if(this.value < 0) this.value = 0;">
+                            <button type="button" class="btn-step" onclick="game.adjustValence(-1)">-</button>
+                        </div>
+                        <span class="text-sm text-slate-400">(e⁻ en la capa más externa)</span>
                     </div>
+                </div>
 
-                    <div id="feedback" class="text-center font-bold text-sm"></div>
-
-                    <button id="validateBtn" onclick="validateAnswer()" class="btn-validate w-full text-lg font-bold shadow-lg">
-                        Validar y Continuar
+                <!-- Feedback & Action -->
+                <div class="pt-4 border-t border-slate-100">
+                    <div id="feedback" class="text-center font-bold mb-4 min-h-[1.5rem] text-lg"></div>
+                    <button id="validateBtn" type="button" onclick="game.validate()" class="btn-validate w-full text-lg shadow-blue-200 shadow-lg">
+                        Validar Respuesta
                     </button>
                 </div>
-            </div>
-        </div>
 
-        <div id="completionModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div class="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-sm">
-                <h2 class="text-3xl font-bold mb-4">¡Excelente trabajo!</h2>
-                <div class="text-5xl font-black text-green-600 mb-6" id="finalScore">10.0</div>
-                <button onclick="location.reload()" class="bg-blue-600 text-white px-6 py-2 rounded-lg">Repetir</button>
             </div>
         </div>
     </div>
 
+    <!-- FINAL MODAL -->
+    <div id="completionModal" class="modal-backdrop">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl text-center max-w-sm m-4 transform transition-all scale-100">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="text-4xl">🏆</span>
+            </div>
+            <h2 class="text-3xl font-black text-slate-800 mb-2">¡Laboratorio Completado!</h2>
+            <p class="text-slate-500 mb-6">Has demostrado dominio de la estructura atómica.</p>
+            <div class="text-6xl font-black text-blue-600 mb-8" id="finalScoreDisplay">10</div>
+            <p class="text-xs text-slate-400 mb-4">La puntuación ha sido registrada.</p>
+            <button onclick="game.terminateGame()" class="bg-slate-800 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-700 w-full">
+                Finalizar y Salir
+            </button>
+        </div>
+    </div>
+
     <script>
-        const elementsData = [
-            { z: 1, s: "H", n: "Hidrógeno", cfg: [1,0,0,0,0,0], v: 1, diff: 1 },
-            { z: 6, s: "C", n: "Carbono", cfg: [2,4,0,0,0,0], v: 4, diff: 1 },
-            { z: 11, s: "Na", n: "Sodio", cfg: [2,8,1,0,0,0], v: 1, diff: 2 },
-            { z: 18, s: "Ar", n: "Argón", cfg: [2,8,8,0,0,0], v: 8, diff: 2 },
-            { z: 19, s: "K", n: "Potasio", cfg: [2,8,8,1,0,0], v: 1, diff: 3 },
-            { z: 20, s: "Ca", n: "Calcio", cfg: [2,8,8,2,0,0], v: 2, diff: 3 },
-            { z: 21, s: "Sc", n: "Escandio", cfg: [2,8,9,2,0,0], v: 2, diff: 4 },
-            { z: 24, s: "Cr", n: "Cromo", cfg: [2,8,12,2,0,0], v: 2, diff: 4 },
-            { z: 26, s: "Fe", n: "Hierro", cfg: [2,8,14,2,0,0], v: 2, diff: 4 },
-            { z: 29, s: "Cu", n: "Cobre", cfg: [2,8,17,2,0,0], v: 2, diff: 4 },
-            { z: 30, s: "Zn", n: "Zinc", cfg: [2,8,18,2,0,0], v: 2, diff: 4 },
-            { z: 31, s: "Ga", n: "Galio", cfg: [2,8,18,3,0,0], v: 3, diff: 4 },
-            { z: 35, s: "Br", n: "Bromo", cfg: [2,8,18,7,0,0], v: 7, diff: 4 },
-            { z: 36, s: "Kr", n: "Kriptón", cfg: [2,8,18,8,0,0], v: 8, diff: 4 },
-            { z: 37, s: "Rb", n: "Rubidio", cfg: [2,8,18,8,1,0], v: 1, diff: 5 },
-            { z: 38, s: "Sr", n: "Estroncio", cfg: [2,8,18,8,2,0], v: 2, diff: 5 },
-            { z: 39, s: "Y", n: "Itrio", cfg: [2,8,18,9,2,0], v: 2, diff: 6 },
-            { z: 47, s: "Ag", n: "Plata", cfg: [2,8,18,17,2,0], v: 2, diff: 6 },
-            { z: 48, s: "Cd", n: "Cadmio", cfg: [2,8,18,18,2,0], v: 2, diff: 6 },
-            { z: 53, s: "I", n: "Yodo", cfg: [2,8,18,18,7,0], v: 7, diff: 6 },
-            { z: 54, s: "Xe", n: "Xenón", cfg: [2,8,18,18,8,0], v: 8, diff: 6 },
-            { z: 55, s: "Cs", n: "Cesio", cfg: [2,8,18,18,8,1], v: 1, diff: 7 },
-            { z: 56, s: "Ba", n: "Bario", cfg: [2,8,18,18,8,2], v: 2, diff: 7 }
+        /************************************************************************
+         * 1. SCORM API WRAPPER
+         ************************************************************************/
+        const SCORM = {
+            API: null,
+            isConnected: false,
+
+            init: function() {
+                this.API = this.findAPI(window);
+                if (this.API) {
+                    try {
+                        const status = this.API.LMSInitialize("");
+                        if (status === "true") {
+                            this.isConnected = true;
+                            console.log("SCORM: Conectado al LMS.");
+                        }
+                    } catch(e) { console.error(e); }
+                }
+            },
+
+            findAPI: function(win) {
+                let attempts = 0;
+                let currentWin = win;
+                while (attempts < 7) {
+                    try {
+                        if (currentWin.API != null) return currentWin.API;
+                        if (currentWin.parent == null || currentWin.parent === currentWin) return null;
+                        currentWin = currentWin.parent;
+                    } catch (e) { return null; }
+                    attempts++;
+                }
+                return null;
+            },
+
+            saveScore: function(score, min, max) {
+                if (!this.isConnected) return;
+                try {
+                    this.API.LMSSetValue("cmi.core.score.raw", score);
+                    this.API.LMSSetValue("cmi.core.score.min", min);
+                    this.API.LMSSetValue("cmi.core.score.max", max);
+                    this.API.LMSSetValue("cmi.core.lesson_status", score >= 5 ? "passed" : "incomplete");
+                    this.API.LMSCommit("");
+                } catch(e) {}
+            },
+
+            saveState: function(dataObj) {
+                if (!this.isConnected) return;
+                try {
+                    const suspendData = JSON.stringify(dataObj);
+                    this.API.LMSSetValue("cmi.suspend_data", suspendData);
+                    this.API.LMSCommit("");
+                } catch(e) {}
+            },
+
+            loadState: function() {
+                if (!this.isConnected) return null;
+                try {
+                    const data = this.API.LMSGetValue("cmi.suspend_data");
+                    if (!data || data === "") return null;
+                    return JSON.parse(data);
+                } catch (e) { return null; }
+            },
+
+            terminate: function() {
+                if (!this.isConnected) return;
+                try {
+                    this.API.LMSFinish("");
+                    this.isConnected = false;
+                } catch(e) {}
+            }
+        };
+
+        /************************************************************************
+         * 2. DATASET (Z=1 to Z=56)
+         ************************************************************************/
+        const rawElements = [
+            { z: 1,  s: "H",  n: "Hidrógeno",  shells: [1], g: 1 },
+            { z: 2,  s: "He", n: "Helio",      shells: [2], g: 18 },
+            { z: 3,  s: "Li", n: "Litio",      shells: [2,1], g: 1 },
+            { z: 4,  s: "Be", n: "Berilio",    shells: [2,2], g: 2 },
+            { z: 5,  s: "B",  n: "Boro",       shells: [2,3], g: 13 },
+            { z: 6,  s: "C",  n: "Carbono",    shells: [2,4], g: 14 },
+            { z: 7,  s: "N",  n: "Nitrógeno",  shells: [2,5], g: 15 },
+            { z: 8,  s: "O",  n: "Oxígeno",    shells: [2,6], g: 16 },
+            { z: 9,  s: "F",  n: "Flúor",      shells: [2,7], g: 17 },
+            { z: 10, s: "Ne", n: "Neón",       shells: [2,8], g: 18 },
+            { z: 11, s: "Na", n: "Sodio",      shells: [2,8,1], g: 1 },
+            { z: 12, s: "Mg", n: "Magnesio",   shells: [2,8,2], g: 2 },
+            { z: 13, s: "Al", n: "Aluminio",   shells: [2,8,3], g: 13 },
+            { z: 14, s: "Si", n: "Silicio",    shells: [2,8,4], g: 14 },
+            { z: 15, s: "P",  n: "Fósforo",    shells: [2,8,5], g: 15 },
+            { z: 16, s: "S",  n: "Azufre",     shells: [2,8,6], g: 16 },
+            { z: 17, s: "Cl", n: "Cloro",      shells: [2,8,7], g: 17 },
+            { z: 18, s: "Ar", n: "Argón",      shells: [2,8,8], g: 18 },
+            { z: 19, s: "K",  n: "Potasio",    shells: [2,8,8,1], g: 1 },
+            { z: 20, s: "Ca", n: "Calcio",     shells: [2,8,8,2], g: 2 },
+            { z: 21, s: "Sc", n: "Escandio",   shells: [2,8,9,2], g: 3 },
+            { z: 22, s: "Ti", n: "Titanio",    shells: [2,8,10,2], g: 4 },
+            { z: 23, s: "V",  n: "Vanadio",    shells: [2,8,11,2], g: 5 },
+            { z: 24, s: "Cr", n: "Cromo",      shells: [2,8,12,2], g: 6 }, 
+            { z: 25, s: "Mn", n: "Manganeso",  shells: [2,8,13,2], g: 7 },
+            { z: 26, s: "Fe", n: "Hierro",     shells: [2,8,14,2], g: 8 },
+            { z: 27, s: "Co", n: "Cobalto",    shells: [2,8,15,2], g: 9 },
+            { z: 28, s: "Ni", n: "Níquel",     shells: [2,8,16,2], g: 10 },
+            { z: 29, s: "Cu", n: "Cobre",      shells: [2,8,17,2], g: 11 }, 
+            { z: 30, s: "Zn", n: "Zinc",       shells: [2,8,18,2], g: 12 },
+            { z: 31, s: "Ga", n: "Galio",      shells: [2,8,18,3], g: 13 },
+            { z: 32, s: "Ge", n: "Germanio",   shells: [2,8,18,4], g: 14 },
+            { z: 33, s: "As", n: "Arsénico",   shells: [2,8,18,5], g: 15 },
+            { z: 34, s: "Se", n: "Selenio",    shells: [2,8,18,6], g: 16 },
+            { z: 35, s: "Br", n: "Bromo",      shells: [2,8,18,7], g: 17 },
+            { z: 36, s: "Kr", n: "Kriptón",    shells: [2,8,18,8], g: 18 },
+            { z: 37, s: "Rb", n: "Rubidio",    shells: [2,8,18,8,1], g: 1 },
+            { z: 38, s: "Sr", n: "Estroncio",  shells: [2,8,18,8,2], g: 2 },
+            { z: 39, s: "Y",  n: "Itrio",      shells: [2,8,18,9,2], g: 3 },
+            { z: 40, s: "Zr", n: "Circonio",   shells: [2,8,18,10,2], g: 4 },
+            { z: 41, s: "Nb", n: "Niobio",     shells: [2,8,18,11,2], g: 5 }, 
+            { z: 42, s: "Mo", n: "Molibdeno",  shells: [2,8,18,12,2], g: 6 }, 
+            { z: 43, s: "Tc", n: "Tecnecio",   shells: [2,8,18,13,2], g: 7 },
+            { z: 44, s: "Ru", n: "Rutenio",    shells: [2,8,18,14,2], g: 8 }, 
+            { 45: "Rh", z: 45, s: "Rh", n: "Rodio",      shells: [2,8,18,15,2], g: 9 }, 
+            { 46: "Pd", z: 46, s: "Pd", n: "Paladio", shells: [2,8,18,16,2], g: 10 }, 
+            { z: 47, s: "Ag", n: "Plata",      shells: [2,8,18,17,2], g: 11 }, 
+            { z: 48, s: "Cd", n: "Cadmio",     shells: [2,8,18,18,2], g: 12 },
+            { z: 49, s: "In", n: "Indio",      shells: [2,8,18,18,3], g: 13 },
+            { z: 50, s: "Sn", n: "Estaño",     shells: [2,8,18,18,4], g: 14 },
+            { z: 51, s: "Sb", n: "Antimonio",  shells: [2,8,18,18,5], g: 15 },
+            { z: 52, s: "Te", n: "Telurio",    shells: [2,8,18,18,6], g: 16 },
+            { z: 53, s: "I",  n: "Yodo",       shells: [2,8,18,18,7], g: 17 },
+            { z: 54, s: "Xe", n: "Xenón",      shells: [2,8,18,18,8], g: 18 },
+            { z: 55, s: "Cs", n: "Cesio",      shells: [2,8,18,18,8,1], g: 1 },
+            { z: 56, s: "Ba", n: "Bario",      shells: [2,8,18,18,8,2], g: 2 }
         ];
 
-        let currentScore = 0;
-        let exercisesDone = 0;
-        let zGreaterThan30Correct = 0;
-        let currentElement = null;
-        let userConfig = [0, 0, 0, 0, 0, 0];
-        let availableElements = [...elementsData];
-
-        function selectNextElement() {
-            if (exercisesDone >= 12) {
-                showFinalResults();
-                return;
+        // Procesar datos
+        const elementsData = rawElements.map(e => {
+            const cfg = [...e.shells, 0, 0, 0, 0, 0, 0].slice(0, 6);
+            const v = e.shells[e.shells.length - 1];
+            let type = 'easy';
+            if (e.z > 10 && e.z < 19) {
+                type = 'medium';
+            } else if (e.z > 18) {
+                type = 'hard';
             }
-            let forceHeavy = (currentScore >= 5.7 && zGreaterThan30Correct < 2);
-            let filtered = availableElements.filter(e => {
-                if (forceHeavy) return e.z > 30;
-                if (exercisesDone < 4) return e.diff <= 2;
-                if (exercisesDone < 8) return e.diff <= 4;
-                return true;
-            });
-            if (filtered.length === 0) filtered = availableElements;
-            const idx = Math.floor(Math.random() * filtered.length);
-            currentElement = filtered[idx];
-            availableElements = availableElements.filter(e => e.z !== currentElement.z);
-            renderNewExercise();
-        }
+            return { ...e, cfg, v, type };
+        });
 
-        function renderNewExercise() {
-            document.getElementById('elemSymbol').innerText = currentElement.s;
-            document.getElementById('elemName').innerText = currentElement.n;
-            document.getElementById('elemZ').innerText = currentElement.z;
-            document.getElementById('progressLabel').innerText = `Ejercicio ${exercisesDone + 1} / 12`;
-            document.getElementById('valenceInput').value = "";
-            document.getElementById('feedback').innerText = "";
-            userConfig = [0,0,0,0,0,0];
+        /************************************************************************
+         * 3. GAME ENGINE
+         ************************************************************************/
+        const game = {
+            state: {
+                score: 0,
+                easyDone: 0,
+                mediumDone: 0,
+                hardDone: 0,
+                currentElement: null,
+                userConfig: [0,0,0,0,0,0],
+                usedZ: []
+            },
             
-            const area = document.getElementById('dynamicConfigArea');
-            area.innerHTML = "";
+            MAX_CAPACITY: [2, 8, 18, 32, 50, 72],
 
-            const startLabel = document.createElement('span');
-            startLabel.innerHTML = `${currentElement.s} <span class="ml-1">(</span>`;
-            area.appendChild(startLabel);
-            
-            const numShells = currentElement.cfg.filter(n => n > 0).length;
-            const maxPerShell = [2, 8, 18, 32, 50, 72];
+            init: function() {
+                try {
+                    SCORM.init();
+                    const savedState = SCORM.loadState();
+                    if (savedState) {
+                        this.state = { ...this.state, ...savedState };
+                    }
+                    this.updateUI();
+                    this.nextLevel();
+                } catch(e) { console.error(e); }
+            },
 
-            for (let i = 0; i < numShells; i++) {
-                const input = document.createElement('input');
-                input.type = "number";
-                input.className = "input-mini shell-input";
-                input.dataset.idx = i;
-                input.min = 0;
-                input.max = maxPerShell[i]; // Límite en el atributo HTML
+            nextLevel: function() {
+                if (this.state.easyDone >= 2 && this.state.mediumDone >= 4 && this.state.hardDone >= 4) {
+                    this.finishGame();
+                    return;
+                }
+
+                let targetType = '';
+                if (this.state.easyDone < 2) targetType = 'easy';
+                else if (this.state.mediumDone < 4) targetType = 'medium';
+                else targetType = 'hard';
                 
-                input.addEventListener('input', (e) => {
-                    let val = parseInt(e.target.value) || 0;
-                    if (val > maxPerShell[i]) {
-                        val = maxPerShell[i]; // Límite por lógica JS
-                        e.target.value = val;
+                let pool = elementsData.filter(e => e.type === targetType);
+                let freshPool = pool.filter(e => !this.state.usedZ.includes(e.z));
+                if (freshPool.length === 0) freshPool = pool;
+
+                const nextElem = freshPool[Math.floor(Math.random() * freshPool.length)];
+                this.state.currentElement = nextElem;
+                this.state.usedZ.push(nextElem.z);
+                this.state.userConfig = [0,0,0,0,0,0];
+                this.renderLevel();
+            },
+
+            renderLevel: function() {
+                const el = this.state.currentElement;
+                document.getElementById('elemSymbol').innerText = el.s;
+                document.getElementById('elemName').innerText = el.n;
+                document.getElementById('elemZ').innerText = el.z;
+                
+                const fb = document.getElementById('feedback');
+                fb.innerText = "";
+                fb.className = "text-center font-bold mb-4 min-h-[1.5rem] text-lg";
+                
+                const btn = document.getElementById('validateBtn');
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.innerText = "Validar Respuesta";
+
+                const container = document.getElementById('dynamicConfigArea');
+                container.innerHTML = "";
+
+                // (1) Prefijo: "X ("
+                const prefix = document.createElement('span');
+                prefix.className = "text-slate-500 mr-2 text-2xl self-center";
+                prefix.textContent = `${el.s} (`;
+                container.appendChild(prefix);
+
+                const activeShells = el.cfg.filter(n => n > 0).length;
+                
+                for(let i=0; i<activeShells; i++) {
+                    const group = document.createElement('div');
+                    group.className = "control-group";
+
+                    const label = document.createElement('span');
+                    label.className = "shell-label";
+                    label.innerText = `Capa ${i+1}`;
+                    group.appendChild(label);
+
+                    const btnPlus = document.createElement('button');
+                    btnPlus.type = "button"; 
+                    btnPlus.className = "btn-step";
+                    btnPlus.innerText = "+";
+                    btnPlus.addEventListener('click', (e) => { 
+                        e.preventDefault(); 
+                        game.adjustShell(i, 1); 
+                    });
+                    group.appendChild(btnPlus);
+
+                    const input = document.createElement('input');
+                    input.type = "number";
+                    input.className = "input-mini shell-input";
+                    input.id = `input-shell-${i}`;
+                    input.dataset.idx = i;
+                    input.placeholder = "0";
+                    
+                    input.addEventListener('input', (e) => {
+                        let valStr = e.target.value;
+                        if (valStr === "") {
+                            this.state.userConfig[i] = 0;
+                            this.updateVisuals(false); 
+                            return;
+                        }
+                        let val = parseInt(valStr);
+                        if(isNaN(val) || val < 0) val = 0;
+                        if(val > this.MAX_CAPACITY[i]) val = this.MAX_CAPACITY[i];
+                        
+                        this.state.userConfig[i] = val;
+                        if (val !== parseInt(valStr)) e.target.value = val;
+                        this.updateVisuals(false); 
+                    });
+                    
+                    group.appendChild(input);
+
+                    const btnMinus = document.createElement('button');
+                    btnMinus.type = "button"; 
+                    btnMinus.className = "btn-step";
+                    btnMinus.innerText = "-";
+                    btnMinus.addEventListener('click', (e) => { 
+                        e.preventDefault(); 
+                        game.adjustShell(i, -1); 
+                    });
+                    group.appendChild(btnMinus);
+
+                    container.appendChild(group);
+                    
+                    if(i < activeShells - 1) {
+                        const comma = document.createElement('span');
+                        comma.innerText = ", ";
+                        comma.className = "self-center text-slate-300 mx-1";
+                        container.appendChild(comma);
                     }
-                    if (val < 0) {
-                        val = 0;
-                        e.target.value = 0;
+                }
+                
+                // (2) Sufijo: ")"
+                const suffix = document.createElement('span');
+                suffix.className = "text-slate-500 ml-2 text-2xl self-center";
+                suffix.textContent = ")";
+                container.appendChild(suffix);
+
+                document.getElementById('valenceInput').value = "";
+                this.updateVisuals(true);
+            },
+
+            adjustShell: function(idx, delta) {
+                const max = this.MAX_CAPACITY[idx];
+                let newVal = this.state.userConfig[idx] + delta;
+                if (newVal < 0) newVal = 0;
+                if (newVal > max) newVal = max;
+                this.state.userConfig[idx] = newVal;
+                this.updateVisuals(true);
+            },
+
+            adjustValence: function(delta) {
+                const inp = document.getElementById('valenceInput');
+                let val = parseInt(inp.value) || 0;
+                val += delta;
+                if (val < 0) val = 0;
+                inp.value = val;
+            },
+
+            // Atajo: click en órbita suma 1 (hasta max)
+            toggleElectron: function(shellNum) {
+                const idx = shellNum - 1;
+                // Si la capa está visible en los inputs, permitimos interacción
+                if (idx < this.state.currentElement.cfg.filter(n=>n>0).length) {
+                    this.adjustShell(idx, 1);
+                }
+            },
+
+            resetElectrons: function() {
+                this.state.userConfig = [0,0,0,0,0,0];
+                this.updateVisuals(true);
+            },
+
+            updateVisuals: function(syncInputs) {
+                const group = document.getElementById('electronsGroup');
+                group.innerHTML = "";
+                const radii = [35, 65, 95, 125, 155, 185];
+                let total = 0;
+
+                this.state.userConfig.forEach((count, idx) => {
+                    total += count;
+                    const r = radii[idx];
+                    for(let i=0; i<count; i++) {
+                        const angle = (i / count) * 2 * Math.PI - (Math.PI/2);
+                        const cx = 225 + r * Math.cos(angle);
+                        const cy = 225 + r * Math.sin(angle);
+                        
+                        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                        circle.setAttribute("cx", cx);
+                        circle.setAttribute("cy", cy);
+                        circle.setAttribute("r", 6);
+                        circle.classList.add("electron");
+                        group.appendChild(circle);
                     }
-                    userConfig[i] = val;
-                    updateAtomVisual(false);
                 });
 
-                area.appendChild(input);
-                if (i < numShells - 1) area.appendChild(document.createTextNode(", "));
-            }
-            
-            const endLabel = document.createElement('span');
-            endLabel.innerText = ")";
-            area.appendChild(endLabel);
-            
-            updateAtomVisual(true);
-        }
-
-        function addElectron(shell) {
-            const maxPerShell = [2, 8, 18, 32, 50, 72];
-            if (userConfig[shell-1] < maxPerShell[shell-1]) {
-                userConfig[shell-1]++;
-                updateAtomVisual(true);
-            }
-        }
-
-        function removeElectron(shellIdx) {
-            if (userConfig[shellIdx] > 0) {
-                userConfig[shellIdx]--;
-                updateAtomVisual(true);
-            }
-        }
-
-        function resetElectrons() {
-            userConfig = [0,0,0,0,0,0];
-            updateAtomVisual(true);
-        }
-
-        function updateAtomVisual(syncInputs = true) {
-            const group = document.getElementById('electronsGroup');
-            group.innerHTML = "";
-            const radii = [35, 65, 95, 125, 155, 185];
-
-            let totalColocados = 0;
-            userConfig.forEach((count, sIdx) => {
-                totalColocados += count;
-                const r = radii[sIdx];
-                for (let i = 0; i < count; i++) {
-                    const angle = (i / count) * 2 * Math.PI;
-                    const x = 225 + r * Math.cos(angle);
-                    const y = 225 + r * Math.sin(angle);
-                    const electron = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                    electron.setAttribute("cx", x); electron.setAttribute("cy", y); electron.setAttribute("r", 5);
-                    electron.classList.add("electron");
-                    electron.onclick = (e) => { e.stopPropagation(); removeElectron(sIdx); };
-                    group.appendChild(electron);
-                }
+                document.getElementById('eCount').innerText = total;
 
                 if (syncInputs) {
                     const inputs = document.querySelectorAll('.shell-input');
-                    if (inputs[sIdx]) inputs[sIdx].value = count || "";
+                    inputs.forEach((inp) => {
+                        const idx = parseInt(inp.dataset.idx);
+                        inp.value = this.state.userConfig[idx] > 0 ? this.state.userConfig[idx] : "";
+                    });
                 }
-            });
-            document.getElementById('eCount').innerText = totalColocados;
-        }
+            },
 
-        function validateAnswer() {
-            const valenceInput = parseInt(document.getElementById('valenceInput').value);
-            const feedback = document.getElementById('feedback');
-            const shellInputs = document.querySelectorAll('.shell-input');
-            let shellValues = Array.from(shellInputs).map(inp => parseInt(inp.value) || 0);
+            validate: function() {
+                try {
+                    const target = this.state.currentElement;
+                    const feedback = document.getElementById('feedback');
+                    const btn = document.getElementById('validateBtn');
+                    
+                    const activeShellsCount = target.cfg.filter(n => n > 0).length;
+                    let correctShells = 0;
+                    for (let i = 0; i < activeShellsCount; i++) {
+                        if (this.state.userConfig[i] === target.cfg[i]) {
+                            correctShells++;
+                        }
+                    }
 
-            const cfgVisualCorrect = userConfig.every((val, idx) => val === currentElement.cfg[idx]);
-            const valenceCorrect = valenceInput === currentElement.v;
-            const expectedCfg = currentElement.cfg.filter(n => n > 0);
-            const textCfgCorrect = shellValues.length === expectedCfg.length && 
-                                  shellValues.every((v, i) => v === expectedCfg[i]);
+                    const valInputStr = document.getElementById('valenceInput').value;
+                    const valInput = valInputStr === "" ? -1 : parseInt(valInputStr);
+                    const isValenceCorrect = (valInput === target.v);
 
-            if (cfgVisualCorrect && valenceCorrect && textCfgCorrect) {
-                feedback.innerText = "¡Correcto!";
-                feedback.className = "text-green-600 font-bold";
-                if (currentElement.z > 30) zGreaterThan30Correct++;
-                let tempScore = currentScore + (10 / 12);
-                if (tempScore >= 5.9 && zGreaterThan30Correct < 2) {
-                    currentScore = 5.9;
-                    feedback.innerText = "¡Correcto! Nota limitada a 5.9 hasta resolver 2 elementos Z>30.";
-                } else {
-                    currentScore = tempScore;
-                }
-                exercisesDone++;
-                setTimeout(() => { updateScoreUI(); selectNextElement(); }, 1200);
-            } else {
-                feedback.innerText = "Error. Comprueba el dibujo y los niveles.";
-                feedback.className = "text-red-600 font-bold";
-                if (currentScore > 0) currentScore -= 0.15;
-                updateScoreUI();
+                    const totalFields = activeShellsCount + 1;
+                    const correctFields = correctShells + (isValenceCorrect ? 1 : 0);
+                    
+                    const scoreEarned = parseFloat((correctFields / totalFields).toFixed(2));
+
+                    if (correctFields === totalFields) {
+                        feedback.innerText = "¡Perfecto! (+1.0 pt)";
+                        feedback.className = "text-green-600 font-bold mb-4 h-6 text-lg animate-bounce";
+                    } else {
+                        feedback.innerText = `Aceptable. Aciertos: ${correctFields}/${totalFields} (+${scoreEarned} pts)`;
+                        feedback.className = "text-orange-500 font-bold mb-4 h-6 text-lg";
+                    }
+
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    btn.innerText = "Siguiente...";
+
+                    this.processAttempt(scoreEarned, target.type);
+
+                } catch (e) { console.error(e); }
+            },
+
+            processAttempt: function(earned, type) {
+                if (type === 'easy') this.state.easyDone++;
+                else if (type === 'medium') this.state.mediumDone++;
+                else if (type === 'hard') this.state.hardDone++;
+                
+                this.state.score += earned;
+                this.state.score = Math.round(this.state.score * 100) / 100;
+                
+                if (this.state.score > 10) this.state.score = 10;
+                
+                SCORM.saveScore(this.state.score, 0, 10);
+                SCORM.saveState(this.state);
+                
+                this.updateUI();
+
+                setTimeout(() => {
+                    this.nextLevel();
+                }, 2000);
+            },
+
+            updateUI: function() {
+                document.getElementById('lblEasy').innerText = Math.min(this.state.easyDone, 2);
+                document.getElementById('lblMedium').innerText = Math.min(this.state.mediumDone, 4);
+                document.getElementById('lblHard').innerText = Math.min(this.state.hardDone, 4);
+                
+                if (this.state.easyDone >= 2) document.getElementById('badgeEasy').classList.add('done');
+                if (this.state.mediumDone >= 4) document.getElementById('badgeMedium').classList.add('done');
+                if (this.state.hardDone >= 4) document.getElementById('badgeHard').classList.add('done');
+
+                document.getElementById('scoreLabel').innerText = this.state.score.toFixed(1);
+            },
+
+            finishGame: function() {
+                document.getElementById('finalScoreDisplay').innerText = this.state.score.toFixed(1);
+                document.getElementById('completionModal').classList.add('active');
+                SCORM.saveScore(this.state.score, 0, 10);
+                SCORM.saveState(this.state);
+            },
+
+            terminateGame: function() {
+                SCORM.terminate();
+                window.close();
+                alert("La sesión ha terminado. Puedes cerrar esta ventana.");
             }
-        }
+        };
 
-        function updateScoreUI() {
-            const display = document.getElementById('scoreLabel');
-            if (currentScore > 10) currentScore = 10;
-            display.innerText = `Puntos: ${currentScore.toFixed(1)}`;
-            display.className = currentScore < 5 ? "score-display text-red-600" : "score-display text-green-600";
-        }
+        window.onload = function() {
+            game.init();
+        };
 
-        function showFinalResults() {
-            document.getElementById('finalScore').innerText = currentScore.toFixed(1);
-            document.getElementById('completionModal').classList.remove('hidden');
-        }
+        // FIX: EXPOSICIÓN GLOBAL DEL JUEGO PARA EVENTOS HTML
+        window.game = game;
 
-        window.onload = () => { selectNextElement(); };
+        window.onbeforeunload = function() {
+            SCORM.saveState(game.state);
+            SCORM.terminate();
+        };
+
     </script>
 </body>
 </html>
