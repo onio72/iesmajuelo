@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -99,16 +99,16 @@
         .input-mini {
             border: 2px solid #e2e8f0;
             border-radius: 6px;
-            width: 50px;
-            height: 40px;
+            width: 40px;
+            height: 36px;
             text-align: center;
             font-weight: bold;
-            font-size: 1.1rem;
+            font-size: 1rem;
             outline: none;
             transition: border-color 0.2s;
             background: white;
             cursor: text;
-            -moz-appearance: textfield; /* Quitar spinner nativo */
+            -moz-appearance: textfield;
         }
         .input-mini::-webkit-outer-spin-button,
         .input-mini::-webkit-inner-spin-button {
@@ -123,13 +123,13 @@
 
         .config-container {
             display: flex;
-            align-items: flex-start; /* Alinear arriba para acomodar botones abajo */
-            gap: 4px;
+            align-items: flex-start;
+            gap: 2px;
             font-size: 1.2rem;
             font-weight: bold;
             flex-wrap: wrap;
             justify-content: center;
-            padding: 15px;
+            padding: 10px;
             background: #f8fafc;
             border-radius: 12px;
             border: 1px solid #e2e8f0;
@@ -140,17 +140,17 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
-            margin: 0 4px;
+            gap: 2px;
+            margin: 0 2px;
         }
         
         .btn-step {
             width: 24px;
-            height: 24px;
+            height: 20px;
             background: #e2e8f0;
             color: #475569;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: 12px;
             line-height: 1;
             display: flex;
             align-items: center;
@@ -171,7 +171,7 @@
         }
 
         .shell-label {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: #94a3b8;
             margin-bottom: 2px;
             text-transform: uppercase;
@@ -242,11 +242,24 @@
             opacity: 1;
             pointer-events: all;
         }
+
+        /* --- FINISH SCREEN --- */
+        #finishScreen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: #f8fafc;
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
     </style>
 </head>
 <body class="p-2 md:p-6 min-h-screen flex items-center justify-center">
 
-    <div class="w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden">
+    <div id="gameWrapper" class="w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden">
         
         <!-- HEADER -->
         <div class="bg-slate-900 text-white p-6 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -274,7 +287,7 @@
                     </div>
                 </div>
                 <div class="text-2xl font-black text-white bg-slate-800 px-4 py-1 rounded-lg border border-slate-700 mt-1">
-                    <span id="scoreLabel">0.0</span> <span class="text-sm text-slate-500 font-normal">/ 10 pts</span>
+                    <span id="scoreLabel" class="text-red-500">0.0</span> <span class="text-sm text-slate-500 font-normal">/ 10 pts</span>
                 </div>
             </div>
         </div>
@@ -382,14 +395,22 @@
             <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span class="text-4xl">🏆</span>
             </div>
-            <h2 class="text-3xl font-black text-slate-800 mb-2">¡Laboratorio Completado!</h2>
-            <p class="text-slate-500 mb-6">Has demostrado dominio de la estructura atómica.</p>
+            <h2 class="text-3xl font-black text-slate-800 mb-2">¡Objetivo Alcanzado!</h2>
+            <p class="text-slate-500 mb-6">Has conseguido la puntuación máxima.</p>
             <div class="text-6xl font-black text-blue-600 mb-8" id="finalScoreDisplay">10</div>
-            <p class="text-xs text-slate-400 mb-4">La puntuación ha sido registrada.</p>
-            <button onclick="game.terminateGame()" class="bg-slate-800 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-700 w-full">
+            <p class="text-xs text-slate-400 mb-4">Progreso guardado correctamente.</p>
+            <button onclick="game.terminateGame()" class="bg-slate-800 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-700 w-full cursor-pointer">
                 Finalizar y Salir
             </button>
         </div>
+    </div>
+
+    <!-- FINAL SCREEN (FOR WHEN WINDOW.CLOSE FAILS) -->
+    <div id="finishScreen">
+        <div class="text-6xl mb-4">👋</div>
+        <h1 class="text-4xl font-bold text-slate-800 mb-4">Sesión Finalizada</h1>
+        <p class="text-slate-500 max-w-md mx-auto mb-8">Tus resultados han sido registrados en la plataforma. Ya puedes cerrar esta pestaña o ventana del navegador de forma segura.</p>
+        <div class="text-sm text-slate-400">SCORM Terminated Successfully</div>
     </div>
 
     <script>
@@ -569,19 +590,44 @@
             },
 
             nextLevel: function() {
-                if (this.state.easyDone >= 2 && this.state.mediumDone >= 4 && this.state.hardDone >= 4) {
+                // FIX: El juego SOLO termina si se llega a puntuación 9.9 o 10
+                if (this.state.score >= 9.9) {
                     this.finishGame();
                     return;
                 }
 
-                let targetType = '';
-                if (this.state.easyDone < 2) targetType = 'easy';
-                else if (this.state.mediumDone < 4) targetType = 'medium';
-                else targetType = 'hard';
+                // Selección de Tipo
+                let targetType = 'easy';
+                const total = this.state.easyDone + this.state.mediumDone + this.state.hardDone;
+
+                if (total < 10) {
+                    // Fase inicial estricta (2-4-4)
+                    if (this.state.easyDone < 2) targetType = 'easy';
+                    else if (this.state.mediumDone < 4) targetType = 'medium';
+                    else targetType = 'hard';
+                } else {
+                    // Fase de mantenimiento de proporción (20% - 40% - 40%)
+                    // Calculamos el déficit relativo para ver qué categoría está más "rezagada"
+                    const ratioEasy = this.state.easyDone / total;
+                    const ratioMedium = this.state.mediumDone / total;
+                    const ratioHard = this.state.hardDone / total;
+
+                    const deficitEasy = 0.2 - ratioEasy;
+                    const deficitMedium = 0.4 - ratioMedium;
+                    const deficitHard = 0.4 - ratioHard;
+
+                    if (deficitEasy >= deficitMedium && deficitEasy >= deficitHard) targetType = 'easy';
+                    else if (deficitMedium >= deficitHard) targetType = 'medium';
+                    else targetType = 'hard';
+                }
                 
                 let pool = elementsData.filter(e => e.type === targetType);
                 let freshPool = pool.filter(e => !this.state.usedZ.includes(e.z));
-                if (freshPool.length === 0) freshPool = pool;
+                // Si agotamos todos los de una categoría, reiniciamos el historial de uso para esa categoría
+                if (freshPool.length === 0) {
+                    this.state.usedZ = this.state.usedZ.filter(z => !pool.find(p => p.z === z));
+                    freshPool = pool;
+                }
 
                 const nextElem = freshPool[Math.floor(Math.random() * freshPool.length)];
                 this.state.currentElement = nextElem;
@@ -796,6 +842,7 @@
             },
 
             processAttempt: function(earned, type) {
+                // Actualizar contadores aunque pasen del límite inicial
                 if (type === 'easy') this.state.easyDone++;
                 else if (type === 'medium') this.state.mediumDone++;
                 else if (type === 'hard') this.state.hardDone++;
@@ -816,15 +863,24 @@
             },
 
             updateUI: function() {
-                document.getElementById('lblEasy').innerText = Math.min(this.state.easyDone, 2);
-                document.getElementById('lblMedium').innerText = Math.min(this.state.mediumDone, 4);
-                document.getElementById('lblHard').innerText = Math.min(this.state.hardDone, 4);
+                // FIX: Mostrar contadores reales, no limitados con Math.min
+                document.getElementById('lblEasy').innerText = this.state.easyDone;
+                document.getElementById('lblMedium').innerText = this.state.mediumDone;
+                document.getElementById('lblHard').innerText = this.state.hardDone;
                 
                 if (this.state.easyDone >= 2) document.getElementById('badgeEasy').classList.add('done');
                 if (this.state.mediumDone >= 4) document.getElementById('badgeMedium').classList.add('done');
                 if (this.state.hardDone >= 4) document.getElementById('badgeHard').classList.add('done');
 
-                document.getElementById('scoreLabel').innerText = this.state.score.toFixed(1);
+                const scoreEl = document.getElementById('scoreLabel');
+                scoreEl.innerText = this.state.score.toFixed(1);
+                
+                // Logic for color
+                if (this.state.score < 5) {
+                    scoreEl.className = "text-red-500";
+                } else {
+                    scoreEl.className = "text-green-500";
+                }
             },
 
             finishGame: function() {
@@ -835,9 +891,21 @@
             },
 
             terminateGame: function() {
+                // FIX: Lógica de terminación robusta
                 SCORM.terminate();
-                window.close();
-                alert("La sesión ha terminado. Puedes cerrar esta ventana.");
+                
+                // Ocultar juego y mostrar pantalla final
+                document.getElementById('completionModal').classList.remove('active');
+                document.getElementById('gameWrapper').style.display = 'none';
+                document.getElementById('finishScreen').style.display = 'flex';
+                
+                // Intentar cierre por si acaso el navegador lo permite
+                try {
+                    window.parent.window.close();
+                } catch(e) {}
+                try {
+                    window.close();
+                } catch(e) {}
             }
         };
 
