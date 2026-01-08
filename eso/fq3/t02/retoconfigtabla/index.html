@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reto Químico: Átomos y Tabla Periódica (3º ESO)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: white;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        /* --- TABLA PERIÓDICA --- */
+        .periodic-table {
+            display: grid;
+            grid-template-columns: repeat(18, 1fr);
+            gap: 2px;
+            width: 100%;
+            max-width: 800px; 
+            margin: 0 auto;
+        }
+
+        .element-cell {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #334155;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #475569;
+            position: relative;
+            font-size: 0.6rem;
+        }
+
+        .element-cell:hover {
+            background-color: #475569;
+            z-index: 10;
+            transform: scale(1.2);
+        }
+
+        .element-cell.selected {
+            background-color: #f59e0b; /* Amber 500 */
+            border-color: #fbbf24;
+            transform: scale(1.1);
+            z-index: 20;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
+        }
+
+        .element-cell.correct-target {
+            background-color: #22c55e; /* Green 500 */
+            box-shadow: 0 0 10px #22c55e;
+        }
+
+        /* ESTILO PARA OCULTAR SÍMBOLOS EN RETO DE POSICIÓN */
+        /* Modificado: Ahora se oculta SIEMPRE si no es el target correcto (solución),
+           incluso si está seleccionado (.selected). */
+        .periodic-table.blind-mode .element-cell:not(.correct-target) {
+            color: transparent; /* Oculta el texto */
+        }
+        .periodic-table.blind-mode .element-cell:not(.correct-target) .atomic-number,
+        .periodic-table.blind-mode .element-cell:not(.correct-target) .symbol {
+            color: transparent;
+            text-shadow: none;
+        }
+        
+        /* Mantener visible al pasar el ratón para dar una pequeña ayuda visual de "estoy aquí" pero sin texto */
+        .periodic-table.blind-mode .element-cell:hover {
+            background-color: #475569; 
+        }
+
+        .symbol {
+            font-weight: 900;
+            font-size: 0.8rem;
+        }
+
+        .atomic-number {
+            font-size: 0.5rem;
+            position: absolute;
+            top: 1px;
+            left: 2px;
+            opacity: 0.7;
+        }
+
+        /* --- CANVAS --- */
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            max-width: 350px;
+            aspect-ratio: 1;
+            margin: 0 auto;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #1e293b 0%, #0f172a 70%);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        /* --- UI ELEMENTS --- */
+        .card-info {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #334155;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+        }
+
+        .score-display {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .input-box, .select-box {
+            background: #1e293b;
+            border: 2px solid #475569;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            width: 100%;
+            text-align: center;
+            font-family: monospace;
+            font-size: 1rem;
+        }
+        .select-box {
+            font-size: 0.85rem;
+            text-align: left;
+            cursor: pointer;
+        }
+        .input-box:focus, .select-box:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        /* Animaciones feedback */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+        .shake { animation: shake 0.3s ease-in-out; }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .pop { animation: pop 0.2s ease-in-out; }
+
+        .hidden-content {
+            filter: blur(6px);
+            pointer-events: none;
+            user-select: none;
+        }
+        .revealed-success {
+            color: #4ade80;
+            font-weight: bold;
+        }
+        .revealed-fail {
+            color: #f87171;
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-2 md:p-4">
+
+    <!-- HEADER & SCOREBOARD -->
+    <header class="w-full max-w-6xl mx-auto mb-4 bg-slate-800 rounded-xl p-4 shadow-lg border border-slate-700 flex flex-wrap justify-between items-center gap-4">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold text-blue-400">Reto Químico <span class="text-xs text-gray-400 block md:inline">3º ESO</span></h1>
+            <div id="statusText" class="text-sm text-gray-300 mt-1">Cargando...</div>
+        </div>
+        
+        <div class="flex gap-4 items-center bg-slate-900 p-3 rounded-lg border border-slate-700">
+            <div class="text-center">
+                <div class="text-xs text-gray-400 uppercase">Fase</div>
+                <div id="phaseDisplay" class="font-bold text-yellow-400">Fácil</div>
+            </div>
+            <div class="h-8 w-px bg-slate-700"></div>
+            <div class="text-center">
+                <div class="text-xs text-gray-400 uppercase">Progreso</div>
+                <div id="progressDisplay" class="font-bold text-white">Nivel 1</div>
+            </div>
+            <div class="h-8 w-px bg-slate-700"></div>
+            <div class="text-center min-w-[80px]">
+                <div class="text-xs text-gray-400 uppercase">Nota</div>
+                <div id="scoreDisplay" class="text-3xl font-black text-red-500 score-display">0.0</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- GAME AREA -->
+    <div id="gameContainer" class="flex flex-col lg:flex-row w-full max-w-6xl mx-auto gap-6 flex-1 items-start">
+        
+        <!-- LEFT: VISUALIZACIÓN (Canvas & Info Cards) -->
+        <div class="w-full lg:w-1/3 flex flex-col gap-4">
+            
+            <!-- Atom Canvas Section -->
+            <div class="relative bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-xl">
+                <h3 class="absolute top-2 left-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Modelo de Bohr</h3>
+                <div class="canvas-container mt-2">
+                    <canvas id="atomCanvas" width="350" height="350"></canvas>
+                </div>
+                
+                <!-- Controles para Reto D (Configurar Átomo) -->
+                <div id="atomControls" class="hidden mt-4 bg-slate-900 p-2 rounded border border-slate-700">
+                    <p class="text-xs text-center text-blue-300 mb-2">Añade/Quita electrones por capa:</p>
+                    <div id="shellControlContainer" class="flex flex-col gap-2 max-h-32 overflow-y-auto pr-1">
+                        <!-- Generado por JS -->
+                    </div>
+                </div>
+
+                <div class="mt-2 flex justify-center gap-4 text-[10px] text-gray-400">
+                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span> Núcleo</span>
+                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> e⁻</span>
+                </div>
+            </div>
+
+            <!-- Info Cards (Z, Símbolo, Nombre) -->
+            <div class="grid grid-cols-2 gap-2">
+                <div class="card-info flex flex-col items-center justify-center p-4">
+                    <span class="text-xs text-gray-400 uppercase">Z</span>
+                    <span id="cardZ" class="text-3xl font-black text-white">?</span>
+                </div>
+                <div class="card-info flex flex-col items-center justify-center p-4">
+                    <span class="text-xs text-gray-400 uppercase">Símbolo</span>
+                    <span id="cardSymbol" class="text-3xl font-bold text-blue-400">?</span>
+                </div>
+                <div class="card-info col-span-2 flex flex-col items-center justify-center p-2">
+                    <span class="text-xs text-gray-400 uppercase">Elemento</span>
+                    <span id="cardName" class="text-xl font-bold text-white text-center">?</span>
+                </div>
+            </div>
+
+            <!-- Properties Cards (Target variables) -->
+            <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 grid grid-cols-1 gap-3">
+                
+                <!-- Reto A: Configuración -->
+                <div id="challengeConfigRow" class="flex justify-between items-center p-2 bg-slate-900 rounded">
+                    <span class="text-sm text-gray-400 w-24">Configuración:</span>
+                    <div id="targetConfig" class="font-mono text-lg text-yellow-300 font-bold ml-2"></div>
+                    <input type="text" id="inputConfig" class="input-box hidden flex-1 ml-2" placeholder="Ej: 2,8,1">
+                </div>
+
+                <!-- Reto B: Valencia -->
+                <div id="challengeValenceRow" class="flex justify-between items-center p-2 bg-slate-900 rounded">
+                    <span class="text-sm text-gray-400 w-24">e⁻ Valencia:</span>
+                    <div id="targetValence" class="font-mono text-lg text-purple-300 font-bold ml-2"></div>
+                    <input type="number" id="inputValence" class="input-box hidden flex-1 ml-2" min="0" max="8">
+                </div>
+                
+                <!-- Reto: Tendencia -->
+                <div id="challengeTendencyRow" class="flex flex-col p-2 bg-slate-900 rounded relative">
+                    <span class="text-xs text-gray-400 mb-1">Tendencia:</span>
+                    <div id="targetTendency" class="text-white font-bold text-sm"></div>
+                    <select id="inputTendency" class="select-box hidden w-full">
+                        <option value="" disabled selected>Selecciona...</option>
+                        <option value="gain1">Gana 1 e⁻</option>
+                        <option value="gain2">Gana 2 e⁻</option>
+                        <option value="gain3">Gana 3 e⁻</option>
+                        <option value="lose1">Pierde 1 e⁻</option>
+                        <option value="lose2">Pierde 2 e⁻</option>
+                        <option value="lose3">Pierde 3 e⁻</option>
+                        <option value="share4">Gana/Pierde/Comparte 4 e⁻</option>
+                        <option value="stable">Estable (Gas Noble)</option>
+                    </select>
+                </div>
+
+                <!-- Reto: Ion -->
+                <div id="challengeIonRow" class="flex flex-col p-2 bg-slate-900 rounded relative">
+                    <span class="text-xs text-gray-400 mb-1">Ion Probable:</span>
+                    <div id="targetIon" class="text-white font-bold text-sm"></div>
+                    <select id="inputIon" class="select-box hidden w-full">
+                        <option value="" disabled selected>Selecciona...</option>
+                        <option value="+1">+1</option>
+                        <option value="+2">+2</option>
+                        <option value="+3">+3</option>
+                        <option value="4">+/- 4</option>
+                        <option value="-3">-3</option>
+                        <option value="-2">-2</option>
+                        <option value="-1">-1</option>
+                        <option value="0">— (Ninguno)</option>
+                    </select>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- RIGHT: TABLA & INTERACCIÓN -->
+        <div class="w-full lg:flex-[1.5] flex flex-col">
+            
+            <!-- Instrucción Principal -->
+            <div id="instructionPanel" class="bg-blue-900/30 border border-blue-500/30 p-4 rounded-lg mb-4">
+                <h2 class="text-blue-300 font-bold text-lg mb-1" id="instructionTitle">¡Nuevo Reto!</h2>
+                <p id="instructionText" class="text-sm text-gray-200">Lee los datos y completa lo que falta.</p>
+            </div>
+
+            <!-- Tabla Periódica -->
+            <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 shadow-lg mb-4 overflow-x-auto">
+                <p class="text-xs text-gray-500 mb-2 text-center uppercase tracking-widest font-bold">Tabla Periódica Interactiva</p>
+                <div id="periodicTable" class="periodic-table">
+                    <!-- Generada por JS -->
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="mt-auto flex gap-4">
+                <button id="btnCheck" class="flex-1 py-4 bg-green-600 hover:bg-green-500 text-white font-black text-lg rounded-lg shadow-lg transform transition active:scale-95">
+                    COMPROBAR
+                </button>
+                <button id="btnNext" class="hidden flex-1 py-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-lg rounded-lg shadow-lg transform transition active:scale-95">
+                    SIGUIENTE RETO
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Final Modal -->
+    <div id="finalModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-slate-800 p-8 rounded-2xl max-w-md w-full border-2 border-slate-600 text-center shadow-2xl">
+            <div id="finalIcon" class="text-6xl mb-4">🏆</div>
+            <h2 id="finalTitle" class="text-3xl font-black text-white mb-2">¡Matrícula de Honor!</h2>
+            <p id="finalMsg" class="text-gray-300 mb-6">Has alcanzado la máxima puntuación posible.</p>
+            
+            <div class="bg-slate-900 p-4 rounded-lg mb-6">
+                <div class="text-sm text-gray-500 uppercase">Nota Final</div>
+                <div id="finalScore" class="text-5xl font-black text-green-400">10.0</div>
+            </div>
+
+            <!-- Cambio: onclick llama a resetGame() en lugar de recargar -->
+            <button onclick="resetGame()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 font-bold rounded-lg transition text-white shadow-lg">Reiniciar Curso</button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * --------------------------------------------------------------------------
+         * MÓDULO SCORM 1.2 WRAPPER
+         * --------------------------------------------------------------------------
+         */
+        const SCORM = {
+            API: null,
+            isConnected: false,
+            
+            init: function() {
+                try {
+                    this.API = this.findAPI(window);
+                    if (this.API) {
+                        const status = this.API.LMSInitialize("");
+                        if (status.toString() === "true") {
+                            this.isConnected = true;
+                            console.log("SCORM: Conectado.");
+                            const currentStatus = this.API.LMSGetValue("cmi.core.lesson_status");
+                            if(currentStatus !== "passed" && currentStatus !== "completed") {
+                                this.API.LMSSetValue("cmi.core.lesson_status", "incomplete");
+                                this.API.LMSCommit("");
+                            }
+                        } else {
+                            console.error("SCORM: Error al inicializar.");
+                        }
+                    } else {
+                        console.warn("SCORM: API no encontrada. Modo Standalone.");
+                    }
+                } catch(e) {
+                    console.warn("SCORM: Excepción durante init. Modo Standalone.", e);
+                }
+            },
+
+            findAPI: function(win) {
+                let attempts = 0;
+                try {
+                    while ((win.API == null) && (win.parent != null) && (win.parent != win)) {
+                        attempts++;
+                        if(attempts > 7) return null; 
+                        win = win.parent;
+                    }
+                    return win.API;
+                } catch (e) {
+                    console.warn("SCORM: Error de seguridad al buscar API (Cross-Origin). Modo Local activado.");
+                    return null;
+                }
+            },
+
+            saveScore: function(score, isPassed) {
+                if (!this.isConnected) return;
+                let rawScore = Math.round(score * 10); 
+                this.API.LMSSetValue("cmi.core.score.raw", rawScore);
+                
+                if (isPassed) {
+                    this.API.LMSSetValue("cmi.core.lesson_status", "passed");
+                }
+                this.API.LMSCommit("");
+            },
+
+            saveState: function(dataObj) {
+                if (!this.isConnected) return;
+                const jsonStr = JSON.stringify(dataObj);
+                this.API.LMSSetValue("cmi.suspend_data", jsonStr);
+                this.API.LMSCommit("");
+            },
+
+            loadState: function() {
+                if (!this.isConnected) return null;
+                const data = this.API.LMSGetValue("cmi.suspend_data");
+                if (!data || data === "") return null;
+                try {
+                    return JSON.parse(data);
+                } catch (e) {
+                    console.error("Error parseando suspend_data", e);
+                    return null;
+                }
+            },
+
+            loadScore: function() {
+                if (!this.isConnected) return 0;
+                const raw = this.API.LMSGetValue("cmi.core.score.raw");
+                return raw ? (parseInt(raw, 10) / 10) : 0;
+            },
+
+            finish: function() {
+                if (this.isConnected) {
+                    this.API.LMSSetValue("cmi.core.exit", "suspend");
+                    this.API.LMSFinish("");
+                    this.isConnected = false;
+                }
+            }
+        };
+
+        window.onunload = function() {
+            SCORM.finish();
+        };
+
+        /**
+         * --------------------------------------------------------------------------
+         * BASE DE DATOS DE ELEMENTOS (Z=1..56)
+         * --------------------------------------------------------------------------
+         */
+        const elements = [
+            // Periodo 1
+            { z: 1,  s: "H",  n: "Hidrógeno",  shells: [1], g: 1, p: 1 },
+            { z: 2,  s: "He", n: "Helio",      shells: [2], g: 18, p: 1 },
+            // Periodo 2
+            { z: 3,  s: "Li", n: "Litio",      shells: [2,1], g: 1, p: 2 },
+            { z: 4,  s: "Be", n: "Berilio",    shells: [2,2], g: 2, p: 2 },
+            { z: 5,  s: "B",  n: "Boro",       shells: [2,3], g: 13, p: 2 },
+            { z: 6,  s: "C",  n: "Carbono",    shells: [2,4], g: 14, p: 2 },
+            { z: 7,  s: "N",  n: "Nitrógeno",  shells: [2,5], g: 15, p: 2 },
+            { z: 8,  s: "O",  n: "Oxígeno",    shells: [2,6], g: 16, p: 2 },
+            { z: 9,  s: "F",  n: "Flúor",      shells: [2,7], g: 17, p: 2 },
+            { z: 10, s: "Ne", n: "Neón",       shells: [2,8], g: 18, p: 2 },
+            // Periodo 3
+            { z: 11, s: "Na", n: "Sodio",      shells: [2,8,1], g: 1, p: 3 },
+            { z: 12, s: "Mg", n: "Magnesio",   shells: [2,8,2], g: 2, p: 3 },
+            { z: 13, s: "Al", n: "Aluminio",   shells: [2,8,3], g: 13, p: 3 },
+            { z: 14, s: "Si", n: "Silicio",    shells: [2,8,4], g: 14, p: 3 },
+            { z: 15, s: "P",  n: "Fósforo",    shells: [2,8,5], g: 15, p: 3 },
+            { z: 16, s: "S",  n: "Azufre",     shells: [2,8,6], g: 16, p: 3 },
+            { z: 17, s: "Cl", n: "Cloro",      shells: [2,8,7], g: 17, p: 3 },
+            { z: 18, s: "Ar", n: "Argón",      shells: [2,8,8], g: 18, p: 3 },
+            // Periodo 4
+            { z: 19, s: "K",  n: "Potasio",    shells: [2,8,8,1], g: 1, p: 4 },
+            { z: 20, s: "Ca", n: "Calcio",     shells: [2,8,8,2], g: 2, p: 4 },
+            // TRANSICIÓN (Ajuste didáctico a 2e de valencia)
+            { z: 21, s: "Sc", n: "Escandio",   shells: [2,8,9,2], g: 3, p: 4 },
+            { z: 22, s: "Ti", n: "Titanio",    shells: [2,8,10,2], g: 4, p: 4 },
+            { z: 23, s: "V",  n: "Vanadio",    shells: [2,8,11,2], g: 5, p: 4 },
+            { z: 24, s: "Cr", n: "Cromo",      shells: [2,8,12,2], g: 6, p: 4 }, // Ajustado
+            { z: 25, s: "Mn", n: "Manganeso",  shells: [2,8,13,2], g: 7, p: 4 },
+            { z: 26, s: "Fe", n: "Hierro",     shells: [2,8,14,2], g: 8, p: 4 },
+            { z: 27, s: "Co", n: "Cobalto",    shells: [2,8,15,2], g: 9, p: 4 },
+            { z: 28, s: "Ni", n: "Níquel",     shells: [2,8,16,2], g: 10, p: 4 },
+            { z: 29, s: "Cu", n: "Cobre",      shells: [2,8,17,2], g: 11, p: 4 }, // Ajustado
+            { z: 30, s: "Zn", n: "Zinc",       shells: [2,8,18,2], g: 12, p: 4 },
+            
+            { z: 31, s: "Ga", n: "Galio",      shells: [2,8,18,3], g: 13, p: 4 },
+            { z: 32, s: "Ge", n: "Germanio",   shells: [2,8,18,4], g: 14, p: 4 },
+            { z: 33, s: "As", n: "Arsénico",   shells: [2,8,18,5], g: 15, p: 4 },
+            { z: 34, s: "Se", n: "Selenio",    shells: [2,8,18,6], g: 16, p: 4 },
+            { z: 35, s: "Br", n: "Bromo",      shells: [2,8,18,7], g: 17, p: 4 },
+            { z: 36, s: "Kr", n: "Kriptón",    shells: [2,8,18,8], g: 18, p: 4 },
+            // Periodo 5
+            { z: 37, s: "Rb", n: "Rubidio",    shells: [2,8,18,8,1], g: 1, p: 5 },
+            { z: 38, s: "Sr", n: "Estroncio",  shells: [2,8,18,8,2], g: 2, p: 5 },
+            // TRANSICIÓN (Ajuste didáctico a 2e de valencia)
+            { z: 39, s: "Y",  n: "Itrio",      shells: [2,8,18,9,2], g: 3, p: 5 },
+            { z: 40, s: "Zr", n: "Circonio",   shells: [2,8,18,10,2], g: 4, p: 5 },
+            { z: 41, s: "Nb", n: "Niobio",     shells: [2,8,18,11,2], g: 5, p: 5 }, // Ajustado
+            { z: 42, s: "Mo", n: "Molibdeno",  shells: [2,8,18,12,2], g: 6, p: 5 }, // Ajustado
+            { z: 43, s: "Tc", n: "Tecnecio",   shells: [2,8,18,13,2], g: 7, p: 5 },
+            { z: 44, s: "Ru", n: "Rutenio",    shells: [2,8,18,14,2], g: 8, p: 5 }, // Ajustado
+            { z: 45, s: "Rh", n: "Rodio",      shells: [2,8,18,15,2], g: 9, p: 5 }, // Ajustado
+            { z: 46, s: "Pd", n: "Paladio",    shells: [2,8,18,16,2], g: 10, p: 5 }, // Ajustado
+            { z: 47, s: "Ag", n: "Plata",      shells: [2,8,18,17,2], g: 11, p: 5 }, // Ajustado
+            { z: 48, s: "Cd", n: "Cadmio",     shells: [2,8,18,18,2], g: 12, p: 5 },
+            
+            { z: 49, s: "In", n: "Indio",      shells: [2,8,18,18,3], g: 13, p: 5 },
+            { z: 50, s: "Sn", n: "Estaño",     shells: [2,8,18,18,4], g: 14, p: 5 },
+            { z: 51, s: "Sb", n: "Antimonio",  shells: [2,8,18,18,5], g: 15, p: 5 },
+            { z: 52, s: "Te", n: "Telurio",    shells: [2,8,18,18,6], g: 16, p: 5 },
+            { z: 53, s: "I",  n: "Yodo",       shells: [2,8,18,18,7], g: 17, p: 5 },
+            { z: 54, s: "Xe", n: "Xenón",      shells: [2,8,18,18,8], g: 18, p: 5 },
+            // Periodo 6 (inicio)
+            { z: 55, s: "Cs", n: "Cesio",      shells: [2,8,18,18,8,1], g: 1, p: 6 },
+            { z: 56, s: "Ba", n: "Bario",      shells: [2,8,18,18,8,2], g: 2, p: 6 }
+        ];
+
+        // Helpers de Lógica Química
+        function getValence(el) {
+            return el.shells[el.shells.length - 1];
+        }
+
+        function getConfigString(shells) {
+            return shells.join(",");
+        }
+
+        function getChemicalProperties(el) {
+            let tendencyText = "";
+            let ionText = "";
+            
+            // Valores internos para validación
+            let tendencyVal = "";
+            let ionVal = "";
+
+            // Reglas
+            if (el.g === 18) { 
+                tendencyText = "Estable (Gas Noble)"; 
+                ionText = "— (Ninguno)";
+                tendencyVal = "stable";
+                ionVal = "0";
+            }
+            else if (el.g === 1) { 
+                tendencyText = "Pierde 1 e⁻"; 
+                ionText = `${el.s}⁺`; 
+                tendencyVal = "lose1";
+                ionVal = "+1";
+            }
+            else if (el.g === 2) { 
+                tendencyText = "Pierde 2 e⁻"; 
+                ionText = `${el.s}²⁺`; 
+                tendencyVal = "lose2";
+                ionVal = "+2";
+            }
+            else if (el.g === 13) { 
+                tendencyText = "Pierde 3 e⁻"; 
+                ionText = `${el.s}³⁺`; 
+                tendencyVal = "lose3";
+                ionVal = "+3";
+            }
+            else if (el.g === 15) { 
+                tendencyText = "Gana 3 e⁻"; 
+                ionText = `${el.s}³⁻`; 
+                tendencyVal = "gain3";
+                ionVal = "-3";
+            }
+            else if (el.g === 16) { 
+                tendencyText = "Gana 2 e⁻"; 
+                ionText = `${el.s}²⁻`; 
+                tendencyVal = "gain2";
+                ionVal = "-2";
+            }
+            else if (el.g === 17) { 
+                tendencyText = "Gana 1 e⁻"; 
+                ionText = `${el.s}⁻`; 
+                tendencyVal = "gain1";
+                ionVal = "-1";
+            }
+            else if (el.g === 14) { 
+                // Carbonoideos (C, Si, Ge, Sn) -> Regla unificada
+                tendencyText = "Gana/Pierde/Comparte 4 e⁻"; 
+                ionText = "+/- 4";
+                tendencyVal = "share4";
+                ionVal = "4";
+            } else {
+                // Transición (Grupos 3-12) -> Asumimos pierden 2
+                tendencyText = "Pierde 2 e⁻ (Transición)";
+                ionText = `${el.s}²⁺`;
+                tendencyVal = "lose2";
+                ionVal = "+2";
+            }
+            return { tendencyText, ionText, tendencyVal, ionVal };
+        }
+
+        /**
+         * --------------------------------------------------------------------------
+         * ESTADO DEL JUEGO
+         * --------------------------------------------------------------------------
+         */
+        const GAME_CONFIG = {
+            totalEasy: 5,
+            totalHard: 5, 
+            pointsEasy: 0.6,
+            penaltyEasy: 0.3,
+            pointsHard: 1.0,
+            penaltyHard: 0.5
+        };
+
+        let gameState = {
+            levelIndex: 0, 
+            score: 0.0,
+            history: [],
+            currentZ: 1,
+            currentChallenge: [], 
+            isHardMode: false,
+            isResolved: false
+        };
+
+        let userAtomState = []; 
+
+        /**
+         * --------------------------------------------------------------------------
+         * LÓGICA DE JUEGO
+         * --------------------------------------------------------------------------
+         */
+        
+        function startGame() {
+            SCORM.init();
+            const savedData = SCORM.loadState();
+            const savedScore = SCORM.loadScore();
+
+            if (savedData) {
+                gameState = savedData;
+                gameState.score = savedScore;
+                if(gameState.isResolved) nextLevel();
+                else loadLevel();
+            } else {
+                gameState.levelIndex = 0;
+                gameState.score = 0;
+                gameState.history = [];
+                nextLevel();
+            }
+            updateScoreUI();
+        }
+
+        // --- FUNCIÓN DE RESET (Nuevo botón) ---
+        function resetGame() {
+            // Ocultar modal
+            const modal = document.getElementById('finalModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+
+            // Resetear variables internas
+            gameState.levelIndex = 0;
+            gameState.score = 0.0;
+            gameState.history = [];
+            
+            // Limpiar estado SCORM
+            SCORM.saveState(gameState);
+            SCORM.saveScore(0, false);
+
+            // Iniciar nivel 0
+            nextLevel();
+        }
+
+        function nextLevel() {
+            // NOTA: Ya no hay condición de parada por nivel. El juego es infinito hasta el 10.
+            
+            gameState.isResolved = false;
+            
+            // Lógica de dificultad:
+            // 0-4 (5 primeros): Fácil
+            // 5-9 (5 siguientes): Difícil
+            // 10+: Alternar (10->Fácil, 11->Difícil, 12->Fácil...)
+            if (gameState.levelIndex < GAME_CONFIG.totalEasy) {
+                gameState.isHardMode = false;
+            } else if (gameState.levelIndex < GAME_CONFIG.totalEasy + GAME_CONFIG.totalHard) {
+                gameState.isHardMode = true;
+            } else {
+                // Cálculo para alternar después de los primeros 10
+                const overflowIndex = gameState.levelIndex - (GAME_CONFIG.totalEasy + GAME_CONFIG.totalHard);
+                // overflow 0 (nivel 10 global) -> par -> FÁCIL
+                // overflow 1 (nivel 11 global) -> impar -> DIFÍCIL
+                gameState.isHardMode = (overflowIndex % 2 !== 0);
+            }
+
+            // Selección de elemento
+            let newZ;
+            do {
+                newZ = Math.floor(Math.random() * 56) + 1;
+            } while (gameState.history.length > 0 && gameState.history[gameState.history.length-1] === newZ);
+            
+            gameState.currentZ = newZ;
+            gameState.history.push(newZ);
+            if(gameState.history.length > 10) gameState.history.shift();
+
+            // Tipos de reto disponibles
+            const types = ['config', 'valence', 'position', 'atom', 'tendency', 'ion'];
+            
+            if (!gameState.isHardMode) {
+                // FÁCIL: 1 reto aleatorio
+                const rand = Math.floor(Math.random() * types.length);
+                gameState.currentChallenge = [types[rand]];
+            } else {
+                // DIFÍCIL: 2 retos combinados
+                const r1 = types[Math.floor(Math.random() * types.length)];
+                let r2;
+                do { r2 = types[Math.floor(Math.random() * types.length)]; } while (r2 === r1);
+                gameState.currentChallenge = [r1, r2];
+            }
+
+            SCORM.saveState(gameState);
+            loadLevel();
+        }
+
+        function loadLevel() {
+            const el = elements.find(e => e.z === gameState.currentZ);
+
+            resetUI();
+
+            // Datos Fijos
+            document.getElementById('cardZ').innerText = el.z;
+            document.getElementById('cardSymbol').innerText = el.s;
+            document.getElementById('cardName').innerText = el.n;
+            
+            setupChallenges(el);
+
+            updateScoreUI();
+            
+            const modeText = gameState.isHardMode ? "DIFÍCIL" : "FÁCIL";
+            document.getElementById('phaseDisplay').innerText = modeText;
+            document.getElementById('phaseDisplay').className = gameState.isHardMode ? "font-bold text-red-400" : "font-bold text-yellow-400";
+            document.getElementById('progressDisplay').innerText = `Nivel ${gameState.levelIndex + 1}`;
+
+            // Dibujo inicial del átomo (si no es el reto, se muestra completo)
+            // Si ES el reto, se limpia en setupChallenges
+            if(!gameState.currentChallenge.includes('atom')) {
+                drawAtom(el, false);
+            }
+        }
+
+        function setupChallenges(el) {
+            const challenges = gameState.currentChallenge;
+            const props = getChemicalProperties(el);
+            let instructions = [];
+
+            // 1. CONFIGURACIÓN
+            const configTarget = document.getElementById('targetConfig');
+            const configInput = document.getElementById('inputConfig');
+            if (challenges.includes('config')) {
+                configTarget.innerText = "???";
+                configTarget.classList.add('hidden-content');
+                configInput.classList.remove('hidden');
+                configInput.value = "";
+                instructions.push("la configuración electrónica");
+            } else {
+                configTarget.innerText = getConfigString(el.shells);
+                configTarget.classList.remove('hidden-content');
+                configInput.classList.add('hidden');
+            }
+
+            // 2. VALENCIA
+            const valenceTarget = document.getElementById('targetValence');
+            const valenceInput = document.getElementById('inputValence');
+            if (challenges.includes('valence')) {
+                valenceTarget.innerText = "?";
+                valenceTarget.classList.add('hidden-content');
+                valenceInput.classList.remove('hidden');
+                valenceInput.value = "";
+                instructions.push("los e⁻ de valencia");
+            } else {
+                valenceTarget.innerText = getValence(el);
+                valenceTarget.classList.remove('hidden-content');
+                valenceInput.classList.add('hidden');
+            }
+
+            // 3. TENDENCIA
+            const tendTarget = document.getElementById('targetTendency');
+            const tendInput = document.getElementById('inputTendency');
+            if (challenges.includes('tendency')) {
+                tendTarget.innerText = "???";
+                tendTarget.classList.add('hidden-content');
+                tendInput.classList.remove('hidden');
+                tendInput.value = "";
+                instructions.push("la tendencia electrónica");
+            } else {
+                tendTarget.innerText = props.tendencyText;
+                tendTarget.classList.remove('hidden-content');
+                tendInput.classList.add('hidden');
+            }
+
+            // 4. ION PROBABLE
+            const ionTarget = document.getElementById('targetIon');
+            const ionInput = document.getElementById('inputIon');
+            if (challenges.includes('ion')) {
+                ionTarget.innerText = "???";
+                ionTarget.classList.add('hidden-content');
+                ionInput.classList.remove('hidden');
+                ionInput.value = "";
+                instructions.push("el ion más probable");
+            } else {
+                ionTarget.innerText = props.ionText;
+                ionTarget.classList.remove('hidden-content');
+                ionInput.classList.add('hidden');
+            }
+
+            // 5. POSICIÓN (Blind Mode)
+            const table = document.getElementById('periodicTable');
+            document.querySelectorAll('.element-cell').forEach(c => {
+                c.classList.remove('selected', 'correct-target');
+                c.onclick = null; 
+            });
+            
+            if (challenges.includes('position')) {
+                instructions.push("su posición en la tabla");
+                table.classList.add('blind-mode'); // Activar modo ciego
+                
+                document.querySelectorAll('.element-cell').forEach(c => {
+                    // Quitamos el title para que no haya tooltip
+                    c.removeAttribute('title');
+                    
+                    c.onclick = function() {
+                        if(gameState.isResolved) return;
+                        
+                        // Si ya está seleccionado, no hacer nada (no deseleccionar)
+                        if (this.classList.contains('selected')) return;
+
+                        // Deseleccionar otros y seleccionar este
+                        document.querySelectorAll('.element-cell').forEach(x => x.classList.remove('selected'));
+                        this.classList.add('selected');
+                        this.classList.add('pop');
+                    }
+                });
+            } else {
+                table.classList.remove('blind-mode');
+                
+                // Restaurar titles y comportamiento por defecto si fuera necesario
+                // Aunque en los otros modos la tabla es solo informativa
+                document.querySelectorAll('.element-cell').forEach(c => {
+                    if (c.dataset.name) c.title = c.dataset.name;
+                });
+                
+                const cell = document.getElementById(`cell-${el.z}`);
+                if(cell) cell.classList.add('selected');
+            }
+
+            // 6. ÁTOMO (Vacío al inicio)
+            const atomControls = document.getElementById('atomControls');
+            if (challenges.includes('atom')) {
+                instructions.push("el diagrama de Bohr (rellena desde cero)");
+                atomControls.classList.remove('hidden');
+                
+                // INICIO VACÍO: Crear array de ceros según número de capas
+                userAtomState = el.shells.map(() => 0); 
+                renderAtomControls();
+                drawAtom(el, true); // Dibuja el estado del usuario (vacío)
+            } else {
+                atomControls.classList.add('hidden');
+            }
+
+            // Instrucción
+            document.getElementById('instructionTitle').innerText = `Reto ${gameState.isHardMode ? 'Complejo' : 'Básico'}`;
+            document.getElementById('instructionText').innerText = "Indica: " + instructions.join(", ") + ".";
+        }
+
+        function renderAtomControls() {
+            const container = document.getElementById('shellControlContainer');
+            container.innerHTML = '';
+            userAtomState.forEach((count, idx) => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center bg-slate-800 p-1 rounded";
+                div.innerHTML = `
+                    <span class="text-xs font-mono text-gray-300">Capa ${idx+1}</span>
+                    <div class="flex items-center gap-2">
+                        <button onclick="modifyAtom(${idx}, -1)" class="w-6 h-6 bg-red-500/20 text-red-400 rounded hover:bg-red-500 hover:text-white transition font-bold">-</button>
+                        <span class="text-sm w-4 text-center font-bold">${count}</span>
+                        <button onclick="modifyAtom(${idx}, 1)" class="w-6 h-6 bg-green-500/20 text-green-400 rounded hover:bg-green-500 hover:text-white transition font-bold">+</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function modifyAtom(layerIdx, delta) {
+            if(gameState.isResolved) return;
+            const newVal = userAtomState[layerIdx] + delta;
+            // Límites físicos (capa 1 max 2, resto max 18 para controles)
+            const max = (layerIdx === 0) ? 2 : ((layerIdx === 1) ? 8 : 18); 
+            if (newVal >= 0 && newVal <= max) {
+                userAtomState[layerIdx] = newVal;
+                renderAtomControls();
+                drawAtom(null, true); 
+            }
+        }
+
+        function checkAnswer() {
+            if (gameState.isResolved) return;
+
+            const el = elements.find(e => e.z === gameState.currentZ);
+            const props = getChemicalProperties(el);
+            const challenges = gameState.currentChallenge;
+            let allCorrect = true;
+            let feedback = [];
+
+            // A. CONFIG
+            if (challenges.includes('config')) {
+                const input = document.getElementById('inputConfig').value;
+                const cleanInput = input.replace(/[\(\)\s]/g, '');
+                const target = el.shells.join(',');
+                if (cleanInput === target || cleanInput === target.replace(/,/g, '')) {
+                   document.getElementById('inputConfig').classList.add('border-green-500', 'text-green-400');
+                } else {
+                    allCorrect = false;
+                    document.getElementById('inputConfig').classList.add('border-red-500', 'shake');
+                    feedback.push("Configuración incorrecta.");
+                }
+            }
+
+            // B. VALENCIA
+            if (challenges.includes('valence')) {
+                const val = parseInt(document.getElementById('inputValence').value);
+                if (val === getValence(el)) {
+                    document.getElementById('inputValence').classList.add('border-green-500', 'text-green-400');
+                } else {
+                    allCorrect = false;
+                    document.getElementById('inputValence').classList.add('border-red-500', 'shake');
+                    feedback.push("Valencia incorrecta.");
+                }
+            }
+
+            // C. TENDENCIA
+            if (challenges.includes('tendency')) {
+                const val = document.getElementById('inputTendency').value;
+                if (val === props.tendencyVal) {
+                    document.getElementById('inputTendency').classList.add('border-green-500', 'text-green-400');
+                } else {
+                    allCorrect = false;
+                    document.getElementById('inputTendency').classList.add('border-red-500', 'shake');
+                    feedback.push("Tendencia incorrecta.");
+                }
+            }
+
+            // D. ION
+            if (challenges.includes('ion')) {
+                const val = document.getElementById('inputIon').value;
+                if (val === props.ionVal) {
+                    document.getElementById('inputIon').classList.add('border-green-500', 'text-green-400');
+                } else {
+                    allCorrect = false;
+                    document.getElementById('inputIon').classList.add('border-red-500', 'shake');
+                    feedback.push("Ion incorrecto.");
+                }
+            }
+
+            // E. POSICIÓN
+            if (challenges.includes('position')) {
+                const selected = document.querySelector('.element-cell.selected');
+                const correctCell = document.getElementById(`cell-${el.z}`);
+                
+                if (selected && selected.id === `cell-${el.z}`) {
+                    selected.classList.add('correct-target');
+                    // Al acertar, quitamos el modo ciego para que vea qué era
+                    document.getElementById('periodicTable').classList.remove('blind-mode');
+                    // Restauramos titles para que vea qué elemento es
+                    document.querySelectorAll('.element-cell').forEach(c => {
+                        if (c.dataset.name) c.title = c.dataset.name;
+                    });
+                } else {
+                    allCorrect = false;
+                    correctCell.classList.add('correct-target', 'pop');
+                    feedback.push("Posición incorrecta.");
+                }
+            }
+
+            // F. ÁTOMO
+            if (challenges.includes('atom')) {
+                const isAtomCorrect = JSON.stringify(userAtomState) === JSON.stringify(el.shells);
+                if (!isAtomCorrect) {
+                    allCorrect = false;
+                    feedback.push("Diagrama de Bohr incorrecto.");
+                }
+            }
+
+            // PUNTUACIÓN
+            if (allCorrect) {
+                const points = gameState.isHardMode ? GAME_CONFIG.pointsHard : GAME_CONFIG.pointsEasy;
+                gameState.score = Math.min(10, gameState.score + points);
+                
+                document.getElementById('instructionTitle').innerText = "¡CORRECTO!";
+                document.getElementById('instructionTitle').className = "text-green-400 font-bold text-lg mb-1";
+                document.getElementById('instructionText').innerText = "¡Muy bien!";
+                
+                gameState.isResolved = true;
+                gameState.levelIndex++;
+                
+                document.getElementById('btnCheck').classList.add('hidden');
+                document.getElementById('btnNext').classList.remove('hidden');
+
+                revealAnswers(el, props);
+
+                // REGLA: Si llega a 10 (con margen de error float), fin del juego
+                if (gameState.score >= 9.95) {
+                    // Forzar a 10 visual y lógico
+                    gameState.score = 10.0;
+                    setTimeout(endGame, 1000);
+                }
+
+            } else {
+                const penalty = gameState.isHardMode ? GAME_CONFIG.penaltyHard : GAME_CONFIG.penaltyEasy;
+                gameState.score = Math.max(0, gameState.score - penalty);
+                
+                document.getElementById('instructionTitle').innerText = "INCORRECTO";
+                document.getElementById('instructionTitle').className = "text-red-400 font-bold text-lg mb-1";
+                document.getElementById('instructionText').innerText = feedback.join(" ");
+            }
+
+            updateScoreUI();
+            
+            // Lógica de "Passed" en SCORM: >=5 Y haber terminado los primeros 10 niveles, O haber sacado un 10.
+            const minLevelsPassed = gameState.levelIndex >= (GAME_CONFIG.totalEasy + GAME_CONFIG.totalHard);
+            const isMaxScore = gameState.score >= 9.95;
+            const isPassed = (minLevelsPassed && gameState.score >= 5) || isMaxScore;
+            
+            SCORM.saveScore(gameState.score, isPassed);
+            SCORM.saveState(gameState);
+        }
+
+        function revealAnswers(el, props) {
+            // Config
+            if (gameState.currentChallenge.includes('config')) {
+                const t = document.getElementById('targetConfig');
+                t.innerText = getConfigString(el.shells);
+                t.classList.remove('hidden-content');
+                t.classList.add('revealed-success');
+                document.getElementById('inputConfig').classList.add('hidden');
+            }
+            // Valencia
+            if (gameState.currentChallenge.includes('valence')) {
+                const t = document.getElementById('targetValence');
+                t.innerText = getValence(el);
+                t.classList.remove('hidden-content');
+                t.classList.add('revealed-success');
+                document.getElementById('inputValence').classList.add('hidden');
+            }
+            // Tendencia
+            if (gameState.currentChallenge.includes('tendency')) {
+                const t = document.getElementById('targetTendency');
+                t.innerText = props.tendencyText;
+                t.classList.remove('hidden-content');
+                t.classList.add('revealed-success');
+                document.getElementById('inputTendency').classList.add('hidden');
+            }
+            // Ion
+            if (gameState.currentChallenge.includes('ion')) {
+                const t = document.getElementById('targetIon');
+                t.innerText = props.ionText;
+                t.classList.remove('hidden-content');
+                t.classList.add('revealed-success');
+                document.getElementById('inputIon').classList.add('hidden');
+            }
+            // Átomo
+            if (gameState.currentChallenge.includes('atom')) {
+                drawAtom(el, false); // Dibujar solución correcta
+                document.getElementById('atomControls').classList.add('hidden');
+            }
+            // Tabla
+            if (gameState.currentChallenge.includes('position')) {
+                 document.getElementById('periodicTable').classList.remove('blind-mode');
+                 // Restaurar titles
+                 document.querySelectorAll('.element-cell').forEach(c => {
+                    if (c.dataset.name) c.title = c.dataset.name;
+                });
+            }
+        }
+
+        function updateScoreUI() {
+            const sDisplay = document.getElementById('scoreDisplay');
+            sDisplay.innerText = gameState.score.toFixed(1);
+            if (gameState.score >= 5) {
+                sDisplay.classList.remove('text-red-500');
+                sDisplay.classList.add('text-green-500');
+            } else {
+                sDisplay.classList.add('text-red-500');
+                sDisplay.classList.remove('text-green-500');
+            }
+        }
+
+        function resetUI() {
+            document.getElementById('btnCheck').classList.remove('hidden');
+            document.getElementById('btnNext').classList.add('hidden');
+            document.getElementById('instructionPanel').className = "bg-blue-900/30 border border-blue-500/30 p-4 rounded-lg mb-4";
+            document.getElementById('instructionTitle').className = "text-blue-300 font-bold text-lg mb-1";
+            
+            document.querySelectorAll('.input-box, .select-box').forEach(i => {
+                i.classList.remove('border-red-500', 'border-green-500', 'text-green-400', 'shake');
+                i.value = "";
+            });
+            document.getElementById('periodicTable').classList.remove('blind-mode');
+            
+            // Asegurar que los titles están bien al resetear UI por si venimos de un modo ciego fallido/resuelto
+            document.querySelectorAll('.element-cell').forEach(c => {
+                if (c.dataset.name) c.title = c.dataset.name;
+            });
+        }
+
+        function endGame() {
+            document.getElementById('finalModal').classList.remove('hidden');
+            document.getElementById('finalModal').classList.add('flex');
+            document.getElementById('finalScore').innerText = gameState.score.toFixed(1);
+            
+            // Solo se llega aquí con 10, así que siempre es aprobado/matrícula
+            SCORM.saveScore(gameState.score, true);
+        }
+
+        /**
+         * --------------------------------------------------------------------------
+         * CANVAS RENDERER
+         * --------------------------------------------------------------------------
+         */
+        function drawAtom(el, useUserState) {
+            const canvas = document.getElementById('atomCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            ctx.clearRect(0, 0, width, height);
+
+            let shellsToDraw = useUserState ? userAtomState : el.shells;
+            if (!shellsToDraw) return;
+
+            // Núcleo
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 12, 0, Math.PI * 2); // Reducir un poco el núcleo para dar espacio
+            ctx.fillStyle = "#f97316"; 
+            ctx.fill();
+            ctx.strokeStyle = "#ea580c";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            const symbol = (useUserState && shellsToDraw.every(x=>x===0)) ? "?" : (el ? el.s : "?");
+
+            ctx.fillStyle = "#1e293b";
+            ctx.font = "bold 10px Arial"; // Texto un poco más pequeño
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(symbol, centerX, centerY);
+
+            // --- LÓGICA DE ESCALA FIJA (Ref: Bario, 6 capas) ---
+            const MAX_SHELLS_REF = 6; // Bario tiene 6 capas
+            const maxRadius = width / 2 - 15; // Margen exterior
+            const minRadius = 35; // Radio capa 1
+            
+            // Calculamos el espacio entre capas fijo para que 6 capas quepan exactas
+            const step = (maxRadius - minRadius) / (MAX_SHELLS_REF - 1);
+
+            shellsToDraw.forEach((electronCount, index) => {
+                // El radio es absoluto según el índice de capa
+                const radius = minRadius + (index * step);
+
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                ctx.strokeStyle = "rgba(148, 163, 184, 0.3)";
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                for (let i = 0; i < electronCount; i++) {
+                    // Distribuir electrones
+                    const angle = (Math.PI * 2 * i / electronCount) - (Math.PI / 2); 
+                    const ex = centerX + Math.cos(angle) * radius;
+                    const ey = centerY + Math.sin(angle) * radius;
+
+                    ctx.beginPath();
+                    ctx.arc(ex, ey, 4, 0, Math.PI * 2); // Electrones un pelín más pequeños (4)
+                    
+                    const totalShells = shellsToDraw.length;
+                    if (index === totalShells - 1 && electronCount > 0) {
+                        ctx.fillStyle = "#60a5fa"; 
+                        ctx.shadowColor = "#60a5fa";
+                        ctx.shadowBlur = 5;
+                    } else {
+                        ctx.fillStyle = "#3b82f6";
+                        ctx.shadowBlur = 0;
+                    }
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            });
+        }
+
+        // --- Generación Tabla DOM ---
+        function initTable() {
+            const tableContainer = document.getElementById('periodicTable');
+            tableContainer.innerHTML = '';
+            
+            const elementMap = {};
+            elements.forEach(e => elementMap[`${e.p}-${e.g}`] = e);
+
+            for (let row = 1; row <= 6; row++) {
+                for (let col = 1; col <= 18; col++) {
+                    const el = elementMap[`${row}-${col}`];
+                    const cell = document.createElement('div');
+                    
+                    if (el) {
+                        cell.className = 'element-cell';
+                        cell.id = `cell-${el.z}`;
+                        cell.innerHTML = `
+                            <span class="atomic-number">${el.z}</span>
+                            <span class="symbol">${el.s}</span>
+                        `;
+                        cell.title = el.n;
+                        cell.dataset.name = el.n; // Guardar nombre para restaurar tooltips
+                    } else {
+                        cell.style.visibility = 'hidden';
+                        cell.style.pointerEvents = 'none';
+                    }
+                    tableContainer.appendChild(cell);
+                }
+            }
+        }
+
+        document.getElementById('btnCheck').addEventListener('click', checkAnswer);
+        document.getElementById('btnNext').addEventListener('click', nextLevel);
+
+        window.onload = function() {
+            initTable();
+            setTimeout(startGame, 100); 
+        };
+
+    </script>
+</body>
+</html>
