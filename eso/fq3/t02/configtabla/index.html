@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración Electrónica v2.3 (3º ESO)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* --- TABLA PERIÓDICA --- */
+        .periodic-table {
+            display: grid;
+            grid-template-columns: repeat(18, 1fr);
+            gap: 3px;
+            width: 100%;
+            max-width: 950px; 
+            margin: 0 auto;
+        }
+
+        .element-cell {
+            aspect-ratio: 0.85;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #334155; /* Slate 700 */
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #475569;
+            position: relative;
+            padding-top: 6px;
+        }
+
+        .element-cell:hover {
+            background-color: #475569;
+            transform: scale(1.15);
+            z-index: 20;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .element-cell.active {
+            background-color: #3b82f6; /* Blue 500 */
+            border-color: #93c5fd;
+            transform: scale(1.3);
+            z-index: 30;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.7);
+        }
+
+        .symbol {
+            font-weight: 900;
+            font-size: 0.95rem;
+            line-height: 1;
+            margin-top: 2px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .atomic-number {
+            font-size: 0.55rem;
+            opacity: 0.9;
+            position: absolute;
+            top: 2px;
+            left: 3px;
+        }
+
+        /* --- SLIDER --- */
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 28px;
+            width: 28px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            margin-top: -12px; 
+            box-shadow: 0 0 8px rgba(0,0,0,0.6);
+            border: 2px solid white;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #475569;
+            border-radius: 3px;
+        }
+
+        /* --- CANVAS --- */
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            aspect-ratio: 1;
+            margin: 0 auto;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #1e293b 0%, #0f172a 70%);
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(0,0,0,0.6);
+        }
+
+        /* --- DATA CARDS --- */
+        .data-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid #334155;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+        .data-card h3 {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 0.2rem;
+            letter-spacing: 0.05em;
+        }
+        .data-card .value {
+            font-weight: bold;
+            color: #e2e8f0;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-4">
+
+    <!-- Header: Información Principal -->
+    <header class="w-full max-w-7xl mx-auto mb-6 bg-slate-800 rounded-2xl p-6 shadow-2xl border border-slate-700">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+            
+            <!-- Bloque 1: Identificación -->
+            <div class="flex items-center gap-6">
+                <div class="bg-blue-600 w-24 h-24 rounded-xl flex flex-col items-center justify-center shadow-lg border-2 border-blue-400 shrink-0 relative overflow-hidden">
+                    <span id="displayZ" class="text-5xl font-black text-white leading-none">1</span>
+                    <span class="text-xs text-blue-100 font-bold mt-1">Nº Atómico</span>
+                    <div class="absolute top-0 right-0 bg-white/20 px-1 text-[0.6rem] font-bold">v2.3</div>
+                </div>
+                <div>
+                    <h1 id="displayName" class="text-4xl md:text-5xl font-bold text-white tracking-tight">Hidrógeno</h1>
+                    <div class="flex items-center gap-2 mt-2">
+                        <span class="text-gray-400 text-lg">Configuración:</span>
+                        <span id="displayConfig" class="text-xl md:text-2xl font-mono text-blue-300 font-bold bg-slate-900 px-3 py-1 rounded shadow-inner">(1)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bloque 2: Propiedades Químicas -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 w-full md:w-auto">
+                <div class="data-card">
+                    <h3>Nº Capas</h3>
+                    <div id="displayShellsCount" class="value text-purple-300">1</div>
+                </div>
+                <div class="data-card">
+                    <h3>e⁻ Valencia</h3>
+                    <div id="displayValence" class="value text-yellow-300">1</div>
+                </div>
+                <div class="data-card">
+                    <h3>Tendencia</h3>
+                    <div id="displayTendency" class="value text-green-300">↓ 1</div>
+                </div>
+                <div class="data-card">
+                    <h3>Ion Probable</h3>
+                    <div id="displayIon" class="value text-red-300">H<sup>+</sup></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <div class="flex flex-col lg:flex-row w-full max-w-7xl mx-auto gap-8 flex-1 items-start">
+        
+        <!-- Left: Atom Model -->
+        <div class="lg:sticky lg:top-4 flex-1 flex flex-col items-center justify-center w-full">
+            <div class="canvas-container">
+                <canvas id="atomCanvas" width="450" height="450"></canvas>
+            </div>
+            <div class="mt-4 text-center">
+                <p class="text-sm text-gray-400 font-semibold">Modelo de Capas (Max. Repulsión)</p>
+                <div class="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-2 text-xs">
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-orange-500 inline-block"></span> Núcleo</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> e⁻</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-pink-500 inline-block shadow-[0_0_5px_#ec4899]"></span> e⁻ Dif.</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full border border-blue-400/50 bg-blue-400/10 inline-block"></span> Hueco</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Periodic Table & Controls -->
+        <div class="flex-[1.5] w-full">
+            
+            <!-- Controls -->
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl mb-6">
+                <div class="flex justify-between mb-4 items-end">
+                    <label for="zSlider" class="text-sm font-bold text-gray-400 uppercase tracking-wider">Desliza para cambiar Z</label>
+                    <span id="sliderValue" class="text-3xl font-bold text-blue-500">1</span>
+                </div>
+                <input type="range" id="zSlider" min="1" max="56" value="1" class="w-full mb-6">
+                
+                <div class="flex justify-between gap-4">
+                    <button id="btnPrev" class="flex-1 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-bold transition shadow-lg">Anterior</button>
+                    <button id="btnNext" class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition shadow-lg">Siguiente</button>
+                </div>
+            </div>
+
+            <!-- Periodic Table Grid -->
+            <div id="periodicTable" class="periodic-table bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 shadow-inner">
+                <!-- Generated by JS -->
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- DATA: Elements 1 to 56 ---
+        const elements = [
+            { z: 1,  s: "H",  n: "Hidrógeno",  shells: [1], g: 1, p: 1 },
+            { z: 2,  s: "He", n: "Helio",      shells: [2], g: 18, p: 1 },
+            
+            { z: 3,  s: "Li", n: "Litio",      shells: [2,1], g: 1, p: 2 },
+            { z: 4,  s: "Be", n: "Berilio",    shells: [2,2], g: 2, p: 2 },
+            { z: 5,  s: "B",  n: "Boro",       shells: [2,3], g: 13, p: 2 },
+            { z: 6,  s: "C",  n: "Carbono",    shells: [2,4], g: 14, p: 2 },
+            { z: 7,  s: "N",  n: "Nitrógeno",  shells: [2,5], g: 15, p: 2 },
+            { z: 8,  s: "O",  n: "Oxígeno",    shells: [2,6], g: 16, p: 2 },
+            { z: 9,  s: "F",  n: "Flúor",      shells: [2,7], g: 17, p: 2 },
+            { z: 10, s: "Ne", n: "Neón",       shells: [2,8], g: 18, p: 2 },
+
+            { z: 11, s: "Na", n: "Sodio",      shells: [2,8,1], g: 1, p: 3 },
+            { z: 12, s: "Mg", n: "Magnesio",   shells: [2,8,2], g: 2, p: 3 },
+            { z: 13, s: "Al", n: "Aluminio",   shells: [2,8,3], g: 13, p: 3 },
+            { z: 14, s: "Si", n: "Silicio",    shells: [2,8,4], g: 14, p: 3 },
+            { z: 15, s: "P",  n: "Fósforo",    shells: [2,8,5], g: 15, p: 3 },
+            { z: 16, s: "S",  n: "Azufre",     shells: [2,8,6], g: 16, p: 3 },
+            { z: 17, s: "Cl", n: "Cloro",      shells: [2,8,7], g: 17, p: 3 },
+            { z: 18, s: "Ar", n: "Argón",      shells: [2,8,8], g: 18, p: 3 },
+
+            { z: 19, s: "K",  n: "Potasio",    shells: [2,8,8,1], g: 1, p: 4 },
+            { z: 20, s: "Ca", n: "Calcio",     shells: [2,8,8,2], g: 2, p: 4 },
+            // Transition Metals Period 4 (Didactic)
+            { z: 21, s: "Sc", n: "Escandio",   shells: [2,8,9,2], g: 3, p: 4 },
+            { z: 22, s: "Ti", n: "Titanio",    shells: [2,8,10,2], g: 4, p: 4 },
+            { z: 23, s: "V",  n: "Vanadio",    shells: [2,8,11,2], g: 5, p: 4 },
+            { z: 24, s: "Cr", n: "Cromo",      shells: [2,8,12,2], g: 6, p: 4 }, 
+            { z: 25, s: "Mn", n: "Manganeso",  shells: [2,8,13,2], g: 7, p: 4 },
+            { z: 26, s: "Fe", n: "Hierro",     shells: [2,8,14,2], g: 8, p: 4 },
+            { z: 27, s: "Co", n: "Cobalto",    shells: [2,8,15,2], g: 9, p: 4 },
+            { z: 28, s: "Ni", n: "Níquel",     shells: [2,8,16,2], g: 10, p: 4 },
+            { z: 29, s: "Cu", n: "Cobre",      shells: [2,8,17,2], g: 11, p: 4 }, 
+            { z: 30, s: "Zn", n: "Zinc",       shells: [2,8,18,2], g: 12, p: 4 },
+            
+            { z: 31, s: "Ga", n: "Galio",      shells: [2,8,18,3], g: 13, p: 4 },
+            { z: 32, s: "Ge", n: "Germanio",   shells: [2,8,18,4], g: 14, p: 4 },
+            { z: 33, s: "As", n: "Arsénico",   shells: [2,8,18,5], g: 15, p: 4 },
+            { z: 34, s: "Se", n: "Selenio",    shells: [2,8,18,6], g: 16, p: 4 },
+            { z: 35, s: "Br", n: "Bromo",      shells: [2,8,18,7], g: 17, p: 4 },
+            { z: 36, s: "Kr", n: "Kriptón",    shells: [2,8,18,8], g: 18, p: 4 },
+
+            { z: 37, s: "Rb", n: "Rubidio",    shells: [2,8,18,8,1], g: 1, p: 5 },
+            { z: 38, s: "Sr", n: "Estroncio",  shells: [2,8,18,8,2], g: 2, p: 5 },
+            // Transition Metals Period 5 (Didactic)
+            { z: 39, s: "Y",  n: "Itrio",      shells: [2,8,18,9,2], g: 3, p: 5 },
+            { z: 40, s: "Zr", n: "Circonio",   shells: [2,8,18,10,2], g: 4, p: 5 },
+            { z: 41, s: "Nb", n: "Niobio",     shells: [2,8,18,11,2], g: 5, p: 5 }, 
+            { z: 42, s: "Mo", n: "Molibdeno",  shells: [2,8,18,12,2], g: 6, p: 5 }, 
+            { z: 43, s: "Tc", n: "Tecnecio",   shells: [2,8,18,13,2], g: 7, p: 5 },
+            { z: 44, s: "Ru", n: "Rutenio",    shells: [2,8,18,14,2], g: 8, p: 5 }, 
+            { z: 45, s: "Rh", n: "Rodio",      shells: [2,8,18,15,2], g: 9, p: 5 }, 
+            { z: 46, s: "Pd", n: "Paladio",    shells: [2,8,18,16,2], g: 10, p: 5 }, 
+            { z: 47, s: "Ag", n: "Plata",      shells: [2,8,18,17,2], g: 11, p: 5 }, 
+            { z: 48, s: "Cd", n: "Cadmio",     shells: [2,8,18,18,2], g: 12, p: 5 },
+            
+            { z: 49, s: "In", n: "Indio",      shells: [2,8,18,18,3], g: 13, p: 5 },
+            { z: 50, s: "Sn", n: "Estaño",     shells: [2,8,18,18,4], g: 14, p: 5 },
+            { z: 51, s: "Sb", n: "Antimonio",  shells: [2,8,18,18,5], g: 15, p: 5 },
+            { z: 52, s: "Te", n: "Telurio",    shells: [2,8,18,18,6], g: 16, p: 5 },
+            { z: 53, s: "I",  n: "Yodo",       shells: [2,8,18,18,7], g: 17, p: 5 },
+            { z: 54, s: "Xe", n: "Xenón",      shells: [2,8,18,18,8], g: 18, p: 5 },
+
+            { z: 55, s: "Cs", n: "Cesio",      shells: [2,8,18,18,8,1], g: 1, p: 6 },
+            { z: 56, s: "Ba", n: "Bario",      shells: [2,8,18,18,8,2], g: 2, p: 6 }
+        ];
+
+        // --- DOM ELEMENTS ---
+        const slider = document.getElementById('zSlider');
+        const sliderVal = document.getElementById('sliderValue');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnNext = document.getElementById('btnNext');
+        
+        // Info Display
+        const displayZ = document.getElementById('displayZ');
+        const displayName = document.getElementById('displayName');
+        const displayConfig = document.getElementById('displayConfig');
+        const displayShellsCount = document.getElementById('displayShellsCount');
+        const displayValence = document.getElementById('displayValence');
+        const displayTendency = document.getElementById('displayTendency');
+        const displayIon = document.getElementById('displayIon');
+
+        const tableContainer = document.getElementById('periodicTable');
+        const canvas = document.getElementById('atomCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let currentZ = 1;
+
+        // --- OPTIMAL FILL ORDER ALGORITHM ---
+        const fillOrdersCache = {};
+
+        function getOptimalFillOrder(capacity) {
+            if (fillOrdersCache[capacity]) return fillOrdersCache[capacity];
+
+            // Heuristic to maximize distance between sequential points on a circle
+            const order = [0]; // Always start top
+            for (let i = 1; i < capacity; i++) {
+                let bestSlot = -1;
+                let maxMinDist = -1;
+                
+                for (let candidate = 0; candidate < capacity; candidate++) {
+                    if (order.includes(candidate)) continue;
+                    
+                    // Min circular distance to any existing slot
+                    let minDist = Infinity;
+                    for (let existing of order) {
+                        let diff = Math.abs(candidate - existing);
+                        let dist = Math.min(diff, capacity - diff);
+                        if (dist < minDist) minDist = dist;
+                    }
+                    
+                    if (minDist > maxMinDist) {
+                        maxMinDist = minDist;
+                        bestSlot = candidate;
+                    }
+                }
+                order.push(bestSlot);
+            }
+            fillOrdersCache[capacity] = order;
+            return order;
+        }
+
+        // --- HELPERS ---
+        function getChemicalProperties(el) {
+            const valence = el.shells[el.shells.length - 1];
+            const group = el.g;
+            let tendency = "";
+            let ion = "";
+
+            if (group === 18) {
+                tendency = "Estable";
+                ion = "—";
+            } 
+            else if (el.z === 1) {
+                tendency = "↓ 1 e⁻ (Comparte)";
+                ion = "H<sup>+</sup>";
+            }
+            // Metals 
+            else if (group === 1) {
+                tendency = "↓ 1 e⁻";
+                ion = `${el.s}<sup>+</sup>`;
+            } else if (group === 2) {
+                tendency = "↓ 2 e⁻";
+                ion = `${el.s}<sup>2+</sup>`;
+            } else if (group === 13) {
+                tendency = "↓ 3 e⁻";
+                ion = `${el.s}<sup>3+</sup>`;
+            }
+            // Non-metals (Gain)
+            else if (group === 15) {
+                tendency = "↑ 3 e⁻";
+                ion = `${el.s}<sup>3-</sup>`;
+            } else if (group === 16) {
+                tendency = "↑ 2 e⁻";
+                ion = `${el.s}<sup>2-</sup>`;
+            } else if (group === 17) {
+                tendency = "↑ 1 e⁻";
+                ion = `${el.s}<sup>-</sup>`;
+            }
+            // Carbonoids
+            else if (group === 14) {
+                tendency = "± 4 e⁻"; 
+                ion = `${el.s}<sup>4+</sup> / ${el.s}<sup>4-</sup>`;
+            }
+            // Transition Metals
+            else {
+                tendency = "↓ 2 e⁻";
+                ion = `${el.s}<sup>2+</sup>`;
+            }
+
+            return { tendency, ion, valence };
+        }
+
+        // --- CANVAS HANDLING ---
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const rect = container.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            const data = elements.find(e => e.z === currentZ);
+            if(data) drawAtom(data);
+        }
+
+        // --- DRAWING ---
+        function drawAtom(data) {
+            const width = canvas.width / (window.devicePixelRatio || 1);
+            const height = canvas.height / (window.devicePixelRatio || 1);
+            if (width === 0 || height === 0) return;
+
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Determine Diff Electron Logic (0-based logical index)
+            let diffShellIdx = -1;
+            let diffElectronIdx = -1; // Logical index in arrival order
+            if (data.z === 1) {
+                diffShellIdx = 0; diffElectronIdx = 0;
+            } else {
+                const prev = elements.find(e => e.z === data.z - 1);
+                if (prev) {
+                    for (let i = 0; i < data.shells.length; i++) {
+                         const prevCount = prev.shells[i] || 0;
+                         if (data.shells[i] > prevCount) {
+                             diffShellIdx = i;
+                             // The new electron is the last one added to this shell
+                             diffElectronIdx = data.shells[i] - 1; 
+                             break;
+                         }
+                    }
+                }
+            }
+
+            // Nucleus
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 18, 0, Math.PI * 2);
+            ctx.fillStyle = "#f97316"; 
+            ctx.fill();
+            ctx.strokeStyle = "#ea580c"; 
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            ctx.fillStyle = "#1e293b";
+            ctx.font = "bold 14px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(data.s, centerX, centerY);
+
+            // Shell Settings
+            const maxSimulationShells = 6; 
+            const minRadius = 50;
+            const maxRadius = Math.min(width, height) / 2 - 25;
+            const step = (maxRadius - minRadius) / (maxSimulationShells - 1);
+
+            const shells = data.shells;
+
+            shells.forEach((electronCount, index) => {
+                const radius = minRadius + (index * step);
+                
+                // Ring
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                ctx.strokeStyle = "rgba(148, 163, 184, 0.4)";
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Capacity & Order
+                const capacity = 2 * Math.pow(index + 1, 2);
+                const fillOrder = getOptimalFillOrder(capacity);
+                
+                // We draw ALL slots (0 to capacity-1)
+                for (let j = 0; j < capacity; j++) {
+                    // Position: Fixed around circle
+                    const angle = (Math.PI * 2 * j / capacity) - (Math.PI / 2);
+                    const ex = centerX + Math.cos(angle) * radius;
+                    const ey = centerY + Math.sin(angle) * radius;
+
+                    // Determine content of this slot `j`
+                    // We need to find if any electron maps to this slot.
+                    // Electron k (0..count-1) maps to slot fillOrder[k].
+                    
+                    // Inverse lookup: What logical electron index is at slot j?
+                    const logicalIndex = fillOrder.indexOf(j);
+                    
+                    let isReal = false;
+                    let isDiff = false;
+
+                    if (logicalIndex !== -1 && logicalIndex < electronCount) {
+                        isReal = true;
+                        // Check if this logical index corresponds to the differential electron
+                        if (index === diffShellIdx && logicalIndex === diffElectronIdx) {
+                            isDiff = true;
+                        }
+                    }
+
+                    if (isReal) {
+                        ctx.beginPath();
+                        if (isDiff) {
+                            // Differential
+                            ctx.arc(ex, ey, 8, 0, Math.PI * 2); 
+                            ctx.fillStyle = "#ec4899"; 
+                            ctx.shadowColor = "#ec4899";
+                            ctx.shadowBlur = 15; 
+                        } else {
+                            // Standard
+                            ctx.arc(ex, ey, 6, 0, Math.PI * 2); 
+                            if (index === shells.length - 1) { 
+                                ctx.fillStyle = "#60a5fa"; // Valence
+                                ctx.shadowColor = "#60a5fa";
+                                ctx.shadowBlur = 6;
+                            } else {
+                                ctx.fillStyle = "#3b82f6"; // Inner
+                                ctx.shadowColor = "#3b82f6";
+                                ctx.shadowBlur = 3;
+                            }
+                        }
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                    } else {
+                        // Ghost / Hole
+                        ctx.beginPath();
+                        ctx.arc(ex, ey, 5, 0, Math.PI * 2); 
+                        ctx.fillStyle = "rgba(96, 165, 250, 0.1)"; 
+                        ctx.fill();
+                        ctx.strokeStyle = "rgba(96, 165, 250, 0.3)"; 
+                        ctx.setLineDash([2, 2]); 
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                        ctx.setLineDash([]); 
+                    }
+                }
+            });
+        }
+
+        // --- UPDATE ---
+        function updateAll(z) {
+            z = parseInt(z);
+            currentZ = z;
+            const data = elements.find(e => e.z === z);
+
+            if(!data) return;
+
+            const props = getChemicalProperties(data);
+
+            sliderVal.innerText = z;
+            displayZ.innerText = z;
+            displayName.innerText = data.n;
+            displayConfig.innerText = `(${data.shells.join(", ")})`;
+            
+            displayShellsCount.innerText = data.shells.length;
+            displayValence.innerText = props.valence;
+            displayTendency.innerText = props.tendency;
+            displayIon.innerHTML = props.ion;
+
+            document.querySelectorAll('.element-cell').forEach(c => c.classList.remove('active'));
+            const activeCell = document.getElementById(`cell-${z}`);
+            if (activeCell) activeCell.classList.add('active');
+            
+            drawAtom(data);
+        }
+
+        function createTable() {
+            const elementMap = {};
+            elements.forEach(e => elementMap[`${e.p}-${e.g}`] = e);
+
+            for (let row = 1; row <= 6; row++) {
+                for (let col = 1; col <= 18; col++) {
+                    const el = elementMap[`${row}-${col}`];
+                    const cell = document.createElement('div');
+                    
+                    if (el) {
+                        cell.className = 'element-cell';
+                        cell.innerHTML = `
+                            <span class="atomic-number">${el.z}</span>
+                            <span class="symbol">${el.s}</span>
+                        `;
+                        cell.dataset.z = el.z;
+                        cell.id = `cell-${el.z}`;
+                        cell.style.gridColumnStart = col;
+                        cell.style.gridRowStart = row;
+                        cell.title = el.n;
+                        cell.addEventListener('click', () => {
+                            slider.value = el.z;
+                            updateAll(el.z);
+                        });
+                    }
+                    tableContainer.appendChild(cell);
+                }
+            }
+        }
+
+        function init() {
+            createTable();
+            resizeCanvas();
+            updateAll(1);
+        }
+
+        slider.addEventListener('input', (e) => updateAll(e.target.value));
+        
+        btnPrev.addEventListener('click', () => {
+            if(currentZ > 1) {
+                slider.value = currentZ - 1;
+                updateAll(currentZ - 1);
+            }
+        });
+        
+        btnNext.addEventListener('click', () => {
+            if(currentZ < 56) {
+                slider.value = currentZ + 1;
+                updateAll(currentZ + 1);
+            }
+        });
+
+        window.addEventListener('resize', resizeCanvas);
+
+        init();
+    </script>
+</body>
+</html>
