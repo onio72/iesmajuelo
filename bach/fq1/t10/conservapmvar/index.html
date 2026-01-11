@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación Física: Momento Lineal y Masa Variable</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #64748b;
+            --bg: #f8fafc;
+            --panel: #ffffff;
+            --text: #1e293b;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        p.subtitle {
+            color: var(--secondary);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        /* Container principal */
+        .app-container {
+            background: var(--panel);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 20px;
+            width: 90%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Canvas styling */
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #e2e8f0;
+            background-color: #f1f5f9;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 350px;
+        }
+
+        /* Panel de Control Principal (Botones) */
+        .main-controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .control-row {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        /* Bottom Panel: Split View */
+        .bottom-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        .panel-section {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--secondary);
+            font-weight: 700;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+
+        /* Botones */
+        button {
+            background-color: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: var(--text);
+            font-weight: 600;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        button.btn-coast.active { background-color: var(--secondary); color: white; border-color: var(--secondary); }
+        button.btn-fill.active { background-color: var(--primary); color: white; border-color: var(--primary); }
+        button.btn-drain.active { background-color: var(--danger); color: white; border-color: var(--danger); }
+        button.btn-pause { background-color: #f1f5f9; }
+
+        /* Sliders */
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-bottom: 8px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            height: 6px;
+            background: #cbd5e1;
+            border-radius: 3px;
+            appearance: none;
+            margin-top: 5px;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        /* Balance Table */
+        .balance-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        
+        .balance-table th {
+            text-align: left;
+            padding: 8px;
+            color: var(--secondary);
+            font-size: 0.8rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .balance-table td {
+            padding: 8px;
+            border-bottom: 1px solid #e2e8f0;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        .val-initial { color: var(--secondary); }
+        .val-current { color: var(--text); }
+        .val-momentum { color: var(--primary-dark); font-weight: 700; }
+
+        .checkbox-wrapper {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Laboratorio de Momento Lineal</h1>
+        <p class="subtitle">Sistema Aislado: Conservación de P (v = P / m)</p>
+    </header>
+
+    <div class="app-container">
+        <!-- Canvas -->
+        <div class="canvas-wrapper">
+            <canvas id="simCanvas"></canvas>
+        </div>
+
+        <!-- Main Controls (Top) -->
+        <div class="main-controls">
+            <div class="control-row">
+                <button id="btnPlayCoast" class="btn-coast">▶ Inercia</button>
+                <button id="btnPlayFill" class="btn-fill">💧 Llenar</button>
+                <button id="btnPlayDrain" class="btn-drain">⬇ Vaciar</button>
+                <div style="width: 20px;"></div> <!-- Spacer -->
+                <button id="btnStepBack" title="Atrás">⏮</button>
+                <button id="btnPause" class="btn-pause">⏸ Pausa</button>
+                <button id="btnStepFwd" title="Adelante">⏭</button>
+                <button id="btnReset" title="Reiniciar">↺ Reiniciar</button>
+            </div>
+        </div>
+
+        <!-- Bottom Panel (Split) -->
+        <div class="bottom-panel">
+            
+            <!-- LEFT: Settings -->
+            <div class="panel-section">
+                <div class="section-title">Configuración Inicial</div>
+                
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Agua Inicial</span>
+                        <span id="lblWaterVal">0 kg</span>
+                    </div>
+                    <input type="range" id="sliderWater" min="0" max="100" value="0">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Velocidad Inicial</span>
+                        <span id="lblVelocityVal">4.0 m/s</span>
+                    </div>
+                    <input type="range" id="sliderVelocity" min="1" max="10" step="0.5" value="4">
+                </div>
+                
+                <div style="font-size: 0.75rem; color: var(--secondary); text-align: center; margin-top: 5px;">
+                    <em>(Modificable solo al reiniciar)</em>
+                </div>
+
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="chkShowStats">
+                    <label for="chkShowStats">Ver datos sobre el carro</label>
+                </div>
+            </div>
+
+            <!-- RIGHT: Balance Table -->
+            <div class="panel-section">
+                <div class="section-title">Balance de Momento (P = m · v)</div>
+                <table class="balance-table">
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Inicio (t<sub>0</sub>)</th>
+                            <th>Actual (t)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Masa Total (kg)</td>
+                            <td id="cell-m0" class="val-initial">0.0</td>
+                            <td id="cell-mt" class="val-current">0.0</td>
+                        </tr>
+                        <tr>
+                            <td>Velocidad (m/s)</td>
+                            <td id="cell-v0" class="val-initial">0.0</td>
+                            <td id="cell-vt" class="val-current">0.0</td>
+                        </tr>
+                        <tr>
+                            <td>Momento (kg·m/s)</td>
+                            <td id="cell-p0" class="val-momentum">0</td>
+                            <td id="cell-pt" class="val-momentum">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- Configuración y Constantes ---
+        const CONFIG = {
+            fps: 60,
+            cartMass: 50,    // kg
+            maxWater: 150,   // kg
+            fillRate: 0.5,   // kg por frame
+            drainRate: 0.8,  // kg por frame
+            
+            railY: 300,      
+            cartWidth: 140,  
+            cartHeight: 70,  
+            wheelRadius: 12, 
+        };
+
+        // --- Estado de la Simulación ---
+        let state = {
+            running: false,
+            mode: 'coast',
+            time: 0,
+            cart: {
+                x: 50,
+                v: 4,
+                massWater: 0,
+            },
+            // FÍSICA: Momento Conservado del Sistema
+            systemMomentum: 0, 
+            initial: { m: 0, v: 0, p: 0 },
+            history: [] 
+        };
+
+        // Referencias DOM
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Botones
+        const btnPlayCoast = document.getElementById('btnPlayCoast');
+        const btnPlayFill = document.getElementById('btnPlayFill');
+        const btnPlayDrain = document.getElementById('btnPlayDrain');
+        const btnPause = document.getElementById('btnPause');
+        const btnStepBack = document.getElementById('btnStepBack');
+        const btnStepFwd = document.getElementById('btnStepFwd');
+        const btnReset = document.getElementById('btnReset');
+        
+        // Inputs
+        const sliderWater = document.getElementById('sliderWater');
+        const lblWaterVal = document.getElementById('lblWaterVal');
+        const sliderVelocity = document.getElementById('sliderVelocity');
+        const lblVelocityVal = document.getElementById('lblVelocityVal');
+        const chkShowStats = document.getElementById('chkShowStats');
+
+        // Tabla Balance
+        const cells = {
+            m0: document.getElementById('cell-m0'),
+            mt: document.getElementById('cell-mt'),
+            v0: document.getElementById('cell-v0'),
+            vt: document.getElementById('cell-vt'),
+            p0: document.getElementById('cell-p0'),
+            pt: document.getElementById('cell-pt'),
+        };
+
+        let particles = []; 
+
+        // --- Inicialización ---
+        function init() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            resetSimulation();
+            loop();
+        }
+
+        function resizeCanvas() {
+            const parent = canvas.parentElement;
+            canvas.width = parent.clientWidth;
+            canvas.height = parent.clientHeight;
+        }
+
+        function resetSimulation() {
+            state.running = false;
+            state.time = 0;
+            state.history = [];
+            particles = [];
+            state.mode = 'coast';
+            
+            state.cart.x = 50;
+            state.cart.massWater = parseFloat(sliderWater.value);
+            // Velocidad base seleccionada
+            const vInit = parseFloat(sliderVelocity.value); 
+            state.cart.v = vInit;
+
+            // FÍSICA: Calcular P constante del sistema
+            const totalMass = CONFIG.cartMass + state.cart.massWater;
+            state.systemMomentum = totalMass * vInit;
+            
+            // Guardar estado inicial para visualización
+            state.initial = {
+                m: totalMass,
+                v: vInit,
+                p: state.systemMomentum
+            };
+
+            // Limpiar estilos botones
+            [btnPlayCoast, btnPlayFill, btnPlayDrain].forEach(b => b.classList.remove('active'));
+            sliderWater.disabled = false;
+            sliderVelocity.disabled = false;
+
+            updateUI();
+            draw();
+        }
+
+        // --- Bucle ---
+        function loop() {
+            if (state.running) {
+                update();
+            }
+            // Siempre actualizamos la tabla por si cambia en pausa (sliders)
+            updateBalanceTable(); 
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        // --- Física ---
+        function update() {
+            if (state.time % 2 === 0) pushHistory();
+            state.time++;
+
+            // 1. Loop Infinito
+            if (state.cart.x > canvas.width) {
+                state.cart.x = -CONFIG.cartWidth;
+            }
+
+            // 2. Modificación de Masa
+            // Usamos una copia temporal para cálculos
+            let currentWater = state.cart.massWater;
+            
+            // MODO LLENADO
+            if (state.mode === 'fill') {
+                if (currentWater < CONFIG.maxWater) {
+                    currentWater += CONFIG.fillRate;
+                    // Partículas
+                    const hopperX = state.cart.x + CONFIG.cartWidth / 2;
+                    spawnParticles(hopperX, 80, 'falling');
+                }
+            }
+
+            // MODO VACIADO
+            if (state.mode === 'drain') {
+                if (currentWater > 0) {
+                    currentWater -= CONFIG.drainRate;
+                    if (currentWater < 0) currentWater = 0;
+                    // Partículas
+                    const drainX = state.cart.x + (CONFIG.cartWidth / 2); 
+                    const drainY = CONFIG.railY;
+                    spawnParticles(drainX, drainY, 'draining', state.cart.v);
+                }
+            }
+
+            // Aplicar cambio de masa
+            state.cart.massWater = currentWater;
+
+            // 3. FÍSICA CLAVE: Conservación del Momento (P = constante)
+            // v = P_sistema / m_total
+            // Esto asegura que si m baja, v sube (propulsión)
+            // Y si m sube, v baja (inercia)
+            const newTotalMass = CONFIG.cartMass + state.cart.massWater;
+            state.cart.v = state.systemMomentum / newTotalMass;
+
+            // 4. Cinemática
+            state.cart.x += state.cart.v;
+
+            updateParticles();
+        }
+
+        // --- Renderizado ---
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Raíles y Suelo
+            ctx.beginPath();
+            ctx.moveTo(0, CONFIG.railY);
+            ctx.lineTo(canvas.width, CONFIG.railY);
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // Detalles raíl
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
+            for(let i=0; i<canvas.width; i+=50) {
+                ctx.beginPath();
+                ctx.moveTo(i, CONFIG.railY + 2);
+                ctx.lineTo(i + 15, CONFIG.railY + 12);
+                ctx.stroke();
+            }
+
+            // Texto "Sin Rozamiento"
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'italic 14px serif';
+            ctx.textAlign = 'center';
+            ctx.fillText("Superficie sin rozamiento (μ = 0)", canvas.width / 2, CONFIG.railY + 40);
+
+            // 2. Carro
+            const wheelCenterY = CONFIG.railY - CONFIG.wheelRadius;
+            const cartBodyBottomY = wheelCenterY; 
+            const cartBodyY = cartBodyBottomY - CONFIG.cartHeight;
+            const cx = state.cart.x;
+
+            // Ruedas
+            ctx.fillStyle = '#334155';
+            drawWheel(cx + 25, wheelCenterY, CONFIG.wheelRadius);
+            drawWheel(cx + CONFIG.cartWidth - 25, wheelCenterY, CONFIG.wheelRadius);
+
+            // Cuerpo
+            ctx.fillStyle = '#f1f5f9';
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 3;
+            ctx.fillRect(cx, cartBodyY, CONFIG.cartWidth, CONFIG.cartHeight);
+            ctx.strokeRect(cx, cartBodyY, CONFIG.cartWidth, CONFIG.cartHeight);
+
+            // Agua (Nivel)
+            const waterRatio = state.cart.massWater / CONFIG.maxWater;
+            if (waterRatio > 0) {
+                const waterH = CONFIG.cartHeight * waterRatio;
+                const waterY = (cartBodyY + CONFIG.cartHeight) - waterH;
+                
+                ctx.fillStyle = 'rgba(37, 99, 235, 0.7)';
+                ctx.fillRect(cx, waterY, CONFIG.cartWidth, waterH);
+                
+                ctx.beginPath();
+                ctx.moveTo(cx, waterY);
+                ctx.lineTo(cx + CONFIG.cartWidth, waterY);
+                ctx.strokeStyle = '#1d4ed8';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            // Tapón (Centro)
+            const drainColor = (state.mode === 'drain') ? '#ef4444' : '#94a3b8';
+            ctx.fillStyle = drainColor;
+            ctx.fillRect(cx + (CONFIG.cartWidth/2) - 8, cartBodyY + CONFIG.cartHeight - 4, 16, 6);
+
+            // 3. Tolva (Móvil)
+            const hx = cx + CONFIG.cartWidth / 2;
+            const hy = 40; 
+
+            // Estructura
+            ctx.beginPath();
+            ctx.moveTo(hx - 25, hy);
+            ctx.lineTo(hx + 25, hy);
+            ctx.lineTo(hx + 10, hy + 40);
+            ctx.lineTo(hx - 10, hy + 40);
+            ctx.closePath();
+            ctx.fillStyle = '#475569';
+            ctx.fill();
+
+            // Etiqueta
+            ctx.fillStyle = '#64748b';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText("TOLVA", hx, hy - 10);
+            
+            // Riel superior
+            ctx.beginPath();
+            ctx.moveTo(0, hy);
+            ctx.lineTo(canvas.width, hy);
+            ctx.strokeStyle = '#e2e8f0'; 
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Chorro agua tolva (Solo si no está lleno)
+            if (state.mode === 'fill' && state.cart.massWater < CONFIG.maxWater) {
+                ctx.fillStyle = '#60a5fa';
+                const waterTopY = (cartBodyY + CONFIG.cartHeight) - (CONFIG.cartHeight * waterRatio);
+                ctx.fillRect(hx - 4, hy + 40, 8, waterTopY - (hy + 40));
+            }
+
+            // 4. Partículas
+            drawParticles();
+            
+            // 5. Stats Flotantes (Opcional)
+            if (chkShowStats.checked) {
+                drawStats(cx, cartBodyY);
+            }
+        }
+
+        function drawWheel(x, y, r) {
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 2;
+            ctx.moveTo(x, y);
+            const angle = state.cart.x / r; 
+            ctx.lineTo(x + Math.cos(angle)*r, y + Math.sin(angle)*r);
+            ctx.stroke();
+        }
+
+        function drawStats(cx, cy) {
+            // Dibujar pequeña caja flotante cerca del carro
+            const boxX = cx + CONFIG.cartWidth + 10;
+            const boxY = cy;
+            
+            ctx.fillStyle = 'rgba(0,0,0,0.7)';
+            ctx.roundRect(boxX, boxY, 110, 50, 4);
+            ctx.fill();
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText(`v: ${(state.cart.v*10).toFixed(1)}`, boxX+10, boxY+20);
+            ctx.fillText(`m: ${(CONFIG.cartMass + state.cart.massWater).toFixed(1)}`, boxX+10, boxY+38);
+        }
+
+        // --- Partículas ---
+        function spawnParticles(x, y, type, speedX = 0) {
+            for(let i=0; i<2; i++) {
+                particles.push({
+                    x: x + (Math.random()-0.5)*8,
+                    y: y,
+                    vx: speedX + (Math.random()-0.5)*1,
+                    vy: type==='falling' ? (4+Math.random()*4) : (2+Math.random()*2),
+                    life: 1,
+                    type: type
+                });
+            }
+        }
+
+        function updateParticles() {
+            for(let i=particles.length-1; i>=0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.04;
+                if (p.y > CONFIG.railY && p.type==='falling') p.life = 0; 
+                if (p.y > CONFIG.railY + 100) p.life = 0;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+        }
+
+        function drawParticles() {
+            ctx.fillStyle = '#60a5fa';
+            for(let p of particles) {
+                ctx.globalAlpha = p.life;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 2.5, 0, Math.PI*2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1.0;
+        }
+
+        // --- Historial ---
+        function pushHistory() {
+            if (state.history.length > 300) state.history.shift();
+            state.history.push({
+                x: state.cart.x,
+                v: state.cart.v,
+                m: state.cart.massWater
+            });
+        }
+        function stepBack() {
+            if (state.history.length > 0) {
+                const prev = state.history.pop();
+                state.cart.x = prev.x;
+                state.cart.v = prev.v;
+                state.cart.massWater = prev.m;
+                draw();
+            }
+        }
+
+        // --- Interfaz y DOM ---
+        function setMode(mode) {
+            state.mode = mode;
+            state.running = true;
+            
+            [btnPlayCoast, btnPlayFill, btnPlayDrain].forEach(b => b.classList.remove('active'));
+            if(mode === 'coast') btnPlayCoast.classList.add('active');
+            if(mode === 'fill') btnPlayFill.classList.add('active');
+            if(mode === 'drain') btnPlayDrain.classList.add('active');
+            
+            sliderWater.disabled = true;
+            sliderVelocity.disabled = true;
+        }
+
+        // Actualización Tabla Balance (DOM)
+        function updateBalanceTable() {
+            const curM = CONFIG.cartMass + state.cart.massWater;
+            const curV = state.cart.v;
+            // Usamos factor x10 para visualización más amigable
+            const factor = 10; 
+
+            cells.m0.textContent = state.initial.m.toFixed(1);
+            cells.v0.textContent = (state.initial.v * factor).toFixed(2);
+            cells.p0.textContent = (state.initial.p * factor).toFixed(1);
+
+            cells.mt.textContent = curM.toFixed(1);
+            cells.vt.textContent = (curV * factor).toFixed(2);
+            cells.pt.textContent = (curM * curV * factor).toFixed(1);
+        }
+
+        function updateUI() {
+            lblWaterVal.textContent = state.cart.massWater + " kg";
+            sliderWater.value = state.cart.massWater;
+            lblVelocityVal.textContent = parseFloat(sliderVelocity.value).toFixed(1) + " m/s";
+            sliderVelocity.value = state.cart.v;
+            updateBalanceTable();
+        }
+
+        // Listeners
+        btnPlayCoast.addEventListener('click', () => setMode('coast'));
+        btnPlayFill.addEventListener('click', () => setMode('fill'));
+        btnPlayDrain.addEventListener('click', () => setMode('drain'));
+
+        btnPause.addEventListener('click', () => {
+            state.running = false;
+            [btnPlayCoast, btnPlayFill, btnPlayDrain].forEach(b => b.classList.remove('active'));
+        });
+
+        btnReset.addEventListener('click', () => {
+            resetSimulation();
+        });
+
+        btnStepFwd.addEventListener('click', () => {
+            state.running = false;
+            update();
+            draw();
+        });
+        btnStepBack.addEventListener('click', () => {
+            state.running = false;
+            stepBack();
+        });
+
+        sliderWater.addEventListener('input', (e) => {
+            if (!state.running) resetSimulation(); // Recalcula P inicial instantáneamente
+        });
+        sliderVelocity.addEventListener('input', (e) => {
+            if (!state.running) resetSimulation();
+        });
+        
+        chkShowStats.addEventListener('change', () => draw());
+
+        init();
+    </script>
+</body>
+</html>
