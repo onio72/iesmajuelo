@@ -620,19 +620,18 @@
         }
 
         function drawStats(cx, cy) {
-            // Dibujar pequeña caja flotante cerca del carro
+            // Dibujar datos flotantes cerca del carro
+            // CAMBIO: Sin caja de fondo, texto gris y con unidades
             const boxX = cx + CONFIG.cartWidth + 10;
             const boxY = cy;
             
-            ctx.fillStyle = 'rgba(0,0,0,0.7)';
-            ctx.roundRect(boxX, boxY, 110, 50, 4);
-            ctx.fill();
-            
-            ctx.fillStyle = '#fff';
-            ctx.font = '12px monospace';
+            ctx.fillStyle = '#475569'; // Gris oscuro (Slate-600)
+            ctx.font = 'bold 13px monospace';
             ctx.textAlign = 'left';
-            ctx.fillText(`v: ${(state.cart.v*10).toFixed(1)}`, boxX+10, boxY+20);
-            ctx.fillText(`m: ${(CONFIG.cartMass + state.cart.massWater).toFixed(1)}`, boxX+10, boxY+38);
+            
+            // Añadidas unidades m/s y kg
+            ctx.fillText(`v: ${(state.cart.v).toFixed(2)} m/s`, boxX, boxY + 20);
+            ctx.fillText(`m: ${(CONFIG.cartMass + state.cart.massWater).toFixed(1)} kg`, boxX, boxY + 40);
         }
 
         // --- Partículas ---
@@ -709,8 +708,8 @@
         function updateBalanceTable() {
             const curM = CONFIG.cartMass + state.cart.massWater;
             const curV = state.cart.v;
-            // Usamos factor x10 para visualización más amigable
-            const factor = 10; 
+            // CORRECCIÓN: Factor a 1 para consistencia
+            const factor = 1; 
 
             cells.m0.textContent = state.initial.m.toFixed(1);
             cells.v0.textContent = (state.initial.v * factor).toFixed(2);
