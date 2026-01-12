@@ -20,13 +20,11 @@
             --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             --radius: 0.75rem;
         }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-body);
@@ -46,7 +44,6 @@
             z-index: 100;
             padding: 1rem;
         }
-
         .header-content {
             max-width: 1100px;
             margin: 0 auto;
@@ -55,7 +52,6 @@
             align-items: center;
             gap: 1rem;
         }
-
         .brand {
             font-weight: 800;
             font-size: 1.2rem;
@@ -67,13 +63,11 @@
             cursor: pointer;
             white-space: nowrap;
         }
-
         .search-container {
             position: relative;
             flex: 1;
             max-width: 400px;
         }
-
         .search-input {
             width: 100%;
             padding: 0.6rem 1rem 0.6rem 2.5rem;
@@ -84,14 +78,12 @@
             transition: all 0.2s;
             background: var(--bg-body);
         }
-
         .search-input:focus {
             outline: none;
             border-color: var(--primary);
             background: white;
             box-shadow: 0 0 0 3px var(--primary-light);
         }
-
         .search-icon {
             position: absolute;
             left: 1rem;
@@ -106,7 +98,6 @@
             border-bottom: 1px solid var(--border);
             padding: 0.75rem 1rem;
         }
-
         .toolbar-content {
             max-width: 1100px;
             margin: 0 auto;
@@ -114,7 +105,6 @@
             align-items: center;
             gap: 1rem;
         }
-
         .btn-back {
             background: white;
             border: 1px solid var(--border);
@@ -129,13 +119,11 @@
             transition: all 0.2s;
             color: var(--text-muted);
         }
-
         .btn-back:hover {
             background: var(--primary-light);
             color: var(--primary);
             border-color: var(--primary);
         }
-
         .breadcrumbs {
             font-size: 0.85rem;
             color: var(--text-muted);
@@ -145,7 +133,6 @@
             overflow-x: auto;
             white-space: nowrap;
         }
-
         .breadcrumb-item { cursor: pointer; transition: color 0.2s; }
         .breadcrumb-item:hover { color: var(--primary); }
         .breadcrumb-sep { opacity: 0.3; font-weight: 300; }
@@ -158,11 +145,9 @@
             margin: 0 auto;
             padding: 2rem 1rem;
         }
-
         .view-container {
             animation: slideUp 0.3s ease-out;
         }
-
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -174,7 +159,6 @@
             grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 1.5rem;
         }
-
         .card {
             background: var(--bg-card);
             padding: 2rem 1.5rem;
@@ -190,13 +174,11 @@
             position: relative;
             overflow: hidden;
         }
-
         .card:hover {
             transform: translateY(-4px);
             box-shadow: var(--shadow);
             border-color: var(--primary);
         }
-
         .card::after {
             content: '';
             position: absolute;
@@ -205,21 +187,17 @@
             opacity: 0;
             transition: opacity 0.3s;
         }
-
         .card:hover::after { opacity: 1; }
-
         .card-icon {
             font-size: 3rem;
             margin-bottom: 1.25rem;
             filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
         }
-
         .card h2 {
             font-size: 1.25rem;
             margin-bottom: 0.5rem;
             font-weight: 700;
         }
-
         .card p {
             color: var(--text-muted);
             font-size: 0.9rem;
@@ -233,7 +211,6 @@
             font-weight: 800;
             color: var(--text-main);
         }
-
         .resource-group {
             background: white;
             padding: 1.5rem;
@@ -242,7 +219,6 @@
             margin-bottom: 1.5rem;
             box-shadow: var(--shadow-sm);
         }
-
         .resource-group h3 {
             margin-bottom: 1rem;
             color: var(--primary);
@@ -253,13 +229,11 @@
             align-items: center;
             gap: 0.5rem;
         }
-
         .links-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 0.75rem;
         }
-
         .link-item {
             display: flex;
             align-items: center;
@@ -273,7 +247,6 @@
             font-size: 0.9rem;
             transition: all 0.2s;
         }
-
         .link-item:hover {
             background: white;
             border-color: var(--primary);
@@ -281,14 +254,12 @@
             transform: translateX(3px);
             box-shadow: var(--shadow-sm);
         }
-
         .link-item::before {
             content: '🔗';
             margin-right: 10px;
             font-size: 1rem;
             filter: grayscale(1);
         }
-
         .link-item:hover::before { filter: grayscale(0); }
 
         /* Search Results View */
@@ -300,13 +271,11 @@
             font-size: 0.9rem;
             color: var(--primary-dark);
         }
-
         .no-results {
             text-align: center;
             padding: 4rem 2rem;
             color: var(--text-muted);
         }
-
         .hidden { display: none !important; }
 
         footer {
@@ -422,9 +391,9 @@
                     { name: "Configuración electrónica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/configelect/" },
                     { name: "Aprendiendo configuraciones electrónica y tabla periódica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/configtabla/" },
                     { name: "Reto configuración electrónica y tabla", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/retoconfigtabla/" }
-                ]}
+                ]}, 
                 { name: "T03 - Uniones entre átomos", links: [
-                    { name: "Sustancias y tipos de enlaces", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t03/sustenlaces/" }
+                    { name: "Sustancias y tipos de enlaces", url: "https://onio72.github.io/iesmajuelo/eso/fq3/formulacion/tabla_valencias.html" }
                 ]}
             ] 
         },
@@ -474,26 +443,24 @@
                 ]}
             ] 
         },
-        fpb2: {
-              title: "FPB 2",
-              groups: [
-                  { name: "Geometría y Volumen", links: [
-                      { name: "Reconocer figuras 3D", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3D/" },
-                      { name: "Teorema de Euler", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3Deuler/" },
-                      { name: "Problemas de volumen", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/probvol/" }
-                  ]},
-                  { name: "Estadística", links: [
-                      { name: "Tabla de frecuencias paso a paso", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/tablafrecuencias/" },
-                      { name: "Ejercicio de tabla de frecuencias", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/tablafrec_ej/" },
-                      { name: "Crea gráfico de barras(I)", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/grafbarras01/" },
-                      { name: "Crea gráfico de barras(II)", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/grafbarras02/" },
-                      { name: "Crea gráfico de barras(III)", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/grafbarras03/" },
-                      { name: "Cálculo de media, mediana y moda", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/calculommm/" }
-                  ]}
-              ]
-          },
-
-
+        fpb2: { 
+             title: "FPB 2", 
+             groups: [
+                 { name: "Geometría y Volumen", links: [
+                     { name: "Reconocer figuras 3D", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3D/" },
+                     { name: "Teorema de Euler", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3Deuler/" },
+                     { name: "Problemas de volumen", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/probvol/" }
+                 ]},
+                 { name: "Estadística", links: [
+                     { name: "Tabla de frecuencias paso a paso", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/tablafrecuencias/" },
+                     { name: "Ejercicio de tabla de frecuencias", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/tablafrec_ej/" },
+                     { name: "Crea gráfico de barras(I)", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/grafbarras01/" },
+                     { name: "Crea gráfico de barras(II)", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/grafbarras02/" },
+                     { name: "Crea gráfico de barras(III)", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/grafbarras03/" },
+                     { name: "Cálculo de media, mediana y moda", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/calculommm/" }
+                 ]}
+             ] 
+         },
         tools: { title: "Herramientas", groups: [{ name: "Simuladores", links: [{ name: "Dibuja átomos", url: "https://onio72.github.io/iesmajuelo/tools/atomo.html" }] }] },
         cdd: { title: "CDD", groups: [{ name: "Digital", links: [{ name: "Repositorio de píldoras", url: "https://onio72.github.io/cdd/" }] }] },
         equipo: { 
@@ -552,7 +519,7 @@
         isSearchActive = true;
         backBtn.classList.remove('hidden');
         breadcrumbs.innerHTML = `Resultados de: <strong>${query}</strong>`;
-
+        
         const results = [];
         
         // Buscar en todo el objeto DATA
@@ -570,6 +537,7 @@
         });
 
         let html = `<div class="view-container">`;
+
         if (results.length > 0) {
             html += `<div class="search-results-info">Se han encontrado ${results.length} recursos</div>`;
             html += `<div class="links-grid">`;
@@ -590,6 +558,7 @@
                 <p>No se encontraron recursos que coincidan con "${query}"</p>
             </div>`;
         }
+        
         html += `</div>`;
         app.innerHTML = html;
     }
@@ -663,6 +632,5 @@
 
     window.onload = render;
 </script>
-
 </body>
 </html>
