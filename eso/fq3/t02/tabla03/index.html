@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tabla periódica — Entrenador 3º ESO</title>
+<style>
+  :root{
+    --cell: 60px;
+    --gap-fblock: 16px;   /* separación visual f-bloque */
+    --highlight: #bdbdbd; /* sombreado del elemento resaltado */
+    --ok: #cdeccf;        /* verde pastel correcto */
+    --ko: #ffd6d6;        /* rojo pastel incorrecto */
+  }
+  *{box-sizing:border-box}
+  body{
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    margin: 20px;
+    line-height: 1.35;
+    background:#fff;
+    color:#111;
+  }
+  h1{ text-align:center; margin: 0 0 16px 0; }
+  .wrap{ max-width: 1100px; margin: 0 auto; }
+
+  /* Viewport para la tabla: scroll + zoom */
+  .ptable-viewport{
+    position: relative;
+    max-width: 100vw;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+    margin: 0 auto 10px auto;
+    border: 0; 
+  }
+  /* Envoltorio interno que se escalará */
+  .ptable-zoomwrap{
+    transform-origin: top left;
+    display: inline-block;
+    will-change: transform;
+  }
+
+  table.periodic-table{
+    border-collapse: collapse;
+    margin: 0;
+    min-width: calc(18 * var(--cell)); /* asegura ancho mínimo de 18 columnas */
+    background:#fff;
+  }
+  table.periodic-table td{
+    width: var(--cell);
+    height: var(--cell);
+    text-align: center;
+    vertical-align: middle;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 0;
+    line-height: 1;
+  }
+  /* Sólo los elementos muestran borde */
+  td.element{ border:1px solid #000; background:#fff; color:#111; }
+  td.blank{ border:none; background:transparent; }
+
+  /* Fila separadora para f-bloque (espacio visual) */
+  tr.spacer-row td{
+    border:none;
+    padding: 0;
+    height: var(--gap-fblock);
+    background:transparent;
+  }
+
+  /* Resaltado del elemento elegido */
+  td.highlight{ background: var(--highlight); }
+
+  /* Panel de preguntas */
+  .panel{margin:18px auto 0; max-width: 760px;}
+  .q{margin:10px 0;}
+  .q label{display:block; margin-bottom:6px; font-weight:600;}
+  .q input, .q select{
+    width:100%; padding:10px; font-size:16px;
+    border:1px solid #ccc; border-radius:8px; background:#fff;
+  }
+  .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center; margin-top:12px;}
+  button{
+    padding:10px 14px; border:1px solid #111; border-radius:10px;
+    font-weight:700; background:#fff; cursor:pointer;
+  }
+  button:disabled{opacity:.5; cursor:not-allowed;}
+  .score{
+    font-weight:800; padding:8px 12px; border-radius:10px; border:1px solid #999;
+    display:inline-block; min-width:140px; text-align:center;
+  }
+  .score.red{color:#a40000;}
+  .score.green{color:#0a7a0a;}
+  .muted{color:#666; font-size:14px;}
+  .status{font-size:14px; color:#444; text-align:center; margin-top:8px;}
+
+  /* Colores pastel tras corregir */
+  .c-ok{background:var(--ok) !important; border-color:#7fbf83 !important;}
+  .c-ko{background:var(--ko) !important; border-color:#cc8b8b !important;}
+
+  .badge{padding:4px 8px; border:1px solid #999; border-radius:10px; font-weight:700; font-size:14px;}
+
+  /* Breakpoints: reducimos celda si hace falta; el auto-zoom ya ajusta, esto es extra */
+  @media (max-width: 720px){
+    :root{ --cell: 44px; }
+    table.periodic-table td{ font-size: 12px; }
+  }
+  @media (max-width: 480px){
+    :root{ --cell: 36px; }
+    table.periodic-table td{ font-size: 12px; }
+  }
+  @media (max-width: 360px){
+    :root{ --cell: 30px; }
+    table.periodic-table td{ font-size: 11px; }
+  }
+
+  /* Aviso opcional si el zoom < 1 (para explicar el “ajuste al ancho”) */
+  .zoom-hint{
+    text-align:center; font-size:12px; color:#555; margin:4px 0 0;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Tabla periódica 3º ESO (Entrenador)</h1>
+
+  <!-- Viewport con zoom autoajustable -->
+  <div class="ptable-viewport" id="ptableViewport" aria-label="Contenedor desplazable de la tabla">
+    <div class="ptable-zoomwrap" id="ptableZoom">
+      <table class="periodic-table" id="periodicTable" aria-label="Tabla periódica"></table>
+    </div>
+  </div>
+  <div class="zoom-hint" id="zoomHint" aria-live="polite"></div>
+
+  <div class="panel">
+    <p><strong>En la tabla periódica hemos resaltado un elemento químico.</strong> Responde a las siguientes preguntas referidas a dicho elemento:</p>
+
+    <div class="q">
+      <label for="ansZ">1) ¿Cuál es su número atómico?</label>
+      <input id="ansZ" type="number" inputmode="numeric" placeholder="Escribe el número atómico (Z)">
+    </div>
+
+    <div class="q">
+      <label for="ansGroup">2) ¿A qué grupo pertenece?</label>
+      <input id="ansGroup" type="number" inputmode="numeric" placeholder="Número de grupo (1–18)">
+    </div>
+
+    <div class="q">
+      <label for="ansPeriod">3) ¿A qué período pertenece?</label>
+      <input id="ansPeriod" type="number" inputmode="numeric" placeholder="Número de período (1–7)">
+    </div>
+
+    <div class="q">
+      <label for="ansType">4) ¿De qué tipo de elemento se trata?</label>
+      <select id="ansType">
+        <option value="" selected disabled>Selecciona una opción…</option>
+        <option>Metal</option>
+        <option>No metal</option>
+        <option>Semimetal</option>
+        <option>Gas Noble</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <button id="btnCheck">Corregir</button>
+      <button id="btnNext">Otro ejercicio</button>
+      <span class="score red" id="scoreBox">Puntuación: 0.00</span>
+      <span class="badge" id="counterBox">Ejercicios: 0</span>
+    </div>
+    <div class="status" id="status"></div>
+    <p class="muted">Cada acierto: +0.25 · Cada error: −0.25 · Objetivo: 10 puntos.</p>
+  </div>
+</div>
+
+<script>
+/* ==========================
+   1) Datos y utilidades
+========================== */
+const layout = [
+  ['H', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 'He'],
+  ['Li', 'Be', null, null, null, null, null, null, null, null, null, null, 'B', 'C', 'N', 'O', 'F', 'Ne'],
+  ['Na', 'Mg', null, null, null, null, null, null, null, null, null, null, 'Al', 'Si', 'P', 'S', 'Cl', 'Ar'],
+  ['K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr'],
+  ['Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe'],
+  ['Cs', 'Ba', 'La', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn'],
+  ['Fr', 'Ra', 'Ac', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn', 'Fl', 'Nh', 'Mc', 'Lv', 'Ts', 'Og'],
+  ['__GAP__'],
+  [null, null, 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', null, null],
+  [null, null, 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr', null, null]
+];
+
+const symbolsByZ = [null,
+ 'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar',
+ 'K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn','Ga','Ge','As','Se','Br','Kr',
+ 'Rb','Sr','Y','Zr','Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe',
+ 'Cs','Ba','La','Ce','Pr','Nd','Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb','Lu',
+ 'Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn',
+ 'Fr','Ra','Ac','Th','Pa','U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm','Md','No','Lr',
+ 'Rf','Db','Sg','Bh','Hs','Mt','Ds','Rg','Cn','Nh','Fl','Mc','Lv','Ts','Og'
+];
+
+const ZbySymbol = Object.fromEntries(symbolsByZ.map((s,i)=>[s,i]).filter(([s])=>s));
+
+const Noble      = new Set(['He','Ne','Ar','Kr','Xe','Rn','Og']);
+const Metalloids = new Set(['B','Si','Ge','As','Sb','Te']);
+const NonMetals  = new Set(['H','C','N','O','P','S','Se','F','Cl','Br','I','At','Po']);
+
+function typeOfSymbol(sym){
+  if (Noble.has(sym)) return 'Gas Noble';
+  if (Metalloids.has(sym)) return 'Semimetal';
+  if (NonMetals.has(sym)) return 'No metal';
+  return 'Metal';
+}
+
+// Grupo/Período
+const groupBySymbol = {};
+const periodBySymbol = {};
+(function buildGroupPeriod(){
+  for(let r=0;r<7;r++){
+    for(let c=0;c<18;c++){
+      const s = layout[r][c];
+      if(s){
+        groupBySymbol[s] = (c+1);
+        periodBySymbol[s] = (r+1);
+      }
+    }
+  }
+})();
+
+/* ==========================
+   2) Baraja adaptada a 3º ESO
+========================== */
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// MODIFICADO: Lista exacta de elementos de 3º ESO (55 elementos)
+function allowedZList(){
+  const selection3ESO = [
+    // Periodo 1
+    'H', 'He',
+    // Periodo 2
+    'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne',
+    // Periodo 3
+    'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar',
+    // Periodo 4
+    'K', 'Ca', 
+    'Fe', 'Co', 'Ni', 'Cu', 'Zn', // Transición seleccionada
+    'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr',
+    // Periodo 5
+    'Rb', 'Sr', 
+    'Pd', 'Ag', 'Cd', // Transición seleccionada
+    'In', 'Sn', 'Sb', 'Te', 'I', 'Xe',
+    // Periodo 6
+    'Cs', 'Ba', 
+    'Pt', 'Au', 'Hg', // Transición seleccionada
+    'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn',
+    // Periodo 7
+    'Fr', 'Ra'
+  ];
+
+  // Convertimos símbolos a números Z usando el mapa ZbySymbol
+  // Filtramos por si hubiera algún typo, y ordenamos numéricamente
+  return selection3ESO
+    .map(sym => ZbySymbol[sym])
+    .filter(z => z !== undefined)
+    .sort((a,b) => a - b);
+}
+
+function metaOfZ(z){
+  const sym = symbolsByZ[z];
+  return {
+    z,
+    sym,
+    type: typeOfSymbol(sym),
+    period: periodBySymbol[sym],
+    group: groupBySymbol[sym]
+  };
+}
+function shuffledTypePattern(){
+  const a = ['Metal', 'No metal', 'Semimetal', 'Gas Noble'];
+  return shuffle(a);
+}
+function pickWithConstraints(pool, lastPick, recentGroups){
+  for (const m of pool){
+    if (lastPick && (m.group === lastPick.group || m.period === lastPick.period)) continue;
+    if (recentGroups && recentGroups.has(m.group)) continue;
+    return m;
+  }
+  if (lastPick){
+    for (const m of pool){
+      if (m.group === lastPick.group || m.period === lastPick.period) continue;
+      return m;
+    }
+  }
+  return pool.length ? pool[0] : null;
+}
+
+function buildFairQueue(){
+  // Ahora usamos la lista restringida de 3º ESO
+  const allowed = allowedZList().map(metaOfZ);
+
+  const buckets = { 'Metal': [], 'No metal': [], 'Semimetal': [], 'Gas Noble': [] };
+  for (const m of allowed){
+    if (m.group && m.period) buckets[m.type].push(m);
+  }
+  
+  // Barajar dentro de buckets para aleatoriedad inicial
+  for (const t of Object.keys(buckets)){
+    shuffle(buckets[t]);
+  }
+
+  const queue = [];
+  const used = new Set();
+  
+  // Construir cola equilibrada (Intentar alternar tipos)
+  let last = null;
+  const recentGroupsWindow = [];
+  const keepRecent = (g)=>{
+    if (g==null) return;
+    recentGroupsWindow.push(g);
+    if (recentGroupsWindow.length > 3) recentGroupsWindow.shift();
+  };
+
+  // Mientras queden elementos en algún cubo
+  while (buckets['Metal'].length || buckets['No metal'].length || buckets['Semimetal'].length || buckets['Gas Noble'].length){
+    const TYPE_PATTERN = shuffledTypePattern();
+    let addedSomething = false;
+
+    for (const t of TYPE_PATTERN){
+      const pool = buckets[t];
+      if (!pool.length) continue;
+      
+      const recentSet = new Set(recentGroupsWindow);
+      const pick = pickWithConstraints(pool, last, recentSet);
+      
+      if (pick) {
+        // Encontrado candidato
+        const idx = pool.findIndex(m => m.z === pick.z);
+        if (idx !== -1) pool.splice(idx,1);
+        
+        queue.push(pick); 
+        used.add(pick.z);
+        last = pick; 
+        keepRecent(pick.group);
+        addedSomething = true;
+        break; // Pasamos al siguiente ciclo para intentar rotar tipos
+      }
+    }
+    
+    // Fallback: si restricciones muy estrictas impiden elegir, coger el primero disponible de cualquier bucket
+    if (!addedSomething) {
+       for (const t of ['Metal','No metal','Semimetal','Gas Noble']) {
+          if (buckets[t].length > 0) {
+             const pick = buckets[t].shift();
+             queue.push(pick);
+             last = pick;
+             keepRecent(pick.group);
+             break;
+          }
+       }
+    }
+  }
+  
+  return queue.map(m => m.z);
+}
+
+/* ==========================
+   3) Render y estado
+========================== */
+let currentZ = null;
+let queue = buildFairQueue();
+let queueIndex = 0;
+let totalScore = 0;
+let exercisesDone = 0;
+
+function crearTabla(){
+  const table = document.getElementById('periodicTable');
+  table.innerHTML = '';
+
+  layout.forEach(fila => {
+    if (fila.length === 1 && fila[0] === '__GAP__') {
+      const trGap = document.createElement('tr');
+      const tdGap = document.createElement('td');
+      tdGap.colSpan = 18;
+      trGap.className = 'spacer-row';
+      trGap.appendChild(tdGap);
+      table.appendChild(trGap);
+      return;
+    }
+    const tr = document.createElement('tr');
+    fila.forEach((celda) => {
+      const td = document.createElement('td');
+      if (celda) {
+        td.textContent = celda;
+        td.classList.add('element');
+        if (ZbySymbol[celda]) td.dataset.z = ZbySymbol[celda];
+      } else {
+        td.classList.add('blank');
+      }
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
+}
+
+/* ==========================
+   3.1) Auto-zoom para móvil
+========================== */
+function fitTableToViewport(){
+  const viewport = document.getElementById('ptableViewport');
+  const zoomwrap = document.getElementById('ptableZoom');
+  const table = document.getElementById('periodicTable');
+
+  zoomwrap.style.transform = 'scale(1)';
+  const tableWidth = table.offsetWidth;
+  const vpWidth = viewport.clientWidth;
+
+  let scale = 1;
+  if (tableWidth > 0 && vpWidth > 0 && tableWidth > vpWidth){
+    scale = vpWidth / tableWidth;
+    scale = Math.max(scale, 0.6);
+  }
+  zoomwrap.style.transform = `scale(${scale})`;
+
+  const tableHeight = table.offsetHeight;
+  viewport.style.height = Math.ceil(tableHeight * scale) + 'px';
+
+  const hint = document.getElementById('zoomHint');
+  if (scale < 1){
+    hint.textContent = 'Vista ajustada. Desplaza horizontalmente para ver más.';
+  } else {
+    hint.textContent = '';
+  }
+}
+
+function clearHighlightAndFeedback(){
+  document.querySelectorAll('td.highlight').forEach(td=>td.classList.remove('highlight'));
+  ['ansZ','ansGroup','ansPeriod','ansType'].forEach(id=>{
+    const el = document.getElementById(id);
+    if (el){ el.classList.remove('c-ok','c-ko'); }
+  });
+}
+
+function highlightByZ(z){
+  clearHighlightAndFeedback();
+  const td = document.querySelector(`td.element[data-z="${z}"]`);
+  if(td) td.classList.add('highlight');
+}
+
+function updateScoreBox(){
+  const box = document.getElementById('scoreBox');
+  box.textContent = `Puntuación: ${totalScore.toFixed(2)}`;
+  box.classList.toggle('green', totalScore > 5);
+  box.classList.toggle('red', !(totalScore > 5));
+}
+
+function updateCounter(){
+  document.getElementById('counterBox').textContent = `Ejercicios: ${exercisesDone}`;
+}
+
+function nextExercise(){
+  if (queueIndex >= queue.length){
+    queue = buildFairQueue();
+    queueIndex = 0;
+  }
+  currentZ = queue[queueIndex++];
+  highlightByZ(currentZ);
+
+  document.getElementById('ansZ').value = '';
+  document.getElementById('ansGroup').value = '';
+  document.getElementById('ansPeriod').value = '';
+  const sel = document.getElementById('ansType');
+  sel.value = '';
+  if (sel.selectedIndex !== 0) sel.selectedIndex = 0;
+  document.getElementById('status').textContent = '';
+
+  requestAnimationFrame(fitTableToViewport);
+}
+
+function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+
+/* ==========================
+   4) Corrección y feedback
+========================== */
+function checkAnswers(){
+  if (currentZ == null) return;
+
+  const sym = symbolsByZ[currentZ];
+  const correctZ = currentZ;
+  const correctGroup = groupBySymbol[sym];
+  const correctPeriod = periodBySymbol[sym];
+  const correctType = typeOfSymbol(sym);
+
+  let delta = 0;
+
+  // 1) Z
+  const elZ = document.getElementById('ansZ');
+  const valZ = parseInt(elZ.value, 10);
+  if (!Number.isFinite(valZ)){ delta -= 0.25; elZ.classList.add('c-ko'); }
+  else { const ok = (valZ === correctZ); delta += ok ? 0.25 : -0.25; elZ.classList.add(ok?'c-ok':'c-ko'); }
+
+  // 2) Grupo
+  const elG = document.getElementById('ansGroup');
+  const valG = parseInt(elG.value, 10);
+  if (!Number.isFinite(valG)){ delta -= 0.25; elG.classList.add('c-ko'); }
+  else { const ok = (valG === correctGroup); delta += ok ? 0.25 : -0.25; elG.classList.add(ok?'c-ok':'c-ko'); }
+
+  // 3) Período
+  const elP = document.getElementById('ansPeriod');
+  const valP = parseInt(elP.value, 10);
+  if (!Number.isFinite(valP)){ delta -= 0.25; elP.classList.add('c-ko'); }
+  else { const ok = (valP === correctPeriod); delta += ok ? 0.25 : -0.25; elP.classList.add(ok?'c-ok':'c-ko'); }
+
+  // 4) Tipo
+  const elT = document.getElementById('ansType');
+  const valT = elT.value || '';
+  if (!valT){ delta -= 0.25; elT.classList.add('c-ko'); }
+  else { const ok = (valT === correctType); delta += ok ? 0.25 : -0.25; elT.classList.add(ok?'c-ok':'c-ko'); }
+
+  totalScore = clamp(totalScore + delta, 0, 10);
+  updateScoreBox();
+
+  const st = document.getElementById('status');
+  st.textContent = `Solución: ${sym} → Z=${correctZ}, grupo ${correctGroup}, período ${correctPeriod}, tipo: ${correctType}. (${delta >= 0 ? '+' : ''}${delta.toFixed(2)})`;
+
+  exercisesDone += 1;
+  updateCounter();
+
+  SCORM_setScore(totalScore);
+
+  if (totalScore >= 10){
+    document.getElementById('btnCheck').disabled = true;
+    document.getElementById('btnNext').disabled = true;
+    st.textContent += ' ¡Objetivo alcanzado!';
+    SCORM_setCompleted();
+  }
+}
+
+/* ==========================
+   5) SCORM 1.2 — API mínima
+========================== */
+function findAPI(win){
+  let n = 0;
+  while ((win.API == null) && (win.parent != null) && (win.parent != win) && n < 500){
+    n++; win = win.parent;
+  }
+  return win.API || null;
+}
+let gAPI = null;
+let scormInitialised = false;
+
+function SCORM_init(){
+  try{
+    gAPI = findAPI(window) || findAPI(window.top);
+    if (gAPI){
+      scormInitialised = (gAPI.LMSInitialize('') == 'true');
+      if (scormInitialised){
+        gAPI.LMSSetValue('cmi.core.lesson_status', 'incomplete');
+        gAPI.LMSCommit('');
+      }
+    }
+  }catch(e){/* ignorar */}
+}
+function SCORM_setScore(score){
+  if (!scormInitialised || !gAPI) return;
+  try{
+    gAPI.LMSSetValue('cmi.core.score.raw', String(score));
+    gAPI.LMSSetValue('cmi.core.score.min', '0');
+    gAPI.LMSSetValue('cmi.core.score.max', '10');
+    gAPI.LMSCommit('');
+  }catch(e){/* ignorar */}
+}
+function SCORM_setCompleted(){
+  if (!scormInitialised || !gAPI) return;
+  try{
+    gAPI.LMSSetValue('cmi.core.lesson_status', 'passed');
+    gAPI.LMSCommit('');
+  }catch(e){/* ignorar */}
+}
+window.addEventListener('unload', ()=>{ try{ if (scormInitialised && gAPI) gAPI.LMSFinish(''); } catch(e){} });
+
+/* ==========================
+   6) Init + reajuste en móvil
+========================== */
+function onResizeReflow(){ fitTableToViewport(); }
+document.addEventListener('DOMContentLoaded', ()=>{
+  crearTabla();
+  SCORM_init();
+  updateScoreBox();
+  updateCounter();
+  nextExercise();
+
+  document.getElementById('btnCheck').addEventListener('click', checkAnswers);
+  document.getElementById('btnNext').addEventListener('click', nextExercise);
+
+  fitTableToViewport();
+  window.addEventListener('resize', onResizeReflow, {passive:true});
+  window.addEventListener('orientationchange', onResizeReflow, {passive:true});
+});
+</script>
+</body>
+</html>
