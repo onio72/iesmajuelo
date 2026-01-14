@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Enlaces Químicos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .element-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+        }
+        
+        .element-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .animate-pop {
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .selected-btn {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        
+        /* Utility for score color transition */
+        .score-red { color: #dc2626; } /* red-600 */
+        .score-green { color: #16a34a; } /* green-600 */
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-6 px-4">
+
+    <!-- Header -->
+    <header class="w-full max-w-4xl flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800"><i class="fa-solid fa-atom text-blue-600 mr-2"></i>Lab de Enlaces</h1>
+            <p class="text-gray-500 text-sm">Objetivo: Llegar a nota 10</p>
+        </div>
+        <div class="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200 flex items-center gap-3">
+            <div class="text-center">
+                <span class="block text-xs text-gray-400 uppercase font-bold">Nota</span>
+                <span id="scoreDisplay" class="text-2xl font-bold score-red transition-colors duration-500">0.0</span>
+            </div>
+            <div class="h-8 w-px bg-gray-200"></div>
+            <div class="text-center">
+                <span class="block text-xs text-gray-400 uppercase font-bold">Restantes</span>
+                <span id="cardsLeft" class="text-xl font-bold text-gray-400">--</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Game Area -->
+    <main class="w-full max-w-2xl bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 relative">
+        
+        <!-- Game Over Overlay -->
+        <div id="gameOverLayer" class="absolute inset-0 z-10 bg-white/90 hidden flex-col items-center justify-center text-center p-8">
+            <div class="text-6xl mb-4 text-yellow-500"><i class="fa-solid fa-trophy"></i></div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">¡Juego Terminado!</h2>
+            <p class="text-xl text-gray-600 mb-6">Nota Final: <span id="finalScore" class="font-bold text-blue-600">10.0</span></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 transition transform hover:scale-105 shadow-lg">
+                Jugar de nuevo
+            </button>
+        </div>
+
+        <!-- Elements Display -->
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-8 flex justify-center items-center gap-4 md:gap-12 relative">
+            <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" 
+                 style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+            <!-- Card 1 -->
+            <div id="card1" class="element-card animate-pop w-32 h-40 md:w-40 md:h-48 bg-gray-100 rounded-xl shadow-lg flex flex-col items-center justify-between p-3 border-b-4 border-blue-500 cursor-default">
+                <div class="w-full flex justify-between text-xs font-bold text-gray-500">
+                    <span id="z1"></span>
+                    <span id="mass1"></span>
+                </div>
+                <div id="sym1" class="text-5xl md:text-6xl font-bold text-gray-800 my-auto"></div>
+                <div id="name1" class="text-sm font-semibold text-gray-600 text-center"></div>
+            </div>
+
+            <div class="text-white text-2xl font-bold opacity-50">+</div>
+
+            <!-- Card 2 -->
+            <div id="card2" class="element-card animate-pop w-32 h-40 md:w-40 md:h-48 bg-gray-100 rounded-xl shadow-lg flex flex-col items-center justify-between p-3 border-b-4 border-green-500 cursor-default">
+                <div class="w-full flex justify-between text-xs font-bold text-gray-500">
+                    <span id="z2"></span>
+                    <span id="mass2"></span>
+                </div>
+                <div id="sym2" class="text-5xl md:text-6xl font-bold text-gray-800 my-auto"></div>
+                <div id="name2" class="text-sm font-semibold text-gray-600 text-center"></div>
+            </div>
+        </div>
+
+        <!-- Questions Section -->
+        <div class="p-6 md:p-8 space-y-8">
+            
+            <!-- Question 1 -->
+            <div class="space-y-3">
+                <h3 class="text-lg font-semibold text-gray-700 flex items-center">
+                    <span class="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-xs mr-2">1</span>
+                    Tendencia del <span id="qName1" class="text-blue-600 font-bold mx-1">...</span>:
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2" id="options1">
+                    <button onclick="selectOption(1, 'lose')" class="opt-btn-1 border-2 border-gray-200 rounded-lg p-3 text-sm font-medium hover:border-blue-400 hover:bg-blue-50 transition text-gray-600" data-val="lose">Perder e⁻ (Metal)</button>
+                    <button onclick="selectOption(1, 'gain')" class="opt-btn-1 border-2 border-gray-200 rounded-lg p-3 text-sm font-medium hover:border-blue-400 hover:bg-blue-50 transition text-gray-600" data-val="gain">Ganar/Compartir e⁻ (No Metal)</button>
+                    <button onclick="selectOption(1, 'stable')" class="opt-btn-1 border-2 border-gray-200 rounded-lg p-3 text-sm font-medium hover:border-blue-400 hover:bg-blue-50 transition text-gray-600" data-val="stable">Estable (Gas Noble)</button>
+                </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="space-y-3">
+                <h3 class="text-lg font-semibold text-gray-700 flex items-center">
+                    <span class="bg-green-100 text-green-600 w-6 h-6 rounded-full flex items-center justify-center text-xs mr-2">2</span>
+                    Tendencia del <span id="qName2" class="text-green-600 font-bold mx-1">...</span>:
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2" id="options2">
+                    <button onclick="selectOption(2, 'lose')" class="opt-btn-2 border-2 border-gray-200 rounded-lg p-3 text-sm font-medium hover:border-blue-400 hover:bg-blue-50 transition text-gray-600" data-val="lose">Perder e⁻ (Metal)</button>
+                    <button onclick="selectOption(2, 'gain')" class="opt-btn-2 border-2 border-gray-200 rounded-lg p-3 text-sm font-medium hover:border-blue-400 hover:bg-blue-50 transition text-gray-600" data-val="gain">Ganar/Compartir e⁻ (No Metal)</button>
+                    <button onclick="selectOption(2, 'stable')" class="opt-btn-2 border-2 border-gray-200 rounded-lg p-3 text-sm font-medium hover:border-blue-400 hover:bg-blue-50 transition text-gray-600" data-val="stable">Estable (Gas Noble)</button>
+                </div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="space-y-3 pt-4 border-t border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-700 flex items-center">
+                    <span class="bg-purple-100 text-purple-600 w-6 h-6 rounded-full flex items-center justify-center text-xs mr-2">3</span>
+                    ¿Qué tipo de enlace formarán?
+                </h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="options3">
+                    <button onclick="selectOption(3, 'ionic')" class="opt-btn-3 border-2 border-gray-200 rounded-lg p-3 text-sm font-medium hover:border-purple-400 hover:bg-purple-50 transition text-gray-600" data-val="ionic">Iónico</button>
+                    <button onclick="selectOption(3, 'covalent')" class="opt-btn-3 border-2 border-gray-200 rounded-lg p-3 text-sm font-medium hover:border-purple-400 hover:bg-purple-50 transition text-gray-600" data-val="covalent">Covalente</button>
+                    <button onclick="selectOption(3, 'metallic')" class="opt-btn-3 border-2 border-gray-200 rounded-lg p-3 text-sm font-medium hover:border-purple-400 hover:bg-purple-50 transition text-gray-600" data-val="metallic">Metálico</button>
+                    <button onclick="selectOption(3, 'none')" class="opt-btn-3 border-2 border-gray-200 rounded-lg p-3 text-sm font-medium hover:border-purple-400 hover:bg-purple-50 transition text-gray-600" data-val="none">No reaccionan</button>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <button onclick="checkAnswers()" class="w-full bg-slate-800 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-slate-700 transform active:scale-95 transition flex justify-center items-center gap-2">
+                <i class="fa-solid fa-flask"></i> Verificar Resultados
+            </button>
+        </div>
+    </main>
+
+    <!-- Modal Feedback -->
+    <div id="feedbackModal" class="fixed inset-0 glass z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 transform scale-95 transition-transform duration-300" id="modalContent">
+            <div id="modalIcon" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-4"></div>
+            <h2 id="modalTitle" class="text-2xl font-bold text-center mb-2"></h2>
+            <p id="modalMessage" class="text-gray-600 text-center mb-6"></p>
+            
+            <div class="bg-gray-50 rounded-lg p-4 mb-6 text-sm text-left space-y-2 border border-gray-200">
+                <p><span class="font-bold" id="resEl1Name"></span>: <span id="resEl1Type"></span></p>
+                <p><span class="font-bold" id="resEl2Name"></span>: <span id="resEl2Type"></span></p>
+                <p class="font-bold text-slate-800 pt-2 border-t border-gray-200 mt-2">Enlace: <span id="resBond" class="uppercase text-blue-600"></span></p>
+                <p id="resExample" class="text-xs text-gray-500 italic mt-1"></p>
+            </div>
+
+            <button onclick="nextRound()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">
+                Siguiente Pareja <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- Full Element Database Z < 57 + Au (Z=79) ---
+        const elementsData = {
+            'H':  { z: 1, name: 'Hidrógeno', type: 'non-metal', mass: '1.008' },
+            'He': { z: 2, name: 'Helio', type: 'noble', mass: '4.002' },
+            'Li': { z: 3, name: 'Litio', type: 'metal', mass: '6.94' },
+            'Be': { z: 4, name: 'Berilio', type: 'metal', mass: '9.012' },
+            'B':  { z: 5, name: 'Boro', type: 'non-metal', mass: '10.81' },
+            'C':  { z: 6, name: 'Carbono', type: 'non-metal', mass: '12.011' },
+            'N':  { z: 7, name: 'Nitrógeno', type: 'non-metal', mass: '14.007' },
+            'O':  { z: 8, name: 'Oxígeno', type: 'non-metal', mass: '15.999' },
+            'F':  { z: 9, name: 'Flúor', type: 'non-metal', mass: '18.998' },
+            'Ne': { z: 10, name: 'Neón', type: 'noble', mass: '20.180' },
+            'Na': { z: 11, name: 'Sodio', type: 'metal', mass: '22.990' },
+            'Mg': { z: 12, name: 'Magnesio', type: 'metal', mass: '24.305' },
+            'Al': { z: 13, name: 'Aluminio', type: 'metal', mass: '26.982' },
+            'Si': { z: 14, name: 'Silicio', type: 'non-metal', mass: '28.085' },
+            'P':  { z: 15, name: 'Fósforo', type: 'non-metal', mass: '30.974' },
+            'S':  { z: 16, name: 'Azufre', type: 'non-metal', mass: '32.06' },
+            'Cl': { z: 17, name: 'Cloro', type: 'non-metal', mass: '35.45' },
+            'Ar': { z: 18, name: 'Argón', type: 'noble', mass: '39.948' },
+            'K':  { z: 19, name: 'Potasio', type: 'metal', mass: '39.098' },
+            'Ca': { z: 20, name: 'Calcio', type: 'metal', mass: '40.078' },
+            'Sc': { z: 21, name: 'Escandio', type: 'metal', mass: '44.956' },
+            'Ti': { z: 22, name: 'Titanio', type: 'metal', mass: '47.867' },
+            'V':  { z: 23, name: 'Vanadio', type: 'metal', mass: '50.942' },
+            'Cr': { z: 24, name: 'Cromo', type: 'metal', mass: '51.996' },
+            'Mn': { z: 25, name: 'Manganeso', type: 'metal', mass: '54.938' },
+            'Fe': { z: 26, name: 'Hierro', type: 'metal', mass: '55.845' },
+            'Co': { z: 27, name: 'Cobalto', type: 'metal', mass: '58.933' },
+            'Ni': { z: 28, name: 'Níquel', type: 'metal', mass: '58.693' },
+            'Cu': { z: 29, name: 'Cobre', type: 'metal', mass: '63.546' },
+            'Zn': { z: 30, name: 'Zinc', type: 'metal', mass: '65.38' },
+            'Ga': { z: 31, name: 'Galio', type: 'metal', mass: '69.723' },
+            'Ge': { z: 32, name: 'Germanio', type: 'non-metal', mass: '72.630' },
+            'As': { z: 33, name: 'Arsénico', type: 'non-metal', mass: '74.922' },
+            'Se': { z: 34, name: 'Selenio', type: 'non-metal', mass: '78.971' },
+            'Br': { z: 35, name: 'Bromo', type: 'non-metal', mass: '79.904' },
+            'Kr': { z: 36, name: 'Kriptón', type: 'noble', mass: '83.798' },
+            'Rb': { z: 37, name: 'Rubidio', type: 'metal', mass: '85.468' },
+            'Sr': { z: 38, name: 'Estroncio', type: 'metal', mass: '87.62' },
+            'Y':  { z: 39, name: 'Itrio', type: 'metal', mass: '88.906' },
+            'Zr': { z: 40, name: 'Circonio', type: 'metal', mass: '91.224' },
+            'Nb': { z: 41, name: 'Niobio', type: 'metal', mass: '92.906' },
+            'Mo': { z: 42, name: 'Molibdeno', type: 'metal', mass: '95.95' },
+            'Tc': { z: 43, name: 'Tecnecio', type: 'metal', mass: '98' },
+            'Ru': { z: 44, name: 'Rutenio', type: 'metal', mass: '101.07' },
+            'Rh': { z: 45, name: 'Rodio', type: 'metal', mass: '102.91' },
+            'Pd': { z: 46, name: 'Paladio', type: 'metal', mass: '106.42' },
+            'Ag': { z: 47, name: 'Plata', type: 'metal', mass: '107.87' },
+            'Cd': { z: 48, name: 'Cadmio', type: 'metal', mass: '112.41' },
+            'In': { z: 49, name: 'Indio', type: 'metal', mass: '114.82' },
+            'Sn': { z: 50, name: 'Estaño', type: 'metal', mass: '118.71' },
+            'Sb': { z: 51, name: 'Antimonio', type: 'non-metal', mass: '121.76' },
+            'Te': { z: 52, name: 'Telurio', type: 'non-metal', mass: '127.60' },
+            'I':  { z: 53, name: 'Yodo', type: 'non-metal', mass: '126.90' },
+            'Xe': { z: 54, name: 'Xenón', type: 'noble', mass: '131.29' },
+            'Cs': { z: 55, name: 'Cesio', type: 'metal', mass: '132.91' },
+            'Ba': { z: 56, name: 'Bario', type: 'metal', mass: '137.33' },
+            'Au': { z: 79, name: 'Oro', type: 'metal', mass: '196.97' }
+        };
+
+        const keys = Object.keys(elementsData);
+
+        // --- PAIRS DATABASE ---
+        const ionicPairs = [
+            ['Na', 'Cl', 'Sal común (NaCl)'],
+            ['Na', 'F', 'Fluoruro de sodio (NaF)'],
+            ['K', 'Cl', 'Cloruro de potasio (KCl)'],
+            ['Li', 'F', 'Fluoruro de litio (LiF)'],
+            ['Ca', 'O', 'Cal viva (CaO)'],
+            ['Mg', 'O', 'Óxido de magnesio (MgO)'],
+            ['Ca', 'Cl', 'Cloruro de calcio (CaCl₂)'],
+            ['Mg', 'Cl', 'Cloruro de magnesio (MgCl₂)'],
+            ['K', 'Br', 'Bromuro de potasio (KBr)'],
+            ['Al', 'O', 'Alúmina (Al₂O₃)'],
+            ['Fe', 'O', 'Óxido de hierro (FeO / Fe₂O₃)'],
+            ['Cu', 'Cl', 'Cloruro de cobre (CuCl₂)']
+        ];
+
+        const covalentPairs = [
+            ['H', 'O', 'Agua (H₂O)'],
+            ['C', 'O', 'Dióxido de carbono (CO₂)'],
+            ['N', 'H', 'Amoníaco (NH₃)'],
+            ['C', 'H', 'Metano (CH₄)'],
+            ['H', 'Cl', 'Ácido clorhídrico (HCl)'],
+            ['O', 'O', 'Oxígeno molecular (O₂)'],
+            ['N', 'N', 'Nitrógeno molecular (N₂)'],
+            ['Cl', 'Cl', 'Cloro gas (Cl₂)'],
+            ['H', 'H', 'Hidrógeno gas (H₂)'],
+            ['Si', 'O', 'Sílice/Cuarzo (SiO₂)'],
+            ['S', 'O', 'Dióxido de azufre (SO₂)'],
+            ['P', 'Cl', 'Tricloruro de fósforo (PCl₃)']
+        ];
+
+        const metallicPairs = [
+            ['Fe', 'Fe', 'Hierro puro (Enlace Metálico)'],
+            ['Cu', 'Cu', 'Cobre puro (Enlace Metálico)'],
+            ['Al', 'Al', 'Aluminio puro (Enlace Metálico)'],
+            ['Ag', 'Ag', 'Plata pura (Enlace Metálico)'],
+            ['Na', 'Na', 'Sodio puro (Enlace Metálico)'],
+            ['Mg', 'Mg', 'Magnesio puro (Enlace Metálico)'],
+            ['Ca', 'Ca', 'Calcio puro (Enlace Metálico)'],
+            ['Au', 'Au', 'Oro puro (Enlace Metálico)'],
+            ['Cu', 'Zn', 'Latón (Aleación)'],
+            ['Cu', 'Sn', 'Bronce (Aleación)'],
+            ['Au', 'Ag', 'Electrum (Aleación Oro-Plata)']
+        ];
+
+        // --- Game Logic Variables ---
+        let questionDeck = [];
+        let currentScenario = {};
+        let score = 0.0;
+        
+        let userSelection = {
+            el1: null,
+            el2: null,
+            bond: null
+        };
+
+        // DOM References
+        const els = {
+            card1: document.getElementById('card1'),
+            card2: document.getElementById('card2'),
+            z1: document.getElementById('z1'), z2: document.getElementById('z2'),
+            sym1: document.getElementById('sym1'), sym2: document.getElementById('sym2'),
+            name1: document.getElementById('name1'), name2: document.getElementById('name2'),
+            qName1: document.getElementById('qName1'), qName2: document.getElementById('qName2'),
+            score: document.getElementById('scoreDisplay'),
+            cardsLeft: document.getElementById('cardsLeft'),
+            modal: document.getElementById('feedbackModal'),
+            modalContent: document.getElementById('modalContent'),
+            gameOver: document.getElementById('gameOverLayer'),
+            finalScore: document.getElementById('finalScore')
+        };
+
+        // --- SETUP DECK ---
+        function createDeck() {
+            let deck = [];
+            
+            // Add defined pairs
+            ionicPairs.forEach(p => deck.push({ sym1: p[0], sym2: p[1], example: p[2], type: 'ionic' }));
+            covalentPairs.forEach(p => deck.push({ sym1: p[0], sym2: p[1], example: p[2], type: 'covalent' }));
+            metallicPairs.forEach(p => deck.push({ sym1: p[0], sym2: p[1], example: p[2], type: 'metallic' }));
+
+            // Generate ~12 Noble/No-Reaction pairs randomly
+            // This ensures we have enough "No reaction" cases without hardcoding them all
+            const nobleGases = keys.filter(k => elementsData[k].type === 'noble');
+            const allSyms = keys;
+            
+            for(let i=0; i<12; i++) {
+                const noble = nobleGases[Math.floor(Math.random() * nobleGases.length)];
+                const other = allSyms[Math.floor(Math.random() * allSyms.length)];
+                
+                // Randomize order
+                let s1, s2;
+                if (Math.random() > 0.5) { s1 = noble; s2 = other; } 
+                else { s1 = other; s2 = noble; }
+
+                let exName = (s1 === s2) ? "Átomo libre (Gas Noble)" : "Sin reacción (Gas inerte)";
+                
+                // Add to deck
+                deck.push({ sym1: s1, sym2: s2, example: exName, type: 'none' });
+            }
+
+            return shuffle(deck);
+        }
+
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        // --- HELPERS ---
+        function getTypeAnswer(type) {
+            if (type === 'metal') return 'lose';
+            if (type === 'non-metal') return 'gain';
+            if (type === 'noble') return 'stable';
+            return '';
+        }
+
+        function getReadableType(type) {
+            if (type === 'metal') return 'Metal (Pierde e⁻)';
+            if (type === 'non-metal') return 'No Metal (Gana/Comparte e⁻)';
+            if (type === 'noble') return 'Gas Noble (Estable)';
+        }
+
+        function getReadableBond(bond) {
+            if (bond === 'ionic') return 'Iónico (Transferencia)';
+            if (bond === 'covalent') return 'Covalente (Compartición)';
+            if (bond === 'metallic') return 'Metálico (Mar de electrones)';
+            if (bond === 'none') return 'No forman enlace';
+        }
+
+        // --- GAME FLOW ---
+        function initGame() {
+            score = 0;
+            questionDeck = createDeck();
+            updateScoreUI();
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            // Check win condition
+            if (score >= 10.0) {
+                endGame(true);
+                return;
+            }
+
+            // Check empty deck (rare, but possible if user errors a lot)
+            if (questionDeck.length === 0) {
+                // Reshuffle or end? Let's end with current score or reshuffle.
+                // Simple: Reshuffle a fresh deck.
+                questionDeck = createDeck();
+            }
+
+            // Pop card
+            const q = questionDeck.pop();
+            els.cardsLeft.textContent = questionDeck.length;
+
+            const el1Data = elementsData[q.sym1];
+            const el2Data = elementsData[q.sym2];
+
+            currentScenario = {
+                el1: { ...el1Data, sym: q.sym1 },
+                el2: { ...el2Data, sym: q.sym2 },
+                bond: q.type,
+                example: q.example
+            };
+
+            // Update UI
+            updateCard(els.card1, currentScenario.el1, 1);
+            updateCard(els.card2, currentScenario.el2, 2);
+
+            els.qName1.textContent = currentScenario.el1.name;
+            els.qName2.textContent = currentScenario.el2.name;
+
+            // Reset Selections
+            userSelection = { el1: null, el2: null, bond: null };
+            document.querySelectorAll('.selected-btn').forEach(btn => btn.classList.remove('selected-btn'));
+        }
+
+        function updateCard(cardEl, data, num) {
+            document.getElementById(`z${num}`).textContent = data.z;
+            document.getElementById(`mass${num}`).textContent = data.mass;
+            document.getElementById(`sym${num}`).textContent = data.sym;
+            document.getElementById(`name${num}`).textContent = data.name;
+            
+            // Pop animation
+            cardEl.classList.remove('animate-pop');
+            void cardEl.offsetWidth;
+            cardEl.classList.add('animate-pop');
+        }
+
+        function selectOption(group, value) {
+            // Remove active class from this group
+            document.querySelectorAll(`.opt-btn-${group}`).forEach(btn => btn.classList.remove('selected-btn'));
+            
+            // Add active class to clicked
+            const clickedBtn = document.querySelector(`.opt-btn-${group}[data-val="${value}"]`);
+            if(clickedBtn) clickedBtn.classList.add('selected-btn');
+
+            // Update state
+            if (group === 1) userSelection.el1 = value;
+            if (group === 2) userSelection.el2 = value;
+            if (group === 3) userSelection.bond = value;
+        }
+
+        function checkAnswers() {
+            if (!userSelection.el1 || !userSelection.el2 || !userSelection.bond) {
+                showModal('Incompleto', 'Por favor, selecciona una opción en cada una de las 3 preguntas.', 'warning');
+                return;
+            }
+
+            const correctType1 = getTypeAnswer(currentScenario.el1.type);
+            const correctType2 = getTypeAnswer(currentScenario.el2.type);
+            const correctBond = currentScenario.bond;
+
+            const isCorrect1 = userSelection.el1 === correctType1;
+            const isCorrect2 = userSelection.el2 === correctType2;
+            const isCorrectBond = userSelection.bond === correctBond;
+
+            const allCorrect = isCorrect1 && isCorrect2 && isCorrectBond;
+
+            if (allCorrect) {
+                // SCORING: 10 exercises to get a 5 -> +0.5 per correct answer
+                score += 0.5;
+                showModal('¡Correcto!', `Has acertado.<br>Esta combinación corresponde a: <b>${currentScenario.example}</b>`, 'success');
+            } else {
+                // PENALTY: Subtract points on error
+                score = Math.max(0, score - 0.25); // Prevent negative score
+                
+                let msg = 'Revisa tus respuestas:<br>';
+                if (!isCorrect1) msg += `- ${currentScenario.el1.name}: ${getReadableType(currentScenario.el1.type)}.<br>`;
+                if (!isCorrect2) msg += `- ${currentScenario.el2.name}: ${getReadableType(currentScenario.el2.type)}.<br>`;
+                if (!isCorrectBond) msg += `- Tipo de enlace real: <b>${getReadableBond(correctBond)}</b>.`;
+                
+                showModal('Error', msg, 'error');
+            }
+
+            updateScoreUI();
+        }
+
+        function updateScoreUI() {
+            els.score.textContent = score.toFixed(1); // Show decimal
+            if (score >= 5.0) {
+                els.score.classList.remove('score-red');
+                els.score.classList.add('score-green');
+            } else {
+                els.score.classList.add('score-red');
+                els.score.classList.remove('score-green');
+            }
+        }
+
+        function showModal(title, message, type) {
+            const modal = els.modal;
+            const modalIcon = document.getElementById('modalIcon');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMsg = document.getElementById('modalMessage');
+
+            modalTitle.textContent = title;
+            modalMsg.innerHTML = message;
+
+            if (type === 'success') {
+                modalIcon.className = 'w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-4 bg-green-100 text-green-600';
+                modalIcon.innerHTML = '<i class="fa-solid fa-check"></i>';
+                document.getElementById('resExample').textContent = ""; 
+            } else if (type === 'error') {
+                modalIcon.className = 'w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-4 bg-red-100 text-red-600';
+                modalIcon.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                document.getElementById('resExample').textContent = `Ejemplo típico: ${currentScenario.example}`;
+            } else {
+                modalIcon.className = 'w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-4 bg-yellow-100 text-yellow-600';
+                modalIcon.innerHTML = '<i class="fa-solid fa-exclamation"></i>';
+                document.getElementById('resExample').textContent = "";
+            }
+
+            document.getElementById('resEl1Name').textContent = currentScenario.el1.name;
+            document.getElementById('resEl1Type').textContent = getReadableType(currentScenario.el1.type);
+            document.getElementById('resEl2Name').textContent = currentScenario.el2.name;
+            document.getElementById('resEl2Type').textContent = getReadableType(currentScenario.el2.type);
+            document.getElementById('resBond').textContent = getReadableBond(currentScenario.bond);
+
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                modal.classList.remove('opacity-0');
+                els.modalContent.classList.remove('scale-95');
+                els.modalContent.classList.add('scale-100');
+            });
+        }
+
+        function nextRound() {
+            const modal = els.modal;
+            modal.classList.add('opacity-0');
+            els.modalContent.classList.remove('scale-100');
+            els.modalContent.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                nextQuestion();
+            }, 300);
+        }
+
+        function endGame() {
+            els.finalScore.textContent = score.toFixed(1);
+            els.gameOver.classList.remove('hidden');
+            els.gameOver.classList.add('flex');
+        }
+
+        // Start
+        initGame();
+
+    </script>
+</body>
+</html>
