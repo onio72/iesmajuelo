@@ -1,0 +1,340 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tabla Periódica Interactiva</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+    }
+    table {
+      margin: 0 auto;
+      border-collapse: collapse;
+    }
+    td {
+      width: 50px;
+      height: 50px;
+      text-align: center;
+      vertical-align: middle;
+      border: 1px solid #ddd;
+      background-color: #66CCFF; /* Todas las celdas interactivas comienzan celestes */
+      cursor: pointer;
+      font-weight: bold; /* Para que el símbolo se vea bien */
+    }
+    /* Estilos para celdas vacías (no interactivas) */
+    tr:first-child td:nth-child(n+2):nth-child(-n+17),
+    tr:nth-child(2) td:nth-child(n+3):nth-child(-n+12),
+    tr:nth-child(3) td:nth-child(n+3):nth-child(-n+12) {
+      border: none;
+      background-color: white; /* Celdas sin borde permanecen blancas */
+      cursor: default; /* No interactivo */
+    }
+    .metal {
+      background-color: #66CCFF;
+    }
+    .semimetal {
+      background-color: #66CC01;
+    }
+    .no-metal {
+      background-color: #FFCC33;
+    }
+    .gas-noble {
+      background-color: #FF6799;
+    }
+    .resultados {
+      font-size: 1.5rem;
+      margin: 20px 0;
+    }
+    .aciertos {
+      color: green;
+    }
+    .nota {
+      color: blue;
+    }
+    .botones {
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .leyenda {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .leyenda-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .leyenda-cuadro {
+      width: 20px;
+      height: 20px;
+      border: 1px solid black;
+    }
+    .leyenda-metal {
+      background-color: #66CCFF;
+    }
+    .leyenda-semimetal {
+      background-color: #66CC01;
+    }
+    .leyenda-no-metal {
+      background-color: #FFCC33;
+    }
+    .leyenda-gas-noble {
+      background-color: #FF6799;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tabla Periódica Interactiva</h1>
+  <table id="tablaPeriodica">
+    <tbody>
+      <tr>
+        <td onclick="cambiarColor(this)" class="metal">H</td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        <td onclick="cambiarColor(this)" class="metal">He</td>
+      </tr>
+      <tr>
+        <td onclick="cambiarColor(this)" class="metal">Li</td>
+        <td onclick="cambiarColor(this)" class="metal">Be</td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        <td onclick="cambiarColor(this)" class="metal">B</td>
+        <td onclick="cambiarColor(this)" class="metal">C</td>
+        <td onclick="cambiarColor(this)" class="metal">N</td>
+        <td onclick="cambiarColor(this)" class="metal">O</td>
+        <td onclick="cambiarColor(this)" class="metal">F</td>
+        <td onclick="cambiarColor(this)" class="metal">Ne</td>
+      </tr>
+      <tr>
+        <td onclick="cambiarColor(this)" class="metal">Na</td>
+        <td onclick="cambiarColor(this)" class="metal">Mg</td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        <td onclick="cambiarColor(this)" class="metal">Al</td>
+        <td onclick="cambiarColor(this)" class="metal">Si</td>
+        <td onclick="cambiarColor(this)" class="metal">P</td>
+        <td onclick="cambiarColor(this)" class="metal">S</td>
+        <td onclick="cambiarColor(this)" class="metal">Cl</td>
+        <td onclick="cambiarColor(this)" class="metal">Ar</td>
+      </tr>
+      <tr>
+        <td onclick="cambiarColor(this)" class="metal">K</td>
+        <td onclick="cambiarColor(this)" class="metal">Ca</td>
+        <td onclick="cambiarColor(this)" class="metal">Sc</td>
+        <td onclick="cambiarColor(this)" class="metal">Ti</td>
+        <td onclick="cambiarColor(this)" class="metal">V</td>
+        <td onclick="cambiarColor(this)" class="metal">Cr</td>
+        <td onclick="cambiarColor(this)" class="metal">Mn</td>
+        <td onclick="cambiarColor(this)" class="metal">Fe</td>
+        <td onclick="cambiarColor(this)" class="metal">Co</td>
+        <td onclick="cambiarColor(this)" class="metal">Ni</td>
+        <td onclick="cambiarColor(this)" class="metal">Cu</td>
+        <td onclick="cambiarColor(this)" class="metal">Zn</td>
+        <td onclick="cambiarColor(this)" class="metal">Ga</td>
+        <td onclick="cambiarColor(this)" class="metal">Ge</td>
+        <td onclick="cambiarColor(this)" class="metal">As</td>
+        <td onclick="cambiarColor(this)" class="metal">Se</td>
+        <td onclick="cambiarColor(this)" class="metal">Br</td>
+        <td onclick="cambiarColor(this)" class="metal">Kr</td>
+      </tr>
+      <tr>
+        <td onclick="cambiarColor(this)" class="metal">Rb</td>
+        <td onclick="cambiarColor(this)" class="metal">Sr</td>
+        <td onclick="cambiarColor(this)" class="metal">Y</td>
+        <td onclick="cambiarColor(this)" class="metal">Zr</td>
+        <td onclick="cambiarColor(this)" class="metal">Nb</td>
+        <td onclick="cambiarColor(this)" class="metal">Mo</td>
+        <td onclick="cambiarColor(this)" class="metal">Tc</td>
+        <td onclick="cambiarColor(this)" class="metal">Ru</td>
+        <td onclick="cambiarColor(this)" class="metal">Rh</td>
+        <td onclick="cambiarColor(this)" class="metal">Pd</td>
+        <td onclick="cambiarColor(this)" class="metal">Ag</td>
+        <td onclick="cambiarColor(this)" class="metal">Cd</td>
+        <td onclick="cambiarColor(this)" class="metal">In</td>
+        <td onclick="cambiarColor(this)" class="metal">Sn</td>
+        <td onclick="cambiarColor(this)" class="metal">Sb</td>
+        <td onclick="cambiarColor(this)" class="metal">Te</td>
+        <td onclick="cambiarColor(this)" class="metal">I</td>
+        <td onclick="cambiarColor(this)" class="metal">Xe</td>
+      </tr>
+      <tr>
+        <td onclick="cambiarColor(this)" class="metal">Cs</td>
+        <td onclick="cambiarColor(this)" class="metal">Ba</td>
+        <td onclick="cambiarColor(this)" class="metal">La*</td>
+        <td onclick="cambiarColor(this)" class="metal">Hf</td>
+        <td onclick="cambiarColor(this)" class="metal">Ta</td>
+        <td onclick="cambiarColor(this)" class="metal">W</td>
+        <td onclick="cambiarColor(this)" class="metal">Re</td>
+        <td onclick="cambiarColor(this)" class="metal">Os</td>
+        <td onclick="cambiarColor(this)" class="metal">Ir</td>
+        <td onclick="cambiarColor(this)" class="metal">Pt</td>
+        <td onclick="cambiarColor(this)" class="metal">Au</td>
+        <td onclick="cambiarColor(this)" class="metal">Hg</td>
+        <td onclick="cambiarColor(this)" class="metal">Tl</td>
+        <td onclick="cambiarColor(this)" class="metal">Pb</td>
+        <td onclick="cambiarColor(this)" class="metal">Bi</td>
+        <td onclick="cambiarColor(this)" class="metal">Po</td>
+        <td onclick="cambiarColor(this)" class="metal">At</td>
+        <td onclick="cambiarColor(this)" class="metal">Rn</td>
+      </tr>
+      <tr>
+        <td onclick="cambiarColor(this)" class="metal">Fr</td>
+        <td onclick="cambiarColor(this)" class="metal">Ra</td>
+        <td onclick="cambiarColor(this)" class="metal">Ac*</td>
+        <td onclick="cambiarColor(this)" class="metal">Rf</td>
+        <td onclick="cambiarColor(this)" class="metal">Db</td>
+        <td onclick="cambiarColor(this)" class="metal">Sg</td>
+        <td onclick="cambiarColor(this)" class="metal">Bh</td>
+        <td onclick="cambiarColor(this)" class="metal">Hs</td>
+        <td onclick="cambiarColor(this)" class="metal">Mt</td>
+        <td onclick="cambiarColor(this)" class="metal">Ds</td>
+        <td onclick="cambiarColor(this)" class="metal">Rg</td>
+        <td onclick="cambiarColor(this)" class="metal">Cn</td>
+        <td onclick="cambiarColor(this)" class="metal">Nh</td>
+        <td onclick="cambiarColor(this)" class="metal">Fl</td>
+        <td onclick="cambiarColor(this)" class="metal">Mc</td>
+        <td onclick="cambiarColor(this)" class="metal">Lv</td>
+        <td onclick="cambiarColor(this)" class="metal">Ts</td>
+        <td onclick="cambiarColor(this)" class="metal">Og</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="resultados">
+    <span class="aciertos" id="aciertos">Aciertos: 0/86</span>
+    <span class="nota" id="nota">Nota: 0.0/10</span>
+  </div>
+
+  <div class="botones">
+    <button type="button" onclick="verificarRespuestas()">Comprobar</button>
+    <button type="button" onclick="reiniciarTabla()">Reiniciar</button>
+  </div>
+
+  <div class="leyenda">
+    <div class="leyenda-item">
+      <div class="leyenda-cuadro leyenda-metal"></div>
+      <span>Metal</span>
+    </div>
+    <div class="leyenda-item">
+      <div class="leyenda-cuadro leyenda-semimetal"></div>
+      <span>Semimetal</span>
+    </div>
+    <div class="leyenda-item">
+      <div class="leyenda-cuadro leyenda-no-metal"></div>
+      <span>No metal</span>
+    </div>
+    <div class="leyenda-item">
+      <div class="leyenda-cuadro leyenda-gas-noble"></div>
+      <span>Gases Nobles</span>
+    </div>
+  </div>
+
+  <script>
+    const colores = ["metal", "gas-noble", "no-metal", "semimetal"];
+    const TOTAL_CELDAS = 86; // Número total de celdas interactivas
+
+    function cambiarColor(celda) {
+      if (celda.style.cursor === "default") return; 
+
+      const claseActual = colores.find(color => celda.classList.contains(color));
+      let nuevoColor = "";
+
+      if (!claseActual) {
+        nuevoColor = colores[1]; // Primer clic: gas noble (o el siguiente en la lista)
+      } else {
+        const siguienteIndice = (colores.indexOf(claseActual) + 1) % colores.length;
+        nuevoColor = colores[siguienteIndice];
+      }
+
+      // Eliminar todas las clases de color existentes y aplicar la nueva clase
+      celda.classList.remove(...colores); 
+      celda.classList.add(nuevoColor);
+    }
+
+    let scormInitialized = false;
+
+// Inicializar SCORM al cargar la página
+window.onload = function () {
+  scormInitialized = LMSInitialize("");
+  if (scormInitialized) {
+    console.log("SCORM initialized.");
+  } else {
+    console.error("SCORM initialization failed.");
+  }
+};
+
+function verificarRespuestas() {
+  // MATRIZ DE RESPUESTAS CORREGIDA (H, Po, At ajustados a la solicitud)
+  const respuestaCorrecta = [
+    // Fila 1 (H, HE) -> H: No metal
+    "no-metal", "", "", "", "", "", "", "", "", "", "", "", "", "semimetal", "no-metal", "no-metal", "no-metal", "gas-noble",
+    // Fila 2 (Li - Ne)
+    "metal", "metal", "", "", "", "", "", "", "", "", "", "", "metal", "semimetal", "no-metal", "no-metal", "no-metal", "gas-noble",
+    // Fila 3 (Na - Ar)
+    "metal", "metal", "", "", "", "", "", "", "", "", "", "", "metal", "metal", "semimetal", "no-metal", "no-metal", "gas-noble",
+    // Fila 4 (K - Kr)
+    "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "semimetal", "semimetal", "no-metal", "no-metal", "gas-noble",
+    // Fila 5 (Rb - Xe)
+    "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "semimetal", "semimetal", "no-metal", "gas-noble",
+    // Fila 6 (Cs - Rn) -> Po: Metal, At: Semimetal
+    "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "semimetal", "gas-noble",
+    // Fila 7 (Fr - Og)
+    "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "metal", "gas-noble"
+  ];
+
+  let correctas = 0;
+  const celdas = document.querySelectorAll("#tablaPeriodica td");
+
+  celdas.forEach((celda, index) => {
+    // Solo verificar si la respuestaCorrecta[index] no es una celda en blanco ("")
+    if (respuestaCorrecta[index] !== "" && celda.classList.contains(respuestaCorrecta[index])) {
+      correctas++;
+    }
+  });
+
+  const puntuacion = ((correctas / TOTAL_CELDAS) * 100).toFixed(1); // Calificación en porcentaje
+  document.getElementById('aciertos').textContent = `Aciertos: ${correctas}/${TOTAL_CELDAS}`;
+  document.getElementById('nota').textContent = `Nota: ${(puntuacion / 10).toFixed(1)}/10`;
+
+  // Enviar puntuación a SCORM
+  if (scormInitialized) {
+    doLMSSetValue("cmi.core.score.raw", puntuacion); // Guardar calificación
+    doLMSSetValue("cmi.core.lesson_status", puntuacion >= 70 ? "passed" : "failed"); // Establecer estado
+    doLMSCommit(""); // Guardar en Moodle
+    console.log(`Puntuación enviada al LMS: ${puntuacion}`);
+  }
+}
+
+// Finalizar SCORM al cerrar la página
+window.onunload = function () {
+  if (scormInitialized) {
+    LMSFinish("");
+    console.log("SCORM session finished.");
+  }
+};
+
+
+    function reiniciarTabla() {
+      const celdas = document.querySelectorAll("#tablaPeriodica td");
+      celdas.forEach(celda => {
+        // Solo reiniciar las celdas interactivas
+        if (celda.style.cursor !== "default") {
+          // Reiniciar al color por defecto (metal)
+          celda.classList.remove(...colores);
+          celda.classList.add("metal");
+        }
+      });
+      document.getElementById('aciertos').textContent = 'Aciertos: 0/86';
+      document.getElementById('nota').textContent = 'Nota: 0.0/10';
+    }
+  </script>
+</body>
+</html>
