@@ -3,38 +3,49 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tabla periódica interactiva — Preguntas (3º ESO)</title>
+  <title>Tabla periódica interactiva — Estilo Minimalista</title>
   <style>
     :root{
-      --bg:#ffffff;
-      --text:#111827;
-      --muted:#4b5563;
-      --border:#e5e7eb;
+      /* Paleta más sofisticada (Slate / Indigo) */
+      --bg: #f8fafc; /* Gris muy claro de fondo */
+      --text: #0f172a; /* Azul muy oscuro casi negro */
+      --muted: #64748b; /* Gris medio */
+      --border: #e2e8f0; /* Borde sutil */
+      --card-bg: #ffffff;
 
-      --metal:#7dd3fc;
-      --metalloid:#84cc16;
-      --nonmetal:#fde047;
-      --noble:#fb7185;
-      --placeholder:#dbeafe;
+      /* Colores semánticos de la tabla (mantienen funcionalidad) */
+      --metal: #bae6fd;      /* Sky 200 */
+      --metalloid: #bef264;  /* Lime 300 */
+      --nonmetal: #fde047;   /* Yellow 300 */
+      --noble: #fca5a5;      /* Rose 300 */
+      --placeholder: #e2e8f0;
 
-      --active:#2563eb;
-      --activeGlow:rgba(37,99,235,.22);
+      /* Estado Activo */
+      --active: #4f46e5;     /* Indigo 600 */
+      --active-soft: #e0e7ff; /* Indigo 100 */
 
-      --bad:#dc2626;
-      --good:#16a34a;
+      /* Feedback */
+      --bad: #ef4444;
+      --good: #10b981;
+      --good-bg: #ecfdf5;
+      --bad-bg: #fef2f2;
 
-      --gap:2px;
+      /* Dimensiones */
+      --gap: 2px;
       --cellH: 60px;
       --cellW: 56px;
+      --radius: 16px;
     }
 
     *{box-sizing:border-box}
+    
     html, body{
       height:100%;
       margin:0;
       background:var(--bg);
       color:var(--text);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif; /* Inter es más limpio */
+      -webkit-font-smoothing: antialiased;
     }
     body{ overflow:hidden; }
 
@@ -42,453 +53,464 @@
       height:100vh;
       display:flex;
       flex-direction:column;
-      padding:12px 12px 14px;
+      /* Reducir padding y gap del contenedor principal */
+      padding:12px;
       max-width: 1400px;
       margin: 0 auto;
       gap:10px;
     }
 
+    /* HEADER */
     header{
       display:flex;
-      align-items:flex-start;
+      align-items:center;
       justify-content:space-between;
-      gap:12px;
+      gap:20px;
       flex: 0 0 auto;
+      padding: 0 8px;
     }
     h1{
       margin:0;
-      font-size: 26px;
-      font-weight: 950;
-      letter-spacing:.2px;
-      line-height:1.05;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing:-0.5px;
+      color: var(--text);
     }
 
-    .topRight{
-      display:flex;
-      flex-direction:column;
-      align-items:flex-end;
-      gap:8px;
-      min-width: 260px;
+    /* Puntuación rediseñada */
+    .score-pill {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--card-bg);
+      padding: 8px 16px;
+      border-radius: 99px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+      border: 1px solid var(--border);
     }
+    .score-main {
+      font-size: 18px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .score-details {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      border-left: 1px solid var(--border);
+      padding-left: 12px;
+    }
+    .score-details span span { font-weight: 800; color: var(--text); }
 
-    .grade{
-      width:100%;
-      border:2px solid var(--border);
-      border-radius:14px;
-      padding:8px 10px;
-      background:#fff;
-    }
-    .gradeRow{
-      display:flex;
-      justify-content:space-between;
-      align-items:baseline;
-      gap:10px;
-    }
-    .gradeLabel{
-      font-size:12px;
-      color:var(--muted);
-      font-weight:800;
-    }
-    .gradeValue{
-      font-size:30px;
-      font-weight:950;
-      letter-spacing:.2px;
-    }
-    .gradeSub{
-      margin-top:4px;
-      font-size:12px;
-      color:var(--muted);
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      font-weight:800;
-    }
-
+    /* LAYOUT PRINCIPAL */
     .layout{
       flex: 1 1 auto;
       display:grid;
-      grid-template-columns: 1.55fr 1fr;
-      gap:10px;
+      /* Ajuste de columnas: Antes 1.1fr 1fr -> Ahora 0.9fr 1fr para que la derecha sea más ancha */
+      grid-template-columns: 0.9fr 1fr; 
+      gap:20px;
       min-height:0;
     }
 
     .panel{
-      border:2px solid var(--border);
-      background:#fff;
-      border-radius:16px;
-      padding:10px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      border: 1px solid var(--border);
+      /* Reducir padding interno del panel */
+      padding:16px;
       min-height:0;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* ==== TABLA ==== */
+    /* ==== TABLA (Izquierda) ==== */
     .tableArea{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      min-height:0;
+      align-items: center;
+      justify-content: center;
+      background: #fff; /* Blanco puro para contraste de colores */
     }
 
     .tableFit{
-      flex: 1 1 auto;
-      min-height:0;
+      width: 100%;
+      height: 100%;
       display:flex;
       align-items:center;
       justify-content:center;
     }
-
     .tableStage{
-      transform-origin: top center;
+      transform-origin: center center;
       will-change: transform;
       position:relative;
     }
 
     .ptable{
-      width: calc(var(--cellW) * 18 + var(--gap) * 19);
       display:grid;
       grid-template-columns: repeat(18, var(--cellW));
       grid-auto-rows: var(--cellH);
       gap: var(--gap);
-      background: var(--border);
-      padding: var(--gap);
-      border-radius: 12px;
     }
 
     .cell{
       position:relative;
-      border-radius: 0;
-      border:1px solid rgba(0,0,0,.08);
+      border-radius: 4px; /* Bordes ligeramente redondeados en celdas */
       display:flex;
       align-items:center;
       justify-content:center;
       flex-direction:column;
-      padding: 18px 6px 6px;
+      padding: 18px 2px 4px;
       text-align:center;
-      line-height:1.05;
       user-select:none;
-      background:#fff;
-      overflow:hidden;
+      cursor: default;
+      transition: transform 0.1s;
     }
-
+    
     .z{
       position:absolute;
-      top:1px;
-      left:3px;
-      font-size:11px;
-      font-weight:950;
-      color: rgba(0,0,0,.78);
-      background: transparent;
-      border:none;
-      padding:0;
-      border-radius:0;
-      line-height:1;
+      top:2px;
+      left:4px;
+      font-size:10px;
+      font-weight:700;
+      opacity: 0.6;
     }
-
     .sym{
-      font-size:18px;
-      font-weight:950;
-      margin:0;
+      font-size:17px;
+      font-weight:800;
       line-height:1;
+      margin-bottom: 2px;
     }
     .name{
-      font-size:10px;
-      font-weight:900;
-      color: rgba(0,0,0,.70);
+      font-size:9px;
+      font-weight:600;
+      opacity: 0.8;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
-      max-width: 100%;
-      margin-top:4px;
-      line-height:1.1;
+      max-width: 95%;
     }
-    .mass{
-      font-size:10px;
-      font-weight:900;
-      color: rgba(0,0,0,.62);
-      margin-top:2px;
-      line-height:1.1;
-    }
+    .mass{ display: none; } /* Ocultar masa en vista pequeña para limpieza */
 
-    .cat-metal{background: var(--metal);}
-    .cat-nonmetal{background: var(--nonmetal);}
-    .cat-metalloid{background: var(--metalloid);}
-    .cat-noble{background: var(--noble);}
+    /* Colores Celdas */
+    .cat-metal{background: var(--metal); color: #0c4a6e;}
+    .cat-nonmetal{background: var(--nonmetal); color: #713f12;}
+    .cat-metalloid{background: var(--metalloid); color: #365314;}
+    .cat-noble{background: var(--noble); color: #881337;}
     .cat-placeholder{background: var(--placeholder);}
 
     .cell.active{
-      outline: 4px solid var(--active);
-      outline-offset: -2px;
-      box-shadow: 0 0 0 5px var(--activeGlow);
+      z-index: 5;
+      transform: scale(1.1);
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+      border: 2px solid var(--text);
     }
 
-    /* ==== Magnificada 3x3 ==== */
+    /* Magnificada 3x3 Overlay */
     .bigOverlay{
       position:absolute;
       pointer-events:none;
-      z-index: 10;
+      z-index: 20;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
     .bigSlot{
       width: calc(var(--cellW) * 3 + var(--gap) * 2);
       height: calc(var(--cellH) * 3 + var(--gap) * 2);
-      border:2px solid #111827;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
       border-radius: 12px;
-      background:#fff;
       display:flex;
       align-items:center;
       justify-content:center;
-      padding:14px;
-      position:relative;
-      box-shadow: 0 10px 24px rgba(0,0,0,.10);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      border: 1px solid rgba(0,0,0,0.1);
+      position: relative;
     }
     .bigZ{
       position:absolute;
-      top:10px;
+      top:8px;
       left:10px;
-      font-size:16px;
-      font-weight:950;
-      color: rgba(0,0,0,.82);
-      line-height:1;
+      font-size:18px;
+      font-weight:900;
+      color: var(--muted);
     }
     .bigCenter{
-      width:100%;
-      height:100%;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
       text-align:center;
-      padding-top:16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      margin-top: 10px;
     }
-    .bigSym{ font-size:80px; font-weight:950; line-height:1; margin:0; }
-    .bigName{ font-size:18px; font-weight:950; color: rgba(0,0,0,.78); margin:0; }
-    .bigMass{ font-size:18px; font-weight:950; color: rgba(0,0,0,.70); margin:0; }
+    .bigSym{ font-size:75px; font-weight:900; line-height:1; letter-spacing: -2px; color: var(--text); }
+    .bigName{ font-size:20px; font-weight:700; color: var(--text); margin-top: -5px;}
+    .bigMass{ font-size:14px; font-weight:600; color: var(--muted); background: var(--bg); padding: 4px 12px; border-radius: 10px; margin-top:8px;}
 
+    /* Leyenda Minimal */
     .legend{
       display:flex;
-      flex-wrap:wrap;
-      gap:10px 14px;
-      align-items:center;
+      gap:16px;
       justify-content:center;
-      font-weight:950;
-      color: rgba(0,0,0,.70);
-      padding-top:4px;
+      margin-top: auto; /* Empujar al fondo */
+      padding-top: 10px;
     }
-    .legItem{display:flex; align-items:center; gap:8px; font-size:13px;}
-    .sw{width:14px;height:14px;border:2px solid rgba(0,0,0,.12);}
+    .legItem{display:flex; align-items:center; gap:6px; font-size:11px; font-weight: 600; color: var(--muted);}
+    .sw{width:10px;height:10px;border-radius: 50%;}
     .sw.m{background:var(--metal)}
     .sw.s{background:var(--metalloid)}
     .sw.nm{background:var(--nonmetal)}
     .sw.ng{background:var(--noble)}
 
-    /* ==== Panel preguntas ==== */
-    .qTitle{ margin:0 0 8px; font-size:18px; font-weight:950; }
-    .qBox{ border:2px solid var(--border); border-radius:14px; padding:10px; background:#fff; }
-    .qText{ margin:0 0 10px; font-size:16px; font-weight:900; line-height:1.32; }
-    .answerRow{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin: 6px 0 10px;
+
+    /* ==== ZONA DERECHA (INTERACCIÓN) ==== */
+    .interaction-panel {
+      justify-content: flex-start;
+      /* Reducir hueco entre secciones */
+      gap: 10px;
+      /* Mantener auto por seguridad, pero con los ajustes no debería salir */
+      overflow-y: auto; 
     }
 
-    input[type="text"], input[type="number"], select{
-      border:2px solid var(--border);
-      background:#fff;
-      color:var(--text);
-      padding:10px 10px;
-      border-radius:12px;
-      font-size:15px;
-      min-width: 240px;
-      outline:none;
-      font-weight:900;
+    /* Sección de Pregunta */
+    .question-section {
+      display: flex;
+      flex-direction: column;
+      /* Reducir hueco interno de la pregunta */
+      gap: 12px;
     }
-    input:focus, select:focus{
-      border-color:#93c5fd;
-      box-shadow: 0 0 0 4px rgba(147,197,253,.35);
-    }
-
-    /* Botones */
-    .iconBtnRow{
-      display:flex;
-      gap:12px;
-      justify-content:flex-start;
-      align-items:center;
-      margin-top:8px;
-    }
-    .iconBtn{
-      width:46px;
-      height:46px;
-      border-radius:12px;
-      border:2px solid var(--border);
-      background:#fff;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      cursor:pointer;
-    }
-    .iconBtn:hover{ border-color:#cbd5e1; }
-    .iconBtn:active{ transform: translateY(1px); }
-    .iconBtn svg{ width:24px; height:24px; }
-    .btnTextIcon{
-      font-weight:950;
-      font-size:22px;
-      line-height:1;
-      letter-spacing:-1px;
-      user-select:none;
+    
+    .qTitle {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 700;
+      color: var(--muted);
+      margin: 0;
     }
 
-    /* Estado deshabilitado (tras validar) */
-    .iconBtn:disabled{
-      opacity:.45;
-      cursor:not-allowed;
-      transform:none;
+    .qText {
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.5;
+      color: var(--text);
+      margin: 0;
     }
 
-    .feedback{
-      border:2px solid var(--border);
-      border-radius:14px;
-      padding:10px 10px;
-      font-size:14px;
-      font-weight:900;
-      line-height:1.32;
-      display:none;
-      margin-top:10px;
+    /* Inputs Modernos */
+    .input-wrapper {
+      width: 100%;
     }
-    .feedback.ok{border-color: rgba(22,163,74,.45); background: rgba(22,163,74,.10);}
-    .feedback.ko{border-color: rgba(220,38,38,.45); background: rgba(220,38,38,.10);}
+    
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: var(--bg); 
+      color: var(--text);
+      /* Input un poco más compacto */
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 500;
+      outline: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    input:focus, select:focus {
+      background: #fff;
+      border-color: var(--active);
+      box-shadow: 0 0 0 3px var(--active-soft);
+    }
+    ::placeholder { color: #94a3b8; }
 
-    /* ===== Resumen por tipo ===== */
-    .summaryCard{
-      margin-top:10px;
-      border:2px solid var(--border);
-      border-radius:14px;
-      padding:10px;
-      background:#fff;
+    /* Grupo de input + unidad */
+    .input-group {
+      display: flex;
+      gap: 8px;
+      width: 100%;
     }
-    .summaryTitle{
-      margin:0 0 10px;
-      font-size:13px;
-      font-weight:950;
-      color: rgba(0,0,0,.70);
+    .input-group input {
+      flex: 1; /* El número ocupa el espacio disponible */
     }
-
-    /* más ancho/alto para que NO queden “tubitos” */
-    .summaryGrid{
-      display:grid;
-      grid-template-columns: repeat(11, minmax(38px, 1fr));
-      gap:8px;
-      align-items:stretch;
-    }
-    .sumCell{
-      border:2px solid var(--border);
-      border-radius:12px;
-      padding:6px 6px 7px;
-      background:#fff;
-      min-height:60px;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-      align-items:center;
-      position:relative;
+    .input-group select {
+      flex: 0 0 auto;
+      width: auto;
+      min-width: 110px; /* Ancho mínimo para que se lea la unidad */
     }
 
-    .sumNum{
-      width:28px;
-      height:28px;
-      border-radius:999px;
-      border:2px solid rgba(0,0,0,.12);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-weight:950;
-      font-size:13px;
-      line-height:1;
-      background:#fff;
+    /* Botonera */
+    .actions-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto; /* Principal grande, otros pequeños */
+      gap: 10px;
+      margin-top: 8px;
     }
 
-    .sumRows{
-      width:100%;
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-      margin-top:6px;
+    .btn {
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      /* Botón un poco más bajo */
+      height: 44px;
     }
-    .sumRow{
-      width:100%;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      font-weight:900;
-      font-size:12px;
-      line-height:1;
-      color: rgba(0,0,0,.72);
-    }
-    .sumOk{ color: var(--good); }
-    .sumKo{ color: var(--bad); }
+    .btn:active { transform: scale(0.98); }
+    .btn svg { width: 22px; height: 22px; }
 
-    /* Tooltip */
-    .sumTip{
-      display:none;
-      position:absolute;
-      bottom: calc(100% + 8px);
-      left:50%;
-      transform:translateX(-50%);
-      background:#111827;
-      color:#fff;
-      padding:8px 10px;
-      border-radius:10px;
-      font-size:12px;
-      line-height:1.2;
-      font-weight:850;
-      white-space:nowrap;
-      box-shadow: 0 10px 22px rgba(0,0,0,.18);
-      z-index: 20;
+    /* Estilos Específicos Botones */
+    .btn-primary {
+      background: var(--text); /* Negro/Azul oscuro */
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+      padding: 0 24px;
     }
-    .sumTip:after{
-      content:"";
-      position:absolute;
-      top:100%;
-      left:50%;
-      transform:translateX(-50%);
-      border:7px solid transparent;
-      border-top-color:#111827;
-    }
-    .sumCell:hover .sumTip{ display:block; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; opacity: 1; transform: none;}
 
-    @media (max-width: 980px){
+    .btn-secondary {
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 48px;
+    }
+    .btn-secondary:hover { background: var(--bg); border-color: #cbd5e1; }
+
+    /* Feedback Flotante */
+    .feedback-box {
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.4;
+      animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    .feedback-box.correct { background: var(--good-bg); color: #065f46; border: 1px solid #a7f3d0; }
+    .feedback-box.incorrect { background: var(--bad-bg); color: #991b1b; border: 1px solid #fecaca; }
+
+    /* ==== RESUMEN (Rediseñado) ==== */
+    .stats-section {
+      margin-top: auto; 
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-top: 1px solid var(--border);
+      /* Menos padding superior */
+      padding-top: 12px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+      gap: 6px;
+    }
+
+    .stat-chip {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      /* Chip más compacto */
+      height: 36px;
+      position: relative;
+      cursor: help;
+      transition: border-color 0.2s;
+    }
+    .stat-chip:hover { border-color: var(--muted); }
+
+    .stat-idx {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      position: absolute;
+      top: 2px;
+      left: 4px;
+    }
+    
+    /* Pequeñas barras indicadoras en lugar de números grandes */
+    .stat-dots {
+      display: flex;
+      gap: 2px;
+      margin-top: 8px;
+    }
+    .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border); }
+    .dot.ok { background: var(--good); }
+    .dot.ko { background: var(--bad); }
+
+    /* Tooltip mejorado */
+    .stat-tooltip {
+      visibility: hidden;
+      position: absolute;
+      bottom: 110%;
+      left: 50%;
+      transform: translateX(-50%) translateY(5px);
+      background: var(--text);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: all 0.2s;
+      pointer-events: none;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      text-align: center;
+    }
+    .stat-chip:hover .stat-tooltip {
+      visibility: visible;
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .tooltip-title { font-weight: 700; margin-bottom: 2px; display: block; color: #fff;}
+    .tooltip-data { opacity: 0.9; }
+
+
+    /* Responsive */
+    @media (max-width: 1000px){
       body{ overflow:auto; }
       .wrap{ height:auto; }
       .layout{ grid-template-columns:1fr; }
-      .summaryGrid{ grid-template-columns: repeat(6, minmax(38px, 1fr)); }
+      .ptable { gap: 1px; }
+      .cell { padding: 8px 1px; }
+      .sym { font-size: 14px; }
+      .name { display: none; } /* Ocultar nombres en móvil */
+      .stats-grid { grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); }
+      .bigOverlay { display: none; } /* Ocultar lupa en móvil para simplificar */
     }
   </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div>
-      <h1>Tabla Periódica Interactiva</h1>
-    </div>
-
-    <div class="topRight">
-      <div class="grade" aria-label="Calificación">
-        <div class="gradeRow">
-          <div class="gradeLabel">Nota</div>
-          <div class="gradeValue" id="gradeValue">0.0/10</div>
-        </div>
-        <div class="gradeSub">
-          <span id="hitsText">Aciertos: 0</span>
-          <span id="missText">Fallos: 0</span>
-        </div>
+    <h1>Tabla Periódica</h1>
+    <div class="score-pill">
+      <div class="score-main" id="gradeValue">0.0</div>
+      <div class="score-details">
+        <span>✅ <span id="hitsText">0</span></span>
+        <span>❌ <span id="missText">0</span></span>
       </div>
     </div>
   </header>
 
   <div class="layout">
+    <!-- Panel Izquierdo: Tabla -->
     <section class="panel tableArea">
       <div class="tableFit" id="tableFit">
         <div class="tableStage" id="tableStage">
+          <!-- Magnificada -->
           <div class="bigOverlay" id="bigOverlay" aria-hidden="true">
             <div class="bigSlot">
               <div class="bigZ" id="bigZ">26</div>
@@ -500,76 +522,186 @@
             </div>
           </div>
 
-          <div class="ptable" id="ptable" role="grid" aria-label="Tabla periódica (sin transición interna)"></div>
-
-          <div class="legend" aria-label="Leyenda">
-            <div class="legItem"><span class="sw m"></span> Metal</div>
-            <div class="legItem"><span class="sw s"></span> Semimetal</div>
-            <div class="legItem"><span class="sw nm"></span> No metal</div>
-            <div class="legItem"><span class="sw ng"></span> Gases Nobles</div>
-          </div>
+          <!-- Grid Tabla -->
+          <div class="ptable" id="ptable" role="grid"></div>
         </div>
+      </div>
+      
+      <div class="legend">
+        <div class="legItem"><span class="sw m"></span> Metal</div>
+        <div class="legItem"><span class="sw s"></span> Semimetal</div>
+        <div class="legItem"><span class="sw nm"></span> No metal</div>
+        <div class="legItem"><span class="sw ng"></span> Gas Noble</div>
       </div>
     </section>
 
-    <aside class="panel">
-      <h2 class="qTitle">Pregunta</h2>
-      <div class="qBox">
-        <p class="qText" id="qText">Pulsa “Comprobar” tras responder. Para otra pregunta, “Nuevo ejercicio”.</p>
-        <div class="answerRow" id="answerRow"></div>
-
-        <div class="iconBtnRow">
-          <button class="iconBtn" id="checkBtn" type="button" title="Comprobar" aria-label="Comprobar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 6 9 17l-5-5"/>
-            </svg>
-          </button>
-
-          <button class="iconBtn" id="newBtn" type="button" title="Nuevo ejercicio" aria-label="Nuevo ejercicio">
-            <span class="btnTextIcon">&gt;&gt;</span>
-          </button>
-
-          <button class="iconBtn" id="resetBtn" type="button" title="Reiniciar" aria-label="Reiniciar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 12a9 9 0 1 1-3.05-6.72"/>
-              <path d="M21 3v6h-6"/>
-            </svg>
-          </button>
+    <!-- Panel Derecho: Interacción (Rediseñado) -->
+    <aside class="panel interaction-panel">
+      
+      <div class="question-section">
+        <h2 class="qTitle">Pregunta Actual</h2>
+        <p class="qText" id="qText">Cargando pregunta...</p>
+        
+        <div class="input-wrapper" id="answerRow">
+          <!-- El input se inyecta aquí -->
         </div>
 
-        <div class="feedback" id="feedback"></div>
+        <div class="feedback-box" id="feedback"></div>
 
-        <!-- Resumen por tipo -->
-        <div class="summaryCard" aria-label="Resumen por tipo">
-          <p class="summaryTitle">Resumen por tipo (pasa el ratón por el número):</p>
-          <div class="summaryGrid" id="summaryGrid"></div>
+        <div class="actions-row">
+          <button class="btn btn-primary" id="checkBtn" type="button">
+            Comprobar
+          </button>
+          
+          <button class="btn btn-secondary" id="newBtn" type="button" title="Siguiente pregunta">
+            <!-- Icono flecha derecha -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </button>
+
+          <button class="btn btn-secondary" id="resetBtn" type="button" title="Reiniciar todo">
+            <!-- Icono reiniciar -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          </button>
         </div>
       </div>
+
+      <!-- Resumen por tipo Minimalista -->
+      <div class="stats-section">
+        <h2 class="qTitle">Progreso por Categoría</h2>
+        <div class="stats-grid" id="summaryGrid">
+          <!-- Se generan chips JS -->
+        </div>
+      </div>
+
     </aside>
   </div>
 </div>
 
 <script>
+/* =========================================
+   SCORM 1.2 WRAPPER / MANAGER
+   Integración para guardado progresivo en LMS
+   ========================================= */
+const SCORM = {
+  api: null,
+  debug: false,
+  
+  // Buscar API de SCORM en ventanas padres (con protección Cross-Origin)
+  findAPI: function(win) {
+    let attempts = 0;
+    while (attempts < 7) {
+      try {
+        if (win.API != null) {
+          return win.API;
+        }
+        if (win.parent == null || win.parent == win) {
+          return null;
+        }
+        win = win.parent;
+      } catch (e) {
+        // Acceso denegado por Cross-Origin (el iframe no puede ver al padre).
+        // Detenemos la búsqueda para no generar errores de consola.
+        return null;
+      }
+      attempts++;
+    }
+    return null;
+  },
+
+  // Inicializar conexión
+  init: function() {
+    try {
+      this.api = this.findAPI(window);
+      if ((this.api == null) && (window.opener != null) && (typeof(window.opener) != "undefined")) {
+        try {
+          this.api = this.findAPI(window.opener);
+        } catch (e) {
+          // Ignorar error de opener cross-origin
+        }
+      }
+    } catch(e) {
+      console.log("SCORM: Error inicializando API (Cross-Origin restricted)");
+    }
+
+    if (this.api) {
+      this.api.LMSInitialize("");
+      // Establecer rango de puntuación
+      this.api.LMSSetValue("cmi.core.score.min", "0");
+      this.api.LMSSetValue("cmi.core.score.max", "10");
+      // Importante: status incomplete hasta acabar
+      const status = this.api.LMSGetValue("cmi.core.lesson_status");
+      if(status === "not attempted") {
+        this.api.LMSSetValue("cmi.core.lesson_status", "incomplete");
+      }
+      this.api.LMSCommit("");
+      if(this.debug) console.log("SCORM: Conectado e inicializado.");
+    } else {
+      if(this.debug) console.log("SCORM: API no encontrada. Modo Standalone.");
+    }
+  },
+
+  // Guardar puntuación en tiempo real (PROGRESIVO)
+  saveScore: function(score) {
+    if (this.api) {
+      // score debe ser string numérico
+      const s = Number(score).toFixed(2);
+      this.api.LMSSetValue("cmi.core.score.raw", s);
+      
+      // Si llega a 10, podemos marcar como completado, si se desea
+      if(Number(s) >= 10) {
+        this.api.LMSSetValue("cmi.core.lesson_status", "passed");
+      }
+
+      // Commit INMEDIATO para asegurar guardado ante cuelgues
+      const result = this.api.LMSCommit(""); 
+      if(this.debug) console.log(`SCORM: Score guardado (${s}). Resultado: ${result}`);
+    }
+  },
+
+  // Cerrar conexión limpiamente
+  finish: function() {
+    if (this.api) {
+      // 'suspend' permite reanudar sesión sin perder datos (si el LMS lo soporta)
+      // Ojo: si ya está 'passed' o 'completed', algunos LMS ignoran el suspend.
+      this.api.LMSSetValue("cmi.core.exit", "suspend");
+      this.api.LMSFinish("");
+      if(this.debug) console.log("SCORM: Sesión finalizada.");
+    }
+  }
+};
+
+// Listeners globales para SCORM
+window.onload = function() {
+  SCORM.init();
+  // ... resto del init se hace abajo ...
+};
+
+// Listener crítico para cierre de pestaña/navegador
+window.addEventListener("unload", function() {
+  SCORM.finish();
+});
+
+
+/* =========================================
+   LÓGICA DE LA APLICACIÓN
+   ========================================= */
+
 function fmtMass2(x){
   if(x === null || x === undefined) return "";
   return Number(x).toFixed(2);
 }
 
-/* ===== Datos (Ts como metal; La y Ac sin asterisco y con masa) ===== */
+/* ===== Datos ===== */
 const DATA = [
   [1,"H","Hidrógeno",1.008,1,1,"No metal"], [2,"He","Helio",4.0026,18,1,"Gas noble"],
   [3,"Li","Litio",6.94,1,2,"Metal"], [4,"Be","Berilio",9.0122,2,2,"Metal"],
   [5,"B","Boro",10.81,13,2,"Semimetal"], [6,"C","Carbono",12.011,14,2,"No metal"],
   [7,"N","Nitrógeno",14.007,15,2,"No metal"], [8,"O","Oxígeno",15.999,16,2,"No metal"],
   [9,"F","Flúor",18.998,17,2,"No metal"], [10,"Ne","Neón",20.180,18,2,"Gas noble"],
-
   [11,"Na","Sodio",22.990,1,3,"Metal"], [12,"Mg","Magnesio",24.305,2,3,"Metal"],
   [13,"Al","Aluminio",26.982,13,3,"Metal"], [14,"Si","Silicio",28.085,14,3,"Semimetal"],
   [15,"P","Fósforo",30.974,15,3,"No metal"], [16,"S","Azufre",32.06,16,3,"No metal"],
   [17,"Cl","Cloro",35.45,17,3,"No metal"], [18,"Ar","Argón",39.948,18,3,"Gas noble"],
-
   [19,"K","Potasio",39.098,1,4,"Metal"], [20,"Ca","Calcio",40.078,2,4,"Metal"],
   [21,"Sc","Escandio",44.956,3,4,"Metal"], [22,"Ti","Titanio",47.867,4,4,"Metal"],
   [23,"V","Vanadio",50.942,5,4,"Metal"], [24,"Cr","Cromo",51.996,6,4,"Metal"],
@@ -579,7 +711,6 @@ const DATA = [
   [31,"Ga","Galio",69.723,13,4,"Metal"], [32,"Ge","Germanio",72.630,14,4,"Semimetal"],
   [33,"As","Arsénico",74.922,15,4,"Semimetal"], [34,"Se","Selenio",78.971,16,4,"No metal"],
   [35,"Br","Bromo",79.904,17,4,"No metal"], [36,"Kr","Kriptón",83.798,18,4,"Gas noble"],
-
   [37,"Rb","Rubidio",85.468,1,5,"Metal"], [38,"Sr","Estroncio",87.62,2,5,"Metal"],
   [39,"Y","Itrio",88.906,3,5,"Metal"], [40,"Zr","Circonio",91.224,4,5,"Metal"],
   [41,"Nb","Niobio",92.906,5,5,"Metal"], [42,"Mo","Molibdeno",95.95,6,5,"Metal"],
@@ -589,7 +720,6 @@ const DATA = [
   [49,"In","Indio",114.82,13,5,"Metal"], [50,"Sn","Estaño",118.71,14,5,"Metal"],
   [51,"Sb","Antimonio",121.76,15,5,"Semimetal"], [52,"Te","Telurio",127.60,16,5,"Semimetal"],
   [53,"I","Yodo",126.90,17,5,"No metal"], [54,"Xe","Xenón",131.29,18,5,"Gas noble"],
-
   [55,"Cs","Cesio",132.91,1,6,"Metal"], [56,"Ba","Bario",137.33,2,6,"Metal"],
   [57,"La","Lantano",138.90547,3,6,"Metal"],
   [72,"Hf","Hafnio",178.49,4,6,"Metal"], [73,"Ta","Tantalio",180.95,5,6,"Metal"],
@@ -600,7 +730,6 @@ const DATA = [
   [82,"Pb","Plomo",207.2,14,6,"Metal"], [83,"Bi","Bismuto",208.98,15,6,"Metal"],
   [84,"Po","Polonio",209,16,6,"Semimetal"], [85,"At","Astato",210,17,6,"Semimetal"],
   [86,"Rn","Radón",222,18,6,"Gas noble"],
-
   [87,"Fr","Francio",223,1,7,"Metal"], [88,"Ra","Radio",226,2,7,"Metal"],
   [89,"Ac","Actinio",227.02775,3,7,"Metal"],
   [104,"Rf","Rutherfordio",267,4,7,"Metal"], [105,"Db","Dubnio",268,5,7,"Metal"],
@@ -675,6 +804,16 @@ function normalizeText(s){
 function approxEqual(a, b, tol){ return Math.abs(a-b) <= tol; }
 function randomInt(min, max){ return Math.floor(Math.random()*(max-min+1)) + min; }
 
+// Función para mezclar aleatoriamente un array (Fisher-Yates shuffle)
+function shuffleArray(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 /* ===== Render tabla ===== */
 const ptable = document.getElementById("ptable");
 
@@ -694,8 +833,7 @@ function renderTable(){
       cell.className = "cell";
 
       if(!el){
-        cell.style.background = "#fff";
-        cell.style.border = "1px solid transparent";
+        cell.style.background = "transparent";
         ptable.appendChild(cell);
         continue;
       }
@@ -718,7 +856,7 @@ function renderTable(){
   }
 }
 
-/* ===== Escalado sin scroll + posicionamiento magnificada 3x3 ===== */
+/* ===== Escalado ===== */
 const tableFit = document.getElementById("tableFit");
 const tableStage = document.getElementById("tableStage");
 const bigOverlay = document.getElementById("bigOverlay");
@@ -728,22 +866,26 @@ function applyTableScale(){
   const nativeWidth = ptable.getBoundingClientRect().width;
   const nativeHeight = tableStage.scrollHeight;
 
-  const maxW = fitRect.width - 8;
-  const maxH = fitRect.height - 8;
+  const maxW = fitRect.width;
+  const maxH = fitRect.height;
 
   const sW = maxW / nativeWidth;
   const sH = maxH / nativeHeight;
   const s = Math.min(1, sW, sH);
 
-  tableStage.style.transform = `scale(${s})`;
+  // Un poco menos para dar margen
+  const finalScale = s * 0.96;
 
-  const pad = 2;
+  tableStage.style.transform = `scale(${finalScale})`;
+
+  // Posicionar lupa
+  const pad = 0;
   const cellW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cellW'));
   const cellH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cellH'));
   const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gap'));
 
-  const colStart = 8; // 3 columnas: 8,9,10
-  const rowStart = 1; // 3 filas: 1,2,3
+  const colStart = 8; 
+  const rowStart = 1; 
 
   const x = pad + (colStart - 1) * (cellW + gap);
   const y = pad + (rowStart - 1) * (cellH + gap);
@@ -753,7 +895,7 @@ function applyTableScale(){
 }
 window.addEventListener("resize", () => requestAnimationFrame(applyTableScale));
 
-/* ===== Motor de preguntas + bloqueo tras validar ===== */
+/* ===== Motor de preguntas ===== */
 let currentElement = null;
 let currentQuestion = null;
 let validated = false;
@@ -780,10 +922,11 @@ const newBtn = document.getElementById("newBtn");
 const resetBtn = document.getElementById("resetBtn");
 
 function setGradeUI(){
-  gradeValue.textContent = `${grade.toFixed(1)}/10`;
+  gradeValue.textContent = `${grade.toFixed(1)}`;
+  // Si la nota es menor que 5, se muestra en rojo (--bad). Si es >= 5, en verde (--good).
   gradeValue.style.color = (grade >= 5) ? "var(--good)" : "var(--bad)";
-  hitsText.textContent = `Aciertos: ${hits}`;
-  missText.textContent = `Fallos: ${misses}`;
+  hitsText.textContent = hits;
+  missText.textContent = misses;
 }
 
 function pickRandomElement(){
@@ -803,15 +946,18 @@ function highlightElement(el){
 
 function clearFeedback(){
   feedback.style.display = "none";
-  feedback.classList.remove("ok","ko");
+  feedback.classList.remove("correct","incorrect");
   feedback.textContent = "";
 }
 
 function showFeedback(ok, msg){
-  feedback.style.display = "block";
-  feedback.classList.toggle("ok", ok);
-  feedback.classList.toggle("ko", !ok);
-  feedback.textContent = msg;
+  feedback.style.display = "flex";
+  feedback.classList.toggle("correct", ok);
+  feedback.classList.toggle("incorrect", !ok);
+  feedback.innerHTML = (ok ? 
+    `<svg style="width:20px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>` : 
+    `<svg style="width:20px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`
+  ) + `<div>${msg}</div>`;
 }
 
 function makeInputNumber(placeholder){
@@ -829,7 +975,7 @@ function makeInputText(placeholder){
   input.autocomplete = "off";
   return input;
 }
-function makeSelect(options, placeholder="Sin responder"){
+function makeSelect(options, placeholder="Elige una opción..."){
   const sel = document.createElement("select");
   const opt0 = document.createElement("option");
   opt0.value = "";
@@ -844,19 +990,56 @@ function makeSelect(options, placeholder="Sin responder"){
   return sel;
 }
 
-/* ===== Tipos (1..11) para resumen ===== */
+function makeInputWithUnits(placeholder, units){
+  const wrapper = document.createElement("div");
+  wrapper.className = "input-group";
+
+  const input = document.createElement("input");
+  input.type = "number";
+  input.step = "0.01"; 
+  input.placeholder = placeholder;
+  input.autocomplete = "off";
+
+  const select = document.createElement("select");
+  const def = document.createElement("option");
+  def.value = "";
+  def.textContent = "Unidad...";
+  select.appendChild(def);
+
+  units.forEach(u => {
+    const opt = document.createElement("option");
+    opt.value = u;
+    opt.textContent = u;
+    select.appendChild(opt);
+  });
+
+  wrapper.appendChild(input);
+  wrapper.appendChild(select);
+
+  // Definimos la propiedad .value en el div contenedor para que checkAnswer la lea
+  Object.defineProperty(wrapper, 'value', {
+    get: () => ({ num: input.value, unit: select.value })
+  });
+
+  // Redirigir el foco al input numérico
+  wrapper.focus = () => input.focus();
+
+  return wrapper;
+}
+
+/* ===== Tipos para resumen ===== */
 const TYPE_LIST = [
-  { id:"bigGroup",     label:"Gran grupo: Metal / No metal / Semimetal / Gas noble" },
-  { id:"groupName",    label:"Nombre del grupo (familia)" },
-  { id:"groupNumber",  label:"Número de grupo (1–18)" },
-  { id:"period",       label:"Período (1–7)" },
-  { id:"protons",      label:"Protones en el núcleo" },
-  { id:"position",     label:"Posición / número de orden (1–56)" },
-  { id:"atomicNumber", label:"Número atómico (Z)" },
-  { id:"valence",      label:"Electrones de valencia" },
-  { id:"shiftProtons", label:"Elemento tras ganar/perder protones" },
-  { id:"atomicMass",   label:"Masa promedio de un átomo" },
-  { id:"molarMass",    label:"Masa de un mol" },
+  { id:"bigGroup",     label:"Gran grupo" },
+  { id:"groupName",    label:"Familia" },
+  { id:"groupNumber",  label:"Núm. grupo" },
+  { id:"period",       label:"Período" },
+  { id:"protons",      label:"Protones" },
+  { id:"position",     label:"Posición" },
+  { id:"atomicNumber", label:"Núm. atómico" },
+  { id:"valence",      label:"Valencias" },
+  { id:"shiftProtons", label:"Transmutación" },
+  { id:"atomicMass",   label:"Masa media" },
+  { id:"molarMass",    label:"Masa molar" },
 ];
 
 const statsByType = Object.fromEntries(TYPE_LIST.map(t => [t.id, { asked:0, ok:0, ko:0 }]));
@@ -868,17 +1051,31 @@ function renderSummary(){
   TYPE_LIST.forEach((t, idx) => {
     const s = statsByType[t.id];
     const cell = document.createElement("div");
-    cell.className = "sumCell";
+    cell.className = "stat-chip";
+    
+    // Calcular dots (máximo 5)
+    let dotsHtml = "";
+    const total = s.ok + s.ko;
+    const maxDots = 6;
+    
+    if(total > 0) {
+      // Mostrar últimos resultados como puntitos
+      const okDots = Math.min(s.ok, maxDots);
+      const koDots = Math.min(s.ko, maxDots - okDots);
+      
+      for(let i=0; i<okDots; i++) dotsHtml += `<div class="dot ok"></div>`;
+      for(let i=0; i<koDots; i++) dotsHtml += `<div class="dot ko"></div>`;
+    } else {
+      dotsHtml = `<div class="dot"></div>`; // Gris
+    }
 
     cell.innerHTML = `
-      <div class="sumTip">
-        <div style="font-weight:950; margin-bottom:4px;">${t.label}</div>
-        <div style="opacity:.92;">Preguntas: ${s.asked} · ✅ ${s.ok} · ❌ ${s.ko}</div>
-      </div>
-      <div class="sumNum">${idx+1}</div>
-      <div class="sumRows">
-        <div class="sumRow"><span class="sumOk">✅</span><span>${s.ok}</span></div>
-        <div class="sumRow"><span class="sumKo">❌</span><span>${s.ko}</span></div>
+      <div class="stat-idx">${idx+1}</div>
+      <div class="stat-dots">${dotsHtml}</div>
+      
+      <div class="stat-tooltip">
+        <span class="tooltip-title">${t.label}</span>
+        <span class="tooltip-data">Total: ${s.asked} | ✅ ${s.ok} | ❌ ${s.ko}</span>
       </div>
     `;
     summaryGrid.appendChild(cell);
@@ -892,7 +1089,7 @@ function buildQuestion(el){
   if(type === "bigGroup"){
     return {
       type,
-      text:"¿A qué gran grupo de la tabla periódica pertenece?",
+      text:"¿A qué gran grupo pertenece?",
       ui:() => makeSelect(["Metal","No metal","Semimetal","Gas Noble"]),
       check:(v)=> v === bigGroupCategory(el),
       solution: bigGroupCategory(el)
@@ -902,8 +1099,8 @@ function buildQuestion(el){
   if(type === "groupName"){
     return {
       type,
-      text:"¿Cómo se denomina su grupo (familia)?",
-      ui:() => makeInputText("Ej.: Alcalinos, Halógenos..."),
+      text:"¿Cómo se llama su familia?",
+      ui:() => makeInputText("Ej: Alcalinos..."),
       check:(v)=> normalizeText(v) === normalizeText(groupFamilyName(el.group)),
       solution: groupFamilyName(el.group)
     };
@@ -912,8 +1109,8 @@ function buildQuestion(el){
   if(type === "groupNumber"){
     return {
       type,
-      text:"¿A qué grupo pertenece? (1–18)",
-      ui:() => makeInputNumber("1–18"),
+      text:"¿Cuál es su número de grupo (1–18)?",
+      ui:() => makeInputNumber(""),
       check:(v)=> Number(v) === el.group,
       solution: String(el.group)
     };
@@ -922,8 +1119,8 @@ function buildQuestion(el){
   if(type === "period"){
     return {
       type,
-      text:"¿A qué período pertenece? (1–7)",
-      ui:() => makeInputNumber("1–7"),
+      text:"¿En qué período está (1–7)?",
+      ui:() => makeInputNumber(""),
       check:(v)=> Number(v) === el.period,
       solution: String(el.period)
     };
@@ -932,8 +1129,8 @@ function buildQuestion(el){
   if(type === "protons"){
     return {
       type,
-      text:"¿Cuántos protones tiene en su núcleo?",
-      ui:() => makeInputNumber("Número de protones"),
+      text:"¿Cuántos protones tiene?",
+      ui:() => makeInputNumber(""),
       check:(v)=> Number(v) === el.Z,
       solution: String(el.Z)
     };
@@ -942,8 +1139,8 @@ function buildQuestion(el){
   if(type === "position"){
     return {
       type,
-      text:"¿Qué posición (número de orden) ocupa en la tabla periódica? (1–56)",
-      ui:() => makeInputNumber("1–56"),
+      text:"¿Qué número de orden ocupa?",
+      ui:() => makeInputNumber(""),
       check:(v)=> Number(v) === el.Z,
       solution: String(el.Z)
     };
@@ -952,8 +1149,8 @@ function buildQuestion(el){
   if(type === "atomicNumber"){
     return {
       type,
-      text:"¿Cuál es su número atómico?",
-      ui:() => makeInputNumber("Z"),
+      text:"¿Cuál es su número atómico (Z)?",
+      ui:() => makeInputNumber(""),
       check:(v)=> Number(v) === el.Z,
       solution: String(el.Z)
     };
@@ -964,7 +1161,7 @@ function buildQuestion(el){
     return {
       type,
       text:"¿Cuántos electrones de valencia tiene?",
-      ui:() => makeInputNumber("Electrones de valencia"),
+      ui:() => makeInputNumber(""),
       check:(v)=> Number(v) === ve,
       solution: String(ve)
     };
@@ -979,8 +1176,8 @@ function buildQuestion(el){
 
     return {
       type,
-      text:`¿En qué elemento se convierte si ${delta < 0 ? "pierde" : "gana"} ${n} proton${n===1?"":"es"}?`,
-      ui:() => makeInputText("Nombre o símbolo"),
+      text:`Si ${delta < 0 ? "pierde" : "gana"} ${n} proton${n===1?"":"es"}, se convierte en...`,
+      ui:() => makeInputText("Símbolo o nombre"),
       check:(v)=> {
         const s = normalizeText(v);
         return s === normalizeText(tEl.name) || s === normalizeText(tEl.sym);
@@ -992,33 +1189,44 @@ function buildQuestion(el){
   if(type === "atomicMass"){
     return {
       type,
-      text:"¿Cuál es la masa promedio de un átomo?",
-      ui:() => makeInputNumber("Ej.: 55.85"),
+      text:"Masa promedio del átomo (con unidad):",
+      ui:() => makeInputWithUnits("Ej: 55.85", shuffleArray(["u", "g", "kg", "g/mol"])),
       check:(v)=> {
-        const num = Number(v);
+        if(v.unit !== "u") return false;
+        const num = Number(v.num);
         if(!Number.isFinite(num)) return false;
         return approxEqual(num, Number(fmtMass2(el.mass)), 0.05);
       },
-      solution: fmtMass2(el.mass)
+      solution: `${fmtMass2(el.mass)} u`
     };
   }
 
   return {
     type:"molarMass",
-    text:"¿Cuál es la masa de un mol?",
-    ui:() => makeInputNumber("Ej.: 55.85"),
+    text:"Masa de un mol (con unidad):",
+    ui:() => makeInputWithUnits("Ej: 55.85", shuffleArray(["g/mol", "u", "g", "mol"])),
     check:(v)=> {
-      const num = Number(v);
+      if(v.unit !== "g/mol") return false;
+      const num = Number(v.num);
       if(!Number.isFinite(num)) return false;
       return approxEqual(num, Number(fmtMass2(el.mass)), 0.05);
     },
-    solution: fmtMass2(el.mass)
+    solution: `${fmtMass2(el.mass)} g/mol`
   };
 }
 
 function setValidatedState(isValidated){
   validated = isValidated;
   checkBtn.disabled = validated;
+  checkBtn.style.opacity = validated ? "0.5" : "1";
+  
+  if(isValidated) {
+     newBtn.style.borderColor = "var(--active)";
+     newBtn.style.color = "var(--active)";
+  } else {
+     newBtn.style.borderColor = "var(--border)";
+     newBtn.style.color = "var(--text)";
+  }
 }
 
 function mountQuestion(q){
@@ -1028,7 +1236,6 @@ function mountQuestion(q){
   control.id = "answerControl";
   answerRow.appendChild(control);
 
-  // Intro SOLO si no está validada la respuesta
   control.addEventListener("keydown", (ev) => {
     if(ev.key === "Enter"){
       ev.preventDefault();
@@ -1042,9 +1249,20 @@ function mountQuestion(q){
 }
 
 function applyScoring(ok){
-  if(ok){ hits++; grade = Math.min(10, grade + 1); }
-  else { misses++; grade = Math.max(0, grade - 1); }
+  // 16 aciertos = 5 puntos. Por tanto, cada acierto vale 5/16 = 0.3125
+  const pointsPerHit = 5 / 16;
+  
+  if(ok){ 
+    hits++; 
+    grade = Math.min(10, grade + pointsPerHit); 
+  } else { 
+    misses++; 
+    grade = Math.max(0, grade - pointsPerHit); 
+  }
   setGradeUI();
+  
+  // SCORM: Guardar puntuación en tiempo real tras cada cambio
+  SCORM.saveScore(grade);
 }
 
 function updateTypeStats(typeId, ok){
@@ -1056,21 +1274,20 @@ function updateTypeStats(typeId, ok){
 }
 
 function checkAnswer(){
-  // Bloqueo total: si ya validó, no hace nada
   if(validated) return;
   if(!currentQuestion || !currentElement) return;
 
   const control = document.getElementById("answerControl");
   const value = control ? control.value : "";
-
   const ok = currentQuestion.check(value);
 
   applyScoring(ok);
   updateTypeStats(currentQuestion.type, ok);
 
-  showFeedback(ok, `${ok ? "Correcto" : "Incorrecto"}. Solución: ${currentQuestion.solution}`);
-
-  // Tras validar: bloquear hasta Nuevo ejercicio
+  const correctMsg = `¡Correcto! Es ${currentQuestion.solution}`;
+  const errorMsg = `No es correcto. La solución es: <b>${currentQuestion.solution}</b>`;
+  
+  showFeedback(ok, ok ? correctMsg : errorMsg);
   setValidatedState(true);
 }
 
@@ -1082,19 +1299,20 @@ function newRound(){
   requestAnimationFrame(applyTableScale);
 }
 
-/* ===== Botones ===== */
+/* ===== Eventos ===== */
 checkBtn.addEventListener("click", checkAnswer);
 newBtn.addEventListener("click", newRound);
 resetBtn.addEventListener("click", () => {
   hits = 0; misses = 0; grade = 0;
   setGradeUI();
+  
+  // SCORM: Reset también envía el 0
+  SCORM.saveScore(0);
 
-  // reset stats por tipo
   for(const k of Object.keys(statsByType)){
     statsByType[k] = { asked:0, ok:0, ko:0 };
   }
   renderSummary();
-
   newRound();
 });
 
@@ -1103,7 +1321,7 @@ renderTable();
 setGradeUI();
 renderSummary();
 newRound();
-requestAnimationFrame(applyTableScale);
+setTimeout(applyTableScale, 100);
 </script>
 </body>
 </html>
