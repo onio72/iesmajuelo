@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quiz Clasificación Periódica — SCORM</title>
+  <style>
+    :root{
+      /* Paleta */
+      --bg: #f8fafc;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --card-bg: #ffffff;
+      
+      /* Colores de Categoría (usados al revelar) */
+      --metal: #bae6fd;      /* Sky 200 */
+      --metalloid: #bef264;  /* Lime 300 */
+      --nonmetal: #fde047;   /* Yellow 300 */
+      --noble: #fca5a5;      /* Rose 300 */
+      
+      /* Estado Inactivo (Tabla Gris) */
+      --inactive-cell-bg: #f1f5f9;
+      --inactive-cell-text: #94a3b8;
+      --inactive-cell-border: #e2e8f0;
+
+      /* Feedback */
+      --good: #10b981;
+      --bad: #ef4444;
+
+      /* Dimensiones */
+      --gap: 3px;
+      --cellH: 55px;
+      --cellW: 52px;
+      --radius: 12px;
+    }
+
+    *{box-sizing:border-box}
+    
+    html, body{
+      height:100%;
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      overflow:hidden;
+    }
+
+    .wrap{
+      height:100vh;
+      display:flex;
+      flex-direction:column;
+      padding:10px;
+      max-width: 1300px;
+      margin: 0 auto;
+      gap:10px;
+    }
+
+    /* HEADER */
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      flex: 0 0 auto;
+      padding: 0 5px;
+    }
+    h1{
+      margin:0;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    /* PUNTUACIÓN */
+    .score-pill {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      background: var(--card-bg);
+      padding: 6px 16px;
+      border-radius: 99px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      border: 1px solid var(--border);
+    }
+    .score-main { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums;}
+    .score-details {
+      display: flex;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      border-left: 1px solid var(--border);
+      padding-left: 12px;
+    }
+
+    /* LAYOUT PRINCIPAL */
+    .layout{
+      flex: 1 1 auto;
+      display:grid;
+      grid-template-columns: 1.2fr 0.8fr; 
+      gap:15px;
+      min-height:0;
+    }
+    .panel{
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding:16px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* ==== TABLA (Izquierda) ==== */
+    .tableArea{ align-items: center; justify-content: center; overflow: hidden; }
+    .tableFit{ width: 100%; height: 100%; display:flex; align-items:center; justify-content:center; }
+    .tableStage{ transform-origin: center center; will-change: transform; }
+
+    .ptable{
+      display:grid;
+      grid-template-columns: repeat(18, var(--cellW));
+      grid-auto-rows: var(--cellH);
+      gap: var(--gap);
+    }
+
+    /* Celdas - Estado por Defecto (Gris) */
+    .cell{
+      position:relative;
+      border-radius: 4px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      background: var(--inactive-cell-bg);
+      border: 1px solid var(--inactive-cell-border);
+      color: var(--inactive-cell-text);
+      user-select:none;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    
+    .z{ position:absolute; top:2px; left:4px; font-size:9px; font-weight:700; opacity: 0.7;}
+    .sym{ font-size:16px; font-weight:800; margin-bottom: 2px; }
+    
+    /* Celda ACTIVA (Pregunta actual) */
+    .cell.active {
+      transform: scale(1.3);
+      z-index: 10;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      border-color: var(--text);
+      color: var(--text);
+      background: #fff; /* Blanco al preguntar, o color si ya se reveló */
+    }
+
+    /* Colores Revelados (solo se aplican si tiene la clase .revealed) */
+    .cell.revealed.cat-metal{ background: var(--metal); color: #0c4a6e; border-color: transparent;}
+    .cell.revealed.cat-nonmetal{ background: var(--nonmetal); color: #713f12; border-color: transparent;}
+    .cell.revealed.cat-metalloid{ background: var(--metalloid); color: #365314; border-color: transparent;}
+    .cell.revealed.cat-noble{ background: var(--noble); color: #881337; border-color: transparent;}
+
+
+    /* ==== ZONA DERECHA (Quiz) ==== */
+    .interaction-panel {
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      text-align: center;
+    }
+
+    .question-box {
+      margin-bottom: 20px;
+    }
+    .q-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .element-display {
+      background: #f1f5f9;
+      padding: 20px;
+      border-radius: 16px;
+      display: inline-block;
+      min-width: 180px;
+      border: 2px solid var(--text);
+    }
+    .big-sym { font-size: 64px; font-weight: 900; line-height: 1; color: var(--text); }
+    .big-name { font-size: 20px; font-weight: 600; margin-top: 5px; color: var(--muted); }
+
+    .q-prompt {
+      font-size: 18px;
+      font-weight: 600;
+      margin-top: 20px;
+      color: var(--text);
+    }
+
+    /* Botones de Opción */
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .opt-btn {
+      border: none;
+      padding: 20px 10px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.1); /* Efecto 3D sutil */
+    }
+    .opt-btn:active { transform: translateY(4px); box-shadow: none; }
+    .opt-btn:disabled { cursor: not-allowed; opacity: 0.6; transform: none; box-shadow: none;}
+
+    /* Colores botones */
+    .btn-metal { background: var(--metal); color: #0284c7; }
+    .btn-nonmetal { background: var(--nonmetal); color: #ca8a04; }
+    .btn-metalloid { background: var(--metalloid); color: #65a30d; }
+    .btn-noble { background: var(--noble); color: #e11d48; }
+
+    /* Indicador de carga / Feedback */
+    .feedback-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius);
+      z-index: 50;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 24px;
+      font-weight: 800;
+      animation: fadeIn 0.2s;
+    }
+    .fb-icon { font-size: 48px; }
+    .fb-correct { color: var(--good); }
+    .fb-wrong { color: var(--bad); }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Responsive */
+    @media (max-width: 900px){
+      .layout{ grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+      .ptable { gap: 1px; }
+      .cell { padding: 2px; }
+      .sym { font-size: 12px; }
+      .big-sym { font-size: 40px; }
+      .options-grid { max-width: 100%; }
+      .wrap { height: auto; overflow: auto; }
+      body { overflow: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Quiz Tabla Periódica</h1>
+    <div class="score-pill">
+      <div class="score-main" id="gradeValue">0.0</div>
+      <div class="score-details">
+        <span>✅ <span id="hitsText">0</span></span>
+        <span>❌ <span id="missText">0</span></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Panel Izquierdo: Tabla Muda -->
+    <section class="panel tableArea">
+      <div class="tableFit" id="tableFit">
+        <div class="tableStage" id="tableStage">
+          <div class="ptable" id="ptable"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Panel Derecho: Pregunta -->
+    <aside class="panel interaction-panel">
+      
+      <div class="question-box">
+        <div class="q-label">Elemento Objetivo (Z: <span id="qZ"></span>)</div>
+        <div class="element-display">
+          <div class="big-sym" id="qSym">?</div>
+          <div class="big-name" id="qName">...</div>
+        </div>
+        <div class="q-prompt">¿Qué tipo de elemento es?</div>
+      </div>
+
+      <div class="options-grid" id="optionsGrid">
+        <button class="opt-btn btn-metal" onclick="handleAnswer('Metal')">Metal</button>
+        <button class="opt-btn btn-metalloid" onclick="handleAnswer('Semimetal')">Semimetal</button>
+        <button class="opt-btn btn-nonmetal" onclick="handleAnswer('No metal')">No metal</button>
+        <button class="opt-btn btn-noble" onclick="handleAnswer('Gas noble')">Gas Noble</button>
+      </div>
+
+      <div class="feedback-overlay" id="feedbackOverlay">
+        <div class="fb-icon" id="fbIcon"></div>
+        <div id="fbText"></div>
+        <div style="font-size:14px; font-weight:500; color:#64748b">Siguiente...</div>
+      </div>
+
+      <button onclick="resetGame()" style="margin-top:20px; background:none; border:none; color:#94a3b8; cursor:pointer; font-size:12px; text-decoration:underline;">Reiniciar puntuación</button>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* =========================================
+   SCORM 1.2 WRAPPER (Simplificado y Robusto)
+   ========================================= */
+   const SCORM = {
+  api: null,
+  init: function() {
+    try {
+      let win = window;
+      while ((win.API == null) && (win.parent != null) && (win.parent != win)) {
+        try { win = win.parent; } catch (e) { break; } // Cross-origin protection
+      }
+      this.api = win.API;
+    } catch(e){}
+
+    if (this.api) {
+      this.api.LMSInitialize("");
+      this.api.LMSSetValue("cmi.core.score.min", "0");
+      this.api.LMSSetValue("cmi.core.score.max", "10");
+      const status = this.api.LMSGetValue("cmi.core.lesson_status");
+      if(status === "not attempted") {
+        this.api.LMSSetValue("cmi.core.lesson_status", "incomplete");
+      }
+      this.api.LMSCommit("");
+    }
+  },
+  saveScore: function(score) {
+    if (this.api) {
+      this.api.LMSSetValue("cmi.core.score.raw", Number(score).toFixed(2));
+      if(score >= 5) this.api.LMSSetValue("cmi.core.lesson_status", "passed");
+      else this.api.LMSSetValue("cmi.core.lesson_status", "incomplete");
+      this.api.LMSCommit("");
+    }
+  },
+  finish: function() {
+    if (this.api) {
+      this.api.LMSSetValue("cmi.core.exit", "suspend");
+      this.api.LMSFinish("");
+    }
+  }
+};
+
+window.onload = () => { SCORM.init(); initGame(); };
+window.onunload = () => SCORM.finish();
+
+/* =========================================
+   DATOS Y LÓGICA
+   ========================================= */
+// Datos completos (Z, Simbolo, Nombre, ..., ..., ..., Categoria)
+// Filtraremos para usar solo Z 1-56
+const DATA = [
+  [1,"H","Hidrógeno",1.008,1,1,"No metal"], [2,"He","Helio",4.0026,18,1,"Gas noble"],
+  [3,"Li","Litio",6.94,1,2,"Metal"], [4,"Be","Berilio",9.0122,2,2,"Metal"],
+  [5,"B","Boro",10.81,13,2,"Semimetal"], [6,"C","Carbono",12.011,14,2,"No metal"],
+  [7,"N","Nitrógeno",14.007,15,2,"No metal"], [8,"O","Oxígeno",15.999,16,2,"No metal"],
+  [9,"F","Flúor",18.998,17,2,"No metal"], [10,"Ne","Neón",20.180,18,2,"Gas noble"],
+  [11,"Na","Sodio",22.990,1,3,"Metal"], [12,"Mg","Magnesio",24.305,2,3,"Metal"],
+  [13,"Al","Aluminio",26.982,13,3,"Metal"], [14,"Si","Silicio",28.085,14,3,"Semimetal"],
+  [15,"P","Fósforo",30.974,15,3,"No metal"], [16,"S","Azufre",32.06,16,3,"No metal"],
+  [17,"Cl","Cloro",35.45,17,3,"No metal"], [18,"Ar","Argón",39.948,18,3,"Gas noble"],
+  [19,"K","Potasio",39.098,1,4,"Metal"], [20,"Ca","Calcio",40.078,2,4,"Metal"],
+  [21,"Sc","Escandio",44.956,3,4,"Metal"], [22,"Ti","Titanio",47.867,4,4,"Metal"],
+  [23,"V","Vanadio",50.942,5,4,"Metal"], [24,"Cr","Cromo",51.996,6,4,"Metal"],
+  [25,"Mn","Manganeso",54.938,7,4,"Metal"], [26,"Fe","Hierro",55.845,8,4,"Metal"],
+  [27,"Co","Cobalto",58.933,9,4,"Metal"], [28,"Ni","Níquel",58.693,10,4,"Metal"],
+  [29,"Cu","Cobre",63.546,11,4,"Metal"], [30,"Zn","Zinc",65.38,12,4,"Metal"],
+  [31,"Ga","Galio",69.723,13,4,"Metal"], [32,"Ge","Germanio",72.630,14,4,"Semimetal"],
+  [33,"As","Arsénico",74.922,15,4,"Semimetal"], [34,"Se","Selenio",78.971,16,4,"No metal"],
+  [35,"Br","Bromo",79.904,17,4,"No metal"], [36,"Kr","Kriptón",83.798,18,4,"Gas noble"],
+  [37,"Rb","Rubidio",85.468,1,5,"Metal"], [38,"Sr","Estroncio",87.62,2,5,"Metal"],
+  [39,"Y","Itrio",88.906,3,5,"Metal"], [40,"Zr","Circonio",91.224,4,5,"Metal"],
+  [41,"Nb","Niobio",92.906,5,5,"Metal"], [42,"Mo","Molibdeno",95.95,6,5,"Metal"],
+  [43,"Tc","Tecnecio",98.0,7,5,"Metal"], [44,"Ru","Rutenio",101.07,8,5,"Metal"],
+  [45,"Rh","Rodio",102.91,9,5,"Metal"], [46,"Pd","Paladio",106.42,10,5,"Metal"],
+  [47,"Ag","Plata",107.87,11,5,"Metal"], [48,"Cd","Cadmio",112.41,12,5,"Metal"],
+  [49,"In","Indio",114.82,13,5,"Metal"], [50,"Sn","Estaño",118.71,14,5,"Metal"],
+  [51,"Sb","Antimonio",121.76,15,5,"Semimetal"], [52,"Te","Telurio",127.60,16,5,"Semimetal"],
+  [53,"I","Yodo",126.90,17,5,"No metal"], [54,"Xe","Xenón",131.29,18,5,"Gas noble"],
+  [55,"Cs","Cesio",132.91,1,6,"Metal"], [56,"Ba","Bario",137.33,2,6,"Metal"],
+  // Elementos extra para rellenar la tabla visualmente, aunque no se pregunten
+  [57,"La","Lantano",138.9,3,6,"Metal"], [72,"Hf","Hafnio",178.4,4,6,"Metal"], 
+  [73,"Ta","Tantalio",180.9,5,6,"Metal"], [74,"W","Wolframio",183.8,6,6,"Metal"],
+  [75,"Re","Renio",186.2,7,6,"Metal"], [76,"Os","Osmio",190.2,8,6,"Metal"],
+  [77,"Ir","Iridio",192.2,9,6,"Metal"], [78,"Pt","Platino",195.0,10,6,"Metal"],
+  [79,"Au","Oro",196.9,11,6,"Metal"], [80,"Hg","Mercurio",200.5,12,6,"Metal"],
+  [81,"Tl","Talio",204.3,13,6,"Metal"], [82,"Pb","Plomo",207.2,14,6,"Metal"],
+  [83,"Bi","Bismuto",208.9,15,6,"Metal"], [84,"Po","Polonio",209,16,6,"Semimetal"],
+  [85,"At","Astato",210,17,6,"Semimetal"], [86,"Rn","Radón",222,18,6,"Gas noble"]
+];
+
+const elements = DATA.map(d => ({
+  Z:d[0], sym:d[1], name:d[2], group:d[4], period:d[5], category:d[6]
+}));
+
+// Filtrar pool de preguntas: Z entre 1 y 56
+const questionPool = elements.filter(e => e.Z >= 1 && e.Z <= 56);
+
+/* NUEVO: Sub-listas para muestreo ponderado */
+const pools = {
+  "Metal": questionPool.filter(e => e.category === "Metal"),
+  "Semimetal": questionPool.filter(e => e.category === "Semimetal"),
+  "No metal": questionPool.filter(e => e.category === "No metal"),
+  "Gas noble": questionPool.filter(e => e.category === "Gas noble")
+};
+
+function getWeightedRandomElement() {
+  const r = Math.random();
+  let targetCat = "";
+
+  // Distribución objetivo:
+  // Metal: 4/8 = 0.5
+  // No metal: 2/8 = 0.25 (Acumulado 0.75)
+  // Semimetal: 1/8 = 0.125 (Acumulado 0.875)
+  // Gas Noble: 1/8 = 0.125 (Acumulado 1.0)
+  
+  if (r < 0.5) targetCat = "Metal";
+  else if (r < 0.75) targetCat = "No metal";
+  else if (r < 0.875) targetCat = "Semimetal";
+  else targetCat = "Gas noble";
+
+  const pool = pools[targetCat];
+  if (pool && pool.length > 0) {
+    return pool[Math.floor(Math.random() * pool.length)];
+  } else {
+    // Fallback por si acaso una categoría estuviera vacía (no debería ocurrir aquí)
+    return questionPool[Math.floor(Math.random() * questionPool.length)];
+  }
+}
+
+
+// Estado del juego
+let currentElement = null;
+let grade = 0;
+let hits = 0;
+let misses = 0;
+let blocked = false; // Bloquea botones durante la animación
+
+/* ===== Renderizar Tabla ===== */
+const ptable = document.getElementById("ptable");
+
+function renderTable(){
+  ptable.innerHTML = "";
+  const grid = Array.from({length:7}, () => Array.from({length:18}, () => null));
+  
+  // Mapear elementos a grid
+  elements.forEach(el => {
+    if(el.period <= 7 && el.group <= 18) grid[el.period-1][el.group-1] = el;
+  });
+
+  for(let p=1; p<=7; p++){
+    for(let g=1; g<=18; g++){
+      const el = grid[p-1][g-1];
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      
+      if(el){
+        cell.id = `cell-${el.Z}`;
+        cell.innerHTML = `<div class="z">${el.Z}</div><div class="sym">${el.sym}</div>`;
+        // Guardar la clase de color para cuando se revele
+        if(el.category === "Metal") cell.dataset.cat = "cat-metal";
+        else if(el.category === "No metal") cell.dataset.cat = "cat-nonmetal";
+        else if(el.category === "Semimetal") cell.dataset.cat = "cat-metalloid";
+        else if(el.category === "Gas noble") cell.dataset.cat = "cat-noble";
+      } else {
+        cell.style.visibility = "hidden";
+        cell.style.background = "transparent";
+        cell.style.border = "none";
+      }
+      ptable.appendChild(cell);
+    }
+  }
+}
+
+/* ===== Lógica de Juego ===== */
+
+function initGame(){
+  renderTable();
+  requestAnimationFrame(fitTable);
+  nextRound();
+}
+
+function nextRound(){
+  // Limpiar estado visual anterior
+  document.querySelectorAll(".cell.active").forEach(c => c.classList.remove("active", "revealed"));
+  document.querySelectorAll(".cell.revealed").forEach(c => c.classList.remove("revealed"));
+  
+  document.getElementById("feedbackOverlay").style.display = "none";
+  blocked = false;
+
+  // Seleccionar elemento usando la función ponderada
+  currentElement = getWeightedRandomElement();
+  
+  // Actualizar UI Pregunta
+  document.getElementById("qZ").textContent = currentElement.Z;
+  document.getElementById("qSym").textContent = currentElement.sym;
+  document.getElementById("qName").textContent = currentElement.name;
+
+  // Resaltar en tabla (Solo highlight, sigue gris por dentro hasta contestar o revelar)
+  const cell = document.getElementById(`cell-${currentElement.Z}`);
+  if(cell) {
+    cell.classList.add("active");
+  }
+}
+
+function handleAnswer(userChoice){
+  if(blocked) return;
+  blocked = true;
+
+  const correctCat = currentElement.category;
+  const isCorrect = (userChoice === correctCat);
+
+  // Actualizar puntuación
+  // 16 aciertos = 5 puntos (aprox 0.31 pts). Fallo resta lo mismo.
+  const delta = 5/16; 
+  if(isCorrect) {
+    hits++;
+    grade = Math.min(10, grade + delta);
+  } else {
+    misses++;
+    grade = Math.max(0, grade - delta);
+  }
+  
+  updateScoreUI();
+  SCORM.saveScore(grade);
+
+  // Revelar color en la tabla
+  const cell = document.getElementById(`cell-${currentElement.Z}`);
+  if(cell) {
+    cell.classList.add("revealed");
+    cell.classList.add(cell.dataset.cat);
+  }
+
+  // Mostrar Feedback y auto-avanzar
+  showFeedback(isCorrect, correctCat);
+}
+
+function showFeedback(isCorrect, correctAnswer){
+  const fb = document.getElementById("feedbackOverlay");
+  const icon = document.getElementById("fbIcon");
+  const text = document.getElementById("fbText");
+
+  fb.style.display = "flex";
+  
+  if(isCorrect){
+    icon.innerHTML = "🎉";
+    text.className = "fb-correct";
+    text.innerHTML = `¡Correcto!<br>Es ${correctAnswer}`;
+  } else {
+    icon.innerHTML = "❌";
+    text.className = "fb-wrong";
+    text.innerHTML = `¡Incorrecto!<br>En realidad es <b>${correctAnswer}</b>`;
+  }
+
+  // Esperar 1 segundo y pasar (REDUCIDO A LA MITAD)
+  setTimeout(() => {
+    nextRound();
+  }, 1000);
+}
+
+function updateScoreUI(){
+  const el = document.getElementById("gradeValue");
+  el.textContent = grade.toFixed(1);
+  el.style.color = grade >= 5 ? "var(--good)" : "var(--bad)";
+  document.getElementById("hitsText").textContent = hits;
+  document.getElementById("missText").textContent = misses;
+}
+
+function resetGame(){
+  grade = 0; hits = 0; misses = 0;
+  updateScoreUI();
+  SCORM.saveScore(0);
+  nextRound();
+}
+
+/* ===== Escalado de la tabla ===== */
+function fitTable(){
+  const stage = document.getElementById("tableStage");
+  const container = document.getElementById("tableFit");
+  if(!stage || !container) return;
+
+  const nativeW = stage.scrollWidth;
+  const nativeH = stage.scrollHeight;
+  const availW = container.clientWidth;
+  const availH = container.clientHeight;
+
+  const scale = Math.min(availW / nativeW, availH / nativeH) * 0.95;
+  stage.style.transform = `scale(${scale})`;
+}
+window.addEventListener("resize", () => requestAnimationFrame(fitTable));
+
+</script>
+</body>
+</html>
