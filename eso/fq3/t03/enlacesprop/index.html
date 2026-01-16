@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Juego de Enlaces Químicos - 3º ESO</title>
+  <style>
+    :root {
+      /* Paleta de Colores Minimalista */
+      --bg: #f8fafc;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --card-bg: #ffffff;
+      
+      /* Colores Semánticos Tabla */
+      --metal: #bae6fd;      /* Sky 200 */
+      --metalloid: #bef264;  /* Lime 300 */
+      --nonmetal: #fde047;   /* Yellow 300 */
+      --noble: #fca5a5;      /* Rose 300 */
+      --placeholder: #f1f5f9;
+
+      /* Estados */
+      --active: #4f46e5;
+      --active-soft: #e0e7ff;
+      --success: #10b981;
+      --success-bg: #ecfdf5;
+      --error: #ef4444;
+      --error-bg: #fef2f2;
+      --warning: #f59e0b;
+
+      /* Dimensiones Tabla */
+      --cellW: 38px;
+      --cellH: 42px;
+      --gap: 2px;
+    }
+
+    * { box-sizing: border-box; }
+    
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* HEADER */
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex: 0 0 auto;
+      z-index: 10;
+    }
+    
+    h1 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .score-badge {
+      font-size: 1.2rem;
+      font-weight: 800;
+      padding: 6px 16px;
+      border-radius: 99px;
+      border: 2px solid var(--border);
+      background: var(--bg);
+      font-variant-numeric: tabular-nums;
+      transition: all 0.3s;
+    }
+    .score-badge.failing { color: var(--error); border-color: var(--error); }
+    .score-badge.passing { color: var(--success); border-color: var(--success); background: var(--success-bg); }
+
+    /* LAYOUT PRINCIPAL */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      gap: 10px;
+      overflow-y: auto;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ZONA DE JUEGO (Arriba) */
+    .game-area {
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      flex: 0 0 auto; /* No encoger */
+    }
+
+    /* Tarjetas de Elementos */
+    .matchup-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px; 
+      flex-wrap: wrap;
+    }
+
+    .element-card {
+      width: 100px;
+      height: 120px;
+      border-radius: 12px;
+      border: 2px solid var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .element-card.animate-in { animation: popIn 0.5s; }
+
+    @keyframes popIn {
+      0% { transform: scale(0); opacity: 0; }
+      80% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .ec-z { position: absolute; top: 4px; left: 6px; font-size: 10px; font-weight: 700; opacity: 0.6; }
+    .ec-sym { font-size: 2.5rem; font-weight: 900; line-height: 1; }
+    .ec-name { font-size: 0.75rem; font-weight: 600; margin-top: 4px; text-align: center; max-width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    /* Colores fondo cards */
+    .bg-metal { background: var(--metal); }
+    .bg-nonmetal { background: var(--nonmetal); }
+    .bg-noble { background: var(--noble); }
+    .bg-metalloid { background: var(--metalloid); }
+    .bg-placeholder { background: var(--placeholder); }
+
+    .plus-sign { font-size: 2rem; font-weight: 900; color: var(--muted); }
+
+    /* Pregunta */
+    .question-box {
+      max-width: 700px;
+      margin: 0 auto;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .q-step {
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    
+    .q-text {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    .options-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .btn-opt {
+      background: var(--bg);
+      border: 2px solid var(--border);
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-opt:hover:not(:disabled) {
+      border-color: var(--active);
+      background: #fff;
+      transform: translateY(-2px);
+    }
+    .btn-opt:active:not(:disabled) { transform: translateY(0); }
+    .btn-opt:disabled { cursor: default; opacity: 0.7; }
+    
+    .btn-opt.correct {
+      background: var(--success-bg);
+      border-color: var(--success);
+      color: #064e3b;
+    }
+    .btn-opt.wrong {
+      background: var(--error-bg);
+      border-color: var(--error);
+      color: #7f1d1d;
+      opacity: 0.6;
+    }
+
+    /* Feedback Overlay */
+    .feedback-area {
+      min-height: 24px;
+      margin-top: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-align: center;
+    }
+    .fb-success { color: var(--success); }
+    .fb-error { color: var(--error); }
+
+    /* Next Button container */
+    .nav-controls {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    .btn-next {
+      background: var(--text);
+      color: #fff;
+      border: none;
+      padding: 10px 30px;
+      border-radius: 99px;
+      font-weight: 700;
+      cursor: pointer;
+      display: none; /* Hidden by default */
+      animation: fadeIn 0.3s;
+    }
+    .btn-next:hover { opacity: 0.9; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ZONA TABLA (Abajo) */
+    .table-container {
+      flex: 1;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      position: relative;
+      overflow: auto; 
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 300px;
+    }
+
+    .ptable {
+      display: grid;
+      /* 18 columnas */
+      grid-template-columns: repeat(18, var(--cellW));
+      grid-template-rows: repeat(9, var(--cellH)); /* 7 periodos + espacio + 2 lant/act */
+      gap: var(--gap);
+      transform-origin: center top;
+    }
+    
+    /* Celdas Tabla */
+    .cell {
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: default;
+      font-size: 10px;
+      position: relative;
+      user-select: none;
+      transition: all 0.2s;
+    }
+    .cell .sym { font-weight: 800; font-size: 12px; }
+    .cell .z { font-size: 7px; position: absolute; top: 1px; left: 2px; opacity: 0.5; }
+    
+    .cell.empty { border: none; background: transparent !important; }
+
+    /* Estados de la celda */
+    .cell.is-active {
+      transform: scale(1.6);
+      z-index: 100;
+      box-shadow: 0 0 0 2px var(--text), 0 10px 20px rgba(0,0,0,0.2);
+      border-color: var(--text);
+    }
+    .cell.is-active.p1 {
+      box-shadow: 0 0 0 3px #000, 0 10px 20px rgba(0,0,0,0.2);
+    }
+    .cell.is-active.p2 {
+      box-shadow: 0 0 0 3px #000, 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    .legend {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.9);
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+
+    /* Pantalla Final */
+    .end-screen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.95);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+    .end-title { font-size: 2rem; font-weight: 900; margin-bottom: 10px; }
+    .end-score { font-size: 4rem; font-weight: 900; color: var(--active); margin-bottom: 20px; }
+    .end-msg { font-size: 1.2rem; color: var(--muted); max-width: 500px; margin-bottom: 30px; }
+
+    @media (max-width: 800px) {
+      :root { --cellW: 24px; --cellH: 28px; }
+      .cell .sym { font-size: 9px; }
+      .cell .z { display: none; }
+      .element-card { width: 80px; height: 100px; }
+      .ec-sym { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>⚛️ Enlaces Químicos</h1>
+  <div class="score-badge failing" id="scoreDisplay">0.0</div>
+</header>
+
+<main>
+  <!-- Zona de Interacción -->
+  <section class="game-area">
+    
+    <!-- Fichas -->
+    <div class="matchup-container">
+      <div class="element-card" id="card1">
+        <span class="ec-z" id="z1">11</span>
+        <span class="ec-sym" id="sym1">Na</span>
+        <span class="ec-name" id="name1">Sodio</span>
+      </div>
+      
+      <div class="plus-sign">+</div>
+      
+      <div class="element-card" id="card2">
+        <span class="ec-z" id="z2">17</span>
+        <span class="ec-sym" id="sym2">Cl</span>
+        <span class="ec-name" id="name2">Cloro</span>
+      </div>
+    </div>
+
+    <!-- Preguntas -->
+    <div class="question-box">
+      <div class="q-step" id="qCounter">Pregunta 1 de 8</div>
+      <div class="q-text" id="qText">Cargando...</div>
+      
+      <div class="options-grid" id="optionsContainer">
+        <!-- Botones generados por JS -->
+      </div>
+
+      <div class="feedback-area" id="feedback"></div>
+      
+      <div class="nav-controls">
+        <button class="btn-next" id="btnNext">Siguiente ➔</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tabla Periódica Referencia -->
+  <div class="table-container">
+    <div class="ptable" id="ptable"></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--metal)"></span> Metal</span>
+      <span><span class="dot" style="background:var(--nonmetal)"></span> No Metal</span>
+      <span><span class="dot" style="background:var(--noble)"></span> Gas Noble</span>
+      <span><span class="dot" style="background:var(--metalloid)"></span> Semimetal</span>
+    </div>
+  </div>
+</main>
+
+<!-- Pantalla Final -->
+<div class="end-screen" id="endScreen" style="display:none;">
+  <div class="end-title">¡Ejercicio Completado!</div>
+  <div class="end-score" id="finalScore">10.0</div>
+  <div class="end-msg" id="finalMsg">Has demostrado un gran dominio de los enlaces químicos.</div>
+  <div style="font-size:0.9rem; color:#999;">Puedes cerrar esta ventana para salir.</div>
+</div>
+
+<script>
+/* ======================================================
+   SCORM API WRAPPER
+   ====================================================== */
+const SCORM = {
+  api: null,
+  init: function() {
+    this.api = this.findAPI(window);
+    if (this.api) {
+      this.api.LMSInitialize("");
+      this.api.LMSSetValue("cmi.core.score.min", "0");
+      this.api.LMSSetValue("cmi.core.score.max", "10");
+      const status = this.api.LMSGetValue("cmi.core.lesson_status");
+      if(status === "not attempted") {
+        this.api.LMSSetValue("cmi.core.lesson_status", "incomplete");
+      }
+      this.api.LMSCommit("");
+    }
+  },
+  findAPI: function(win) {
+    let attempts = 0;
+    while (attempts < 7) {
+      try {
+        if (win.API != null) {
+          return win.API;
+        }
+        if (win.parent == null || win.parent === win) {
+          return null;
+        }
+        win = win.parent;
+      } catch (e) {
+        console.warn("SCORM: Error de seguridad al buscar API (Cross-Origin).", e);
+        return null;
+      }
+      attempts++;
+    }
+    return null;
+  },
+  saveScore: function(score) {
+    if (this.api) {
+      const s = score.toFixed(1);
+      this.api.LMSSetValue("cmi.core.score.raw", s);
+      if(score >= 5){
+        this.api.LMSSetValue("cmi.core.lesson_status", "passed");
+      }
+      this.api.LMSCommit("");
+    }
+  },
+  finish: function() {
+    if (this.api) {
+      this.api.LMSSetValue("cmi.core.exit", "suspend");
+      this.api.LMSFinish("");
+    }
+  }
+};
+window.addEventListener("load", () => SCORM.init());
+window.addEventListener("unload", () => SCORM.finish());
+
+/* ======================================================
+   DATA: Tabla Periódica Completa (Simplificada)
+   ====================================================== */
+const RAW_DATA = [
+  [1,"H","Hidrógeno",1,1,"NM"], [2,"He","Helio",18,1,"GN"],
+  [3,"Li","Litio",1,2,"M"], [4,"Be","Berilio",2,2,"M"], [5,"B","Boro",13,2,"SM"], [6,"C","Carbono",14,2,"NM"], [7,"N","Nitrógeno",15,2,"NM"], [8,"O","Oxígeno",16,2,"NM"], [9,"F","Flúor",17,2,"NM"], [10,"Ne","Neón",18,2,"GN"],
+  [11,"Na","Sodio",1,3,"M"], [12,"Mg","Magnesio",2,3,"M"], [13,"Al","Aluminio",13,3,"M"], [14,"Si","Silicio",14,3,"SM"], [15,"P","Fósforo",15,3,"NM"], [16,"S","Azufre",16,3,"NM"], [17,"Cl","Cloro",17,3,"NM"], [18,"Ar","Argón",18,3,"GN"],
+  [19,"K","Potasio",1,4,"M"], [20,"Ca","Calcio",2,4,"M"], [21,"Sc","Escandio",3,4,"M"], [22,"Ti","Titanio",4,4,"M"], [23,"V","Vanadio",5,4,"M"], [24,"Cr","Cromo",6,4,"M"], [25,"Mn","Manganeso",7,4,"M"], [26,"Fe","Hierro",8,4,"M"], [27,"Co","Cobalto",9,4,"M"], [28,"Ni","Níquel",10,4,"M"], [29,"Cu","Cobre",11,4,"M"], [30,"Zn","Zinc",12,4,"M"], [31,"Ga","Galio",13,4,"M"], [32,"Ge","Germanio",14,4,"SM"], [33,"As","Arsénico",15,4,"SM"], [34,"Se","Selenio",16,4,"NM"], [35,"Br","Bromo",17,4,"NM"], [36,"Kr","Kriptón",18,4,"GN"],
+  [37,"Rb","Rubidio",1,5,"M"], [38,"Sr","Estroncio",2,5,"M"], [39,"Y","Itrio",3,5,"M"], [40,"Zr","Circonio",4,5,"M"], [41,"Nb","Niobio",5,5,"M"], [42,"Mo","Molibdeno",6,5,"M"], [43,"Tc","Tecnecio",7,5,"M"], [44,"Ru","Rutenio",8,5,"M"], [45,"Rh","Rodio",9,5,"M"], [46,"Pd","Paladio",10,5,"M"], [47,"Ag","Plata",11,5,"M"], [48,"Cd","Cadmio",12,5,"M"], [49,"In","Indio",13,5,"M"], [50,"Sn","Estaño",14,5,"M"], [51,"Sb","Antimonio",15,5,"SM"], [52,"Te","Telurio",16,5,"SM"], [53,"I","Yodo",17,5,"NM"], [54,"Xe","Xenón",18,5,"GN"],
+  [55,"Cs","Cesio",1,6,"M"], [56,"Ba","Bario",2,6,"M"], [57,"La","Lantano",3,6,"M"],
+  [72,"Hf","Hafnio",4,6,"M"], [73,"Ta","Tantalio",5,6,"M"], [74,"W","Wolframio",6,6,"M"], [75,"Re","Renio",7,6,"M"], [76,"Os","Osmio",8,6,"M"], [77,"Ir","Iridio",9,6,"M"], [78,"Pt","Platino",10,6,"M"], [79,"Au","Oro",11,6,"M"], [80,"Hg","Mercurio",12,6,"M"], [81,"Tl","Talio",13,6,"M"], [82,"Pb","Plomo",14,6,"M"], [83,"Bi","Bismuto",15,6,"M"], [84,"Po","Polonio",16,6,"SM"], [85,"At","Astato",17,6,"SM"], [86,"Rn","Radón",18,6,"GN"],
+  [87,"Fr","Francio",1,7,"M"], [88,"Ra","Radio",2,7,"M"], [89,"Ac","Actinio",3,7,"M"], [104,"Rf","Rutherfordio",4,7,"M"], [105,"Db","Dubnio",5,7,"M"], [106,"Sg","Seaborgio",6,7,"M"], [107,"Bh","Bohrio",7,7,"M"], [108,"Hs","Hassio",8,7,"M"], [109,"Mt","Meitnerio",9,7,"M"], [110,"Ds","Darmstadtio",10,7,"M"], [111,"Rg","Roentgenio",11,7,"M"], [112,"Cn","Copernicio",12,7,"M"], [113,"Nh","Nihonio",13,7,"M"], [114,"Fl","Flerovio",14,7,"M"], [115,"Mc","Moscovio",15,7,"M"], [116,"Lv","Livermorio",16,7,"M"], [117,"Ts","Teneso",17,7,"M"], [118,"Og","Oganesón",18,7,"GN"]
+];
+
+const ELEMENTS_DB = {};
+RAW_DATA.forEach(d => {
+  ELEMENTS_DB[d[0]] = { z:d[0], s:d[1], n:d[2], g:d[3], p:d[4], t:d[5] };
+});
+
+// COMPOUND LIST
+// 'S' = Soluble, 'I' = Insoluble, null = Skip question
+// 'skipDuct': true para líquidos/gases donde la pregunta de ductilidad no aplica
+const COMPOUNDS = [
+  // Iónico (M + NM) -> Generalmente Solubles
+  {e1:11, e2:17, type:'I', name:'Sal común (NaCl)', sol:'S'},
+  {e1:11, e2:9,  type:'I', name:'Fluoruro de sodio (NaF)', sol:'S'},
+  {e1:19, e2:17, type:'I', name:'Cloruro de potasio (KCl)', sol:'S'},
+  {e1:3,  e2:9,  type:'I', name:'Fluoruro de litio (LiF)', sol:null}, // Insoluble, saltar pregunta
+  {e1:20, e2:8,  type:'I', name:'Cal viva (CaO)', sol:null}, 
+  {e1:12, e2:8,  type:'I', name:'Óxido de magnesio (MgO)', sol:null}, // Insoluble, saltar pregunta
+  {e1:20, e2:17, type:'I', name:'Cloruro de calcio (CaCl₂)', sol:'S'},
+  {e1:12, e2:17, type:'I', name:'Cloruro de magnesio (MgCl₂)', sol:'S'},
+  {e1:19, e2:35, type:'I', name:'Bromuro de potasio (KBr)', sol:'S'},
+  {e1:13, e2:8,  type:'I', name:'Alúmina (Al₂O₃)', sol:null}, // Insoluble, saltar pregunta
+  {e1:26, e2:8,  type:'I', name:'Óxido de hierro (Fe₂O₃)', sol:null}, // Insoluble, saltar pregunta
+  {e1:29, e2:17, type:'I', name:'Cloruro de cobre (CuCl₂)', sol:'S'},
+  
+  // Covalente (NM + NM)
+  // TODOS 'sol: null' para que nunca se pregunte solubilidad
+  // Todos skipDuct: true (líquidos/gases)
+  {e1:1,  e2:8,  type:'C', name:'Agua (H₂O)', sol:null, skipDuct:true},
+  {e1:6,  e2:8,  type:'C', name:'Dióxido de carbono (CO₂)', sol:null, skipDuct:true},
+  {e1:7,  e2:1,  type:'C', name:'Amoníaco (NH₃)', sol:null, skipDuct:true},
+  {e1:6,  e2:1,  type:'C', name:'Metano (CH₄)', sol:null, skipDuct:true},
+  {e1:1,  e2:17, type:'C', name:'Ácido clorhídrico (HCl)', sol:null, skipDuct:true},
+  {e1:8,  e2:8,  type:'C', name:'Oxígeno molecular (O₂)', sol:null, skipDuct:true},
+  {e1:7,  e2:7,  type:'C', name:'Nitrógeno molecular (N₂)', sol:null, skipDuct:true},
+  {e1:17, e2:17, type:'C', name:'Cloro gas (Cl₂)', sol:null, skipDuct:true},
+  {e1:1,  e2:1,  type:'C', name:'Hidrógeno gas (H₂)', sol:null, skipDuct:true},
+  {e1:16, e2:8,  type:'C', name:'Dióxido de azufre (SO₂)', sol:null, skipDuct:true},
+  {e1:15, e2:17, type:'C', name:'Tricloruro de fósforo (PCl₃)', sol:null, skipDuct:true},
+
+  // Metálico (M + M) -> Todos sólidos (Sí pregunta ductilidad)
+  {e1:26, e2:26, type:'M', name:'Hierro puro', sol:'I'},
+  {e1:29, e2:29, type:'M', name:'Cobre puro', sol:'I'},
+  {e1:13, e2:13, type:'M', name:'Aluminio puro', sol:'I'},
+  {e1:47, e2:47, type:'M', name:'Plata pura', sol:'I'},
+  {e1:11, e2:11, type:'M', name:'Sodio puro', sol:null}, 
+  {e1:12, e2:12, type:'M', name:'Magnesio puro', sol:'I'},
+  {e1:20, e2:20, type:'M', name:'Calcio puro', sol:null}, 
+  {e1:79, e2:79, type:'M', name:'Oro puro', sol:'I'},
+  {e1:29, e2:30, type:'M', name:'Latón (Aleación)', sol:'I'},
+  {e1:29, e2:50, type:'M', name:'Bronce (Aleación)', sol:'I'},
+  {e1:79, e2:47, type:'M', name:'Electrum (Aleación)', sol:'I'}
+];
+
+const NOBLE_GASES = [2, 10, 18, 36, 54];
+const SIMPLE_ELEMENTS = [1, 3, 6, 8, 11, 17, 26, 29];
+
+/* ======================================================
+   LOGICA DEL JUEGO
+   ====================================================== */
+
+let score = 0;
+let currentRoundIndex = 0;
+let sessionPairs = []; 
+let roundQuestions = []; 
+let qIndex = 0;
+let pointsPerHit = 0; 
+
+const uiScore = document.getElementById("scoreDisplay");
+const card1 = document.getElementById("card1");
+const card2 = document.getElementById("card2");
+const qCounter = document.getElementById("qCounter");
+const qText = document.getElementById("qText");
+const optionsContainer = document.getElementById("optionsContainer");
+const feedback = document.getElementById("feedback");
+const btnNext = document.getElementById("btnNext");
+const ptable = document.getElementById("ptable");
+
+function initGame() {
+  score = 0;
+  currentRoundIndex = 0;
+  sessionPairs = generateSessionPairs();
+  
+  let totalQuestions = 0;
+  sessionPairs.forEach(p => {
+    if (p.type === 'N') {
+       totalQuestions += 5;
+    } else {
+       let qBase = (p.e1 === p.e2) ? 3 : 5;
+       totalQuestions += (qBase + 3);
+    }
+  });
+
+  pointsPerHit = 5.0 / totalQuestions;
+
+  renderPeriodicTable();
+  startRound();
+  updateScoreUI();
+}
+
+function generateSessionPairs() {
+  const types = shuffleArray(['I', 'C', 'M', 'N']);
+  const pairs = [];
+
+  types.forEach(t => {
+    if (t === 'N') {
+      const ng = NOBLE_GASES[Math.floor(Math.random() * NOBLE_GASES.length)];
+      const other = SIMPLE_ELEMENTS[Math.floor(Math.random() * SIMPLE_ELEMENTS.length)];
+      const p = (Math.random() > 0.5) 
+        ? {e1: ng, e2: other, type: 'N', name: 'Sin reacción'}
+        : {e1: other, e2: ng, type: 'N', name: 'Sin reacción'};
+      pairs.push(p);
+    } else {
+      const candidates = COMPOUNDS.filter(c => c.type === t);
+      const c = candidates[Math.floor(Math.random() * candidates.length)];
+      pairs.push({...c});
+    }
+  });
+  return pairs;
+}
+
+function startRound() {
+  document.querySelectorAll('.cell').forEach(c => c.classList.remove('is-active', 'p1', 'p2'));
+  qIndex = 0;
+  
+  if (currentRoundIndex >= sessionPairs.length) {
+    sessionPairs = generateSessionPairs();
+    currentRoundIndex = 0;
+  }
+
+  let p = sessionPairs[currentRoundIndex];
+  
+  // Apply sorting for visual consistency
+  const sorted = sortElementsForVisual(p.e1, p.e2);
+  const visualP = { ...p, e1: sorted.left, e2: sorted.right };
+
+  updateCardsUI(visualP);
+  highlightTable(visualP.e1, visualP.e2);
+  generateQuestions(visualP);
+  showQuestion();
+}
+
+function sortElementsForVisual(z1, z2) {
+  const d1 = ELEMENTS_DB[z1];
+  const d2 = ELEMENTS_DB[z2];
+  
+  if (z1 === z2) return { left: z1, right: z2 };
+
+  // Rule 1: Leftmost in table (smaller Group) goes to Left Card
+  if (d1.g < d2.g) return { left: z1, right: z2 };
+  if (d1.g > d2.g) return { left: z2, right: z1 };
+
+  // Rule 2: Same Group.
+  // "aparece a la derecha el que está más arriba (smaller Period)"
+  if (d1.p < d2.p) return { left: z2, right: z1 }; // d1 is higher -> Right
+  if (d1.p > d2.p) return { left: z1, right: z2 }; // d1 is lower -> Left
+
+  return { left: z1, right: z2 };
+}
+
+function getBgClass(z) {
+  const type = ELEMENTS_DB[z]?.t;
+  if(type === 'M') return 'bg-metal';
+  if(type === 'NM') return 'bg-nonmetal';
+  if(type === 'GN') return 'bg-noble';
+  if(type === 'SM') return 'bg-metalloid';
+  return 'bg-placeholder';
+}
+
+function updateCardsUI(p) {
+  const d1 = ELEMENTS_DB[p.e1];
+  const d2 = ELEMENTS_DB[p.e2];
+
+  document.getElementById("z1").innerText = p.e1;
+  document.getElementById("sym1").innerText = d1.s;
+  document.getElementById("name1").innerText = d1.n;
+  card1.className = `element-card animate-in ${getBgClass(p.e1)}`;
+
+  document.getElementById("z2").innerText = p.e2;
+  document.getElementById("sym2").innerText = d2.s;
+  document.getElementById("name2").innerText = d2.n;
+  card2.className = `element-card animate-in ${getBgClass(p.e2)}`;
+}
+
+function highlightTable(z1, z2) {
+  const c1 = document.getElementById(`cell-${z1}`);
+  const c2 = document.getElementById(`cell-${z2}`);
+  if(c1) c1.classList.add('is-active', 'p1');
+  if(c2) c2.classList.add('is-active', 'p2');
+}
+
+function generateQuestions(p) {
+  const d1 = ELEMENTS_DB[p.e1];
+  const d2 = ELEMENTS_DB[p.e2];
+  roundQuestions = [];
+
+  const typeOpts = ["Metal", "No Metal", "Gas Noble"];
+  const trendOpts = ["Perder electrones", "Ganar electrones", "Ser estable (no reacciona)"];
+
+  if (p.e1 === p.e2) {
+    roundQuestions.push({
+      text: `Ambos elementos son <b>${d1.n}</b>. ¿Qué tipo de elemento es?`,
+      opts: typeOpts,
+      correct: getTypeLabel(d1.t),
+      shuffle: false
+    });
+    roundQuestions.push({
+      text: `¿Cuál es la tendencia de estos átomos?`,
+      opts: trendOpts,
+      correct: getTendency(d1.t),
+      shuffle: false
+    });
+  } else {
+    roundQuestions.push({
+      text: `Elemento Izquierda (${d1.s}): ¿Qué tipo de elemento es?`,
+      opts: typeOpts,
+      correct: getTypeLabel(d1.t),
+      shuffle: false
+    });
+    roundQuestions.push({
+      text: `Elemento Izquierda (${d1.s}): ¿A qué tiende este átomo?`,
+      opts: trendOpts,
+      correct: getTendency(d1.t),
+      shuffle: false
+    });
+    roundQuestions.push({
+      text: `Elemento Derecha (${d2.s}): ¿Qué tipo de elemento es?`,
+      opts: typeOpts,
+      correct: getTypeLabel(d2.t),
+      shuffle: false
+    });
+    roundQuestions.push({
+      text: `Elemento Derecha (${d2.s}): ¿A qué tiende este átomo?`,
+      opts: trendOpts,
+      correct: getTendency(d2.t),
+      shuffle: false
+    });
+  }
+
+  roundQuestions.push({
+    text: "¿Qué ocurrirá si intentamos combinar estos elementos?",
+    opts: [
+      "Uno cede electrones y el otro los gana. Se forman iones de distinto signo que se ordenan en un cristal iónico.",
+      "Comparten pares de electrones formando moléculas. Enlace covalente.",
+      "Comparten sus electrones de valencia en una nube forman una cristal metálico.",
+      "No reaccionan porque hay un gas noble."
+    ],
+    correct: getMechanism(p.type),
+    shuffle: true
+  });
+
+  if(p.type !== 'N') {
+    const propsPool = getProperties(p);
+    const selectedProps = shuffleArray(propsPool).slice(0, 3);
+    selectedProps.forEach(q => roundQuestions.push(q));
+  }
+}
+
+function getTypeLabel(t) {
+  if (t === 'M') return "Metal";
+  if (t === 'NM') return "No Metal";
+  if (t === 'GN') return "Gas Noble";
+  if (t === 'SM') return "No Metal"; 
+  return "?";
+}
+
+function getTendency(t) {
+  if (t === 'M') return "Perder electrones";
+  if (t === 'NM') return "Ganar electrones"; 
+  if (t === 'GN') return "Ser estable (no reacciona)";
+  if (t === 'SM') return "Ganar electrones"; 
+}
+
+function getMechanism(type) {
+  if (type === 'I') return "Uno cede electrones y el otro los gana. Se forman iones de distinto signo que se ordenan en un cristal iónico.";
+  if (type === 'C') return "Comparten pares de electrones formando moléculas. Enlace covalente.";
+  if (type === 'M') return "Comparten sus electrones de valencia en una nube forman una cristal metálico.";
+  if (type === 'N') return "No reaccionan porque hay un gas noble.";
+}
+
+function getProperties(p) {
+  const type = p.type;
+  const sol = p.sol;
+  const qList = [];
+  
+  if (sol !== null) {
+    const isSoluble = (sol === 'S');
+    const correctText = isSoluble ? "Sí, es soluble" : "No, es insoluble";
+    
+    qList.push({
+      text: `¿La sustancia (${p.name}) es soluble en agua?`,
+      opts: ["Sí, es soluble", "No, es insoluble"],
+      correct: correctText,
+      shuffle: true
+    });
+  }
+
+  qList.push({
+    text: "¿Conduce la electricidad en estado sólido?",
+    opts: ["Sí, conduce bien", "No conduce"],
+    correct: (type === 'M') ? "Sí, conduce bien" : "No conduce",
+    shuffle: true
+  });
+
+  if (!p.skipDuct) {
+    let ductText = "¿La sustancia es dúctil y maleable (puede moldearse y formar hilos y láminas)?";
+    let ductOpts = [];
+    let ductCorrect = "";
+
+    if (type === 'I') {
+      ductOpts = ["No, es frágil, se rompe", "Sí"];
+      ductCorrect = "No, es frágil, se rompe";
+    } else if (type === 'M') {
+      ductOpts = ["No, es frágil, se rompe", "Sí"];
+      ductCorrect = "Sí";
+    } else if (type === 'C') {
+      ductOpts = ["No, en estado sólido es frágil o blando", "Sí"];
+      ductCorrect = "No, en estado sólido es frágil o blando";
+    }
+
+    qList.push({
+      text: ductText,
+      opts: ductOpts,
+      correct: ductCorrect,
+      shuffle: true
+    });
+  }
+
+  if (type === 'C') {
+    qList.push({
+      text: "¿Cuál es su estado físico más probable a temperatura ambiente?",
+      opts: ["Sólido cristalino muy duro", "Gas o Líquido (o sólido blando)"],
+      correct: "Gas o Líquido (o sólido blando)",
+      shuffle: true
+    });
+  } else {
+    qList.push({
+      text: "¿Cuál es su estado físico a temperatura ambiente?",
+      opts: ["Sólido", "Gas o Líquido"],
+      correct: "Sólido",
+      shuffle: true
+    });
+  }
+  
+  qList.push({
+    text: "¿Cómo es su punto de fusión?",
+    opts: ["Alto (difícil de fundir)", "Bajo (fácil de fundir o ya es gas)"],
+    correct: (type === 'I' || type === 'M') ? "Alto (difícil de fundir)" : "Bajo (fácil de fundir o ya es gas)",
+    shuffle: true
+  });
+
+  return qList;
+}
+
+function showQuestion() {
+  const q = roundQuestions[qIndex];
+  qCounter.innerText = `Ronda ${currentRoundIndex + 1} - Pregunta ${qIndex + 1} de ${roundQuestions.length}`;
+  qText.innerHTML = q.text;
+  feedback.innerText = "";
+  btnNext.style.display = "none";
+  
+  optionsContainer.innerHTML = "";
+  let finalOpts = [...q.opts];
+  if(q.shuffle !== false) finalOpts = shuffleArray(finalOpts);
+  
+  finalOpts.forEach(optText => {
+    const btn = document.createElement("button");
+    btn.className = "btn-opt";
+    btn.innerText = optText;
+    btn.onclick = () => handleAnswer(btn, optText, q.correct);
+    optionsContainer.appendChild(btn);
+  });
+}
+
+function handleAnswer(btn, selected, correct) {
+  const allBtns = document.querySelectorAll(".btn-opt");
+  allBtns.forEach(b => b.disabled = true);
+
+  const isCorrect = (selected === correct);
+
+  if (isCorrect) {
+    btn.classList.add("correct");
+    feedback.innerHTML = `<span class="fb-success">¡Correcto!</span>`;
+    updateScore(true);
+  } else {
+    btn.classList.add("wrong");
+    allBtns.forEach(b => {
+      if(b.innerText === correct) b.classList.add("correct");
+    });
+    feedback.innerHTML = `<span class="fb-error">Fallaste. La correcta era: ${correct}</span>`;
+    updateScore(false);
+  }
+  btnNext.style.display = "block";
+}
+
+function updateScore(isCorrect) {
+  if (isCorrect) {
+    score += pointsPerHit;
+  } else {
+    score -= pointsPerHit;
+  }
+  score = Math.max(0, Math.min(10, score));
+  updateScoreUI();
+  SCORM.saveScore(score);
+
+  if (score >= 9.98) { 
+    setTimeout(endGame, 1500);
+  }
+}
+
+function updateScoreUI() {
+  uiScore.innerText = score.toFixed(2);
+  uiScore.className = (score < 5) ? "score-badge failing" : "score-badge passing";
+}
+
+btnNext.onclick = () => {
+  qIndex++;
+  if (qIndex >= roundQuestions.length) {
+    currentRoundIndex++;
+    startRound();
+  } else {
+    showQuestion();
+  }
+};
+
+function endGame() {
+  document.getElementById("endScreen").style.display = "flex";
+  document.getElementById("finalScore").innerText = score.toFixed(1);
+  if(score >= 5) {
+    document.getElementById("finalMsg").innerText = "¡Enhorabuena! Has dominado los enlaces químicos.";
+  } else {
+    document.getElementById("finalMsg").innerText = "Sigue practicando para mejorar tu nota.";
+  }
+  SCORM.finish();
+}
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function renderPeriodicTable() {
+  ptable.innerHTML = ""; 
+  for(let row=1; row<=9; row++){ 
+    for(let col=1; col<=18; col++){
+      const div = document.createElement("div");
+      let el = null;
+      if (row === 8) {
+        if (col >= 4 && col <= 17) {
+           const z = 58 + (col - 4);
+           el = ELEMENTS_DB[z];
+        }
+      } else if (row === 9) {
+        if (col >= 4 && col <= 17) {
+           const z = 90 + (col - 4);
+           el = ELEMENTS_DB[z];
+        }
+      } else {
+        el = Object.values(ELEMENTS_DB).find(e => e.p === row && e.g === col);
+      }
+      
+      if(el) {
+        div.className = "cell";
+        div.id = `cell-${el.z}`;
+        
+        if(el.t === 'M') div.style.background = "var(--metal)";
+        else if(el.t === 'NM') div.style.background = "var(--nonmetal)";
+        else if(el.t === 'GN') div.style.background = "var(--noble)";
+        else if(el.t === 'SM') div.style.background = "var(--metalloid)";
+        else div.style.background = "var(--placeholder)";
+        
+        div.innerHTML = `<span class="z">${el.z}</span><span class="sym">${el.s}</span>`;
+        div.title = el.n;
+      } else {
+        div.className = "cell empty";
+      }
+      ptable.appendChild(div);
+    }
+  }
+}
+
+initGame();
+</script>
+</body>
+</html>
