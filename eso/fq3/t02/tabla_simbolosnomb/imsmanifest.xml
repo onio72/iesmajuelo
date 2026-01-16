@@ -1,0 +1,39 @@
+<?xml version="1.0" standalone="no" ?>
+<!-- 
+  Manifiesto estándar para SCORM 1.2
+  Este archivo define la estructura del paquete y apunta al archivo HTML principal.
+-->
+<manifest identifier="com.scorm.tablamuda3eso" version="1.0"
+          xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2"
+          xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.imsproject.org/xsd/imscp_rootv1p1p2 imscp_rootv1p1p2.xsd
+                              http://www.adlnet.org/xsd/adlcp_rootv1p2 adlcp_rootv1p2.xsd">
+
+  <metadata>
+    <schema>ADL SCORM</schema>
+    <schemaversion>1.2</schemaversion>
+  </metadata>
+
+  <organizations default="org_default">
+    <organization identifier="org_default">
+      <title>Tabla Periódica Muda - 3º ESO</title>
+      <!-- Estructura del curso: un solo ítem -->
+      <item identifier="item_1" identifierref="resource_1">
+        <title>Actividad Interactiva: Tabla Muda</title>
+        <!-- Requisito de tiempo máximo (opcional, dejamos libre) -->
+      </item>
+    </organization>
+  </organizations>
+
+  <resources>
+    <!-- 
+      Definición del recurso (SCO). 
+      href debe coincidir EXACTAMENTE con el nombre de tu archivo HTML.
+      adlcp:scormtype="sco" indica que el HTML se comunica con la API SCORM.
+    -->
+    <resource identifier="resource_1" type="webcontent" adlcp:scormtype="sco" href="tabla_muda_3eso.html">
+      <file href="tabla_muda_3eso.html"/>
+    </resource>
+  </resources>
+</manifest>
