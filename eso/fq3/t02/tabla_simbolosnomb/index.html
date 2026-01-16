@@ -407,6 +407,98 @@
 
 <script>
 /* =========================================
+   SCORM 1.2 WRAPPER (Robust Implementation)
+   ========================================= */
+const SCORM = {
+  api: null,
+  debug: false,
+  startTime: null,
+
+  // Algoritmo de búsqueda de API estándar
+  findAPI: function(win) {
+    let attempts = 0;
+    while (attempts < 7) {
+      try {
+        if (win.API != null) return win.API;
+        if (win.parent == null || win.parent == win) return null;
+        win = win.parent;
+      } catch (e) { return null; }
+      attempts++;
+    }
+    return null;
+  },
+
+  init: function() {
+    this.startTime = new Date().getTime();
+    this.api = this.findAPI(window);
+    
+    // Fallback para popups
+    if(this.api == null && window.opener != null) {
+      try { this.api = this.findAPI(window.opener); } catch(e){}
+    }
+    
+    if (this.api) {
+      this.api.LMSInitialize("");
+      
+      // Configuración inicial
+      const status = this.api.LMSGetValue("cmi.core.lesson_status");
+      if(status === "not attempted") {
+        this.api.LMSSetValue("cmi.core.lesson_status", "incomplete");
+      }
+      
+      this.api.LMSSetValue("cmi.core.score.min", "0");
+      this.api.LMSSetValue("cmi.core.score.max", "10");
+      
+      // Commit inicial
+      this.api.LMSCommit("");
+    }
+  },
+
+  // Guardado PROGRESIVO en TIEMPO REAL
+  saveScore: function(score) {
+    if (this.api) {
+      const s = Number(score).toFixed(2);
+      this.api.LMSSetValue("cmi.core.score.raw", s);
+      
+      if(Number(s) >= 8) {
+        this.api.LMSSetValue("cmi.core.lesson_status", "passed");
+      } else {
+        // Mantener incomplete si no ha aprobado aún
+        const currentStatus = this.api.LMSGetValue("cmi.core.lesson_status");
+        if(currentStatus !== "passed" && currentStatus !== "completed") {
+           this.api.LMSSetValue("cmi.core.lesson_status", "incomplete");
+        }
+      }
+      
+      // CRÍTICO: Commit inmediato para persistencia real
+      this.api.LMSCommit(""); 
+    }
+  },
+
+  // Cierre limpio de sesión
+  finish: function() {
+    if (this.api) {
+      // Calcular tiempo de sesión (opcional pero recomendado)
+      // Se omite para simplicidad, pero se guarda el estado de salida
+      
+      // REQUISITO: "suspend" para guardar estado si se reanuda, nunca "logout"
+      this.api.LMSSetValue("cmi.core.exit", "suspend");
+      
+      this.api.LMSFinish("");
+    }
+  }
+};
+
+// HANDLERS ROBUSTOS PARA CIERRE
+// 'pagehide' es más fiable en navegadores móviles/modernos que 'unload'
+window.addEventListener("load", () => SCORM.init());
+
+const exitHandler = () => { SCORM.finish(); };
+window.addEventListener("unload", exitHandler);
+window.addEventListener("pagehide", exitHandler);
+
+
+/* =========================================
    DATOS QUÍMICOS
    ========================================= */
 
@@ -550,6 +642,9 @@ function initGame() {
   finalModal.style.display = "none";
   
   updateScoreUI();
+  // SCORM reset
+  SCORM.saveScore(0);
+  
   nextTurn();
 }
 
@@ -599,6 +694,9 @@ function updateScoreUI() {
   scoreValue.style.color = grade < 5 ? "var(--score-bad)" : "var(--score-good)";
   
   progressValue.textContent = totalAttempts;
+  
+  // Guardar en SCORM
+  SCORM.saveScore(grade);
 }
 
 // 4. Comprobación de respuesta
@@ -682,7 +780,7 @@ function checkAnswer() {
   totalAttempts++; // Pregunta consumida
   pendingElements.shift(); // Eliminar de la lista de pendientes (ya se jugó)
 
-  updateScoreUI();
+  updateScoreUI(); // AQUI SE LLAMA AL SCORM
 
   // Pausa antes del siguiente
   checkBtn.disabled = true;
@@ -719,6 +817,10 @@ function endGame() {
   finalMsgDisplay.innerHTML = passed 
     ? "¡ENHORABUENA! <br>Has aprobado el examen." 
     : "SUSPENSO <br>Necesitas un 80% de aciertos para aprobar.";
+    
+  // SCORM Final commit
+  SCORM.saveScore(finalGrade);
+  SCORM.finish();
     
   finalModal.style.display = "flex";
 }
