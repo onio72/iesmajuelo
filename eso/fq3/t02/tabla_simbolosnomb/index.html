@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tabla Muda Interactiva — 3º ESO</title>
+  <style>
+    :root{
+      /* Paleta Slate / Indigo */
+      --bg: #f8fafc;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --card-bg: #ffffff;
+
+      /* Estados de celda */
+      --active-pulse: #f59e0b; /* Naranja objetivo */
+      --active-pulse-bg: #fffbeb;
+      
+      --correct-cell: #dcfce7; /* Verde acierto */
+      --correct-text: #166534;
+      
+      --error-cell: #fee2e2;   /* Rojo fallo */
+      --error-text: #991b1b;
+      
+      --filler-cell: #f8fafc;  /* Gris muy claro para celdas no jugables */
+
+      /* Puntuación */
+      --score-bad: #ef4444;
+      --score-good: #10b981;
+
+      /* UI Elements */
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+
+      --gap: 2px;
+      --cellH: 55px;
+      --cellW: 52px;
+      --radius: 12px;
+    }
+
+    *{box-sizing:border-box}
+    
+    html, body{
+      height:100%;
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    body{ overflow:hidden; }
+
+    .wrap{
+      height:100vh;
+      display:flex;
+      flex-direction:column;
+      padding:10px;
+      max-width: 1400px;
+      margin: 0 auto;
+      gap:8px;
+    }
+
+    /* HEADER */
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      flex: 0 0 auto;
+      padding: 0 8px;
+    }
+    h1{
+      margin:0;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .subtitle { font-size: 12px; color: var(--muted); font-weight: 500;}
+
+    /* Puntuación */
+    .score-pill {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--card-bg);
+      padding: 6px 14px;
+      border-radius: 99px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+      border: 1px solid var(--border);
+    }
+    .score-main {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--score-bad); /* Por defecto rojo */
+      font-variant-numeric: tabular-nums;
+    }
+    .progress-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      border-left: 1px solid var(--border);
+      padding-left: 12px;
+    }
+
+    /* LAYOUT PRINCIPAL */
+    .layout{
+      flex: 1 1 auto;
+      display:grid;
+      grid-template-columns: 1fr 320px;
+      gap:16px;
+      min-height:0;
+    }
+
+    .panel{
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding:16px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* ==== TABLA (Izquierda) ==== */
+    .tableArea{
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .tableFit{
+      width: 100%;
+      height: 100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .tableStage{
+      transform-origin: center center;
+      transition: transform 0.3s ease;
+    }
+
+    .ptable{
+      display:grid;
+      grid-template-columns: repeat(18, var(--cellW));
+      grid-auto-rows: var(--cellH);
+      gap: var(--gap);
+    }
+
+    .cell{
+      border-radius: 4px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      background: #cbd5e1; /* Gris más oscuro para elementos preguntables */
+      border: 1px solid transparent;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    /* Estilos de celda */
+    .cell.empty { background: transparent; border: none; }
+    
+    /* Celda de relleno (Gris, no jugable) */
+    .cell.filler {
+      background: var(--filler-cell);
+      border: 1px solid #e2e8f0;
+    }
+
+    /* Celda Revelada (Acierto) */
+    .cell.revealed.correct {
+      background: var(--correct-cell);
+      border: 1px solid #86efac;
+      color: var(--correct-text);
+    }
+    /* Celda Revelada (Fallo) */
+    .cell.revealed.wrong {
+      background: var(--error-cell);
+      border: 1px solid #fca5a5;
+      color: var(--error-text);
+    }
+
+    /* Celda Objetivo (Target) */
+    .cell.target {
+      background: var(--active-pulse-bg);
+      border: 2px solid var(--active-pulse);
+      animation: pulse 1.5s infinite;
+      z-index: 10;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+    
+    .z-num{
+      position:absolute;
+      top:2px;
+      left:4px;
+      font-size:9px;
+      color: #475569; /* Color más oscuro para contraste con el fondo gris */
+    }
+    
+    /* Contenido oculto hasta revelar */
+    .sym, .name { opacity: 0; transition: opacity 0.3s; }
+    .cell.revealed .sym, .cell.revealed .name { opacity: 1; }
+    
+    .sym{ font-size:16px; font-weight:800; line-height:1.1; }
+    .name{ font-size:8px; font-weight:600; white-space:nowrap; overflow:hidden; max-width:90%;}
+
+
+    /* ==== ZONA DERECHA (INTERACCIÓN) ==== */
+    .interaction-panel {
+      gap: 16px;
+      justify-content: flex-start;
+      overflow-y: auto;
+    }
+
+    .instructions {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.4;
+      background: #f8fafc;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+    }
+
+    .q-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 16px;
+      outline: none;
+      transition: all 0.2s;
+      text-align: center;
+      font-weight: 600;
+    }
+    input[type="text"]:focus {
+      background: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+    ::placeholder { font-weight: 400; color: #cbd5e1; font-size: 14px; }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: transform 0.1s;
+    }
+    .btn:active { transform: scale(0.98); }
+
+    .btn-check {
+      background: var(--primary);
+      color: white;
+      grid-column: span 2;
+    }
+    .btn-check:hover { background: var(--primary-hover); }
+
+    .btn-reset { background: #fff; border: 1px solid var(--border); color: var(--text); grid-column: span 2;}
+    .btn-reset:hover { background: #f1f5f9; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* Feedback */
+    .feedback {
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+      display: none;
+      animation: fadeIn 0.3s;
+    }
+    .feedback.success { background: var(--good-bg); color: #065f46; border: 1px solid #6ee7b7; }
+    .feedback.warning { background: #fffbeb; color: #b45309; border: 1px solid #fcd34d; }
+    .feedback.error { background: var(--bad-bg); color: #991b1b; border: 1px solid #fca5a5; }
+
+    .final-modal {
+      position: absolute;
+      top:0; left:0; width:100%; height:100%;
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(4px);
+      z-index: 50;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .final-score { font-size: 40px; font-weight: 900; color: var(--text); margin: 10px 0; }
+    .final-msg { font-size: 20px; font-weight: 600; color: var(--muted); margin-bottom: 20px; }
+    .approved { color: var(--score-good); }
+    .failed { color: var(--score-bad); }
+
+    @keyframes fadeIn { from{opacity:0; transform:translateY(5px)} to{opacity:1; transform:translateY(0)}}
+
+    /* Responsive */
+    @media (max-width: 900px){
+      body{ overflow:auto; }
+      .wrap{ height:auto; }
+      .layout{ grid-template-columns:1fr; }
+      .ptable { gap: 1px; }
+      .cell { border-radius: 2px; }
+      .sym { font-size: 10px; }
+      .name { display: none; }
+      .z-num { display: none; }
+      .interaction-panel { order: -1; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Tabla Muda 3º ESO</h1>
+      <span class="subtitle">Aprobado: 80% aciertos</span>
+    </div>
+    <div class="score-pill">
+      <div class="score-main" id="scoreValue">0.0</div>
+      <div class="progress-text">Progreso: <span id="progressValue">0</span>/55</div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Panel Izquierdo: Tabla -->
+    <section class="panel tableArea">
+      <div class="tableFit" id="tableFit">
+        <div class="tableStage" id="tableStage">
+          <div class="ptable" id="ptable">
+            <!-- Grid generado por JS -->
+          </div>
+        </div>
+      </div>
+      <!-- Modal final -->
+      <div class="final-modal" id="finalModal">
+        <h2>Resultado Final</h2>
+        <div class="final-score" id="finalScoreDisplay">0.0</div>
+        <div class="final-msg" id="finalMsgDisplay">...</div>
+        <button class="btn btn-check" style="width: auto; padding: 0 30px;" onclick="initGame()">Volver a intentar</button>
+      </div>
+    </section>
+
+    <!-- Panel Derecho: Interacción -->
+    <aside class="panel interaction-panel">
+      
+      <div class="instructions">
+        Observa la <strong>casilla naranja</strong> parpadeante. Si fallas, se marcará en rojo y verás la respuesta.
+        <br><br>
+        <em>¡Cuidado con las tildes! Valen 0.5 puntos.</em>
+      </div>
+
+      <div class="q-container">
+        <div>
+          <div class="label">Símbolo</div>
+          <input type="text" id="inputSym" placeholder="(Ej:Fe)" maxlength="3" autocomplete="off">
+        </div>
+        
+        <div>
+          <div class="label">Nombre</div>
+          <input type="text" id="inputName" placeholder="(Ej:Hierro)" autocomplete="off">
+        </div>
+
+        <div class="feedback" id="feedbackMsg"></div>
+
+        <div class="btn-row">
+          <button class="btn btn-check" id="checkBtn">Comprobar</button>
+          <button class="btn btn-reset" id="resetBtn">Reiniciar</button>
+        </div>
+      </div>
+
+    </aside>
+  </div>
+</div>
+
+<script>
+/* =========================================
+   DATOS QUÍMICOS
+   ========================================= */
+
+// Lista de elementos JUGABLES (55 en total)
+const TARGET_ELEMENTS = [
+  // Period 1
+  {z:1,s:"H",n:"Hidrógeno",g:1,p:1}, {z:2,s:"He",n:"Helio",g:18,p:1},
+  // Period 2
+  {z:3,s:"Li",n:"Litio",g:1,p:2}, {z:4,s:"Be",n:"Berilio",g:2,p:2}, 
+  {z:5,s:"B",n:"Boro",g:13,p:2}, {z:6,s:"C",n:"Carbono",g:14,p:2}, {z:7,s:"N",n:"Nitrógeno",g:15,p:2}, {z:8,s:"O",n:"Oxígeno",g:16,p:2}, {z:9,s:"F",n:"Flúor",g:17,p:2}, {z:10,s:"Ne",n:"Neón",g:18,p:2},
+  // Period 3
+  {z:11,s:"Na",n:"Sodio",g:1,p:3}, {z:12,s:"Mg",n:"Magnesio",g:2,p:3}, 
+  {z:13,s:"Al",n:"Aluminio",g:13,p:3}, {z:14,s:"Si",n:"Silicio",g:14,p:3}, {z:15,s:"P",n:"Fósforo",g:15,p:3}, {z:16,s:"S",n:"Azufre",g:16,p:3}, {z:17,s:"Cl",n:"Cloro",g:17,p:3}, {z:18,s:"Ar",n:"Argón",g:18,p:3},
+  // Period 4
+  {z:19,s:"K",n:"Potasio",g:1,p:4}, {z:20,s:"Ca",n:"Calcio",g:2,p:4},
+  {z:26,s:"Fe",n:"Hierro",g:8,p:4}, {z:27,s:"Co",n:"Cobalto",g:9,p:4}, {z:28,s:"Ni",n:"Níquel",g:10,p:4}, {z:29,s:"Cu",n:"Cobre",g:11,p:4}, {z:30,s:"Zn",n:"Zinc",g:12,p:4},
+  {z:31,s:"Ga",n:"Galio",g:13,p:4}, {z:32,s:"Ge",n:"Germanio",g:14,p:4}, {z:33,s:"As",n:"Arsénico",g:15,p:4}, {z:34,s:"Se",n:"Selenio",g:16,p:4}, {z:35,s:"Br",n:"Bromo",g:17,p:4}, {z:36,s:"Kr",n:"Kriptón",g:18,p:4},
+  // Period 5
+  {z:37,s:"Rb",n:"Rubidio",g:1,p:5}, {z:38,s:"Sr",n:"Estroncio",g:2,p:5},
+  {z:46,s:"Pd",n:"Paladio",g:10,p:5}, {z:47,s:"Ag",n:"Plata",g:11,p:5}, {z:48,s:"Cd",n:"Cadmio",g:12,p:5},
+  {z:49,s:"In",n:"Indio",g:13,p:5}, {z:50,s:"Sn",n:"Estaño",g:14,p:5}, {z:51,s:"Sb",n:"Antimonio",g:15,p:5}, {z:52,s:"Te",n:"Telurio",g:16,p:5}, {z:53,s:"I",n:"Yodo",g:17,p:5}, {z:54,s:"Xe",n:"Xenón",g:18,p:5},
+  // Period 6
+  {z:55,s:"Cs",n:"Cesio",g:1,p:6}, {z:56,s:"Ba",n:"Bario",g:2,p:6},
+  {z:78,s:"Pt",n:"Platino",g:10,p:6}, {z:79,s:"Au",n:"Oro",g:11,p:6}, {z:80,s:"Hg",n:"Mercurio",g:12,p:6},
+  {z:81,s:"Tl",n:"Talio",g:13,p:6}, {z:82,s:"Pb",n:"Plomo",g:14,p:6}, {z:83,s:"Bi",n:"Bismuto",g:15,p:6}, {z:84,s:"Po",n:"Polonio",g:16,p:6}, {z:85,s:"At",n:"Astato",g:17,p:6}, {z:86,s:"Rn",n:"Radón",g:18,p:6},
+  // Period 7
+  {z:87,s:"Fr",n:"Francio",g:1,p:7}, {z:88,s:"Ra",n:"Radio",g:2,p:7}
+];
+
+// Lista de elementos de RELLENO (Se pintan gris)
+// Huecos en periodos 4, 5, 6, 7 que no están en TARGET_ELEMENTS
+const FILLER_COORDS = [
+  // Period 4 (Sc, Ti, V, Cr, Mn) -> Grupos 3,4,5,6,7
+  {p:4,g:3}, {p:4,g:4}, {p:4,g:5}, {p:4,g:6}, {p:4,g:7},
+  // Period 5 (Y, Zr, Nb, Mo, Tc, Ru, Rh) -> Grupos 3,4,5,6,7,8,9
+  {p:5,g:3}, {p:5,g:4}, {p:5,g:5}, {p:5,g:6}, {p:5,g:7}, {p:5,g:8}, {p:5,g:9},
+  // Period 6 (La..Hf..Ir) -> Grupos 3,4,5,6,7,8,9 (Lantánidos colapsados en G3 o omitidos)
+  // Simplificamos visualmente como bloques grises en grupos 3..9
+  {p:6,g:3}, {p:6,g:4}, {p:6,g:5}, {p:6,g:6}, {p:6,g:7}, {p:6,g:8}, {p:6,g:9},
+  // Period 7 (Ac..Rf..Mt) -> Grupos 3..18 (Todo gris salvo Fr, Ra)
+  {p:7,g:3}, {p:7,g:4}, {p:7,g:5}, {p:7,g:6}, {p:7,g:7}, {p:7,g:8}, {p:7,g:9},
+  {p:7,g:10},{p:7,g:11},{p:7,g:12},{p:7,g:13},{p:7,g:14},{p:7,g:15},{p:7,g:16},{p:7,g:17},{p:7,g:18}
+];
+
+
+/* =========================================
+   LÓGICA DEL JUEGO
+   ========================================= */
+
+let pendingElements = [];
+let currentElement = null;
+let currentPoints = 0; // Puntos acumulados
+let totalAttempts = 0; // Preguntas respondidas (bien o mal)
+
+const ptable = document.getElementById("ptable");
+const inputSym = document.getElementById("inputSym");
+const inputName = document.getElementById("inputName");
+const feedbackMsg = document.getElementById("feedbackMsg");
+const checkBtn = document.getElementById("checkBtn");
+const resetBtn = document.getElementById("resetBtn");
+const scoreValue = document.getElementById("scoreValue");
+const progressValue = document.getElementById("progressValue");
+const finalModal = document.getElementById("finalModal");
+const finalScoreDisplay = document.getElementById("finalScoreDisplay");
+const finalMsgDisplay = document.getElementById("finalMsgDisplay");
+
+// Utilidad de texto
+function normalizeSimple(str) {
+  // Solo minúsculas y trim, mantiene tildes para check estricto
+  return str.trim().toLowerCase();
+}
+
+function normalizeNoAccents(str) {
+  // Quita tildes
+  return str.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+// 1. Renderizar la tabla
+function renderTable() {
+  ptable.innerHTML = "";
+  // Crear Grid 18x7
+  const grid = Array.from({length:7}, () => Array.from({length:18}, () => null));
+  
+  // Rellenar targets
+  TARGET_ELEMENTS.forEach(el => {
+    if(el.p >=1 && el.p<=7 && el.g>=1 && el.g<=18) {
+      grid[el.p-1][el.g-1] = { ...el, type: 'target' };
+    }
+  });
+
+  // Rellenar fillers
+  FILLER_COORDS.forEach(c => {
+    if(!grid[c.p-1][c.g-1]) {
+      grid[c.p-1][c.g-1] = { type: 'filler' };
+    }
+  });
+
+  // Pintar DOM
+  for(let p=1; p<=7; p++){
+    for(let g=1; g<=18; g++){
+      const data = grid[p-1][g-1];
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      
+      if(!data) {
+        cell.classList.add("empty");
+      } else if (data.type === 'filler') {
+        cell.classList.add("filler");
+      } else {
+        // Target jugable
+        cell.id = `cell-${data.z}`;
+        cell.innerHTML = `
+          <div class="z-num">${data.z}</div>
+          <div class="sym">${data.s}</div>
+          <div class="name">${data.n}</div>
+        `;
+      }
+      ptable.appendChild(cell);
+    }
+  }
+}
+
+// 2. Iniciar / Reiniciar
+function initGame() {
+  pendingElements = shuffle([...TARGET_ELEMENTS]);
+  currentPoints = 0;
+  totalAttempts = 0;
+  
+  // Limpiar UI
+  document.querySelectorAll(".cell").forEach(c => {
+    c.classList.remove("revealed", "correct", "wrong", "target");
+  });
+  finalModal.style.display = "none";
+  
+  updateScoreUI();
+  nextTurn();
+}
+
+// 3. Turno
+function nextTurn() {
+  clearInputs();
+  
+  // Quitar target anterior
+  if(currentElement) {
+    const prevCell = document.getElementById(`cell-${currentElement.z}`);
+    if(prevCell) prevCell.classList.remove("target");
+  }
+
+  // Fin del juego
+  if(pendingElements.length === 0) {
+    endGame();
+    return;
+  }
+
+  currentElement = pendingElements[0];
+  
+  // Resaltar
+  const cell = document.getElementById(`cell-${currentElement.z}`);
+  if(cell) {
+    cell.scrollIntoView({behavior: "smooth", block: "center", inline: "center"});
+    cell.classList.add("target");
+  }
+  
+  inputSym.focus();
+}
+
+function clearInputs(){
+  inputSym.value = "";
+  inputName.value = "";
+  feedbackMsg.style.display = "none";
+  checkBtn.disabled = false;
+  inputSym.disabled = false;
+  inputName.disabled = false;
+}
+
+function updateScoreUI() {
+  // Nota = (Puntos / Total Items) * 10
+  const maxItems = TARGET_ELEMENTS.length; // 55
+  const grade = (currentPoints / maxItems) * 10;
+  
+  scoreValue.textContent = grade.toFixed(1);
+  scoreValue.style.color = grade < 5 ? "var(--score-bad)" : "var(--score-good)";
+  
+  progressValue.textContent = totalAttempts;
+}
+
+// 4. Comprobación de respuesta
+function checkAnswer() {
+  if(!currentElement) return;
+
+  // Normalización
+  const userSymRaw = inputSym.value;
+  const userNameRaw = inputName.value;
+
+  const userSym = normalizeNoAccents(userSymRaw);
+  let userNameStrict = normalizeSimple(userNameRaw);
+  let userNameNorm = normalizeNoAccents(userNameRaw);
+
+  // Excepción Zinc/Cinc
+  if(userNameNorm === "zinc") { userNameNorm = "cinc"; userNameStrict = "cinc"; } /* Tratamos zinc como cinc para la logica interna si queremos unificar, o check directo */
+
+  const targetSym = normalizeNoAccents(currentElement.s);
+  const targetNameStrict = normalizeSimple(currentElement.n);
+  const targetNameNorm = normalizeNoAccents(currentElement.n);
+  
+  // CASO ESPECIAL ZINC: El elemento se llama "Zinc" en el array, pero aceptamos "Cinc"
+  let isZincVariant = false;
+  if(targetNameNorm === "zinc" && (userNameNorm === "cinc" || userNameNorm === "zinc")) {
+    isZincVariant = true;
+  }
+
+  // 1. Chequeo Símbolo (Estricto o sin acentos es igual en símbolos químicos generales salvo excepciones raras, asumimos sin acento)
+  const symOk = (userSym === targetSym);
+
+  // 2. Chequeo Nombre
+  let nameScore = 0; // 0, 0.5, 1
+  let nameMsg = "";
+
+  if (isZincVariant) {
+    nameScore = 1; // Zinc/Cinc es correcto total
+  } else {
+    if (userNameStrict === targetNameStrict) {
+      nameScore = 1; // Perfecto con tildes
+    } else if (userNameNorm === targetNameNorm) {
+      nameScore = 0.5; // Falta tilde
+      nameMsg = "(Falta tilde)";
+    } else {
+      nameScore = 0; // Incorrecto
+    }
+  }
+
+  // Lógica Final de turno
+  const cell = document.getElementById(`cell-${currentElement.z}`);
+  cell.classList.remove("target");
+  cell.classList.add("revealed");
+  
+  // Calculamos puntos del turno (Símbolo debe estar bien para sumar algo)
+  // La condición "80% de nombres y símbolos" implica que ambos cuentan. 
+  // Vamos a ser estrictos: Si el símbolo falla -> 0 puntos. Si nombre falla -> 0 puntos. 
+  // Si símbolo bien y nombre sin tilde -> 0.5 puntos.
+  
+  let turnPoints = 0;
+  let isSuccess = false;
+
+  if (symOk && nameScore === 1) {
+    turnPoints = 1;
+    isSuccess = true;
+    showFeedback(true, "success", "¡Correcto!");
+    cell.classList.add("correct");
+  } else if (symOk && nameScore === 0.5) {
+    turnPoints = 0.5;
+    isSuccess = true;
+    showFeedback(true, "warning", `Correcto, pero cuida la ortografía. ${nameMsg}`);
+    cell.classList.add("correct"); // Visualmente verde, pero avisa
+  } else {
+    // Fallo
+    turnPoints = 0;
+    isSuccess = false;
+    showFeedback(true, "error", `Incorrecto. Era <b>${currentElement.s}</b> - <b>${currentElement.n}</b>`);
+    cell.classList.add("wrong"); // Visualmente rojo
+  }
+
+  // Actualizar estado
+  currentPoints += turnPoints;
+  totalAttempts++; // Pregunta consumida
+  pendingElements.shift(); // Eliminar de la lista de pendientes (ya se jugó)
+
+  updateScoreUI();
+
+  // Pausa antes del siguiente
+  checkBtn.disabled = true;
+  inputSym.disabled = true;
+  inputName.disabled = true;
+  
+  // Tiempo de lectura: Si falló, dar un poco más de tiempo para leer la corrección
+  const delay = isSuccess ? 1200 : 2500;
+  
+  setTimeout(() => {
+    nextTurn();
+  }, delay);
+}
+
+function showFeedback(show, type, html) {
+  feedbackMsg.style.display = show ? "block" : "none";
+  feedbackMsg.className = `feedback ${type}`;
+  feedbackMsg.innerHTML = html;
+}
+
+function endGame() {
+  feedbackMsg.style.display = "none";
+  checkBtn.disabled = true;
+  
+  const totalItems = TARGET_ELEMENTS.length;
+  const finalGrade = (currentPoints / totalItems) * 10;
+  const percentage = (currentPoints / totalItems) * 100;
+  
+  const passed = percentage >= 80;
+  
+  finalScoreDisplay.textContent = finalGrade.toFixed(2);
+  finalScoreDisplay.className = `final-score ${passed ? 'approved' : 'failed'}`;
+  
+  finalMsgDisplay.innerHTML = passed 
+    ? "¡ENHORABUENA! <br>Has aprobado el examen." 
+    : "SUSPENSO <br>Necesitas un 80% de aciertos para aprobar.";
+    
+  finalModal.style.display = "flex";
+}
+
+// Listeners
+checkBtn.addEventListener("click", checkAnswer);
+resetBtn.addEventListener("click", initGame);
+
+[inputSym, inputName].forEach(inp => {
+  inp.addEventListener("keydown", (e) => {
+    if(e.key === "Enter") checkAnswer();
+  });
+});
+
+/* =========================================
+   ESCALADO
+   ========================================= */
+function resizeTable() {
+  const container = document.getElementById("tableFit");
+  const stage = document.getElementById("tableStage");
+  const table = document.getElementById("ptable");
+  
+  if(!container || !table) return;
+
+  const contW = container.clientWidth;
+  const contH = container.clientHeight;
+  const tableW = table.scrollWidth;
+  const tableH = table.scrollHeight;
+
+  const scale = Math.min(contW / tableW, contH / tableH) * 0.95;
+
+  stage.style.transform = `scale(${scale})`;
+}
+window.addEventListener("resize", resizeTable);
+
+// INIT
+renderTable();
+setTimeout(() => {
+  resizeTable();
+  initGame();
+}, 100);
+
+</script>
+</body>
+</html>
