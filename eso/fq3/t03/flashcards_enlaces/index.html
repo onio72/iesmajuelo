@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards de Química</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- KaTeX for LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* 3D Flip Animation Styles */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+
+        /* Container for the flip effect */
+        .flip-card {
+            background-color: transparent;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-radius: 1rem;
+        }
+
+        /* Application of rotation when parent has .flipped class */
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-sizing: border-box;
+            border: 1px solid #d1d5db; /* gray-300 border */
+        }
+
+        .flip-card-front {
+            /* Medium Gray background (gray-300) */
+            background-color: #d1d5db; 
+            color: #1f2937;
+        }
+
+        .flip-card-back {
+            background-color: #f0f9ff;
+            color: #1f2937;
+            transform: rotateY(180deg);
+            border: 1px solid #bae6fd;
+        }
+
+        /* Latex adjustments */
+        .katex { font-size: 1.1em; }
+        
+        /* Smooth fade for controls */
+        .btn-nav {
+            transition: all 0.2s ease;
+        }
+        .btn-nav:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Main Container -->
+    <div class="w-full max-w-2xl">
+        
+        <!-- Header -->
+        <header class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Química: Enlaces y Átomos</h1>
+            <p class="text-gray-500 text-sm mb-4">Haz clic en la tarjeta para ver la respuesta</p>
+        </header>
+
+        <!-- Progress Indicator -->
+        <div class="flex justify-between items-center mb-4 px-2 w-full">
+            <span class="text-sm font-semibold text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
+                Tarjeta <span id="current-card-num">1</span> de <span id="total-cards-num">0</span>
+            </span>
+            <button onclick="resetCardPosition()" class="text-gray-400 hover:text-gray-600 transition" title="Volver al inicio">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74-2.74L3 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Flashcard Area -->
+        <div class="relative w-full h-80 sm:h-96 perspective-1000 group cursor-pointer flip-card select-none" onclick="toggleFlip()" id="card-container">
+            <div class="flip-card-inner" id="card-inner">
+                
+                <!-- Front Side (Question) -->
+                <div class="flip-card-front">
+                    <div class="w-full text-left mb-auto">
+                        <span class="text-xs uppercase tracking-wider text-gray-600 font-bold">Pregunta</span>
+                    </div>
+                    <div id="card-front-content" class="text-xl sm:text-2xl font-medium leading-relaxed text-gray-800">
+                        Cargando...
+                    </div>
+                    <div class="w-full text-center mt-auto text-gray-600 text-sm">
+                        (Clic para voltear)
+                    </div>
+                </div>
+
+                <!-- Back Side (Answer) -->
+                <div class="flip-card-back">
+                    <div class="w-full text-left mb-auto">
+                        <span class="text-xs uppercase tracking-wider text-blue-400 font-bold">Respuesta</span>
+                    </div>
+                    <div id="card-back-content" class="text-xl sm:text-2xl font-medium leading-relaxed text-blue-900">
+                        <!-- Answer goes here -->
+                    </div>
+                    <div class="w-full text-center mt-auto text-blue-300 text-sm">
+                        (Clic para volver)
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex justify-center items-center gap-6 mt-8">
+            <button onclick="prevCard()" class="btn-nav flex items-center justify-center w-14 h-14 rounded-full bg-white shadow-md text-gray-600 hover:bg-gray-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed" id="prev-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+
+            <!-- Shuffle Button -->
+            <button onclick="shuffleCards()" class="btn-nav flex items-center gap-2 px-6 h-12 rounded-full bg-blue-600 text-white shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h10"/><path d="M9 4v16"/><path d="m3 9 3 3-3 3"/><path d="m14 8 2.05 1.76a2 2 0 0 1 .44 2.4l-1.39 2.5a2 2 0 0 1-.6 1.1l-2.5 2.5"/><path d="m11 15 2 2"/></svg>
+                <span class="font-semibold">Barajar</span>
+            </button>
+
+            <button onclick="nextCard()" class="btn-nav flex items-center justify-center w-14 h-14 rounded-full bg-white shadow-md text-gray-600 hover:bg-gray-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed" id="next-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+        </div>
+        
+        <p class="text-center text-gray-400 text-xs mt-8">Usa las flechas del teclado &larr; &rarr; para navegar</p>
+
+    </div>
+
+    <script>
+        // Total Flashcards Data
+        const flashcardsData = [
+  { q: "¿Cuál es la causa principal por la que los átomos tienden a unirse en lugar de permanecer aislados?", a: "Adquirir la configuración electrónica de un gas noble para ser estables." },
+  { q: "¿Cuántos electrones suelen buscar los átomos en su capa de valencia para alcanzar la máxima estabilidad?", a: "Ocho electrones." },
+  { q: "¿Qué elemento es la excepción a la regla de los ocho electrones en la capa de valencia?", a: "El helio ($He$)." },
+  { q: "Se denomina capa de ___________ a la capa más externa de electrones de un átomo.", a: "Valencia" },
+  { q: "¿Qué tipo de enlace se forma cuando se transfieren electrones entre un metal y un no metal?", a: "Enlace iónico." },
+  { q: "¿Qué sucede con la carga de un átomo de sodio ($Na$) cuando cede un electrón?", a: "Se convierte en un ion con carga positiva ($Na^{+}$)." },
+  { q: "¿Qué sucede con la carga de un átomo de cloro ($Cl$) cuando acepta un electrón?", a: "Se convierte en un ion con carga negativa ($Cl^{-}$)." },
+  { q: "¿Cómo se denomina al ion con carga negativa formado tras ganar electrones?", a: "Anión." },
+  { q: "¿Cómo se denomina al ion con carga positiva formado tras perder electrones?", a: "Catión." },
+  { q: "El enlace iónico se mantiene unido gracias a la atracción entre cargas de _____.", a: "Distinto signo" },
+  { q: "¿Qué tendencia tienen los átomos de elementos metálicos?", a: "Tendencia a ceder electrones." },
+  { q: "¿Qué tendencia tienen los átomos de elementos no metálicos?", a: "Tendencia a captar electrones." },
+  { q: "El enlace iónico se forma por la _____ de electrones desde el átomo metálico al no metálico.", a: "Transferencia" },
+  { q: "¿En qué direcciones del espacio tiene lugar la atracción electrostática en un compuesto iónico?", a: "En todas las direcciones." },
+  { q: "¿Qué nombre recibe la estructura muy ordenada que forman los compuestos iónicos?", a: "Red cristalina" },
+  { q: "¿Qué tipo de enlace tiene el trióxido de azufre ($SO_{3}$)?", a: "Enlace covalente." },
+  { q: "¿Qué tipo de enlace tiene el ácido sulfúrico ($H_{2}SO_{4}$)?", a: "Enlace covalente." },
+  { q: "¿Por qué los átomos de nitrógeno se combinan con tres de hidrógeno?", a: "Para adquirir la configuración de gas noble compartiendo electrones." },
+  { q: "Los electrones compartidos en un enlace covalente se sitúan _____ los dos átomos.", a: "entre" },
+  { q: "¿Qué propiedad indica que un enlace químico es fuerte?", a: "Temperaturas de fusión y ebullición altas." },
+  { q: "En el enlace metálico, los electrones son _____ por todos los cationes.", a: "compartidos" },
+  { q: "¿Cómo se comportan los iones en una red iónica?", a: "Cada ion positivo atrae al máximo número de iones negativos. Estos a su vez se rodean de otros iones positivos. Así se forma el cristal." },
+  { q: "El enlace iónico ocurre entre átomos de elementos ________________.", a: "Metálicos y no metálicos." },
+  { q: "El enlace iónico ocurre entre átomos con electronegatividad muy _____.", a: "distinta" },
+  { q: "¿Qué partícula subatómica se transfiere o comparte para formar un enlace iónico?", a: "El electrón." },
+  { q: "En los diagramas de Lewis, ¿qué electrones se representan específicamente?", a: "Los electrones de la capa de valencia." },
+  { q: "¿Qué ocurre con la red metálica cuando se deslizan las capas de iones?", a: "No se rompe, lo que permite la ductilidad y maleabilidad." },
+  { q: "¿En qué tipo de compuestos se encuentran moléculas como unidades básicas?", a: "Compuestos covalentes." },
+  { q: "¿Cómo es la disposición de los iones en una red metálica?", a: "Muy ordenada y compacta." },
+  { q: "El sodio es un ejemplo de átomo con tendencia a _____ electrones.", a: "ceder" },
+  { q: "El cloro es un ejemplo de átomo con tendencia a _____ electrones.", a: "coger o captar" },
+  { q: "Las sustancias se construyen porque los átomos tienden a _____ unos a otros.", a: "unirse" },
+  { q: "¿Qué tipo de enlace se produce cuando dos no metales comparten electrones?", a: "Enlace covalente." },
+  { q: "En un enlace covalente, ¿qué ocurre con los electrones?", a: "Se comparten entre los átomos." },
+  { q: "¿Cómo se llama la representación con puntos de los electrones de valencia?", a: "Diagrama de Lewis." },
+  { q: "En el enlace covalente, los átomos buscan completar su capa de valencia con _____ electrones.", a: "ocho" },
+  { q: "¿Qué tipo de enlace aparece en moléculas como $H_{2}$, $O_{2}$ o $N_{2}$?", a: "Enlace covalente." },
+  { q: "Cuando dos átomos comparten un par de electrones, se forma un enlace covalente _____.", a: "simple" },
+  { q: "Cuando se comparten dos pares de electrones, se forma un enlace covalente _____.", a: "doble" },
+  { q: "Cuando se comparten tres pares de electrones, se forma un enlace covalente _____.", a: "triple" },
+  { q: "¿Qué tipo de enlace aparece en el agua ($H_{2}O$)?", a: "Enlace covalente." },
+  { q: "¿Qué tipo de enlace aparece en el dióxido de carbono ($CO_{2}$)?", a: "Enlace covalente." },
+  { q: "Los compuestos covalentes suelen tener puntos de fusión y ebullición _____ que los iónicos.", a: "más bajos" },
+  { q: "¿Qué propiedad caracteriza a los compuestos iónicos en estado sólido?", a: "Son malos conductores de la electricidad." },
+  { q: "¿Qué propiedad caracteriza a los compuestos iónicos fundidos o disueltos?", a: "Conducen la electricidad." },
+  { q: "¿Por qué los compuestos iónicos conducen electricidad cuando están fundidos o disueltos?", a: "Porque los iones pueden moverse libremente." },
+  { q: "Los compuestos iónicos suelen ser sólidos _____ a temperatura ambiente.", a: "cristalinos" },
+  { q: "Los compuestos iónicos suelen ser _____ en agua.", a: "solubles" },
+  { q: "¿Qué propiedad mecánica suele tener un cristal iónico?", a: "Es frágil (quebradizo)." },
+  { q: "¿Qué ocurre si en una red iónica se desplaza una capa de iones?", a: "Se enfrentan iones del mismo signo y el cristal se rompe." },
+  { q: "¿Qué tipo de enlace explica la conductividad y la maleabilidad de los metales?", a: "Enlace metálico." },
+  { q: "En un metal, los electrones de valencia forman un _____ de electrones.", a: "mar" },
+  { q: "En un metal, los cationes están inmersos en un mar de electrones _____.", a: "deslocalizados" },
+  { q: "¿Qué propiedad de los metales se debe al mar de electrones?", a: "La conductividad eléctrica y térmica." },
+  { q: "¿Qué propiedad permite que los metales se puedan estirar formando hilos?", a: "Ductilidad." },
+  { q: "¿Qué propiedad permite que los metales se puedan deformar formando láminas?", a: "Maleabilidad." },
+  { q: "¿Qué ocurre con los electrones en el enlace metálico?", a: "Se mueven libremente por toda la estructura." },
+  { q: "¿Qué tipo de enlace aparece en la sal común ($NaCl$)?", a: "Enlace iónico." },
+  { q: "¿Qué tipo de enlace aparece en el hierro ($Fe$)?", a: "Enlace metálico." },
+  { q: "¿Qué diferencia fundamental hay entre enlace iónico y covalente?", a: "En el iónico se transfieren electrones; en el covalente se comparten." },
+  { q: "¿Qué diferencia fundamental hay entre enlace metálico y covalente?", a: "En el metálico hay electrones deslocalizados; en el covalente se comparten entre átomos concretos." },
+  { q: "¿Qué diferencia fundamental hay entre enlace metálico e iónico?", a: "En el metálico hay un mar de electrones; en el iónico hay iones ordenados que se atraen." },
+  { q: "En un enlace iónico, el metal forma un _____ y el no metal forma un _____.", a: "catión; anión" },
+  { q: "¿Qué regla explica la tendencia a alcanzar configuraciones estables similares a los gases nobles?", a: "Regla del octeto." },
+  { q: "Los gases nobles son especialmente estables porque tienen la capa de valencia _____.", a: "completa" },
+  { q: "¿Qué sucede con la energía del sistema cuando se forma un enlace químico estable?", a: "Disminuye." },
+  { q: "Los átomos se enlazan porque así alcanzan un estado de menor _____.", a: "energía" },
+  { q: "En general, al formarse un enlace se libera _____.", a: "energía" },
+  { q: "¿Qué indica una gran diferencia de electronegatividad entre dos átomos?", a: "Que es probable que formen un enlace iónico." },
+  { q: "¿Qué indica una diferencia pequeña de electronegatividad entre dos átomos?", a: "Que es probable que formen un enlace covalente." },
+  { q: "¿Qué tipo de enlace suele formarse entre átomos metálicos?", a: "Enlace metálico." },
+  { q: "¿Qué tipo de enlace suele formarse entre átomos no metálicos?", a: "Enlace covalente." },
+  { q: "En una molécula covalente, la unidad básica es la _____.", a: "molécula" },
+  { q: "En un cristal iónico, la unidad básica no es una molécula sino una _____.", a: "red cristalina" }
+];
+
+
+        let currentIndex = 0;
+        let isFlipped = false;
+
+        // Elements
+        const cardContainer = document.getElementById('card-container');
+        const frontContent = document.getElementById('card-front-content');
+        const backContent = document.getElementById('card-back-content');
+        const currentNumDisplay = document.getElementById('current-card-num');
+        const totalNumDisplay = document.getElementById('total-cards-num');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        // Initialize
+        function init() {
+            totalNumDisplay.textContent = flashcardsData.length;
+            renderCard();
+            
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight') nextCard();
+                if (e.key === 'ArrowLeft') prevCard();
+                if (e.key === ' ' || e.key === 'Enter') toggleFlip();
+            });
+        }
+
+        // Render current card content
+        function renderCard() {
+            const data = flashcardsData[currentIndex];
+            
+            // Reset flip state visually if logic says not flipped, but container has class
+            if(!isFlipped) {
+                cardContainer.classList.remove('flipped');
+            }
+
+            // Update Text
+            setTimeout(() => {
+                const qText = data.q ? data.q.replace(/^"|"$/g, '') : "Sin pregunta";
+                const aText = data.a ? data.a.replace(/^"|"$/g, '') : "Sin respuesta";
+
+                frontContent.innerHTML = qText;
+                backContent.innerHTML = aText;
+                
+                currentNumDisplay.textContent = currentIndex + 1;
+                
+                // Update Button States
+                prevBtn.disabled = currentIndex === 0;
+                nextBtn.disabled = currentIndex === flashcardsData.length - 1;
+
+                // Render LaTeX
+                renderMathInElement(frontContent, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+                renderMathInElement(backContent, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }, 150);
+        }
+
+        // Actions
+        function toggleFlip() {
+            isFlipped = !isFlipped;
+            if(isFlipped) {
+                cardContainer.classList.add('flipped');
+            } else {
+                cardContainer.classList.remove('flipped');
+            }
+        }
+
+        function nextCard() {
+            if (currentIndex < flashcardsData.length - 1) {
+                currentIndex++;
+                isFlipped = false; // Reset flip on change
+                cardContainer.classList.remove('flipped');
+                renderCard();
+            }
+        }
+
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                isFlipped = false; // Reset flip on change
+                cardContainer.classList.remove('flipped');
+                renderCard();
+            }
+        }
+        
+        function resetCardPosition() {
+            currentIndex = 0;
+            isFlipped = false;
+            cardContainer.classList.remove('flipped');
+            renderCard();
+        }
+
+        function shuffleCards() {
+            // Fisher-Yates shuffle
+            for (let i = flashcardsData.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [flashcardsData[i], flashcardsData[j]] = [flashcardsData[j], flashcardsData[i]];
+            }
+            currentIndex = 0;
+            isFlipped = false;
+            cardContainer.classList.remove('flipped');
+            renderCard();
+        }
+
+        // Start
+        document.addEventListener("DOMContentLoaded", () => {
+             init();
+        });
+
+    </script>
+</body>
+</html>
