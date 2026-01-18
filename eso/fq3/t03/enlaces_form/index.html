@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio de Enlaces Químicos - 3º ESO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+        canvas { touch-action: none; user-select: none; }
+        
+        .tab-btn {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .tab-btn.active {
+            background-color: #4f46e5;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: #4f46e5 transparent transparent transparent;
+        }
+        
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        select { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+            padding-top: 12px !important;
+            padding-bottom: 12px !important;
+            line-height: 1.5 !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="bg-indigo-600 text-white p-2 rounded-lg font-bold text-xl">EQ</div>
+                    <span class="font-bold text-xl tracking-tight text-slate-800">Enlaces Químicos <span class="text-indigo-600 text-sm font-normal ml-1">3º ESO</span></span>
+                </div>
+                <div class="hidden md:flex space-x-1 bg-slate-100 p-1 rounded-xl">
+                    <button onclick="app.setMode('ionic')" id="tab-ionic" class="tab-btn active px-6 py-2 rounded-lg text-sm font-semibold text-slate-600">Iónico</button>
+                    <button onclick="app.setMode('covalent')" id="tab-covalent" class="tab-btn px-6 py-2 rounded-lg text-sm font-semibold text-slate-600">Covalente</button>
+                    <button onclick="app.setMode('metallic')" id="tab-metallic" class="tab-btn px-6 py-2 rounded-lg text-sm font-semibold text-slate-600">Metálico</button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div class="md:hidden flex justify-around border-t border-slate-200 p-2 bg-slate-50">
+             <button onclick="app.setMode('ionic')" class="text-xs font-bold p-2 text-indigo-600">Iónico</button>
+             <button onclick="app.setMode('covalent')" class="text-xs font-bold p-2 text-slate-600">Covalente</button>
+             <button onclick="app.setMode('metallic')" class="text-xs font-bold p-2 text-slate-600">Metálico</button>
+        </div>
+    </nav>
+
+    <!-- Main Layout -->
+    <main class="flex-grow max-w-7xl mx-auto w-full p-4 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Controls Sidebar -->
+        <aside class="lg:col-span-3 space-y-6">
+            <div id="controls-panel" class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 fade-in">
+                <!-- Injected by JS -->
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-md border border-slate-100">
+                <button id="action-btn" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold py-4 px-6 rounded-xl shadow-indigo-200 shadow-lg transform transition active:scale-95 flex items-center justify-center gap-2">
+                    <span id="btn-text">Formar Enlace</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </button>
+                <p id="status-text" class="text-center text-xs text-slate-400 mt-3 font-medium uppercase tracking-wider">Esperando inicio</p>
+            </div>
+
+            <div class="bg-slate-100 p-4 rounded-xl text-sm border border-slate-200">
+                <h4 class="font-bold text-slate-700 mb-2">Leyenda</h4>
+                <div id="legend-content" class="space-y-2">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Canvas Area -->
+        <section class="lg:col-span-9 bg-white rounded-3xl shadow-xl border border-slate-100 relative overflow-hidden flex flex-col">
+            <div class="absolute top-0 left-0 w-full p-6 flex justify-between items-start pointer-events-none z-10">
+                <div>
+                    <h2 id="view-title" class="text-2xl font-bold text-slate-800">Título</h2>
+                    <p id="view-subtitle" class="text-slate-500 text-sm max-w-md mt-1">Descripción</p>
+                </div>
+                <div id="formula-tag" class="bg-white/90 backdrop-blur px-4 py-2 rounded-lg font-mono text-xl font-bold text-indigo-700 shadow-sm border border-indigo-100 transform rotate-1">--</div>
+            </div>
+            <div class="flex-grow w-full h-[600px] relative bg-slate-50" id="canvas-container">
+                <canvas id="mainCanvas"></canvas>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // --- HELPERS MATH ---
+        function gcd(a, b) { return !b ? a : gcd(b, a % b); }
+        function lcm(a, b) { return (a * b) / gcd(a, b); }
+        const toRad = (deg) => deg * Math.PI / 180;
+
+        /** --- CONFIG --- */
+        const CONFIG = {
+            colors: {
+                metalCore: '#ef4444', metalShell: '#fee2e2', metalElectron: '#dc2626',
+                nonMetalCore: '#3b82f6', nonMetalShell: '#dbeafe', nonMetalElectron: '#2563eb',
+                sharedZone: 'rgba(99, 102, 241, 0.1)',
+                text: '#1e293b'
+            },
+            radii: {
+                nucleus: 16, electron: 5, shellBase: 45, shellStep: 28 
+            }
+        };
+
+        const IONIC_DATA = {
+            metals: [
+                { id: 'Na', name: 'Sodio', valence: 1, shells: [2, 8, 1] },
+                { id: 'Li', name: 'Litio', valence: 1, shells: [2, 1] },
+                { id: 'Mg', name: 'Magnesio', valence: 2, shells: [2, 8, 2] },
+                { id: 'Ca', name: 'Calcio', valence: 2, shells: [2, 8, 8, 2] }
+            ],
+            nonMetals: [
+                { id: 'Cl', name: 'Cloro', needs: 1, valence: 7, shells: [2, 8, 7] },
+                { id: 'F', name: 'Flúor', needs: 1, valence: 7, shells: [2, 7] },
+                { id: 'O', name: 'Oxígeno', needs: 2, valence: 6, shells: [2, 6] }
+            ]
+        };
+
+        const COVALENT_DATA = [
+            { id: 'H2', name: 'Hidrógeno', formula: 'H₂', type: 'diatomic', atoms: ['H', 'H'], valence: [1, 1] },
+            { id: 'Cl2', name: 'Cloro', formula: 'Cl₂', type: 'diatomic', atoms: ['Cl', 'Cl'], valence: [7, 7] },
+            { id: 'O2', name: 'Oxígeno', formula: 'O₂', type: 'diatomic', atoms: ['O', 'O'], valence: [6, 6], double: true },
+            { id: 'HCl', name: 'Ácido Clorhídrico', formula: 'HCl', type: 'diatomic', atoms: ['H', 'Cl'], valence: [1, 7] },
+            { id: 'H2O', name: 'Agua', formula: 'H₂O', type: 'angular', center: 'O', side: 'H' },
+            { id: 'CH4', name: 'Metano', formula: 'CH₄', type: 'tetra', center: 'C', side: 'H' },
+            { id: 'PH3', name: 'Fosfano', formula: 'PH₃', type: 'pyramidal', center: 'P', side: 'H' }
+        ];
+
+        const METALLIC_DATA = [
+            { id: 'Na', name: 'Sodio (Na)', valence: 1, shells: [2,8,1] },
+            { id: 'Fe', name: 'Hierro (Fe)', valence: 2, shells: [2,8,14,2] },
+            { id: 'Mg', name: 'Magnesio (Mg)', valence: 2, shells: [2,8,2] },
+            { id: 'Al', name: 'Aluminio (Al)', valence: 3, shells: [2,8,3] }
+        ];
+        
+        const ALLOY_INFO = {
+            'Sn': { shells: [2,8,18,4], valence: 4 },
+            'Zn': { shells: [2,8,18,2], valence: 2 }
+        };
+
+        const ELEMENTS_INFO = {
+            'H': { shells: [1], color: '#3b82f6', symbol: 'H' },
+            'C': { shells: [2, 4], color: '#374151', symbol: 'C' },
+            'N': { shells: [2, 5], color: '#374151', symbol: 'N' },
+            'O': { shells: [2, 6], color: '#ef4444', symbol: 'O' },
+            'F': { shells: [2, 7], color: '#10b981', symbol: 'F' },
+            'P': { shells: [2, 8, 5], color: '#f59e0b', symbol: 'P' },
+            'Cl': { shells: [2, 8, 7], color: '#10b981', symbol: 'Cl' }
+        };
+
+        /** --- APP CLASS --- */
+        class App {
+            constructor() {
+                this.mode = 'ionic';
+                this.state = 'neutral';
+                this.canvas = document.getElementById('mainCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.selections = { ionic: { m: 0, nm: 0 }, covalent: { mol: 0 }, metallic: { m: 0 } };
+                this.animTime = 0;
+                this.init();
+            }
+
+            init() {
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                document.getElementById('action-btn').addEventListener('click', () => this.toggleAction());
+                this.setMode('ionic');
+                this.loop();
+            }
+
+            resize() {
+                const p = this.canvas.parentElement;
+                this.canvas.width = p.clientWidth;
+                this.canvas.height = p.clientHeight;
+                this.draw();
+            }
+
+            setMode(m) {
+                this.mode = m;
+                this.resetState();
+                
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById(`tab-${m}`)?.classList.add('active');
+                
+                this.renderUI();
+                this.updateLegend();
+            }
+
+            resetState() {
+                this.state = 'neutral';
+                this.animTime = 0;
+                // Important: clear layouts to force redraw with correct selection
+                IonicManager.layout = [];
+                IonicManager.particles = [];
+                MetallicManager.electrons = [];
+                this.updateBtn();
+            }
+
+            toggleAction() {
+                if(this.state === 'neutral') {
+                    this.state = 'animating';
+                    this.animTime = 0;
+                    
+                    if(this.mode === 'ionic') IonicManager.setup(this);
+                    if(this.mode === 'metallic') MetallicManager.setup(this);
+                    
+                } else if (this.state === 'bonded') {
+                    this.state = 'neutral';
+                    this.animTime = 0;
+                }
+                this.updateBtn();
+            }
+
+            updateBtn() {
+                const btn = document.getElementById('action-btn');
+                const txt = document.getElementById('btn-text');
+                const st = document.getElementById('status-text');
+                
+                if(this.state === 'neutral') {
+                    txt.innerText = "Formar Enlace";
+                    btn.classList.replace('bg-red-600','from-indigo-600');
+                    st.innerText = "Estado: Átomos Neutros";
+                } else if (this.state === 'animating') {
+                    txt.innerText = "Enlazando...";
+                    st.innerText = "Proceso en curso...";
+                } else {
+                    txt.innerText = "Reiniciar";
+                    btn.classList.replace('from-indigo-600','bg-red-600');
+                    st.innerText = "Estado: Enlace Formado";
+                }
+            }
+
+            renderUI() {
+                const p = document.getElementById('controls-panel');
+                p.innerHTML = '';
+                const title = document.getElementById('view-title');
+                const tag = document.getElementById('formula-tag');
+                const sub = document.getElementById('view-subtitle');
+
+                if(this.mode === 'ionic') {
+                    title.innerText = "Enlace Iónico";
+                    sub.innerText = "Transferencia de electrones por atracción electrostática.";
+                    const s1 = this.createSelect("Metal (Cede)", IONIC_DATA.metals, this.selections.ionic.m, (v)=>{this.selections.ionic.m=v; this.resetState();});
+                    const s2 = this.createSelect("No Metal (Gana)", IONIC_DATA.nonMetals, this.selections.ionic.nm, (v)=>{this.selections.ionic.nm=v; this.resetState();});
+                    p.append(s1, s2);
+                    tag.innerText = "M⁺ + X⁻";
+                } else if(this.mode === 'covalent') {
+                    title.innerText = "Enlace Covalente";
+                    sub.innerText = "Compartición de pares de electrones entre no metales.";
+                    const s = this.createSelect("Molécula", COVALENT_DATA, this.selections.covalent.mol, (v)=>{this.selections.covalent.mol=v; this.resetState();});
+                    p.append(s);
+                    tag.innerText = COVALENT_DATA[this.selections.covalent.mol].formula;
+                } else {
+                    title.innerText = "Enlace Metálico";
+                    sub.innerText = "Mar de electrones deslocalizados entre cationes.";
+                    const s = this.createSelect("Material", METALLIC_DATA, this.selections.metallic.m, (v)=>{this.selections.metallic.m=v; this.resetState();});
+                    p.append(s);
+                    tag.innerText = "Red Metálica";
+                }
+            }
+
+            createSelect(label, data, selected, cb) {
+                const d = document.createElement('div');
+                d.className = "mb-4";
+                d.innerHTML = `<label class="block text-xs font-bold text-slate-500 uppercase mb-1">${label}</label>`;
+                const s = document.createElement('select');
+                s.className = "w-full p-3 rounded bg-slate-50 border border-slate-200 text-lg text-slate-700 font-sans";
+                data.forEach((item, i) => {
+                    const txt = item.formula ? `${item.formula} - ${item.name}` : item.name;
+                    s.innerHTML += `<option value="${i}">${txt}</option>`;
+                });
+                s.selectedIndex = selected;
+                s.onchange = (e) => cb(e.target.value);
+                d.appendChild(s);
+                return d;
+            }
+
+            updateLegend() {
+                const el = document.getElementById('legend-content');
+                if(this.mode === 'ionic') {
+                    el.innerHTML = `
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><span>e⁻ Metal</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 text-blue-600 font-bold flex items-center justify-center">×</div><span>e⁻ No Metal</span></div>
+                    `;
+                } else if(this.mode === 'covalent') {
+                    el.innerHTML = `
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><span>electrón</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 text-blue-600 font-bold flex items-center justify-center">×</div><span>electrón</span></div>
+                    `;
+                } else {
+                    el.innerHTML = `
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><span>e⁻ libre</span></div>
+                        <div class="flex items-center gap-2"><div class="w-4 h-4 rounded bg-slate-200"></div><span>Nube electrónica</span></div>
+                    `;
+                }
+            }
+
+            loop() {
+                if(this.state === 'animating') {
+                    this.animTime += 0.008; 
+                    if(this.animTime > 1) { this.state = 'bonded'; this.animTime = 1; this.updateBtn(); }
+                }
+
+                if((this.mode === 'metallic' && (this.state === 'bonded' || this.state === 'animating'))) {
+                    MetallicManager.updatePhysics();
+                }
+
+                this.draw();
+                requestAnimationFrame(() => this.loop());
+            }
+
+            draw() {
+                const { width, height } = this.canvas;
+                this.ctx.clearRect(0, 0, width, height);
+                
+                if(this.mode === 'ionic') IonicManager.draw(this);
+                else if(this.mode === 'covalent') CovalentManager.draw(this);
+                else if(this.mode === 'metallic') MetallicManager.draw(this);
+            }
+        }
+
+        const Draw = {
+            circle: (ctx, x, y, r, color, fill=false) => {
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI*2);
+                if(fill) { ctx.fillStyle = color; ctx.fill(); }
+                else { ctx.strokeStyle = color; ctx.lineWidth=2; ctx.stroke(); }
+            },
+            dot: (ctx, x, y, color) => {
+                ctx.beginPath(); ctx.arc(x, y, CONFIG.radii.electron, 0, Math.PI*2);
+                ctx.fillStyle = color; ctx.fill();
+            },
+            cross: (ctx, x, y, color) => {
+                const s = 4; ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+                ctx.moveTo(x-s, y-s); ctx.lineTo(x+s, y+s); ctx.moveTo(x+s, y-s); ctx.lineTo(x-s, y+s); ctx.stroke();
+            },
+            text: (ctx, t, x, y, c='#333') => {
+                ctx.font = "bold 16px sans-serif"; ctx.fillStyle = c;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, x, y);
+            }
+        };
+
+        /** --- IONIC MANAGER --- */
+        const IonicManager = {
+            layout: [],
+            particles: [],
+            gap: 300, 
+
+            setup(app) {
+                this.particles = [];
+                const m = IONIC_DATA.metals[app.selections.ionic.m];
+                const nm = IONIC_DATA.nonMetals[app.selections.ionic.nm];
+
+                const electronsTotal = lcm(m.valence, nm.needs);
+                const countM = electronsTotal / m.valence;
+                const countNM = electronsTotal / nm.needs;
+                
+                const { cx, cy } = { cx: app.canvas.width/2, cy: app.canvas.height/2 };
+                this.layout = [];
+                const totalAtoms = countM + countNM;
+                let startX = cx - ((totalAtoms - 1) * this.gap) / 2;
+
+                let pattern = [];
+                if(countM === 1 && countNM === 1) pattern = [{t:'m', d:m}, {t:'nm', d:nm}];
+                else if(countM === 1 && countNM === 2) pattern = [{t:'nm', d:nm}, {t:'m', d:m}, {t:'nm', d:nm}];
+                else if(countM === 2 && countNM === 1) pattern = [{t:'m', d:m}, {t:'nm', d:nm}, {t:'m', d:m}];
+
+                pattern.forEach((p, i) => {
+                    this.layout.push({
+                        type: p.t, data: p.d, id: i, x: startX + i * this.gap, y: cy, electronsGained: 0
+                    });
+                });
+
+                this.layout.filter(a => a.type === 'm').forEach(metalObj => {
+                    const mValence = metalObj.data.valence;
+                    const mR = CONFIG.radii.shellBase + (metalObj.data.shells.length - 1) * CONFIG.radii.shellStep;
+                    let eIndex = 0;
+                    
+                    this.layout.filter(a => a.type === 'nm').forEach(nmObj => {
+                        const needed = nmObj.data.needs;
+                        for(let k=0; k<needed; k++) {
+                            if(eIndex >= mValence) break;
+
+                            const angS = -Math.PI/2 + (eIndex * (Math.PI*2/mValence));
+                            const sx = metalObj.x + Math.cos(angS) * mR;
+                            const sy = metalObj.y + Math.sin(angS) * mR;
+
+                            const totalValence = nmObj.data.shells[nmObj.data.shells.length-1] + nmObj.data.needs;
+                            const targetSlot = (totalValence - nmObj.data.needs) + nmObj.electronsGained; 
+                            const nmR = CONFIG.radii.shellBase + (nmObj.data.shells.length - 1) * CONFIG.radii.shellStep;
+                            const angT = -Math.PI/2 + (targetSlot * (Math.PI*2/totalValence));
+                            const tx = nmObj.x + Math.cos(angT) * nmR;
+                            const ty = nmObj.y + Math.sin(angT) * nmR;
+
+                            this.particles.push({ sx, sy, tx, ty, delay: (eIndex + nmObj.electronsGained) * 0.1 });
+                            nmObj.electronsGained++;
+                            eIndex++;
+                        }
+                    });
+                });
+            },
+
+            draw(app) {
+                const ctx = app.ctx;
+                if(this.layout.length === 0 && app.state === 'neutral') this.setup(app);
+
+                const mData = IONIC_DATA.metals[app.selections.ionic.m];
+                const nmData = IONIC_DATA.nonMetals[app.selections.ionic.nm];
+
+                const rM = CONFIG.radii.shellBase + (mData.shells.length - 2) * CONFIG.radii.shellStep;
+                const rNM = CONFIG.radii.shellBase + (nmData.shells.length - 1) * CONFIG.radii.shellStep;
+                const minDistance = rM + rNM + 50; 
+                let moveFactor = 1 - (minDistance / this.gap);
+                if (moveFactor < 0) moveFactor = 0;
+
+                let tFlight = 0, tFade = 0, tBracket = 0, tMove = 0;
+                
+                if (app.state === 'bonded') {
+                    tFlight = 1; tFade = 1; tBracket = 1; tMove = 1;
+                } else if (app.state === 'animating') {
+                    const at = app.animTime;
+                    tFlight = Math.min(1, at / 0.4); 
+                    tFade = (at > 0.4) ? Math.min(1, (at - 0.4)/0.1) : 0; 
+                    tBracket = (at > 0.5) ? Math.min(1, (at - 0.5)/0.2) : 0; 
+                    tMove = (at > 0.7) ? Math.min(1, (at - 0.7)/0.3) : 0; 
+                }
+
+                this.layout.forEach(atom => {
+                    let dx = 0;
+                    if(tMove > 0) {
+                        const center = app.canvas.width/2;
+                        dx = (center - atom.x) * moveFactor * tMove;
+                    }
+                    const drawX = atom.x + dx;
+                    const drawY = atom.y;
+
+                    const shells = atom.data.shells;
+                    let valenceAlpha = 1;
+                    if (atom.type === 'm') valenceAlpha = 1 - tFade;
+
+                    Draw.circle(ctx, drawX, drawY, CONFIG.radii.nucleus, atom.type==='m'?'#fee2e2':'#dbeafe', true);
+                    Draw.text(ctx, atom.data.id, drawX, drawY, atom.type==='m'?'#b91c1c':'#1e40af');
+
+                    shells.forEach((count, sIdx) => {
+                        const isValence = sIdx === shells.length - 1;
+                        const r = CONFIG.radii.shellBase + sIdx * CONFIG.radii.shellStep;
+                        
+                        if (atom.type === 'm' && isValence) {
+                            if (valenceAlpha > 0) {
+                                ctx.globalAlpha = valenceAlpha;
+                                Draw.circle(ctx, drawX, drawY, r, '#cbd5e1');
+                                ctx.globalAlpha = 1;
+                            }
+                        } else {
+                            Draw.circle(ctx, drawX, drawY, r, '#cbd5e1');
+                        }
+
+                        let eTotalSlots = count;
+                        if (atom.type === 'm' && isValence && tFlight > 0) return; 
+                        if (atom.type === 'nm' && isValence) eTotalSlots = count + atom.data.needs;
+
+                        const step = (Math.PI*2) / eTotalSlots;
+                        for(let i=0; i<eTotalSlots; i++) {
+                            const a = -Math.PI/2 + i*step;
+                            const ex = drawX + Math.cos(a)*r;
+                            const ey = drawY + Math.sin(a)*r;
+                            
+                            if (i < count) { 
+                                if(atom.type === 'm') Draw.dot(ctx, ex, ey, CONFIG.colors.metalElectron);
+                                else Draw.cross(ctx, ex, ey, CONFIG.colors.nonMetalElectron);
+                            }
+                        }
+                    });
+
+                    if (atom.type === 'nm' && tFlight >= 1) {
+                        const r = CONFIG.radii.shellBase + (shells.length - 1) * CONFIG.radii.shellStep;
+                        const total = shells[shells.length-1] + atom.data.needs;
+                        const step = (Math.PI*2) / total;
+                        for(let i=shells[shells.length-1]; i<total; i++) {
+                            const a = -Math.PI/2 + i*step;
+                            const ex = drawX + Math.cos(a)*r;
+                            const ey = drawY + Math.sin(a)*r;
+                            // KEEP RED COLOR FOR GAINED ELECTRON
+                            Draw.dot(ctx, ex, ey, CONFIG.colors.metalElectron);
+                        }
+                    }
+
+                    if (tBracket > 0) {
+                        ctx.globalAlpha = tBracket;
+                        const rOuter = CONFIG.radii.shellBase + (atom.type==='m' ? shells.length-2 : shells.length-1) * CONFIG.radii.shellStep;
+                        const charge = atom.type==='m' ? `+${atom.data.valence}` : `-${atom.data.needs}`;
+                        this.drawBracket(ctx, drawX, drawY, rOuter + 15, charge);
+                        ctx.globalAlpha = 1;
+                    }
+                });
+
+                if (tFlight > 0 && tFlight < 1) {
+                    this.particles.forEach(p => {
+                        let t = (tFlight - p.delay * 0.3) * 1.5;
+                        if (t<0) t=0; if(t>1) t=1;
+
+                        if (t>0 && t<1) {
+                            const mx = (p.sx+p.tx)/2;
+                            const my = Math.min(p.sy, p.ty) - 60;
+                            const cx = (1-t)*(1-t)*p.sx + 2*(1-t)*t*mx + t*t*p.tx;
+                            const cy = (1-t)*(1-t)*p.sy + 2*(1-t)*t*my + t*t*p.ty;
+                            
+                            Draw.dot(ctx, cx, cy, '#fbbf24');
+                            ctx.beginPath();
+                            ctx.moveTo(p.sx, p.sy);
+                            ctx.quadraticCurveTo(mx, my, p.tx, p.ty);
+                            ctx.strokeStyle = "rgba(251, 191, 36, 0.4)";
+                            ctx.lineWidth = 2;
+                            ctx.stroke();
+                        }
+                    });
+                }
+            },
+
+            drawBracket(ctx, x, y, r, label) {
+                ctx.strokeStyle = "rgba(148, 163, 184, 0.6)";
+                ctx.lineWidth = 1;
+                const w = 10;
+                const h = r + 5;
+                
+                ctx.beginPath(); ctx.moveTo(x - r + w, y - h); ctx.lineTo(x - r, y - h); ctx.lineTo(x - r, y + h); ctx.lineTo(x - r + w, y + h); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x + r - w, y - h); ctx.lineTo(x + r, y - h); ctx.lineTo(x + r, y + h); ctx.lineTo(x + r - w, y + h); ctx.stroke();
+                
+                ctx.font = "bold 20px serif"; ctx.fillStyle = "#64748b"; ctx.fillText(label, x + r + 12, y - h + 10);
+            }
+        };
+
+        /** --- COVALENT MANAGER --- */
+        const CovalentManager = {
+            draw(app) {
+                const ctx = app.ctx;
+                const { cx, cy } = { cx: app.canvas.width/2, cy: app.canvas.height/2 };
+                const mol = COVALENT_DATA[app.selections.covalent.mol];
+                
+                const scale = 1.3; 
+                const getR = (sym) => (CONFIG.radii.shellBase + (ELEMENTS_INFO[sym].shells.length-1)*CONFIG.radii.shellStep) * scale;
+                
+                const rCenter = getR(mol.center || mol.atoms[0]);
+                const rSide = getR(mol.side || mol.atoms[1]);
+                
+                const distNeutral = (rCenter + rSide) * 1.5;
+                const overlapFactor = (mol.id === 'PH3') ? 0.9 : 0.95; 
+                const distBonded = (rCenter + rSide) * overlapFactor; 
+                
+                const d = distNeutral - (distNeutral - distBonded) * app.animTime;
+
+                if (mol.type === 'diatomic') this.drawPair(ctx, cx, cy, mol.atoms, d, scale, app.state, mol.double);
+                else if (mol.type === 'linear') this.drawLinear(ctx, cx, cy, mol, d, scale, app.state);
+                else if (mol.type === 'angular') this.drawAngular(ctx, cx, cy, mol, d, scale, app.state);
+                else if (mol.type === 'tetra') this.drawTetra(ctx, cx, cy, mol, d, scale, app.state);
+                else if (mol.type === 'pyramidal') this.drawPyramidal(ctx, cx, cy, mol, d, scale, app.state);
+            },
+
+            drawAtom(ctx, x, y, sym, scale, type) {
+                const info = ELEMENTS_INFO[sym];
+                const isRed = type === 'm';
+                const bg = isRed ? '#fee2e2' : '#dbeafe'; 
+                const txt = isRed ? '#b91c1c' : '#1e40af';
+                
+                Draw.circle(ctx, x, y, CONFIG.radii.nucleus*scale, bg, true);
+                Draw.text(ctx, sym, x, y, txt);
+                
+                info.shells.forEach((n, i) => {
+                    const r = (CONFIG.radii.shellBase + i*CONFIG.radii.shellStep) * scale;
+                    Draw.circle(ctx, x, y, r, '#cbd5e1'); 
+                    
+                    if (i < info.shells.length - 1) { 
+                        for(let k=0; k<n; k++) {
+                            const a = k*(Math.PI*2/n);
+                            if (isRed) Draw.dot(ctx, x+Math.cos(a)*r, y+Math.sin(a)*r, CONFIG.colors.metalElectron);
+                            else Draw.cross(ctx, x+Math.cos(a)*r, y+Math.sin(a)*r, CONFIG.colors.nonMetalElectron);
+                        }
+                    }
+                });
+            },
+
+            drawValence(ctx, cx, cy, sym, neighbors, state, type, scale, customAngles = null) {
+                const info = ELEMENTS_INFO[sym];
+                const r = (CONFIG.radii.shellBase + (info.shells.length-1)*CONFIG.radii.shellStep) * scale;
+                const valenceN = info.shells[info.shells.length-1];
+                let drawn = 0;
+                
+                const isRed = type === 'm';
+                const eColor = isRed ? CONFIG.colors.metalElectron : CONFIG.colors.nonMetalElectron;
+                const drawE = (x, y) => {
+                    if (isRed) Draw.dot(ctx, x, y, eColor);
+                    else Draw.cross(ctx, x, y, eColor);
+                };
+
+                let sharedIndex = 0;
+                neighbors.forEach(n => {
+                    const ang = Math.atan2(n.y - cy, n.x - cx);
+                    const distTotal = Math.sqrt((n.x-cx)**2 + (n.y-cy)**2);
+                    const rNeighbor = n.r; 
+                    const ratio = r / (r + rNeighbor); 
+                    
+                    for(let i=0; i<n.count; i++) {
+                        let px, py;
+                        if(state === 'bonded') {
+                            const contactDist = distTotal * ratio;
+                            const shift = 0; 
+                            
+                            // Espaciado vertical específico para O2: +/- 9 y +/- 18 px
+                            let spacing = (n.count === 2) ? 14 : 6; // Default
+                            if (n.spacing) spacing = n.spacing; // Custom spacing for O2
+                            
+                            const off = (i===0 ? -spacing : spacing) * scale; 
+                            
+                            px = cx + Math.cos(ang)*(contactDist - shift) + Math.cos(ang+Math.PI/2)*off;
+                            py = cy + Math.sin(ang)*(contactDist - shift) + Math.sin(ang+Math.PI/2)*off;
+                        } else {
+                            if (n.count === 2 && customAngles && customAngles.shared) {
+                                const fixedAng = toRad(customAngles.shared[i]);
+                                px = cx + Math.cos(fixedAng)*r;
+                                py = cy + Math.sin(fixedAng)*r;
+                            } else if (n.count === 1 && customAngles && customAngles.shared) {
+                                // Fix H2O shared electrons index issue
+                                // Use sharedIndex to pick from shared array correctly across multiple neighbors
+                                const fixedAng = toRad(customAngles.shared[sharedIndex]);
+                                px = cx + Math.cos(fixedAng)*r;
+                                py = cy + Math.sin(fixedAng)*r;
+                            } else {
+                                const off = (i===0?0:0.2);
+                                px = cx + Math.cos(ang+off)*r;
+                                py = cy + Math.sin(ang+off)*r;
+                            }
+                        }
+                        drawE(px, py);
+                        drawn++;
+                        sharedIndex++;
+                    }
+                });
+
+                const remain = valenceN - drawn;
+                if(remain > 0) {
+                    if (customAngles && customAngles.lone) {
+                        for(let k=0; k<remain; k++) {
+                            const deg = customAngles.lone[k % customAngles.lone.length];
+                            const ang = toRad(deg);
+                            const px = cx + Math.cos(ang)*r;
+                            const py = cy + Math.sin(ang)*r;
+                            drawE(px, py);
+                        }
+                    } else {
+                        const avoidAngles = neighbors.map(n => Math.atan2(n.y-cy, n.x-cx));
+                        let ang = avoidAngles.length ? avoidAngles[0] + Math.PI : 0;
+                        if (sym === 'O') {
+                           if (avoidAngles.length === 2) { 
+                               const avgAngle = (avoidAngles[0] + avoidAngles[1]) / 2;
+                               ang = avgAngle + Math.PI; 
+                           } else if (avoidAngles.length === 1) { 
+                               ang = avoidAngles[0] + Math.PI;
+                           }
+                        }
+                        for(let k=0; k<remain; k++) {
+                            let good = false; let safety = 0;
+                            while(!good && safety < 20) {
+                                good = true;
+                                for(let av of avoidAngles) if(Math.abs(ang-av) < 1.0) good = false;
+                                if(!good) ang += 0.2;
+                                safety++;
+                            }
+                            const px = cx + Math.cos(ang)*r;
+                            const py = cy + Math.sin(ang)*r;
+                            drawE(px, py);
+                            ang += (Math.PI*2)/(remain+1);
+                        }
+                    }
+                }
+            },
+
+            drawPair(ctx, cx, cy, atoms, d, scale, st, dbl) {
+                const c1={x:cx-d/2, y:cy}, c2={x:cx+d/2, y:cy};
+                const r1 = (CONFIG.radii.shellBase + (ELEMENTS_INFO[atoms[0]].shells.length-1)*CONFIG.radii.shellStep) * scale;
+                const r2 = (CONFIG.radii.shellBase + (ELEMENTS_INFO[atoms[1]].shells.length-1)*CONFIG.radii.shellStep) * scale;
+
+                this.drawAtom(ctx, c1.x, c1.y, atoms[0], scale, 'm');
+                this.drawAtom(ctx, c2.x, c2.y, atoms[1], scale, 'nm');
+                const cnt = dbl?2:1;
+                
+                let ang1 = null, ang2 = null;
+                let spacing1 = null, spacing2 = null;
+
+                if (atoms[0] === 'Cl' && !dbl) {
+                    ang1 = { lone: [40, 85, 135, 180, 225, 275, 320] };
+                    ang2 = { lone: [140, 95, 45, 0, 315, 265, 220] };
+                }
+                
+                if (atoms[0] === 'O' && dbl) {
+                    ang1 = { shared: [5, 355], lone: [75, 145, 215, 285] };
+                    ang2 = { shared: [175, 185], lone: [255, 325, 35, 105] };
+                    // Base spacing for 9px and 18px (accounting for 1.3 scale)
+                    // 7 * 1.3 ~ 9.1
+                    // 14 * 1.3 ~ 18.2
+                    spacing1 = 7;
+                    spacing2 = 14;
+                }
+
+                this.drawValence(ctx, c1.x, c1.y, atoms[0], [{x:c2.x, y:c2.y, r:r2, count:cnt, spacing: spacing1}], st, 'm', scale, ang1);
+                this.drawValence(ctx, c2.x, c2.y, atoms[1], [{x:c1.x, y:c1.y, r:r1, count:cnt, spacing: spacing2}], st, 'nm', scale, ang2);
+            },
+            drawLinear(ctx, cx, cy, mol, d, scale, st) {
+                const c={x:cx,y:cy}, l={x:cx-d,y:cy}, r={x:cx+d,y:cy};
+                const rC = (CONFIG.radii.shellBase + (ELEMENTS_INFO[mol.center].shells.length-1)*CONFIG.radii.shellStep) * scale;
+                const rS = (CONFIG.radii.shellBase + (ELEMENTS_INFO[mol.side].shells.length-1)*CONFIG.radii.shellStep) * scale;
+
+                this.drawAtom(ctx, l.x, l.y, mol.side, scale, 'nm');
+                this.drawAtom(ctx, r.x, r.y, mol.side, scale, 'nm');
+                this.drawAtom(ctx, c.x, c.y, mol.center, scale, 'm'); 
+                
+                this.drawValence(ctx, c.x, c.y, mol.center, [{x:l.x,y:l.y,r:rS,count:2},{x:r.x,y:r.y,r:rS,count:2}], st, 'm', scale);
+                this.drawValence(ctx, l.x, l.y, mol.side, [{x:c.x,y:c.y,r:rC,count:2}], st, 'nm', scale);
+                this.drawValence(ctx, r.x, r.y, mol.side, [{x:c.x,y:c.y,r:rC,count:2}], st, 'nm', scale);
+            },
+            drawAngular(ctx, cx, cy, mol, d, scale, st) {
+                const a = Math.PI/4 + 0.3;
+                const c={x:cx,y:cy-20}, l={x:cx-Math.cos(a)*d,y:cy-20+Math.sin(a)*d}, r={x:cx+Math.cos(a)*d,y:cy-20+Math.sin(a)*d};
+                const rC = (CONFIG.radii.shellBase + (ELEMENTS_INFO[mol.center].shells.length-1)*CONFIG.radii.shellStep) * scale;
+                const rS = (CONFIG.radii.shellBase + (ELEMENTS_INFO[mol.side].shells.length-1)*CONFIG.radii.shellStep) * scale;
+
+                this.drawAtom(ctx, c.x, c.y, mol.center, scale, 'm');
+                this.drawAtom(ctx, l.x, l.y, mol.side, scale, 'nm');
+                this.drawAtom(ctx, r.x, r.y, mol.side, scale, 'nm');
+                
+                let angC = null;
+                if (mol.formula === 'H₂O') {
+                    // Custom angles for O in H2O
+                    // Shared: 60, 120 (towards bottom right/left). Lone: 0, 180, 240, 300
+                    angC = { shared: [60, 120], lone: [0, 180, 240, 300] }; 
+                }
+
+                this.drawValence(ctx, c.x, c.y, mol.center, [{x:l.x,y:l.y,r:rS,count:1},{x:r.x,y:r.y,r:rS,count:1}], st, 'm', scale, angC);
+                this.drawValence(ctx, l.x, l.y, mol.side, [{x:c.x,y:c.y,r:rC,count:1}], st, 'nm', scale);
+                this.drawValence(ctx, r.x, r.y, mol.side, [{x:c.x,y:c.y,r:rC,count:1}], st, 'nm', scale);
+            },
+            drawTetra(ctx, cx, cy, mol, d, scale, st) {
+                const c={x:cx,y:cy}, u={x:cx,y:cy-d}, dw={x:cx,y:cy+d}, l={x:cx-d,y:cy}, r={x:cx+d,y:cy};
+                const rC = (CONFIG.radii.shellBase + (ELEMENTS_INFO[mol.center].shells.length-1)*CONFIG.radii.shellStep) * scale;
+                const rS = (CONFIG.radii.shellBase + (ELEMENTS_INFO[mol.side].shells.length-1)*CONFIG.radii.shellStep) * scale;
+
+                [u,dw,l,r].forEach(p=>this.drawAtom(ctx, p.x, p.y, mol.side, scale, 'nm'));
+                this.drawAtom(ctx, c.x, c.y, mol.center, scale, 'm');
+                this.drawValence(ctx, c.x, c.y, mol.center, [u,dw,l,r].map(p=>({x:p.x,y:p.y,r:rS,count:1})), st, 'm', scale);
+                [u,dw,l,r].forEach(p=>this.drawValence(ctx, p.x, p.y, mol.side, [{x:c.x,y:c.y,r:rC,count:1}], st, 'nm', scale));
+            },
+            drawPyramidal(ctx, cx, cy, mol, d, scale, st) {
+                const c = {x: cx, y: cy - 20};
+                const a1 = Math.PI / 2; 
+                const a2 = Math.PI / 2 + 2.1; 
+                const a3 = Math.PI / 2 - 2.1; 
+                
+                const b = {x: c.x + Math.cos(a1)*d, y: c.y + Math.sin(a1)*d};
+                const l = {x: c.x + Math.cos(a2)*d, y: c.y + Math.sin(a2)*d};
+                const r = {x: c.x + Math.cos(a3)*d, y: c.y + Math.sin(a3)*d};
+                
+                const rC = (CONFIG.radii.shellBase + (ELEMENTS_INFO[mol.center].shells.length-1)*CONFIG.radii.shellStep) * scale;
+                const rS = (CONFIG.radii.shellBase + (ELEMENTS_INFO[mol.side].shells.length-1)*CONFIG.radii.shellStep) * scale;
+
+                [l,r,b].forEach(p=>this.drawAtom(ctx, p.x, p.y, mol.side, scale, 'nm'));
+                this.drawAtom(ctx, c.x, c.y, mol.center, scale, 'm');
+                
+                this.drawValence(ctx, c.x, c.y, mol.center, [l,r,b].map(p=>({x:p.x,y:p.y,r:rS,count:1})), st, 'm', scale);
+                [l,r,b].forEach(p=>this.drawValence(ctx, p.x, p.y, mol.side, [{x:c.x,y:c.y,r:rC,count:1}], st, 'nm', scale));
+            }
+        };
+
+        /** --- METALLIC MANAGER --- */
+        const MetallicManager = {
+            electrons: [],
+            setup(app) { this.electrons = []; },
+            updatePhysics() {
+                const mData = METALLIC_DATA[app.selections.metallic.m];
+                const valence = mData.valence;
+                const totalE = Math.floor(4 * valence); 
+                if (this.electrons.length !== totalE) {
+                    this.electrons = [];
+                    for(let i=0; i<totalE; i++) {
+                        // Spawn randomly in the annulus area (approx)
+                        // Simple: Spawn in cloud, if inside atoms, retry.
+                        // For simplicity in init: random box spawn, physics corrects them.
+                        this.electrons.push({
+                            x: (Math.random()-0.5)*250, y: (Math.random()-0.5)*250,
+                            vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*3
+                        });
+                    }
+                }
+                
+                // Physics Params
+                const shells = mData.shells;
+                // Final bonded position calc (same as draw)
+                const rCation = CONFIG.radii.shellBase + (shells.length - 2) * CONFIG.radii.shellStep;
+                const dBonded = 2 * rCation + 20; 
+                
+                // Boundaries (relative to center 0,0)
+                const innerBoundary = (dBonded / 2) + rCation + 12; // Black border
+                const outerBoundary = (dBonded / 2) + rCation + 45; // Grey border
+                
+                // Cations Positions (relative to center)
+                const sep = dBonded / 2; // Half dist
+                const cations = [
+                    {x:-sep, y:-sep}, {x: sep, y:-sep},
+                    {x:-sep, y: sep}, {x: sep, y: sep}
+                ];
+
+                this.electrons.forEach(e => {
+                    e.x += e.vx; e.y += e.vy;
+                    
+                    // 1. Constrain to OUTER Box (Grey Cloud)
+                    if (e.x < -outerBoundary || e.x > outerBoundary) e.vx *= -1;
+                    if (e.y < -outerBoundary || e.y > outerBoundary) e.vy *= -1;
+                    
+                    // 2. Bounce off INNER Box (Black Border - The "Hole")
+                    // If inside inner box, push out.
+                    if (e.x > -innerBoundary && e.x < innerBoundary && e.y > -innerBoundary && e.y < innerBoundary) {
+                        // Determine penetration depth on each axis
+                        const distLeft = e.x - (-innerBoundary);
+                        const distRight = innerBoundary - e.x;
+                        const distTop = e.y - (-innerBoundary);
+                        const distBottom = innerBoundary - e.y;
+                        
+                        // Find smallest penetration
+                        const min = Math.min(distLeft, distRight, distTop, distBottom);
+                        
+                        if (min === distLeft) { e.x = -innerBoundary - 1; e.vx = -Math.abs(e.vx); }
+                        else if (min === distRight) { e.x = innerBoundary + 1; e.vx = Math.abs(e.vx); }
+                        else if (min === distTop) { e.y = -innerBoundary - 1; e.vy = -Math.abs(e.vy); }
+                        else if (min === distBottom) { e.y = innerBoundary + 1; e.vy = Math.abs(e.vy); }
+                    }
+                });
+            },
+            draw(app) {
+                const ctx = app.ctx;
+                const { cx, cy } = { cx: app.canvas.width/2, cy: app.canvas.height/2 };
+                const mData = METALLIC_DATA[app.selections.metallic.m];
+                
+                const shells = mData.shells;
+                const rCation = CONFIG.radii.shellBase + (shells.length - 2) * CONFIG.radii.shellStep;
+                const dBonded = 2 * rCation + 20;
+                const dNeutral = 2 * (rCation + CONFIG.radii.shellStep) + 60;
+
+                // Cloud Drawing
+                if (app.animTime > 0) {
+                     ctx.save(); ctx.translate(cx, cy);
+                     
+                     // 1. Grey Cloud (+45px)
+                     ctx.fillStyle = `rgba(203, 213, 225, ${0.5 * app.animTime})`;
+                     const extentGrey = (dBonded / 2) + rCation + 45;
+                     ctx.beginPath();
+                     ctx.roundRect(-extentGrey, -extentGrey, 2*extentGrey, 2*extentGrey, 60);
+                     ctx.fill(); 
+
+                     // 2. Black Outline (+12px) - AHORA TRANSPARENTE (Solo lógica física)
+                     // Se ha eliminado el stroke() para que no se vea la línea, 
+                     // pero los electrones seguirán rebotando ahí gracias a updatePhysics.
+                     
+                     ctx.restore();
+                }
+                
+                const d = dNeutral - (dNeutral - dBonded) * app.animTime;
+                
+                // Draw Cations (Separation d)
+                const sep = d / 2;
+                const pos = [
+                    {x:cx-sep, y:cy-sep}, {x:cx+sep, y:cy-sep},
+                    {x:cx-sep, y:cy+sep}, {x:cx+sep, y:cy+sep}
+                ];
+
+                pos.forEach((p, i) => {
+                    Draw.circle(ctx, p.x, p.y, CONFIG.radii.nucleus, '#ef4444', true);
+                    Draw.text(ctx, mData.id, p.x, p.y, 'white');
+                    const valenceI = shells.length - 1;
+                    shells.forEach((n, sIdx) => {
+                        const r = CONFIG.radii.shellBase + sIdx * CONFIG.radii.shellStep;
+                        if (sIdx === valenceI) { 
+                            if (app.animTime < 1) {
+                                ctx.globalAlpha = 1 - app.animTime;
+                                Draw.circle(ctx, p.x, p.y, r, '#cbd5e1');
+                                // Draw valence electrons as RED dots
+                                for(let k=0; k<n; k++) {
+                                    const a = k*(Math.PI*2/n);
+                                    Draw.dot(ctx, p.x+Math.cos(a)*r, p.y+Math.sin(a)*r, '#ef4444');
+                                }
+                                ctx.globalAlpha = 1;
+                            }
+                        } else {
+                            Draw.circle(ctx, p.x, p.y, r, '#cbd5e1');
+                            // Draw inner electrons as RED dots
+                            for(let k=0; k<n; k++) {
+                                const a = k*(Math.PI*2/n);
+                                Draw.dot(ctx, p.x+Math.cos(a)*r, p.y+Math.sin(a)*r, '#ef4444');
+                            }
+                        }
+                    });
+                });
+
+                if (app.animTime > 0.1) {
+                    ctx.globalAlpha = app.animTime;
+                    this.electrons.forEach(e => {
+                        const absX = cx + e.x; const absY = cy + e.y;
+                        ctx.beginPath(); ctx.arc(absX, absY, 5, 0, Math.PI*2);
+                        // RED COLOR FOR FREE ELECTRONS
+                        ctx.fillStyle = '#dc2626'; ctx.fill();
+                        // NO STROKE
+                    });
+                    ctx.globalAlpha = 1;
+                }
+            }
+        };
+
+        const app = new App();
+    </script>
+</body>
+</html>
