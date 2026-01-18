@@ -40,6 +40,10 @@
             padding-bottom: 12px !important;
             line-height: 1.5 !important;
         }
+        
+        /* Utility for chemical formulas */
+        sup { font-size: 0.7em; vertical-align: super; }
+        sub { font-size: 0.7em; vertical-align: sub; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
@@ -78,7 +82,7 @@
 
             <div class="bg-white p-4 rounded-2xl shadow-md border border-slate-100">
                 <button id="action-btn" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold py-4 px-6 rounded-xl shadow-indigo-200 shadow-lg transform transition active:scale-95 flex items-center justify-center gap-2">
-                    <span id="btn-text">Formar Enlace</span>
+                    <span id="btn-text">Formar enlace</span>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
@@ -243,7 +247,7 @@
                 const st = document.getElementById('status-text');
                 
                 if(this.state === 'neutral') {
-                    txt.innerText = "Formar Enlace";
+                    txt.innerText = "Formar enlace"; // Minúscula actualizada
                     btn.classList.replace('bg-red-600','from-indigo-600');
                     st.innerText = "Estado: Átomos Neutros";
                 } else if (this.state === 'animating') {
@@ -254,13 +258,53 @@
                     btn.classList.replace('from-indigo-600','bg-red-600');
                     st.innerText = "Estado: Enlace Formado";
                 }
+                this.updateTag(); // Actualizar etiqueta según estado
+            }
+
+            updateTag() {
+                const tag = document.getElementById('formula-tag');
+                if(!tag) return;
+
+                if (this.mode === 'ionic') {
+                    if (this.state === 'bonded') {
+                        const m = IONIC_DATA.metals[this.selections.ionic.m];
+                        const nm = IONIC_DATA.nonMetals[this.selections.ionic.nm];
+                        
+                        // Cálculos de coeficientes
+                        const valM = m.valence;
+                        const valNM = nm.needs;
+                        const total = lcm(valM, valNM);
+                        const coefM = total / valM;
+                        const coefNM = total / valNM;
+
+                        // Construcción de Strings con subíndices y superíndices
+                        const sCoefM = coefM > 1 ? coefM : '';
+                        const sCoefNM = coefNM > 1 ? coefNM : '';
+                        
+                        // Reactivos
+                        const partM = `${sCoefM}${m.id}<sup>+${valM}</sup>`;
+                        const partNM = `${sCoefNM}${nm.id}<sup>-${valNM}</sup>`;
+                        
+                        // Producto
+                        const subM = coefM > 1 ? `<sub>${coefM}</sub>` : '';
+                        const subNM = coefNM > 1 ? `<sub>${coefNM}</sub>` : '';
+                        const prod = `${m.id}${subM}${nm.id}${subNM}`;
+
+                        tag.innerHTML = `${partM} + ${partNM} &rarr; ${prod}`;
+                    } else {
+                        tag.innerHTML = "M + X"; // Texto genérico para estado neutral
+                    }
+                } else if (this.mode === 'covalent') {
+                    tag.innerText = COVALENT_DATA[this.selections.covalent.mol].formula;
+                } else {
+                    tag.innerText = "Red Metálica";
+                }
             }
 
             renderUI() {
                 const p = document.getElementById('controls-panel');
                 p.innerHTML = '';
                 const title = document.getElementById('view-title');
-                const tag = document.getElementById('formula-tag');
                 const sub = document.getElementById('view-subtitle');
 
                 if(this.mode === 'ionic') {
@@ -269,20 +313,19 @@
                     const s1 = this.createSelect("Metal (Cede)", IONIC_DATA.metals, this.selections.ionic.m, (v)=>{this.selections.ionic.m=v; this.resetState();});
                     const s2 = this.createSelect("No Metal (Gana)", IONIC_DATA.nonMetals, this.selections.ionic.nm, (v)=>{this.selections.ionic.nm=v; this.resetState();});
                     p.append(s1, s2);
-                    tag.innerText = "M⁺ + X⁻";
+                    // El tag se gestiona en updateTag()
                 } else if(this.mode === 'covalent') {
                     title.innerText = "Enlace Covalente";
                     sub.innerText = "Compartición de pares de electrones entre no metales.";
                     const s = this.createSelect("Molécula", COVALENT_DATA, this.selections.covalent.mol, (v)=>{this.selections.covalent.mol=v; this.resetState();});
                     p.append(s);
-                    tag.innerText = COVALENT_DATA[this.selections.covalent.mol].formula;
                 } else {
                     title.innerText = "Enlace Metálico";
                     sub.innerText = "Mar de electrones deslocalizados entre cationes.";
                     const s = this.createSelect("Material", METALLIC_DATA, this.selections.metallic.m, (v)=>{this.selections.metallic.m=v; this.resetState();});
                     p.append(s);
-                    tag.innerText = "Red Metálica";
                 }
+                this.updateTag();
             }
 
             createSelect(label, data, selected, cb) {
@@ -871,20 +914,20 @@
 
                 // Cloud Drawing
                 if (app.animTime > 0) {
-                     ctx.save(); ctx.translate(cx, cy);
-                     
-                     // 1. Grey Cloud (+45px)
-                     ctx.fillStyle = `rgba(203, 213, 225, ${0.5 * app.animTime})`;
-                     const extentGrey = (dBonded / 2) + rCation + 45;
-                     ctx.beginPath();
-                     ctx.roundRect(-extentGrey, -extentGrey, 2*extentGrey, 2*extentGrey, 60);
-                     ctx.fill(); 
+                      ctx.save(); ctx.translate(cx, cy);
+                      
+                      // 1. Grey Cloud (+45px)
+                      ctx.fillStyle = `rgba(203, 213, 225, ${0.5 * app.animTime})`;
+                      const extentGrey = (dBonded / 2) + rCation + 45;
+                      ctx.beginPath();
+                      ctx.roundRect(-extentGrey, -extentGrey, 2*extentGrey, 2*extentGrey, 60);
+                      ctx.fill(); 
 
-                     // 2. Black Outline (+12px) - AHORA TRANSPARENTE (Solo lógica física)
-                     // Se ha eliminado el stroke() para que no se vea la línea, 
-                     // pero los electrones seguirán rebotando ahí gracias a updatePhysics.
-                     
-                     ctx.restore();
+                      // 2. Black Outline (+12px) - AHORA TRANSPARENTE (Solo lógica física)
+                      // Se ha eliminado el stroke() para que no se vea la línea, 
+                      // pero los electrones seguirán rebotando ahí gracias a updatePhysics.
+                      
+                      ctx.restore();
                 }
                 
                 const d = dNeutral - (dNeutral - dBonded) * app.animTime;
