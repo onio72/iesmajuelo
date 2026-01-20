@@ -9,52 +9,19 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
         
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f3f4f6;
-        }
-
-        .element-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            user-select: none;
-        }
-        
-        .element-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-
-        .glass {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        @keyframes popIn {
-            0% { opacity: 0; transform: scale(0.8); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-
-        .animate-pop {
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        .selected-btn {
-            background-color: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-        }
-        
-        /* Utility for score color transition */
-        .score-red { color: #dc2626; } /* red-600 */
-        .score-green { color: #16a34a; } /* green-600 */
+        body { font-family: 'Poppins', sans-serif; background-color: #f3f4f6; }
+        .element-card { transition: transform 0.3s ease, box-shadow 0.3s ease; position: relative; overflow: hidden; user-select: none; }
+        .element-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+        .animate-pop { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .selected-btn { background-color: #3b82f6; color: white; border-color: #3b82f6; }
+        .score-red { color: #dc2626; }
+        .score-green { color: #16a34a; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center py-6 px-4">
 
-    <!-- Header -->
     <header class="w-full max-w-4xl flex justify-between items-center mb-8">
         <div>
             <h1 class="text-2xl md:text-3xl font-bold text-gray-800"><i class="fa-solid fa-atom text-blue-600 mr-2"></i>Lab de Enlaces</h1>
@@ -73,25 +40,22 @@
         </div>
     </header>
 
-    <!-- Main Game Area -->
     <main class="w-full max-w-2xl bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 relative">
         
-        <!-- Game Over Overlay -->
         <div id="gameOverLayer" class="absolute inset-0 z-10 bg-white/90 hidden flex-col items-center justify-center text-center p-8">
             <div class="text-6xl mb-4 text-yellow-500"><i class="fa-solid fa-trophy"></i></div>
             <h2 class="text-3xl font-bold text-gray-800 mb-2">¡Juego Terminado!</h2>
             <p class="text-xl text-gray-600 mb-6">Nota Final: <span id="finalScore" class="font-bold text-blue-600">10.0</span></p>
+            <p class="text-sm text-gray-400 mb-4">(Nota guardada en Moodle)</p>
             <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 transition transform hover:scale-105 shadow-lg">
                 Jugar de nuevo
             </button>
         </div>
 
-        <!-- Elements Display -->
         <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-8 flex justify-center items-center gap-4 md:gap-12 relative">
             <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" 
                  style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 20px 20px;"></div>
 
-            <!-- Card 1 -->
             <div id="card1" class="element-card animate-pop w-32 h-40 md:w-40 md:h-48 bg-gray-100 rounded-xl shadow-lg flex flex-col items-center justify-between p-3 border-b-4 border-blue-500 cursor-default">
                 <div class="w-full flex justify-between text-xs font-bold text-gray-500">
                     <span id="z1"></span>
@@ -103,7 +67,6 @@
 
             <div class="text-white text-2xl font-bold opacity-50">+</div>
 
-            <!-- Card 2 -->
             <div id="card2" class="element-card animate-pop w-32 h-40 md:w-40 md:h-48 bg-gray-100 rounded-xl shadow-lg flex flex-col items-center justify-between p-3 border-b-4 border-green-500 cursor-default">
                 <div class="w-full flex justify-between text-xs font-bold text-gray-500">
                     <span id="z2"></span>
@@ -114,10 +77,8 @@
             </div>
         </div>
 
-        <!-- Questions Section -->
         <div class="p-6 md:p-8 space-y-8">
             
-            <!-- Question 1 -->
             <div class="space-y-3">
                 <h3 class="text-lg font-semibold text-gray-700 flex items-center">
                     <span class="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-xs mr-2">1</span>
@@ -130,7 +91,6 @@
                 </div>
             </div>
 
-            <!-- Question 2 -->
             <div class="space-y-3">
                 <h3 class="text-lg font-semibold text-gray-700 flex items-center">
                     <span class="bg-green-100 text-green-600 w-6 h-6 rounded-full flex items-center justify-center text-xs mr-2">2</span>
@@ -143,7 +103,6 @@
                 </div>
             </div>
 
-            <!-- Question 3 -->
             <div class="space-y-3 pt-4 border-t border-gray-100">
                 <h3 class="text-lg font-semibold text-gray-700 flex items-center">
                     <span class="bg-purple-100 text-purple-600 w-6 h-6 rounded-full flex items-center justify-center text-xs mr-2">3</span>
@@ -157,14 +116,12 @@
                 </div>
             </div>
 
-            <!-- Action Button -->
             <button onclick="checkAnswers()" class="w-full bg-slate-800 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-slate-700 transform active:scale-95 transition flex justify-center items-center gap-2">
                 <i class="fa-solid fa-flask"></i> Verificar Resultados
             </button>
         </div>
     </main>
 
-    <!-- Modal Feedback -->
     <div id="feedbackModal" class="fixed inset-0 glass z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 transform scale-95 transition-transform duration-300" id="modalContent">
             <div id="modalIcon" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-4"></div>
@@ -185,6 +142,93 @@
     </div>
 
     <script>
+        /*******************************************************
+         * BLOQUE SCORM 1.2 ROBUSTO (Moodle-Friendly)
+         *******************************************************/
+        var API = null;
+
+        function findAPI(win) {
+            var findAPITries = 0;
+            while ((win.API == null) && (win.parent != null) && (win.parent != win)) {
+                findAPITries++;
+                if (findAPITries > 7) return null;
+                win = win.parent;
+            }
+            return win.API;
+        }
+
+        function getAPI() {
+            var theAPI = findAPI(window);
+            if ((theAPI == null) && (window.opener != null) && (typeof(window.opener) != "undefined")) {
+                theAPI = findAPI(window.opener);
+            }
+            if (theAPI == null) {
+                console.warn("API SCORM no encontrada. Ejecutando en modo local.");
+            }
+            return theAPI;
+        }
+
+        function initSCORM() {
+            API = getAPI();
+            if (API) {
+                API.LMSInitialize("");
+                // Inicializamos estados
+                var status = API.LMSGetValue("cmi.core.lesson_status");
+                if (status == "not attempted") {
+                    API.LMSSetValue("cmi.core.lesson_status", "incomplete");
+                }
+                API.LMSSetValue("cmi.core.score.min", "0");
+                API.LMSSetValue("cmi.core.score.max", "10");
+                
+                // IMPORTANTE: Establecer 'suspend' desde el inicio para evitar 
+                // pérdidas si cierran la pestaña inmediatamente.
+                API.LMSSetValue("cmi.core.exit", "suspend");
+                API.LMSCommit("");
+            }
+        }
+
+        function sendScoreToMoodle(scoreVal, isFinal) {
+            if (API) {
+                var cleanScore = Math.max(0, Math.min(10, scoreVal));
+                
+                // 1. Enviar la nota
+                API.LMSSetValue("cmi.core.score.raw", cleanScore.toFixed(2));
+                
+                // 2. Definir estado (lesson_status)
+                if (isFinal) {
+                    if (cleanScore >= 5) {
+                        API.LMSSetValue("cmi.core.lesson_status", "passed");
+                    } else {
+                        API.LMSSetValue("cmi.core.lesson_status", "failed");
+                    }
+                    // REQUISITO: Si acaba el juego, exit es "" (cadena vacía)
+                    API.LMSSetValue("cmi.core.exit", "");
+                } else {
+                    API.LMSSetValue("cmi.core.lesson_status", "incomplete");
+                    // REQUISITO: Si NO ha acabado, exit es "suspend"
+                    API.LMSSetValue("cmi.core.exit", "suspend");
+                }
+
+                // 3. REQUISITO CRÍTICO: Commit Inmediato
+                API.LMSCommit(""); 
+            }
+        }
+
+        function finishSCORM() {
+            if (API) {
+                // Aseguramos un último guardado por si acaso
+                API.LMSCommit("");
+                API.LMSFinish("");
+            }
+        }
+
+        // REQUISITO: Listener window.onunload para cierre forzoso
+        window.onunload = function() {
+            finishSCORM();
+        };
+        
+        /*******************************************************/
+
         // --- Full Element Database Z < 57 + Au (Z=79) ---
         const elementsData = {
             'H':  { z: 1, name: 'Hidrógeno', type: 'non-metal', mass: '1.008' },
@@ -330,7 +374,6 @@
             metallicPairs.forEach(p => deck.push({ sym1: p[0], sym2: p[1], example: p[2], type: 'metallic' }));
 
             // Generate ~12 Noble/No-Reaction pairs randomly
-            // This ensures we have enough "No reaction" cases without hardcoding them all
             const nobleGases = keys.filter(k => elementsData[k].type === 'noble');
             const allSyms = keys;
             
@@ -385,6 +428,7 @@
 
         // --- GAME FLOW ---
         function initGame() {
+            initSCORM(); // <--- INICIALIZAR SCORM
             score = 0;
             questionDeck = createDeck();
             updateScoreUI();
@@ -398,10 +442,7 @@
                 return;
             }
 
-            // Check empty deck (rare, but possible if user errors a lot)
             if (questionDeck.length === 0) {
-                // Reshuffle or end? Let's end with current score or reshuffle.
-                // Simple: Reshuffle a fresh deck.
                 questionDeck = createDeck();
             }
 
@@ -474,12 +515,10 @@
             const allCorrect = isCorrect1 && isCorrect2 && isCorrectBond;
 
             if (allCorrect) {
-                // SCORING: 10 exercises to get a 5 -> +0.5 per correct answer
                 score += 0.5;
                 showModal('¡Correcto!', `Has acertado.<br>Esta combinación corresponde a: <b>${currentScenario.example}</b>`, 'success');
             } else {
-                // PENALTY: Subtract points on error
-                score = Math.max(0, score - 0.25); // Prevent negative score
+                score = Math.max(0, score - 0.25); 
                 
                 let msg = 'Revisa tus respuestas:<br>';
                 if (!isCorrect1) msg += `- ${currentScenario.el1.name}: ${getReadableType(currentScenario.el1.type)}.<br>`;
@@ -490,10 +529,12 @@
             }
 
             updateScoreUI();
+            // LLAMADA CLAVE: Se envía el score y se guarda (commit) inmediatamente
+            sendScoreToMoodle(score, false); 
         }
 
         function updateScoreUI() {
-            els.score.textContent = score.toFixed(1); // Show decimal
+            els.score.textContent = score.toFixed(1); 
             if (score >= 5.0) {
                 els.score.classList.remove('score-red');
                 els.score.classList.add('score-green');
@@ -556,6 +597,8 @@
             els.finalScore.textContent = score.toFixed(1);
             els.gameOver.classList.remove('hidden');
             els.gameOver.classList.add('flex');
+            // Juego terminado oficialmente
+            sendScoreToMoodle(score, true); 
         }
 
         // Start
