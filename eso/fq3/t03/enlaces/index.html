@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego de Enlaces Químicos</title>
+    <title>Juego de Enlaces - 3º ESO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -25,7 +25,7 @@
     <header class="w-full max-w-4xl flex justify-between items-center mb-8">
         <div>
             <h1 class="text-2xl md:text-3xl font-bold text-gray-800"><i class="fa-solid fa-atom text-blue-600 mr-2"></i>Lab de Enlaces</h1>
-            <p class="text-gray-500 text-sm">Objetivo: Llegar a nota 10</p>
+            <p class="text-gray-500 text-sm">Objetivo: Llegar a nota 10 (Elementos de 3º ESO)</p>
         </div>
         <div class="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200 flex items-center gap-3">
             <div class="text-center">
@@ -34,8 +34,8 @@
             </div>
             <div class="h-8 w-px bg-gray-200"></div>
             <div class="text-center">
-                <span class="block text-xs text-gray-400 uppercase font-bold">Restantes</span>
-                <span id="cardsLeft" class="text-xl font-bold text-gray-400">--</span>
+                <span class="block text-xs text-gray-400 uppercase font-bold">Rondas</span>
+                <span id="cardsLeft" class="text-xl font-bold text-gray-400">0</span>
             </div>
         </div>
     </header>
@@ -58,8 +58,8 @@
 
             <div id="card1" class="element-card animate-pop w-32 h-40 md:w-40 md:h-48 bg-gray-100 rounded-xl shadow-lg flex flex-col items-center justify-between p-3 border-b-4 border-blue-500 cursor-default">
                 <div class="w-full flex justify-between text-xs font-bold text-gray-500">
-                    <span id="z1"></span>
-                    <span id="mass1"></span>
+                    <span class="text-xs">Z=<span id="z1"></span></span>
+                    <span id="mass1" class="hidden"></span>
                 </div>
                 <div id="sym1" class="text-5xl md:text-6xl font-bold text-gray-800 my-auto"></div>
                 <div id="name1" class="text-sm font-semibold text-gray-600 text-center"></div>
@@ -69,8 +69,8 @@
 
             <div id="card2" class="element-card animate-pop w-32 h-40 md:w-40 md:h-48 bg-gray-100 rounded-xl shadow-lg flex flex-col items-center justify-between p-3 border-b-4 border-green-500 cursor-default">
                 <div class="w-full flex justify-between text-xs font-bold text-gray-500">
-                    <span id="z2"></span>
-                    <span id="mass2"></span>
+                    <span class="text-xs">Z=<span id="z2"></span></span>
+                    <span id="mass2" class="hidden"></span>
                 </div>
                 <div id="sym2" class="text-5xl md:text-6xl font-bold text-gray-800 my-auto"></div>
                 <div id="name2" class="text-sm font-semibold text-gray-600 text-center"></div>
@@ -172,16 +172,12 @@
             API = getAPI();
             if (API) {
                 API.LMSInitialize("");
-                // Inicializamos estados
                 var status = API.LMSGetValue("cmi.core.lesson_status");
                 if (status == "not attempted") {
                     API.LMSSetValue("cmi.core.lesson_status", "incomplete");
                 }
                 API.LMSSetValue("cmi.core.score.min", "0");
                 API.LMSSetValue("cmi.core.score.max", "10");
-                
-                // IMPORTANTE: Establecer 'suspend' desde el inicio para evitar 
-                // pérdidas si cierran la pestaña inmediatamente.
                 API.LMSSetValue("cmi.core.exit", "suspend");
                 API.LMSCommit("");
             }
@@ -190,157 +186,103 @@
         function sendScoreToMoodle(scoreVal, isFinal) {
             if (API) {
                 var cleanScore = Math.max(0, Math.min(10, scoreVal));
-                
-                // 1. Enviar la nota
                 API.LMSSetValue("cmi.core.score.raw", cleanScore.toFixed(2));
                 
-                // 2. Definir estado (lesson_status)
                 if (isFinal) {
                     if (cleanScore >= 5) {
                         API.LMSSetValue("cmi.core.lesson_status", "passed");
                     } else {
                         API.LMSSetValue("cmi.core.lesson_status", "failed");
                     }
-                    // REQUISITO: Si acaba el juego, exit es "" (cadena vacía)
                     API.LMSSetValue("cmi.core.exit", "");
                 } else {
                     API.LMSSetValue("cmi.core.lesson_status", "incomplete");
-                    // REQUISITO: Si NO ha acabado, exit es "suspend"
                     API.LMSSetValue("cmi.core.exit", "suspend");
                 }
-
-                // 3. REQUISITO CRÍTICO: Commit Inmediato
                 API.LMSCommit(""); 
             }
         }
 
         function finishSCORM() {
             if (API) {
-                // Aseguramos un último guardado por si acaso
                 API.LMSCommit("");
                 API.LMSFinish("");
             }
         }
 
-        // REQUISITO: Listener window.onunload para cierre forzoso
         window.onunload = function() {
             finishSCORM();
         };
         
-        /*******************************************************/
+        /*******************************************************
+         * DATOS DE ELEMENTOS (ADAPTADOS DEL JUEGO DE TABLA)
+         *******************************************************/
+        
+        // Esta es EXACTAMENTE la lista del segundo código
+        const RAW_ELEMENTS = [
+          // Period 1
+          {z:1,s:"H",n:"Hidrógeno",g:1,p:1}, {z:2,s:"He",n:"Helio",g:18,p:1},
+          // Period 2
+          {z:3,s:"Li",n:"Litio",g:1,p:2}, {z:4,s:"Be",n:"Berilio",g:2,p:2}, 
+          {z:5,s:"B",n:"Boro",g:13,p:2}, {z:6,s:"C",n:"Carbono",g:14,p:2}, {z:7,s:"N",n:"Nitrógeno",g:15,p:2}, {z:8,s:"O",n:"Oxígeno",g:16,p:2}, {z:9,s:"F",n:"Flúor",g:17,p:2}, {z:10,s:"Ne",n:"Neón",g:18,p:2},
+          // Period 3
+          {z:11,s:"Na",n:"Sodio",g:1,p:3}, {z:12,s:"Mg",n:"Magnesio",g:2,p:3}, 
+          {z:13,s:"Al",n:"Aluminio",g:13,p:3}, {z:14,s:"Si",n:"Silicio",g:14,p:3}, {z:15,s:"P",n:"Fósforo",g:15,p:3}, {z:16,s:"S",n:"Azufre",g:16,p:3}, {z:17,s:"Cl",n:"Cloro",g:17,p:3}, {z:18,s:"Ar",n:"Argón",g:18,p:3},
+          // Period 4
+          {z:19,s:"K",n:"Potasio",g:1,p:4}, {z:20,s:"Ca",n:"Calcio",g:2,p:4},
+          {z:26,s:"Fe",n:"Hierro",g:8,p:4}, {z:27,s:"Co",n:"Cobalto",g:9,p:4}, {z:28,s:"Ni",n:"Níquel",g:10,p:4}, {z:29,s:"Cu",n:"Cobre",g:11,p:4}, {z:30,s:"Zn",n:"Zinc",g:12,p:4},
+          {z:31,s:"Ga",n:"Galio",g:13,p:4}, {z:32,s:"Ge",n:"Germanio",g:14,p:4}, {z:33,s:"As",n:"Arsénico",g:15,p:4}, {z:34,s:"Se",n:"Selenio",g:16,p:4}, {z:35,s:"Br",n:"Bromo",g:17,p:4}, {z:36,s:"Kr",n:"Kriptón",g:18,p:4},
+          // Period 5
+          {z:37,s:"Rb",n:"Rubidio",g:1,p:5}, {z:38,s:"Sr",n:"Estroncio",g:2,p:5},
+          {z:46,s:"Pd",n:"Paladio",g:10,p:5}, {z:47,s:"Ag",n:"Plata",g:11,p:5}, {z:48,s:"Cd",n:"Cadmio",g:12,p:5},
+          {z:49,s:"In",n:"Indio",g:13,p:5}, {z:50,s:"Sn",n:"Estaño",g:14,p:5}, {z:51,s:"Sb",n:"Antimonio",g:15,p:5}, {z:52,s:"Te",n:"Telurio",g:16,p:5}, {z:53,s:"I",n:"Yodo",g:17,p:5}, {z:54,s:"Xe",n:"Xenón",g:18,p:5},
+          // Period 6
+          {z:55,s:"Cs",n:"Cesio",g:1,p:6}, {z:56,s:"Ba",n:"Bario",g:2,p:6},
+          {z:78,s:"Pt",n:"Platino",g:10,p:6}, {z:79,s:"Au",n:"Oro",g:11,p:6}, {z:80,s:"Hg",n:"Mercurio",g:12,p:6},
+          {z:81,s:"Tl",n:"Talio",g:13,p:6}, {z:82,s:"Pb",n:"Plomo",g:14,p:6}, {z:83,s:"Bi",n:"Bismuto",g:15,p:6}, {z:84,s:"Po",n:"Polonio",g:16,p:6}, {z:85,s:"At",n:"Astato",g:17,p:6}, {z:86,s:"Rn",n:"Radón",g:18,p:6},
+          // Period 7
+          {z:87,s:"Fr",n:"Francio",g:1,p:7}, {z:88,s:"Ra",n:"Radio",g:2,p:7}
+        ];
 
-        // --- Full Element Database Z < 57 + Au (Z=79) ---
-        const elementsData = {
-            'H':  { z: 1, name: 'Hidrógeno', type: 'non-metal', mass: '1.008' },
-            'He': { z: 2, name: 'Helio', type: 'noble', mass: '4.002' },
-            'Li': { z: 3, name: 'Litio', type: 'metal', mass: '6.94' },
-            'Be': { z: 4, name: 'Berilio', type: 'metal', mass: '9.012' },
-            'B':  { z: 5, name: 'Boro', type: 'non-metal', mass: '10.81' },
-            'C':  { z: 6, name: 'Carbono', type: 'non-metal', mass: '12.011' },
-            'N':  { z: 7, name: 'Nitrógeno', type: 'non-metal', mass: '14.007' },
-            'O':  { z: 8, name: 'Oxígeno', type: 'non-metal', mass: '15.999' },
-            'F':  { z: 9, name: 'Flúor', type: 'non-metal', mass: '18.998' },
-            'Ne': { z: 10, name: 'Neón', type: 'noble', mass: '20.180' },
-            'Na': { z: 11, name: 'Sodio', type: 'metal', mass: '22.990' },
-            'Mg': { z: 12, name: 'Magnesio', type: 'metal', mass: '24.305' },
-            'Al': { z: 13, name: 'Aluminio', type: 'metal', mass: '26.982' },
-            'Si': { z: 14, name: 'Silicio', type: 'non-metal', mass: '28.085' },
-            'P':  { z: 15, name: 'Fósforo', type: 'non-metal', mass: '30.974' },
-            'S':  { z: 16, name: 'Azufre', type: 'non-metal', mass: '32.06' },
-            'Cl': { z: 17, name: 'Cloro', type: 'non-metal', mass: '35.45' },
-            'Ar': { z: 18, name: 'Argón', type: 'noble', mass: '39.948' },
-            'K':  { z: 19, name: 'Potasio', type: 'metal', mass: '39.098' },
-            'Ca': { z: 20, name: 'Calcio', type: 'metal', mass: '40.078' },
-            'Sc': { z: 21, name: 'Escandio', type: 'metal', mass: '44.956' },
-            'Ti': { z: 22, name: 'Titanio', type: 'metal', mass: '47.867' },
-            'V':  { z: 23, name: 'Vanadio', type: 'metal', mass: '50.942' },
-            'Cr': { z: 24, name: 'Cromo', type: 'metal', mass: '51.996' },
-            'Mn': { z: 25, name: 'Manganeso', type: 'metal', mass: '54.938' },
-            'Fe': { z: 26, name: 'Hierro', type: 'metal', mass: '55.845' },
-            'Co': { z: 27, name: 'Cobalto', type: 'metal', mass: '58.933' },
-            'Ni': { z: 28, name: 'Níquel', type: 'metal', mass: '58.693' },
-            'Cu': { z: 29, name: 'Cobre', type: 'metal', mass: '63.546' },
-            'Zn': { z: 30, name: 'Zinc', type: 'metal', mass: '65.38' },
-            'Ga': { z: 31, name: 'Galio', type: 'metal', mass: '69.723' },
-            'Ge': { z: 32, name: 'Germanio', type: 'non-metal', mass: '72.630' },
-            'As': { z: 33, name: 'Arsénico', type: 'non-metal', mass: '74.922' },
-            'Se': { z: 34, name: 'Selenio', type: 'non-metal', mass: '78.971' },
-            'Br': { z: 35, name: 'Bromo', type: 'non-metal', mass: '79.904' },
-            'Kr': { z: 36, name: 'Kriptón', type: 'noble', mass: '83.798' },
-            'Rb': { z: 37, name: 'Rubidio', type: 'metal', mass: '85.468' },
-            'Sr': { z: 38, name: 'Estroncio', type: 'metal', mass: '87.62' },
-            'Y':  { z: 39, name: 'Itrio', type: 'metal', mass: '88.906' },
-            'Zr': { z: 40, name: 'Circonio', type: 'metal', mass: '91.224' },
-            'Nb': { z: 41, name: 'Niobio', type: 'metal', mass: '92.906' },
-            'Mo': { z: 42, name: 'Molibdeno', type: 'metal', mass: '95.95' },
-            'Tc': { z: 43, name: 'Tecnecio', type: 'metal', mass: '98' },
-            'Ru': { z: 44, name: 'Rutenio', type: 'metal', mass: '101.07' },
-            'Rh': { z: 45, name: 'Rodio', type: 'metal', mass: '102.91' },
-            'Pd': { z: 46, name: 'Paladio', type: 'metal', mass: '106.42' },
-            'Ag': { z: 47, name: 'Plata', type: 'metal', mass: '107.87' },
-            'Cd': { z: 48, name: 'Cadmio', type: 'metal', mass: '112.41' },
-            'In': { z: 49, name: 'Indio', type: 'metal', mass: '114.82' },
-            'Sn': { z: 50, name: 'Estaño', type: 'metal', mass: '118.71' },
-            'Sb': { z: 51, name: 'Antimonio', type: 'non-metal', mass: '121.76' },
-            'Te': { z: 52, name: 'Telurio', type: 'non-metal', mass: '127.60' },
-            'I':  { z: 53, name: 'Yodo', type: 'non-metal', mass: '126.90' },
-            'Xe': { z: 54, name: 'Xenón', type: 'noble', mass: '131.29' },
-            'Cs': { z: 55, name: 'Cesio', type: 'metal', mass: '132.91' },
-            'Ba': { z: 56, name: 'Bario', type: 'metal', mass: '137.33' },
-            'Au': { z: 79, name: 'Oro', type: 'metal', mass: '196.97' }
-        };
+        // Función para procesar la lista raw y añadirle la propiedad 'type' (metal, non-metal, noble)
+        // para que funcione la lógica de enlaces
+        function processElements(rawList) {
+            const processed = {};
+            
+            rawList.forEach(el => {
+                let type = 'metal'; // Por defecto
+                
+                // Lógica de clasificación simplificada para 3º ESO
+                // Gas Noble: Grupo 18
+                if (el.g === 18) {
+                    type = 'noble';
+                } 
+                // No Metales y Metaloides (tratados como covalentes en este nivel):
+                // Hidrógeno (G1), y el triángulo clásico de no metales
+                else if (el.s === 'H' || [5,6,7,8,9,14,15,16,17,32,33,34,35,51,52,53,85].includes(el.z)) {
+                    // Z numbers: B, C, N, O, F, Si, P, S, Cl, Ge, As, Se, Br, Sb, Te, I, At
+                    type = 'non-metal';
+                }
+                
+                processed[el.s] = {
+                    z: el.z,
+                    name: el.n,
+                    sym: el.s,
+                    type: type,
+                    mass: '' // No usamos masa en el segundo código, la dejamos vacía
+                };
+            });
+            return processed;
+        }
 
+        const elementsData = processElements(RAW_ELEMENTS);
         const keys = Object.keys(elementsData);
-
-        // --- PAIRS DATABASE ---
-        const ionicPairs = [
-            ['Na', 'Cl', 'Sal común (NaCl)'],
-            ['Na', 'F', 'Fluoruro de sodio (NaF)'],
-            ['K', 'Cl', 'Cloruro de potasio (KCl)'],
-            ['Li', 'F', 'Fluoruro de litio (LiF)'],
-            ['Ca', 'O', 'Cal viva (CaO)'],
-            ['Mg', 'O', 'Óxido de magnesio (MgO)'],
-            ['Ca', 'Cl', 'Cloruro de calcio (CaCl₂)'],
-            ['Mg', 'Cl', 'Cloruro de magnesio (MgCl₂)'],
-            ['K', 'Br', 'Bromuro de potasio (KBr)'],
-            ['Al', 'O', 'Alúmina (Al₂O₃)'],
-            ['Fe', 'O', 'Óxido de hierro (FeO / Fe₂O₃)'],
-            ['Cu', 'Cl', 'Cloruro de cobre (CuCl₂)']
-        ];
-
-        const covalentPairs = [
-            ['H', 'O', 'Agua (H₂O)'],
-            ['C', 'O', 'Dióxido de carbono (CO₂)'],
-            ['N', 'H', 'Amoníaco (NH₃)'],
-            ['C', 'H', 'Metano (CH₄)'],
-            ['H', 'Cl', 'Ácido clorhídrico (HCl)'],
-            ['O', 'O', 'Oxígeno molecular (O₂)'],
-            ['N', 'N', 'Nitrógeno molecular (N₂)'],
-            ['Cl', 'Cl', 'Cloro gas (Cl₂)'],
-            ['H', 'H', 'Hidrógeno gas (H₂)'],
-            ['Si', 'O', 'Sílice/Cuarzo (SiO₂)'],
-            ['S', 'O', 'Dióxido de azufre (SO₂)'],
-            ['P', 'Cl', 'Tricloruro de fósforo (PCl₃)']
-        ];
-
-        const metallicPairs = [
-            ['Fe', 'Fe', 'Hierro puro (Enlace Metálico)'],
-            ['Cu', 'Cu', 'Cobre puro (Enlace Metálico)'],
-            ['Al', 'Al', 'Aluminio puro (Enlace Metálico)'],
-            ['Ag', 'Ag', 'Plata pura (Enlace Metálico)'],
-            ['Na', 'Na', 'Sodio puro (Enlace Metálico)'],
-            ['Mg', 'Mg', 'Magnesio puro (Enlace Metálico)'],
-            ['Ca', 'Ca', 'Calcio puro (Enlace Metálico)'],
-            ['Au', 'Au', 'Oro puro (Enlace Metálico)'],
-            ['Cu', 'Zn', 'Latón (Aleación)'],
-            ['Cu', 'Sn', 'Bronce (Aleación)'],
-            ['Au', 'Ag', 'Electrum (Aleación Oro-Plata)']
-        ];
 
         // --- Game Logic Variables ---
         let questionDeck = [];
         let currentScenario = {};
         let score = 0.0;
+        let roundsPlayed = 0;
         
         let userSelection = {
             el1: null,
@@ -364,45 +306,56 @@
             finalScore: document.getElementById('finalScore')
         };
 
-        // --- SETUP DECK ---
-        function createDeck() {
-            let deck = [];
-            
-            // Add defined pairs
-            ionicPairs.forEach(p => deck.push({ sym1: p[0], sym2: p[1], example: p[2], type: 'ionic' }));
-            covalentPairs.forEach(p => deck.push({ sym1: p[0], sym2: p[1], example: p[2], type: 'covalent' }));
-            metallicPairs.forEach(p => deck.push({ sym1: p[0], sym2: p[1], example: p[2], type: 'metallic' }));
+        // --- SETUP DECK (GENERACIÓN DINÁMICA) ---
+        // En lugar de usar listas fijas, generamos preguntas al vuelo usando SOLO los elementos disponibles
+        function generateRandomQuestion() {
+            const types = ['ionic', 'covalent', 'metallic', 'noble'];
+            // Probabilidades: 35% Ionico, 35% Covalente, 15% Metalico, 15% Noble
+            const rand = Math.random();
+            let targetType = 'ionic';
+            if (rand > 0.35) targetType = 'covalent';
+            if (rand > 0.70) targetType = 'metallic';
+            if (rand > 0.85) targetType = 'noble';
 
-            // Generate ~12 Noble/No-Reaction pairs randomly
-            const nobleGases = keys.filter(k => elementsData[k].type === 'noble');
-            const allSyms = keys;
-            
-            for(let i=0; i<12; i++) {
-                const noble = nobleGases[Math.floor(Math.random() * nobleGases.length)];
-                const other = allSyms[Math.floor(Math.random() * allSyms.length)];
-                
-                // Randomize order
-                let s1, s2;
-                if (Math.random() > 0.5) { s1 = noble; s2 = other; } 
-                else { s1 = other; s2 = noble; }
+            // Filtrar listas
+            const metals = keys.filter(k => elementsData[k].type === 'metal');
+            const nonMetals = keys.filter(k => elementsData[k].type === 'non-metal');
+            const nobles = keys.filter(k => elementsData[k].type === 'noble');
 
-                let exName = (s1 === s2) ? "Átomo libre (Gas Noble)" : "Sin reacción (Gas inerte)";
-                
-                // Add to deck
-                deck.push({ sym1: s1, sym2: s2, example: exName, type: 'none' });
+            let el1, el2, example;
+
+            if (targetType === 'ionic') {
+                if(metals.length === 0 || nonMetals.length === 0) return generateRandomQuestion(); // Safety
+                el1 = metals[Math.floor(Math.random() * metals.length)];
+                el2 = nonMetals[Math.floor(Math.random() * nonMetals.length)];
+                example = `Compuesto Iónico (Metal + No Metal)`;
+            } 
+            else if (targetType === 'covalent') {
+                if(nonMetals.length < 2) return generateRandomQuestion();
+                el1 = nonMetals[Math.floor(Math.random() * nonMetals.length)];
+                el2 = nonMetals[Math.floor(Math.random() * nonMetals.length)];
+                example = `Compuesto Covalente (No Metal + No Metal)`;
+            }
+            else if (targetType === 'metallic') {
+                if(metals.length === 0) return generateRandomQuestion();
+                el1 = metals[Math.floor(Math.random() * metals.length)];
+                // A veces aleación, a veces puro
+                el2 = (Math.random() > 0.5) ? el1 : metals[Math.floor(Math.random() * metals.length)];
+                example = (el1 === el2) ? "Enlace Metálico (Elemento puro)" : "Aleación (Mezcla de metales)";
+            }
+            else { // Noble
+                 if(nobles.length === 0) return generateRandomQuestion();
+                 el1 = nobles[Math.floor(Math.random() * nobles.length)];
+                 el2 = keys[Math.floor(Math.random() * keys.length)];
+                 example = (el1 === el2) ? "Átomo libre (Gas Noble)" : "Sin reacción (Gas Inerte)";
+                 targetType = 'none'; // Para la lógica de respuesta
             }
 
-            return shuffle(deck);
-        }
+            // Mezclar orden visual
+            let sym1 = el1, sym2 = el2;
+            if (Math.random() > 0.5) { [sym1, sym2] = [sym2, sym1]; }
 
-        function shuffle(array) {
-            let currentIndex = array.length, randomIndex;
-            while (currentIndex != 0) {
-                randomIndex = Math.floor(Math.random() * currentIndex);
-                currentIndex--;
-                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-            }
-            return array;
+            return { sym1, sym2, example, type: targetType };
         }
 
         // --- HELPERS ---
@@ -428,27 +381,25 @@
 
         // --- GAME FLOW ---
         function initGame() {
-            initSCORM(); // <--- INICIALIZAR SCORM
+            initSCORM();
             score = 0;
-            questionDeck = createDeck();
+            roundsPlayed = 0;
             updateScoreUI();
             nextQuestion();
         }
 
         function nextQuestion() {
-            // Check win condition
+            // Check win condition (20 rondas para aprobar/terminar o llegar al 10)
             if (score >= 10.0) {
                 endGame(true);
                 return;
             }
 
-            if (questionDeck.length === 0) {
-                questionDeck = createDeck();
-            }
+            roundsPlayed++;
+            els.cardsLeft.textContent = roundsPlayed;
 
-            // Pop card
-            const q = questionDeck.pop();
-            els.cardsLeft.textContent = questionDeck.length;
+            // Generate fresh question from the dynamic pool
+            const q = generateRandomQuestion();
 
             const el1Data = elementsData[q.sym1];
             const el2Data = elementsData[q.sym2];
@@ -474,7 +425,8 @@
 
         function updateCard(cardEl, data, num) {
             document.getElementById(`z${num}`).textContent = data.z;
-            document.getElementById(`mass${num}`).textContent = data.mass;
+            // Ocultamos la masa porque no está en la base de datos nueva, solo Z
+            // document.getElementById(`mass${num}`).textContent = data.mass; 
             document.getElementById(`sym${num}`).textContent = data.sym;
             document.getElementById(`name${num}`).textContent = data.name;
             
@@ -485,14 +437,10 @@
         }
 
         function selectOption(group, value) {
-            // Remove active class from this group
             document.querySelectorAll(`.opt-btn-${group}`).forEach(btn => btn.classList.remove('selected-btn'));
-            
-            // Add active class to clicked
             const clickedBtn = document.querySelector(`.opt-btn-${group}[data-val="${value}"]`);
             if(clickedBtn) clickedBtn.classList.add('selected-btn');
 
-            // Update state
             if (group === 1) userSelection.el1 = value;
             if (group === 2) userSelection.el2 = value;
             if (group === 3) userSelection.bond = value;
@@ -515,8 +463,8 @@
             const allCorrect = isCorrect1 && isCorrect2 && isCorrectBond;
 
             if (allCorrect) {
-                score += 0.5;
-                showModal('¡Correcto!', `Has acertado.<br>Esta combinación corresponde a: <b>${currentScenario.example}</b>`, 'success');
+                score += 0.5; // +0.5 por acierto
+                showModal('¡Correcto!', `Has acertado.<br><b>${currentScenario.example}</b>`, 'success');
             } else {
                 score = Math.max(0, score - 0.25); 
                 
@@ -529,7 +477,6 @@
             }
 
             updateScoreUI();
-            // LLAMADA CLAVE: Se envía el score y se guarda (commit) inmediatamente
             sendScoreToMoodle(score, false); 
         }
 
@@ -560,7 +507,7 @@
             } else if (type === 'error') {
                 modalIcon.className = 'w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-4 bg-red-100 text-red-600';
                 modalIcon.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-                document.getElementById('resExample').textContent = `Ejemplo típico: ${currentScenario.example}`;
+                document.getElementById('resExample').textContent = "";
             } else {
                 modalIcon.className = 'w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-4 bg-yellow-100 text-yellow-600';
                 modalIcon.innerHTML = '<i class="fa-solid fa-exclamation"></i>';
@@ -597,7 +544,6 @@
             els.finalScore.textContent = score.toFixed(1);
             els.gameOver.classList.remove('hidden');
             els.gameOver.classList.add('flex');
-            // Juego terminado oficialmente
             sendScoreToMoodle(score, true); 
         }
 
