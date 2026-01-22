@@ -46,7 +46,7 @@ function buildQuestions(item) {
   questions.push({
     id: 'charges',
     type: 'Numero',
-    text: '1. Cuantas cargas generan el campo?',
+    text: '1. ¿Cuántas cargas generan el campo?',
     options: [1, 2, 3, 4].map((value) => ({ value, label: String(value) })),
     correct: charges,
   });
@@ -56,7 +56,7 @@ function buildQuestions(item) {
     questions.push({
       id: `sign-${i + 1}`,
       type: 'Signo',
-      text: `${questions.length + 1}. Signo de la carga ${i + 1}?`,
+      text: `${questions.length + 1}. ¿Signo de la carga ${i + 1}?`,
       options: [
         { value: '+', label: '+ (positiva)' },
         { value: '-', label: '- (negativa)' },
@@ -69,7 +69,7 @@ function buildQuestions(item) {
     questions.push({
       id: 'equal',
       type: 'Magnitud',
-      text: `${questions.length + 1}. Las cargas son iguales en valor absoluto?`,
+      text: `${questions.length + 1}. ¿Las cargas son iguales en valor absoluto?`,
       options: [
         { value: 'igual', label: 'Iguales' },
         { value: 'distinta', label: 'Distintas' },
@@ -83,7 +83,7 @@ function buildQuestions(item) {
       questions.push({
         id: 'larger',
         type: 'Magnitud',
-        text: `${questions.length + 1}. ${isMulti ? 'Cuales son' : 'Cual es'} la carga de mayor valor absoluto?`,
+        text: `${questions.length + 1}. ¿${isMulti ? 'Cuáles son' : 'Cuál es'} la carga de mayor valor absoluto?`,
         options: Array.from({ length: charges }, (_, idx) => ({
           value: idx + 1,
           label: `Carga ${idx + 1}`,

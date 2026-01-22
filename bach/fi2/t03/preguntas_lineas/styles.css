@@ -20,12 +20,13 @@ body {
   font-family: "Trebuchet MS", "Segoe UI", sans-serif;
   background: radial-gradient(circle at top, #fff8e1 0%, var(--bg) 55%);
   color: var(--ink);
+  font-size: 15px;
 }
 
 .app {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 32px 20px 48px;
+  padding: 28px 20px 48px;
 }
 
 .app__header {
@@ -37,7 +38,7 @@ body {
 }
 
 .app__header h1 {
-  font-size: 2rem;
+  font-size: 1.7rem;
   margin: 0 0 8px;
 }
 
@@ -66,15 +67,17 @@ body {
 }
 
 .score__value {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 700;
   color: var(--accent-dark);
 }
 
 .app__main {
   display: grid;
-  gap: 24px;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 20px;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 0.9fr);
+  width: 90%;
+  margin: 0 auto;
 }
 
 .card {
@@ -82,7 +85,7 @@ body {
   border-radius: 18px;
   border: 1px solid var(--border);
   box-shadow: 0 18px 30px rgba(15, 23, 42, 0.08);
-  padding: 20px;
+  padding: 18px;
 }
 
 .media {
@@ -97,7 +100,7 @@ body {
   overflow: auto;
   border: 1px solid var(--border);
   background: #f8fafc;
-  min-height: 280px;
+  min-height: 360px;
   display: grid;
   place-items: center;
 }
@@ -149,7 +152,7 @@ body {
 }
 
 .qa__question {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   margin: 0;
 }
 
@@ -162,11 +165,12 @@ body {
 .option {
   border: 1px solid var(--border);
   background: #fff;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: 12px;
   cursor: pointer;
   text-align: center;
   font-weight: 600;
+  font-size: 0.9rem;
   transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -207,11 +211,12 @@ body {
   border: none;
   background: var(--accent);
   color: white;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-radius: 12px;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s ease;
+  font-size: 0.95rem;
 }
 
 .btn:hover {
@@ -236,6 +241,7 @@ body {
 @media (max-width: 960px) {
   .app__main {
     grid-template-columns: 1fr;
+    width: 100%;
   }
 
   .score {
