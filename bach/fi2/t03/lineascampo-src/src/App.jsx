@@ -38,6 +38,7 @@ export default function App() {
   const baseRadius = 12;
   const stepSize = 4;
   const maxSteps = 800;
+  const maxLinesPerCharge = 64;
 
   const getRadius = useCallback((q) => {
     return baseRadius + (Math.abs(q) - 1) * 2;
@@ -232,7 +233,10 @@ export default function App() {
         const hasPositive = charges.some((c) => c.q > 0);
         if (hasPositive && !isPositive) return;
 
-        const lines = numLinesPerCharge;
+        const lines = Math.min(
+          maxLinesPerCharge,
+          Math.max(4, Math.round(numLinesPerCharge * Math.abs(startCharge.q)))
+        );
 
         for (let i = 0; i < lines; i++) {
           const angle = (Math.PI * 2 * i) / lines;
@@ -571,7 +575,7 @@ export default function App() {
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">
               Laboratorio Eléctrico{' '}
               <span className="text-xs font-normal text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full ml-2">
-                v1.5 Sonda
+                v1.6 Sonda
               </span>
             </h1>
             <p className="text-xs text-gray-500 font-medium">Simulación de Campos y Potenciales</p>
