@@ -349,6 +349,17 @@ export default function App() {
           ctx.stroke();
         }
       });
+    } else {
+      ctx.fillStyle = '#475569';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      charges.forEach((c, idx) => {
+        const r = getRadius(c.q);
+        const labelX = c.x + r + 6;
+        const labelY = c.y;
+        ctx.fillText(String(idx + 1), labelX, labelY);
+      });
     }
 
     // 4. Dibujar puntero de la sonda (círculo pequeño donde está el mouse)
