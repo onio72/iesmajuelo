@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   base: '/iesmajuelo/bach/fi2/t03/lineascampo/',
   build: {
-    outDir: '../../../../docs/bach/fi2/t03/lineascampo',
+    outDir: '../lineascampo',
     emptyOutDir: true,
   },
 })
