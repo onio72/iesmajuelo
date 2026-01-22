@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafío de Formulación Química 3º ESO</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #cbebff 100%);
+        }
+        .chem-font {
+            font-family: 'Exo 2', sans-serif;
+            letter-spacing: 1px;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
+        .btn-key {
+            transition: all 0.1s;
+        }
+        .btn-key:active {
+            transform: scale(0.95);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .feedback-correct {
+            animation: pulse-green 0.5s;
+        }
+        .feedback-incorrect {
+            animation: shake 0.4s;
+        }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body class="h-screen flex items-center justify-center p-4">
+
+    <!-- SCORM & Game Logic Scripts -->
+    <script>
+        /**
+         * ------------------------------------------------------------------
+         * 1. DATABASE (Extracted from PDF)
+         * ------------------------------------------------------------------
+         */
+        // 'prompts': Nombres oficiales para usar EN EL ENUNCIADO (bien escritos).
+        // 'names': Todas las variantes aceptadas como RESPUESTA del alumno (incluye sin tildes).
+        const compounds = [
+            // --- ÓXIDOS ---
+            { 
+                formula: "Na₂O", level: 1, type: "oxido", 
+                prompts: ["óxido de sodio", "óxido de disodio", "monóxido de disodio"],
+                names: ["óxido de sodio", "óxido de disodio", "monóxido de disodio", "monóxido de sodio", "oxido de sodio", "oxido de disodio", "monoxido de disodio", "monoxido de sodio"] 
+            },
+            { 
+                formula: "Al₂O₃", level: 1, type: "oxido", 
+                prompts: ["óxido de aluminio", "trióxido de dialuminio"],
+                names: ["óxido de aluminio", "trióxido de dialuminio", "oxido de aluminio", "trioxido de dialuminio"] 
+            },
+            { 
+                formula: "CaO", level: 1, type: "oxido", 
+                prompts: ["óxido de calcio", "monóxido de calcio"],
+                names: ["óxido de calcio", "monóxido de calcio", "oxido de calcio", "monoxido de calcio"] 
+            },
+            { 
+                formula: "Fe₂O₃", level: 2, type: "oxido", 
+                prompts: ["óxido de hierro(III)", "trióxido de dihierro"],
+                names: ["óxido de hierro(III)", "trióxido de dihierro", "oxido de hierro(iii)", "trioxido de dihierro", "óxido de hierro (III)"] 
+            },
+            { 
+                formula: "PbO₂", level: 2, type: "oxido", 
+                prompts: ["óxido de plomo(IV)", "dióxido de plomo"],
+                names: ["óxido de plomo(IV)", "dióxido de plomo", "oxido de plomo(iv)", "dioxido de plomo", "óxido de plomo (IV)"] 
+            },
+            { 
+                formula: "CuO", level: 2, type: "oxido", 
+                prompts: ["óxido de cobre(II)", "monóxido de cobre"],
+                names: ["óxido de cobre(II)", "monóxido de cobre", "oxido de cobre(ii)", "monoxido de cobre", "óxido de cobre (II)"] 
+            },
+            { 
+                formula: "Cu₂O", level: 3, type: "oxido", 
+                prompts: ["óxido de cobre(I)", "monóxido de dicobre"],
+                names: ["óxido de cobre(I)", "monóxido de dicobre", "oxido de cobre(i)", "monoxido de dicobre", "óxido de cobre (I)"] 
+            },
+            { 
+                formula: "PtO₂", level: 3, type: "oxido", 
+                prompts: ["óxido de platino(IV)", "dióxido de platino"],
+                names: ["óxido de platino(IV)", "dióxido de platino", "oxido de platino(iv)", "dioxido de platino", "óxido de platino (IV)"] 
+            },
+            
+            // --- HIDRUROS ---
+            { 
+                formula: "NaH", level: 1, type: "hidruro", 
+                prompts: ["hidruro de sodio", "monohidruro de sodio"],
+                names: ["hidruro de sodio", "monohidruro de sodio"] 
+            },
+            { 
+                formula: "CaH₂", level: 1, type: "hidruro", 
+                prompts: ["hidruro de calcio", "dihidruro de calcio"],
+                names: ["hidruro de calcio", "dihidruro de calcio"] 
+            },
+            { 
+                formula: "KH", level: 1, type: "hidruro", 
+                prompts: ["hidruro de potasio", "monohidruro de potasio"],
+                names: ["hidruro de potasio", "monohidruro de potasio"] 
+            },
+            { 
+                formula: "BaH₂", level: 1, type: "hidruro", 
+                prompts: ["hidruro de bario", "dihidruro de bario"],
+                names: ["hidruro de bario", "dihidruro de bario"] 
+            },
+            { 
+                formula: "FeH₃", level: 2, type: "hidruro", 
+                prompts: ["hidruro de hierro(III)", "trihidruro de hierro"],
+                names: ["hidruro de hierro(III)", "trihidruro de hierro", "hidruro de hierro(iii)", "hidruro de hierro (III)"] 
+            },
+            { 
+                formula: "PbH₄", level: 2, type: "hidruro", 
+                prompts: ["hidruro de plomo(IV)", "tetrahidruro de plomo"],
+                names: ["hidruro de plomo(IV)", "tetrahidruro de plomo", "hidruro de plomo(iv)", "hidruro de plomo (IV)"] 
+            },
+            { 
+                formula: "SnH₄", level: 2, type: "hidruro", 
+                prompts: ["hidruro de estaño(IV)", "tetrahidruro de estaño"],
+                names: ["hidruro de estaño(IV)", "tetrahidruro de estaño", "hidruro de estaño(iv)", "hidruro de estaño (IV)"] 
+            },
+            // Hidruros especiales/no metal
+            { 
+                formula: "NH₃", level: 1, type: "hidruro", 
+                prompts: ["amoniaco", "trihidruro de nitrógeno", "azano"],
+                names: ["amoniaco", "trihidruro de nitrógeno", "azano", "trihidruro de nitrogeno"] 
+            },
+            { 
+                formula: "CH₄", level: 1, type: "hidruro", 
+                prompts: ["metano", "tetrahidruro de carbono"],
+                names: ["metano", "tetrahidruro de carbono", "hidruro de carbono"] 
+            },
+            { 
+                formula: "PH₃", level: 2, type: "hidruro", 
+                prompts: ["fosfano", "trihidruro de fósforo"],
+                names: ["fosfano", "trihidruro de fósforo", "trihidruro de fosforo"] 
+            },
+            
+            // --- SALES BINARIAS ---
+            { 
+                formula: "NaCl", level: 1, type: "sal", 
+                prompts: ["cloruro de sodio", "monocloruro de sodio"],
+                names: ["cloruro de sodio", "monocloruro de sodio"] 
+            },
+            { 
+                formula: "LiF", level: 1, type: "sal", 
+                prompts: ["fluoruro de litio", "monofluoruro de litio"],
+                names: ["fluoruro de litio", "monofluoruro de litio"] 
+            },
+            { 
+                formula: "CaS", level: 2, type: "sal", 
+                prompts: ["sulfuro de calcio", "monosulfuro de calcio"],
+                names: ["sulfuro de calcio", "monosulfuro de calcio"] 
+            },
+            { 
+                formula: "FeBr₂", level: 2, type: "sal", 
+                prompts: ["bromuro de hierro(II)", "dibromuro de hierro"],
+                names: ["bromuro de hierro(II)", "dibromuro de hierro", "bromuro de hierro(ii)", "bromuro de hierro (II)"] 
+            },
+            { 
+                formula: "CdSe", level: 2, type: "sal", 
+                prompts: ["selenuro de cadmio", "monoselenuro de cadmio"],
+                names: ["selenuro de cadmio", "monoselenuro de cadmio"] 
+            },
+            { 
+                formula: "PbBr₄", level: 2, type: "sal", 
+                prompts: ["bromuro de plomo(IV)", "tetrabromuro de plomo"],
+                names: ["bromuro de plomo(IV)", "tetrabromuro de plomo", "bromuro de plomo(iv)", "bromuro de plomo (IV)"] 
+            },
+            { 
+                formula: "MgI₂", level: 2, type: "sal", 
+                prompts: ["yoduro de magnesio", "diyoduro de magnesio"],
+                names: ["yoduro de magnesio", "diyoduro de magnesio"] 
+            },
+            { 
+                formula: "CuI", level: 3, type: "sal", 
+                prompts: ["yoduro de cobre(I)", "monoyoduro de cobre"],
+                names: ["yoduro de cobre(I)", "monoyoduro de cobre", "yoduro de cobre(i)", "yoduro de cobre (I)"] 
+            },
+            { 
+                formula: "Ag₃P", level: 3, type: "sal", 
+                prompts: ["fosfuro de plata", "trifosfuro de plata"],
+                names: ["fosfuro de plata", "trifosfuro de plata"] 
+            }
+        ];
+
+        /**
+         * ------------------------------------------------------------------
+         * 2. SCORM API WRAPPER (Simplified & Secured)
+         * ------------------------------------------------------------------
+         */
+        const SCORM = {
+            API: null,
+            isConnected: false,
+
+            init: function() {
+                this.API = this.findAPI(window);
+                if (this.API != null) {
+                    const status = this.API.LMSInitialize("");
+                    if (status.toString() === "true") {
+                        this.isConnected = true;
+                        this.API.LMSSetValue("cmi.core.exit", "suspend");
+                        this.API.LMSCommit("");
+                        console.log("SCORM: Conectado correctamente.");
+                    }
+                } else {
+                    console.warn("SCORM: API no encontrada (Modo Standalone).");
+                }
+            },
+
+            findAPI: function(win) {
+                let findAPITries = 0;
+                try {
+                    while ((win.API == null) && (win.parent != null) && (win.parent != win)) {
+                        findAPITries++;
+                        if (findAPITries > 7) return null;
+                        win = win.parent;
+                    }
+                    return win.API;
+                } catch (e) {
+                    console.warn("SCORM: Error de seguridad (Cross-Origin) al buscar la API. Se usará modo local.", e);
+                    return null; 
+                }
+            },
+
+            setScore: function(score) {
+                if (this.isConnected) {
+                    this.API.LMSSetValue("cmi.core.score.raw", score);
+                    this.API.LMSCommit("");
+                }
+            },
+
+            finish: function() {
+                if (this.isConnected) {
+                    this.API.LMSSetValue("cmi.core.exit", "logout");
+                    this.API.LMSFinish("");
+                    this.isConnected = false;
+                }
+            }
+        };
+
+        /**
+         * ------------------------------------------------------------------
+         * 3. GAME LOGIC
+         * ------------------------------------------------------------------
+         */
+        const Game = {
+            score: 0.0,
+            targetScore: 10,
+            currentQuestion: null,
+            lastType: null,
+            
+            init: function() {
+                SCORM.init();
+                this.updateScoreUI(); // FIX: Changed from this.updateUI() to this.updateScoreUI()
+                this.showScreen('start-screen');
+                
+                // Bind events
+                window.onunload = () => SCORM.finish();
+            },
+
+            start: function() {
+                this.score = 0;
+                this.lastType = null;
+                this.updateScoreUI();
+                this.nextQuestion();
+                this.showScreen('game-screen');
+            },
+
+            getLevel: function() {
+                if (this.score < 3) return 1;
+                if (this.score < 7) return 2;
+                return 3;
+            },
+
+            nextQuestion: function() {
+                const currentLevel = this.getLevel();
+                
+                // Filter by level
+                let pool = compounds.filter(c => c.level === currentLevel);
+                
+                // Anti-repetition filter: if possible, avoid same type
+                if (this.lastType) {
+                    const variedPool = pool.filter(c => c.type !== this.lastType);
+                    if (variedPool.length > 0) pool = variedPool;
+                }
+
+                // Random selection
+                const compound = pool[Math.floor(Math.random() * pool.length)];
+                this.lastType = compound.type;
+
+                // Mode selection: 0 = Formula->Name, 1 = Name->Formula
+                const mode = Math.random() < 0.5 ? 0 : 1;
+
+                let questionText = "";
+                // Logic update: Pick a random valid prompt if mode is Name->Formula
+                if (mode === 0) {
+                    questionText = compound.formula; // Ask Formula
+                } else {
+                    // Pick random prompt from the clean list
+                    questionText = compound.prompts[Math.floor(Math.random() * compound.prompts.length)];
+                }
+
+                this.currentQuestion = {
+                    data: compound,
+                    mode: mode, 
+                    questionText: questionText,
+                    answerType: mode === 0 ? "text" : "formula"
+                };
+
+                this.renderQuestion();
+            },
+
+            renderQuestion: function() {
+                const qText = document.getElementById('question-text');
+                const qLabel = document.getElementById('question-label');
+                const inputArea = document.getElementById('answer-input');
+                const feedback = document.getElementById('feedback-area');
+                
+                feedback.classList.add('hidden');
+                inputArea.value = '';
+                inputArea.focus();
+
+                if (this.currentQuestion.mode === 0) {
+                    qLabel.innerText = "Escribe el nombre del compuesto:";
+                    qText.innerHTML = this.formatFormula(this.currentQuestion.questionText);
+                    document.getElementById('subscript-controls').classList.add('hidden'); // No subs needed for naming
+                } else {
+                    qLabel.innerText = "Escribe la fórmula del compuesto:";
+                    qText.innerHTML = this.currentQuestion.questionText;
+                    document.getElementById('subscript-controls').classList.remove('hidden'); // Subs needed
+                }
+            },
+
+            checkAnswer: function() {
+                const input = document.getElementById('answer-input').value.trim();
+                if (!input) return;
+
+                let isCorrect = false;
+                const q = this.currentQuestion;
+
+                if (q.mode === 0) {
+                    // Expecting Name. Check against names array (case insensitive, normalize spaces)
+                    const normalizedInput = input.toLowerCase().replace(/\s+/g, ' ');
+                    isCorrect = q.data.names.some(n => n.toLowerCase() === normalizedInput);
+                } else {
+                    // Expecting Formula. Normalize subscripts
+                    // Convert user input like H2O to H₂O for comparison logic if they didn't use buttons
+                    const normalizedInput = this.normalizeFormulaInput(input);
+                    const correctFormula = q.data.formula; // Already has subscripts
+                    isCorrect = normalizedInput === correctFormula;
+                }
+
+                if (isCorrect) {
+                    this.handleCorrect();
+                } else {
+                    this.handleIncorrect();
+                }
+            },
+
+            handleCorrect: function() {
+                // Modified: 20 correct answers = 5 points. Therefore, 1 correct = 0.25 points.
+                this.score += 0.25; 
+                this.updateScoreUI();
+                this.showFeedback(true);
+                SCORM.setScore(this.score);
+                
+                if (this.score >= this.targetScore) {
+                    setTimeout(() => this.endGame(), 1500);
+                } else {
+                    setTimeout(() => this.nextQuestion(), 1500);
+                }
+            },
+
+            handleIncorrect: function() {
+                // Min score 0. Penalize symmetrically (-0.25)
+                this.score = Math.max(0, this.score - 0.25);
+                this.updateScoreUI();
+                SCORM.setScore(this.score);
+                this.showFeedback(false);
+                // Wait longer so they can read the correct answer
+                setTimeout(() => this.nextQuestion(), 3000);
+            },
+
+            passQuestion: function() {
+                // 0 points
+                this.showFeedback(false, true); // Treat as incorrect visual but don't penalize logic handled in showFeedback
+                setTimeout(() => this.nextQuestion(), 3000);
+            },
+
+            showFeedback: function(correct, isPass = false) {
+                const fb = document.getElementById('feedback-area');
+                const fbText = document.getElementById('feedback-text');
+                const fbAnswer = document.getElementById('feedback-answer');
+                
+                fb.classList.remove('hidden');
+                
+                if (correct) {
+                    fb.className = "mt-4 p-4 rounded-lg bg-green-100 border border-green-400 text-green-800 fade-in feedback-correct";
+                    fbText.innerHTML = '<i class="fas fa-check-circle"></i> ¡Correcto! (+0,25)';
+                    fbAnswer.innerText = "";
+                } else {
+                    fb.className = "mt-4 p-4 rounded-lg bg-red-100 border border-red-400 text-red-800 fade-in feedback-incorrect";
+                    const pointsMsg = isPass ? '(0 pts)' : '(-0,25 pts)';
+                    fbText.innerHTML = isPass ? `<i class="fas fa-forward"></i> Pasado ${pointsMsg}` : `<i class="fas fa-times-circle"></i> Incorrecto ${pointsMsg}`;
+                    
+                    // Show correct answer
+                    let correctText = "";
+                    if (this.currentQuestion.mode === 0) {
+                        // If we asked for the name, show valid prompts as the "correct answer"
+                        correctText = this.currentQuestion.data.prompts.join(" / ");
+                    } else {
+                        // If we asked for the formula, show the formula
+                        correctText = this.currentQuestion.data.formula;
+                    }
+                    fbAnswer.innerHTML = `La respuesta era: <strong>${correctText}</strong>`;
+                }
+            },
+
+            updateScoreUI: function() {
+                const scoreEl = document.getElementById('score-display');
+                
+                // Format decimal for Spanish (comma separator)
+                scoreEl.innerText = Number(this.score).toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                
+                if (this.score < 5) {
+                    scoreEl.className = "text-4xl font-bold text-red-500 transition-colors duration-300";
+                } else {
+                    scoreEl.className = "text-4xl font-bold text-green-500 transition-colors duration-300";
+                }
+
+                // Update Progress Bar
+                const percent = (this.score / this.targetScore) * 100;
+                document.getElementById('progress-bar').style.width = `${Math.max(0, percent)}%`;
+            },
+
+            endGame: function() {
+                this.showScreen('end-screen');
+                // Format final score as well
+                document.getElementById('final-score').innerText = Number(this.score).toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+            },
+
+            // Utilities
+            showScreen: function(id) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+                document.getElementById(id).classList.remove('hidden');
+            },
+
+            formatFormula: function(text) {
+                // Ensure subscripts are displayed correctly in HTML if string comes without them (though our DB has them)
+                // Just in case, if we had H2O, replace numbers with <sub>
+                return text.replace(/(\d+)/g, '<sub>$1</sub>');
+            },
+
+            normalizeFormulaInput: function(input) {
+                // Convert standard numbers to subscripts for validation
+                const subscriptMap = {
+                    '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
+                    '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉'
+                };
+                return input.replace(/[0-9]/g, (m) => subscriptMap[m]);
+            },
+
+            insertSubscript: function(num) {
+                const input = document.getElementById('answer-input');
+                const subscriptMap = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉'];
+                
+                // Insert at cursor position
+                const start = input.selectionStart;
+                const end = input.selectionEnd;
+                const text = input.value;
+                const before = text.substring(0, start);
+                const after = text.substring(end, text.length);
+                
+                input.value = before + subscriptMap[num] + after;
+                input.selectionStart = input.selectionEnd = start + 1;
+                input.focus();
+            }
+        };
+
+        // Initialize on load
+        window.onload = function() {
+            Game.init();
+        };
+
+    </script>
+
+    <!-- UI Container -->
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden relative min-h-[500px] flex flex-col">
+        
+        <!-- Header -->
+        <div class="bg-blue-600 p-4 flex justify-between items-center text-white">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-flask text-2xl"></i>
+                <h1 class="font-bold text-lg">Lab de Formulación</h1>
+            </div>
+            <div class="flex items-center gap-3 bg-blue-700 px-3 py-1 rounded-full">
+                <span class="text-sm font-light">Nota:</span>
+                <span id="score-display" class="font-bold text-xl text-white">0</span>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full bg-gray-200 h-2">
+            <div id="progress-bar" class="bg-green-500 h-2 transition-all duration-500" style="width: 0%"></div>
+        </div>
+
+        <!-- Screens -->
+        <div class="p-8 flex-1 flex flex-col justify-center">
+
+            <!-- Start Screen -->
+            <div id="start-screen" class="screen text-center space-y-6">
+                <div class="mb-6">
+                    <i class="fas fa-atom text-6xl text-blue-500 animate-spin-slow" style="animation-duration: 10s;"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-800">¿Listo para formular?</h2>
+                <p class="text-gray-600">Demuestra tus conocimientos de Física y Química de 3º ESO.</p>
+                <div class="bg-blue-50 p-4 rounded-lg text-left text-sm text-gray-700 border border-blue-100">
+                    <h3 class="font-bold mb-2"><i class="fas fa-info-circle"></i> Reglas:</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Llega a <strong>10 puntos</strong> para completar la actividad.</li>
+                        <li>Aciertos suman <strong>+0,25</strong> (Necesitas 20 para el 5).</li>
+                        <li>Fallos restan <strong>-0,25</strong>.</li>
+                    </ul>
+                </div>
+                <button onclick="Game.start()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition transform hover:-translate-y-1 shadow-lg">
+                    Comenzar Juego
+                </button>
+            </div>
+
+            <!-- Game Screen -->
+            <div id="game-screen" class="screen hidden flex flex-col items-center w-full">
+                
+                <div class="w-full text-center mb-8">
+                    <p id="question-label" class="text-gray-500 text-sm uppercase tracking-wide font-semibold mb-2">Pregunta</p>
+                    <div id="question-text" class="text-4xl font-bold text-gray-800 py-4 chem-font min-h-[80px] flex items-center justify-center">
+                        <!-- Content injected by JS -->
+                    </div>
+                </div>
+
+                <div class="w-full max-w-md space-y-4">
+                    <input type="text" id="answer-input" 
+                        class="w-full border-2 border-gray-300 rounded-lg p-3 text-xl text-center focus:outline-none focus:border-blue-500 transition shadow-inner" 
+                        placeholder="Escribe tu respuesta aquí..." 
+                        autocomplete="off"
+                        onkeydown="if(event.key === 'Enter') Game.checkAnswer()">
+
+                    <!-- Subscript Keypad -->
+                    <div id="subscript-controls" class="hidden">
+                        <p class="text-xs text-gray-400 mb-1 text-center">Añadir subíndices:</p>
+                        <div class="flex justify-center gap-1">
+                            <button onclick="Game.insertSubscript(2)" class="btn-key bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-1 px-3 rounded border border-gray-300">₂</button>
+                            <button onclick="Game.insertSubscript(3)" class="btn-key bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-1 px-3 rounded border border-gray-300">₃</button>
+                            <button onclick="Game.insertSubscript(4)" class="btn-key bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-1 px-3 rounded border border-gray-300">₄</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mt-6">
+                        <button onclick="Game.passQuestion()" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 rounded-lg transition">
+                            Saltar
+                        </button>
+                        <button onclick="Game.checkAnswer()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition">
+                            Comprobar
+                        </button>
+                    </div>
+
+                    <!-- Feedback Area -->
+                    <div id="feedback-area" class="hidden text-center">
+                        <div id="feedback-text" class="text-xl font-bold mb-1"></div>
+                        <div id="feedback-answer" class="text-gray-600"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- End Screen -->
+            <div id="end-screen" class="screen hidden text-center space-y-6">
+                <div class="mb-4">
+                    <i class="fas fa-trophy text-6xl text-yellow-400 animate-bounce"></i>
+                </div>
+                <h2 class="text-4xl font-bold text-gray-800">¡Enhorabuena!</h2>
+                <p class="text-xl text-gray-600">Has completado el desafío.</p>
+                <div class="bg-green-50 p-6 rounded-xl border border-green-200 inline-block w-full">
+                    <p class="text-gray-500 uppercase text-xs font-bold">Nota Final</p>
+                    <p id="final-score" class="text-6xl font-bold text-green-600 mt-2">10</p>
+                </div>
+                <p class="text-sm text-gray-500 mt-8">
+                    La puntuación ha sido guardada.<br>
+                    Por favor, pulsa el botón <strong>"Salir de la actividad"</strong> de tu plataforma.
+                </p>
+            </div>
+
+        </div>
+        
+        <!-- Footer -->
+        <div class="bg-gray-50 p-3 text-center text-xs text-gray-400 border-t">
+            Física y Química 3º ESO - Módulo SCORM 1.2
+        </div>
+    </div>
+
+</body>
+</html>
