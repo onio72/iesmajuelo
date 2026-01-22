@@ -22,6 +22,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [probeValues, setProbeValues] = useState(null); // Estado para la sonda
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
   // Configuraciones de visualización
   const [numLinesPerCharge, setNumLinesPerCharge] = useState(16);
@@ -30,6 +31,7 @@ export default function App() {
   const [potentialStep, setPotentialStep] = useState(200);
   const [showArrows, setShowArrows] = useState(true);
   const [showGrid, setShowGrid] = useState(true);
+  const [showCharges, setShowCharges] = useState(true);
 
   // --- Constantes Físicas y de Dibujo ---
   const k = 20000;
@@ -312,40 +314,42 @@ export default function App() {
     }
 
     // 3. Dibujar las Cargas
-    charges.forEach((c) => {
-      const isPos = c.q > 0;
-      const r = getRadius(c.q);
+    if (showCharges) {
+      charges.forEach((c) => {
+        const isPos = c.q > 0;
+        const r = getRadius(c.q);
 
-      ctx.beginPath();
-      ctx.arc(c.x + 2, c.y + 2, r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(0,0,0,0.15)';
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
-      ctx.fillStyle = isPos ? colors.pos : colors.neg;
-      ctx.fill();
-
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = selectedId === c.id ? '#000' : isPos ? colors.posStroke : colors.negStroke;
-      if (selectedId === c.id) ctx.setLineDash([3, 2]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      ctx.fillStyle = 'white';
-      ctx.font = `bold ${12 + Math.abs(c.q) * 1.5}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(isPos ? '+' : '-', c.x, c.y + 1);
-
-      if (selectedId === c.id) {
         ctx.beginPath();
-        ctx.arc(c.x, c.y, r + 6, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(99, 102, 241, 0.5)';
+        ctx.arc(c.x + 2, c.y + 2, r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = isPos ? colors.pos : colors.neg;
+        ctx.fill();
+
         ctx.lineWidth = 2;
+        ctx.strokeStyle = selectedId === c.id ? '#000' : isPos ? colors.posStroke : colors.negStroke;
+        if (selectedId === c.id) ctx.setLineDash([3, 2]);
         ctx.stroke();
-      }
-    });
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = 'white';
+        ctx.font = `bold ${12 + Math.abs(c.q) * 1.5}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(isPos ? '+' : '-', c.x, c.y + 1);
+
+        if (selectedId === c.id) {
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, r + 6, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(99, 102, 241, 0.5)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      });
+    }
 
     // 4. Dibujar puntero de la sonda (círculo pequeño donde está el mouse)
     if (probeValues) {
@@ -365,6 +369,7 @@ export default function App() {
     potentialStep,
     showGrid,
     showFieldLines,
+    showCharges,
     selectedId,
     isDragging,
     probeValues,
@@ -388,6 +393,10 @@ export default function App() {
   };
 
   const handlePointerDown = (e) => {
+    if (!showCharges) {
+      setSelectedId(null);
+      return;
+    }
     const { x, y } = getPointerPos(e);
     let clickedId = null;
 
@@ -418,7 +427,7 @@ export default function App() {
     setProbeValues({ x: pos.x, y: pos.y, E: E_mag, V });
 
     // --- Lógica de Arrastre ---
-    if (!isDragging || selectedId === null) return;
+    if (!showCharges || !isDragging || selectedId === null) return;
 
     const canvas = canvasRef.current;
     const width = canvas.width / (window.devicePixelRatio || 1);
@@ -496,6 +505,7 @@ export default function App() {
     setSelectedId(null);
     setPotentialStep(200);
     setShowFieldLines(true);
+    setShowCharges(true);
     setProbeValues(null);
   };
 
@@ -511,6 +521,7 @@ export default function App() {
         ctx.scale(dpr, dpr);
         canvasRef.current.style.width = `${clientWidth}px`;
         canvasRef.current.style.height = `${clientHeight}px`;
+        setCanvasSize({ width: clientWidth, height: clientHeight });
         setCharges((prev) => {
           const needsInit = prev.some((c) => c.x === -1);
           if (needsInit) {
@@ -625,7 +636,8 @@ export default function App() {
                 </div>
                 <div className="flex justify-between items-baseline text-[10px] text-gray-400 font-mono mt-1 pt-1 border-t border-dashed border-gray-100">
                   <span>
-                    Pos: ({Math.round(probeValues.x)}, {Math.round(probeValues.y)})
+                    Pos: ({Math.round(probeValues.x - canvasSize.width / 2)},{' '}
+                    {Math.round(canvasSize.height / 2 - probeValues.y)})
                   </span>
                 </div>
               </div>
@@ -689,7 +701,8 @@ export default function App() {
                               Carga {idx + 1}
                             </span>
                             <span className="text-[10px] text-gray-400 font-mono">
-                              ({Math.round(c.x)}, {Math.round(c.y)})
+                              ({Math.round(c.x - canvasSize.width / 2)},{' '}
+                              {Math.round(canvasSize.height / 2 - c.y)})
                             </span>
                           </div>
                         </div>
@@ -798,6 +811,17 @@ export default function App() {
                   <ToggleRow label="Líneas de Campo" checked={showFieldLines} onChange={setShowFieldLines} />
                   <ToggleRow label="Vectores de Campo" checked={showArrows} onChange={setShowArrows} />
                   <ToggleRow label="Rejilla de Fondo" checked={showGrid} onChange={setShowGrid} />
+                  <ToggleRow
+                    label="Cargas"
+                    checked={showCharges}
+                    onChange={(value) => {
+                      setShowCharges(value);
+                      if (!value) {
+                        setSelectedId(null);
+                        setIsDragging(false);
+                      }
+                    }}
+                  />
                   <ToggleRow
                     label="Equipotenciales"
                     checked={showEquipotential}
