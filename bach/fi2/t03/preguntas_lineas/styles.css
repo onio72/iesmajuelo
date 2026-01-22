@@ -1,0 +1,250 @@
+:root {
+  color-scheme: light;
+  --bg: #f5f2ea;
+  --panel: #ffffff;
+  --ink: #1f2933;
+  --muted: #6b7280;
+  --accent: #d97706;
+  --accent-dark: #92400e;
+  --border: #e5e7eb;
+  --success: #0f766e;
+  --danger: #b91c1c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #fff8e1 0%, var(--bg) 55%);
+  color: var(--ink);
+}
+
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 20px 48px;
+}
+
+.app__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.app__header h1 {
+  font-size: 2rem;
+  margin: 0 0 8px;
+}
+
+.app__header p {
+  margin: 0;
+  color: var(--muted);
+  max-width: 620px;
+}
+
+.score {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 18px;
+  min-width: 120px;
+  text-align: right;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.score__label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.score__value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+
+.app__main {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+}
+
+.card {
+  background: var(--panel);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  box-shadow: 0 18px 30px rgba(15, 23, 42, 0.08);
+  padding: 20px;
+}
+
+.media {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.media__frame {
+  position: relative;
+  border-radius: 16px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  background: #f8fafc;
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+}
+
+.media__frame img {
+  max-width: none;
+  max-height: none;
+  width: auto;
+  height: auto;
+  display: block;
+}
+
+.media__badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(217, 119, 6, 0.9);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.warning {
+  margin: 0;
+  padding: 10px 12px;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  color: #92400e;
+  border-radius: 12px;
+  font-size: 0.85rem;
+}
+
+.qa {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.qa__header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.qa__question {
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.qa__options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.option {
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 12px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+  font-weight: 600;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.option:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(217, 119, 6, 0.2);
+}
+
+.option[disabled] {
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+.option--selected {
+  border-color: var(--accent);
+  background: #fff7ed;
+}
+
+.qa__feedback {
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.qa__feedback--ok {
+  background: #ccfbf1;
+  color: var(--success);
+}
+
+.qa__feedback--bad {
+  background: #fee2e2;
+  color: var(--danger);
+}
+
+.btn {
+  border: none;
+  background: var(--accent);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn:hover {
+  background: var(--accent-dark);
+}
+
+.btn:disabled {
+  background: #cbd5f5;
+  cursor: not-allowed;
+}
+
+.btn--ghost {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent-dark);
+}
+
+.btn--ghost:hover {
+  background: #fff7ed;
+}
+
+@media (max-width: 960px) {
+  .app__main {
+    grid-template-columns: 1fr;
+  }
+
+  .score {
+    width: 100%;
+    text-align: left;
+  }
+
+  .app__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

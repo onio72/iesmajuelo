@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Preguntas sobre lineas de campo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="app__header">
+        <div>
+          <h1>Lineas de campo - Preguntas</h1>
+          <p>
+            En la imagen se muestran las lineas de campo de una distribucion de cargas pero las
+            cargas se han borrado.
+          </p>
+        </div>
+        <div class="score">
+          <span class="score__label">Puntuacion</span>
+          <span id="scoreValue" class="score__value">0</span>
+        </div>
+      </header>
+
+      <main class="app__main">
+        <section class="card media">
+          <div class="media__frame">
+            <img id="fieldImage" alt="Lineas de campo" />
+            <div id="imageBadge" class="media__badge"></div>
+          </div>
+          <button id="nextImageBtn" class="btn btn--ghost" type="button">
+            Cambiar imagen
+          </button>
+          <p id="dataWarning" class="warning" hidden>
+            Faltan datos en <code>data.json</code> para esta imagen. Edita el archivo para poder
+            responder preguntas.
+          </p>
+        </section>
+
+        <section class="card qa">
+          <div class="qa__header">
+            <span id="questionCounter" class="qa__counter"></span>
+            <span id="questionType" class="qa__type"></span>
+          </div>
+          <h2 id="questionText" class="qa__question"></h2>
+          <div id="options" class="qa__options"></div>
+          <div id="feedback" class="qa__feedback" hidden></div>
+          <button id="nextQuestionBtn" class="btn" type="button" disabled>
+            Siguiente pregunta
+          </button>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
