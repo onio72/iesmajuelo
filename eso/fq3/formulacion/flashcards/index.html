@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards de Química - Formulación y Nomenclatura</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- KaTeX para fórmulas matemáticas/químicas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        /* Estilos para el efecto Flip 3D */
+        .perspective {
+            perspective: 1000px;
+        }
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        /* CORRECCIÓN: Se cambió 180px por 180deg */
+        .is-flipped {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+        /* Ajuste para fórmulas KaTeX */
+        .katex-display { margin: 0.5em 0; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex flex-col items-center justify-center p-4 font-sans text-slate-900">
+
+    <!-- Contenedor Principal -->
+    <div class="w-full max-w-2xl">
+        
+        <!-- Cabecera -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-indigo-700 mb-2">Flashcards de Química</h1>
+            <p class="text-slate-500">Formulación, nomenclatura y valencias</p>
+        </div>
+
+        <!-- Indicador de Progreso -->
+        <div class="flex justify-between items-center mb-4 px-2">
+            <span id="progress-text" class="text-sm font-semibold bg-white px-3 py-1 rounded-full shadow-sm border border-slate-200">
+                Tarjeta 1 de 1
+            </span>
+            <span class="text-xs text-slate-400 uppercase tracking-widest font-bold">Haz clic para voltear</span>
+        </div>
+
+        <!-- Área de la Tarjeta -->
+        <div class="perspective w-full h-80 md:h-96">
+            <div id="flashcard" class="flip-card-inner" onclick="toggleFlip()">
+                <!-- Anverso (Pregunta) -->
+                <div class="flip-card-front bg-gray-300 text-slate-800 border-2 border-gray-400">
+                    <div id="question-content" class="text-xl md:text-2xl font-medium leading-relaxed">
+                        Cargando pregunta...
+                    </div>
+                </div>
+                <!-- Reverso (Respuesta) -->
+                <div class="flip-card-back bg-blue-50 text-blue-900 border-2 border-blue-200">
+                    <div id="answer-content" class="text-xl md:text-2xl font-bold leading-relaxed">
+                        Cargando respuesta...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controles -->
+        <div class="grid grid-cols-3 gap-4 mt-8">
+            <button onclick="prevCard()" class="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-bold py-4 px-6 rounded-xl shadow-md transition-all active:scale-95 border-b-4 border-slate-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                <span class="hidden sm:inline">Anterior</span>
+            </button>
+            
+            <button onclick="shuffleCards()" class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-xl shadow-md transition-all active:scale-95 border-b-4 border-indigo-800">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                <span class="hidden sm:inline">Barajar</span>
+            </button>
+
+            <button onclick="nextCard()" class="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-bold py-4 px-6 rounded-xl shadow-md transition-all active:scale-95 border-b-4 border-slate-200">
+                <span class="hidden sm:inline">Siguiente</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </button>
+        </div>
+
+        <!-- Instrucciones de teclado -->
+        <div class="mt-8 text-center text-slate-400 text-xs">
+            Atajos: <span class="bg-slate-200 px-1 rounded">Flechas</span> para navegar | <span class="bg-slate-200 px-1 rounded">Espacio / Enter</span> para voltear
+        </div>
+    </div>
+
+    <script>
+        // Datos CSV
+        const rawData = `¿Cómo se define la valencia de un elemento según el texto?;Como los "ganchos" que un elemento tiene para enlazarse con otros.
+¿Qué diferencia a los elementos con una única valencia de los que tienen varias?;Los de valencia única solo se combinan de una forma; los de varias forman diferentes compuestos.
+En la nomenclatura con prefijos, ¿qué prefijo se usa para indicar 3 átomos?;tri
+En la nomenclatura con prefijos, ¿qué prefijo se usa para indicar 4 átomos?;tetra
+En la nomenclatura con prefijos, ¿qué prefijo se usa para indicar 5 átomos?;penta
+En la nomenclatura con prefijos, ¿qué prefijo se usa para indicar 6 átomos?;hexa
+En la nomenclatura con prefijos, ¿qué prefijo se usa para indicar 7 átomos?;hepta
+En la nomenclatura con prefijos, ¿qué prefijo se usa para indicar 8 átomos?;octo
+¿En qué formato se indica la valencia en la nomenclatura de valencias (Stock)?;Entre paréntesis y con números romanos.
+¿Bajo qué condición se escribe la valencia en números romanos en la nomenclatura de Stock?;Solo si el elemento de la izquierda tiene más de una valencia.
+¿Qué representan los números situados a la derecha de cada símbolo en una fórmula?;El número de átomos de ese elemento en la fórmula.
+¿Qué se hace en una fórmula química si de un elemento aparece solo 1 átomo?;No se pone el número 1.
+¿Cuál es la regla general sobre la omisión del prefijo "mono"?;Se puede omitir y nunca se escribe referido al segundo elemento nombrado (el de la izquierda en la fórmula).
+¿Por qué parte de la fórmula se debe empezar siempre para nombrar un compuesto?;Por el final de la fórmula.
+¿Qué elemento se coloca a la izquierda en una fórmula química?;El elemento que está más a la izquierda en la tabla periódica.
+Si dos elementos están en la misma columna, ¿cuál se coloca a la izquierda en la fórmula?;El elemento que está más abajo en la columna.
+Definición: Nomenclatura;Conjunto de reglas que nos permite dar nombre a las sustancias químicas.
+Definición: Formulación;Conjunto de normas para escribir correctamente las fórmulas químicas.
+¿Qué valencia usan los no metales al combinarse con el Hidrógeno o en sales binarias?;Su única valencia indicada en negrita en la tabla proporcionada.
+¿Cuándo pueden los no metales usar todas sus valencias disponibles?;Cuando se combinan con el Oxígeno.
+¿Qué es una sustancia simple?;Aquella formada por un solo tipo de átomos de un mismo elemento.
+¿Qué es una sustancia compuesta?;Aquella formada por dos o más tipos de átomos diferentes.
+¿Cuántos tipos de átomos forman un compuesto binario?;2 tipos de átomos.
+¿Cuántos tipos de átomos forman un compuesto ternario?;3 tipos de átomos.
+Nombre de la sustancia simple $O_2$:;dioxígeno
+Nombre de la sustancia simple $N_2$:;dinitrógeno
+Nombre de la sustancia simple $S_8$:;octazufre
+¿Qué son los óxidos?;Compuestos formados por oxígeno y otro elemento a su izquierda en la tabla periódica.
+¿Cuál es la valencia fija del oxígeno en los óxidos?;Valencia 2.
+¿Cuál es la regla de simplificación para las fórmulas de los óxidos?;Si se puede, se debe simplificar la fórmula.
+Nombre de $Na_2O$ usando prefijos:;(mon)óxido de sodio o óxido de sodio.
+Nombre de $Al_2O_3$ usando prefijos:;trióxido de dialuminio.
+Nombre de $Al_2O_3$ en nomenclatura de Stock:;óxido de aluminio (no lleva romano porque el $Al$ solo tiene valencia 3).
+Nombre de $Fe_2O_3$ usando prefijos:;trióxido de dihierro.
+Nombre de $Fe_2O_3$ en nomenclatura de Stock:;óxido de hierro(III).
+Nombre de $PbO_2$ en nomenclatura de Stock:;óxido de plomo(IV).
+Fórmula del óxido de calcio:;$CaO$
+Fórmula del óxido de cobre(II):;$CuO$
+Fórmula del óxido de cobre(I):;$Cu_2O$
+¿Qué son los haluros de oxígeno?;Compuestos formados por oxígeno y un halógeno.
+¿Cómo se nombran siempre los haluros de oxígeno?;Siempre se nombran con prefijos.
+Nombre de $OF_2$:;difluoruro de oxígeno.
+Nombre de $OI_2$:;diyoduro de oxígeno.
+Nombre de $O_7Cl_2$:;dicloruro de heptaoxígeno.
+Fórmula del dicloruro de trioxígeno:;$O_3Cl_2$
+Fórmula del dibromuro de pentaoxígeno:;$O_5Br_2$
+¿Cuál es la valencia del Hidrógeno ($H$) en los hidruros?;Valencia 1.
+¿Cuál es la regla de simplificación para las fórmulas de los hidruros?;Nunca se simplifica la fórmula.
+Nombre de $NaH$ en Stock:;hidruro de sodio.
+Nombre de $CaH_2$ usando prefijos:;dihidruro de calcio.
+Nombre de $FeH_3$ en Stock:;hidruro de hierro(III).
+Nombre de $PbH_4$ usando prefijos:;tetrahidruro de plomo.
+Fórmula del hidruro de estaño(IV):;$SnH_4$
+Nombres posibles para $NH_3$:;trihidruro de nitrógeno, hidruro de nitrógeno, azano o amoniaco.
+Nombre común y sistemático de $CH_4$:;metano (común) y tetrahidruro de carbono (sistemático).
+Nombre sistemático de $PH_3$:;trihidruro de fósforo o fosfano.
+Nombre de $HF(ac)$:;ácido fluorhídrico (o fluoruro de hidrógeno).
+Nombre de $HCl(ac)$:;ácido clorhídrico.
+Nombre de $H_2S(ac)$:;ácido sulfhídrico (o sulfuro de dihidrógeno).
+¿Qué componentes forman un hidróxido?;Un metal y el grupo hidróxido $(OH)^-$.
+¿Cuál es la valencia del grupo hidróxido $(OH)^-$?;Valencia 1.
+Nombre de $NaOH$:;hidróxido de sodio.
+Nombre de $Fe(OH)_3$:;hidróxido de hierro(III).
+Fórmula del hidróxido de cobre(II):;$Cu(OH)_2$
+Fórmula del hidróxido de plomo(IV):;$Pb(OH)_4$
+¿Qué elementos forman las sales binarias?;Un metal y un no metal.
+¿Qué terminación adopta el no metal en las sales binarias?;"-uro"
+¿Cuántas valencias posibles usa el no metal en las sales binarias?;Usa una única valencia (la que está en negrita).
+Nombre de $NaCl$:;cloruro de sodio.
+Nombre de $CaS$ usando prefijos:;(mono)sulfuro de calcio.
+Nombre de $FeBr_2$ en Stock:;bromuro de hierro(II).
+Nombre de $CuI$ en Stock:;yoduro de cobre(I).
+Nombre de $Ag_3P$ usando prefijos:;trifosfuro de plata.
+Fórmula del fluoruro de litio:;$LiF$
+Fórmula del selenuro de cadmio:;$CdSe$
+¿Qué indica el prefijo "di" en un nombre químico?;Que hay 2 átomos de ese elemento en la molécula.
+¿Qué indica el prefijo "penta" en un nombre químico?;Que hay 5 átomos de ese elemento en la molécula.
+En la fórmula $PtO_2$, ¿por qué no se escribe como $Pt_2O_4$?;Porque la fórmula de los óxidos debe simplificarse si es posible.
+En el nombre "óxido de hierro(III)", ¿a qué elemento se refiere el número romano?;Al hierro ($Fe$), que es el elemento situado a la izquierda en la fórmula.
+¿Cómo se escribe el nombre de $S_8$?;octazufre`;
+
+        let cards = [];
+        let currentIndex = 0;
+        let isFlipped = false;
+
+        function renderMath() {
+            if (typeof renderMathInElement === 'function') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        function init() {
+            parseCSV(rawData);
+            updateUI();
+        }
+
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            const separator = lines[0].includes(';') ? ';' : ',';
+
+            cards = lines.map(line => {
+                const parts = line.split(separator);
+                return {
+                    question: parts[0]?.trim(),
+                    answer: parts.slice(1).join(separator).trim()
+                };
+            }).filter(card => card.question && card.answer);
+        }
+
+        function updateUI() {
+            if (cards.length === 0) return;
+            const card = cards[currentIndex];
+            const flashcardElement = document.getElementById('flashcard');
+            
+            if (isFlipped) {
+                flashcardElement.classList.remove('is-flipped');
+                isFlipped = false;
+                setTimeout(() => setTexts(card), 200);
+            } else {
+                setTexts(card);
+            }
+
+            document.getElementById('progress-text').innerText = `Tarjeta ${currentIndex + 1} de ${cards.length}`;
+        }
+
+        function setTexts(card) {
+            document.getElementById('question-content').innerText = card.question;
+            document.getElementById('answer-content').innerText = card.answer;
+            setTimeout(renderMath, 0);
+        }
+
+        function toggleFlip() {
+            const flashcardElement = document.getElementById('flashcard');
+            isFlipped = !isFlipped;
+            if (isFlipped) {
+                flashcardElement.classList.add('is-flipped');
+            } else {
+                flashcardElement.classList.remove('is-flipped');
+            }
+        }
+
+        function nextCard() {
+            currentIndex = (currentIndex + 1) % cards.length;
+            updateUI();
+        }
+
+        function prevCard() {
+            currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+            updateUI();
+        }
+
+        function shuffleCards() {
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+            currentIndex = 0;
+            updateUI();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextCard();
+            if (e.key === 'ArrowLeft') prevCard();
+            if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                toggleFlip();
+            }
+        });
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
