@@ -190,15 +190,7 @@ const layout = [
   [null, null, 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr', null, null]
 ];
 
-const symbolsByZ = [null,
- 'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar',
- 'K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn','Ga','Ge','As','Se','Br','Kr',
- 'Rb','Sr','Y','Zr','Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe',
- 'Cs','Ba','La','Ce','Pr','Nd','Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb','Lu',
- 'Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn',
- 'Fr','Ra','Ac','Th','Pa','U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm','Md','No','Lr',
- 'Rf','Db','Sg','Bh','Hs','Mt','Ds','Rg','Cn','Nh','Fl','Mc','Lv','Ts','Og'
-];
+const symbolsByZ = [null, 'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar', 'K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn','Ga','Ge','As','Se','Br','Kr', 'Rb','Sr','Y','Zr','Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe', 'Cs','Ba','La','Ce','Pr','Nd','Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb','Lu', 'Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn', 'Fr','Ra','Ac','Th','Pa','U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm','Md','No','Lr', 'Rf','Db','Sg','Bh','Hs','Mt','Ds','Rg','Cn','Nh','Fl','Mc','Lv','Ts','Og'];
 
 const ZbySymbol = Object.fromEntries(symbolsByZ.map((s,i)=>[s,i]).filter(([s])=>s));
 
@@ -239,7 +231,7 @@ function shuffle(a){
   return a;
 }
 
-// MODIFICADO: Lista exacta de elementos de 3º ESO (55 elementos)
+// Lista exacta de elementos de 3º ESO (55 elementos)
 function allowedZList(){
   const selection3ESO = [
     // Periodo 1
@@ -249,16 +241,13 @@ function allowedZList(){
     // Periodo 3
     'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar',
     // Periodo 4
-    'K', 'Ca', 
-    'Fe', 'Co', 'Ni', 'Cu', 'Zn', // Transición seleccionada
+    'K', 'Ca',     'Fe', 'Co', 'Ni', 'Cu', 'Zn', // Transición seleccionada
     'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr',
     // Periodo 5
-    'Rb', 'Sr', 
-    'Pd', 'Ag', 'Cd', // Transición seleccionada
+    'Rb', 'Sr',     'Pd', 'Ag', 'Cd', // Transición seleccionada
     'In', 'Sn', 'Sb', 'Te', 'I', 'Xe',
     // Periodo 6
-    'Cs', 'Ba', 
-    'Pt', 'Au', 'Hg', // Transición seleccionada
+    'Cs', 'Ba',     'Pt', 'Au', 'Hg', // Transición seleccionada
     'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn',
     // Periodo 7
     'Fr', 'Ra'
@@ -378,6 +367,7 @@ let queue = buildFairQueue();
 let queueIndex = 0;
 let totalScore = 0;
 let exercisesDone = 0;
+let exerciseSolved = false; // NUEVA VARIABLE PARA EVITAR EL BUG
 
 function crearTabla(){
   const table = document.getElementById('periodicTable');
@@ -465,6 +455,9 @@ function updateCounter(){
 }
 
 function nextExercise(){
+  // Comprobamos si ya hemos ganado para no resetear innecesariamente
+  if (totalScore >= 10) return;
+
   if (queueIndex >= queue.length){
     queue = buildFairQueue();
     queueIndex = 0;
@@ -480,6 +473,11 @@ function nextExercise(){
   if (sel.selectedIndex !== 0) sel.selectedIndex = 0;
   document.getElementById('status').textContent = '';
 
+  // Reseteamos el estado del ejercicio
+  exerciseSolved = false;
+  // Volvemos a activar el botón de Corregir
+  document.getElementById('btnCheck').disabled = false;
+
   requestAnimationFrame(fitTableToViewport);
 }
 
@@ -489,7 +487,8 @@ function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
    4) Corrección y feedback
 ========================== */
 function checkAnswers(){
-  if (currentZ == null) return;
+  // Si no hay ejercicio activo o ya se resolvió, no hacemos nada
+  if (currentZ == null || exerciseSolved) return;
 
   const sym = symbolsByZ[currentZ];
   const correctZ = currentZ;
@@ -532,9 +531,14 @@ function checkAnswers(){
   exercisesDone += 1;
   updateCounter();
 
+  // Marcamos ejercicio como resuelto y deshabilitamos botón
+  exerciseSolved = true;
+  document.getElementById('btnCheck').disabled = true;
+
   SCORM_setScore(totalScore);
 
   if (totalScore >= 10){
+    // Si ya ganó, deshabilitamos ambos botones
     document.getElementById('btnCheck').disabled = true;
     document.getElementById('btnNext').disabled = true;
     st.textContent += ' ¡Objetivo alcanzado!';
@@ -589,11 +593,14 @@ window.addEventListener('unload', ()=>{ try{ if (scormInitialised && gAPI) gAPI.
    6) Init + reajuste en móvil
 ========================== */
 function onResizeReflow(){ fitTableToViewport(); }
+
 document.addEventListener('DOMContentLoaded', ()=>{
   crearTabla();
   SCORM_init();
   updateScoreBox();
   updateCounter();
+  
+  // OJO: nextExercise habilita el botón y pone exerciseSolved = false
   nextExercise();
 
   document.getElementById('btnCheck').addEventListener('click', checkAnswers);
