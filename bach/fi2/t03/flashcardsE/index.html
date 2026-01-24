@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estudio Interactivo: Física y Electromagnetismo</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- KaTeX CSS & JS (Para fórmulas matemáticas) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        /* Estilos personalizados para el efecto 3D */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden; /* Safari */
+        }
+        
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Clase para la animación de volteo */
+        .card-inner {
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* Prevenir selección de texto accidental al hacer clic rápido */
+        .no-select {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Ajustes finos para fórmulas matemáticas */
+        .katex { font-size: 1.1em; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Header / Título -->
+    <header class="mb-6 text-center max-w-2xl flex flex-col items-center">
+        <h1 class="text-3xl md:text-4xl font-bold text-slate-700 mb-2">Flashcards de Física</h1>
+        <p class="text-slate-500 mb-4">Electrostática y Campo Eléctrico</p>
+    </header>
+
+    <!-- Contenedor Principal de la Tarjeta -->
+    <div class="relative w-full max-w-2xl h-[400px] perspective-1000 group cursor-pointer no-select" onclick="toggleFlip()">
+        
+        <!-- Tarjeta Interior (la que gira) -->
+        <div id="card-inner" class="card-inner relative w-full h-full transform-style-3d shadow-xl rounded-2xl">
+            
+            <!-- ANVERSO (PREGUNTA) -->
+            <!-- Fondo gris medio y texto oscuro -->
+            <div class="absolute w-full h-full backface-hidden bg-gray-300 rounded-2xl p-8 flex flex-col items-center justify-center text-center border-2 border-gray-400">
+                <span class="absolute top-6 left-6 text-xs font-bold uppercase tracking-wider text-gray-600">Pregunta</span>
+                <!-- CORRECCIÓN AQUÍ: Eliminado 'flex items-center' para permitir flujo natural de texto y fórmulas -->
+                <div id="question-text" class="text-2xl md:text-3xl font-medium text-gray-900 leading-snug overflow-y-auto max-h-[80%] w-full block">
+                    Cargando...
+                </div>
+                <div class="absolute bottom-6 text-sm text-gray-500 flex items-center gap-2">
+                    <span>Espacio o Click para voltear</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                </div>
+            </div>
+
+            <!-- REVERSO (RESPUESTA) -->
+            <!-- Fondo claro -->
+            <div class="absolute w-full h-full backface-hidden rotate-y-180 bg-blue-50 rounded-2xl p-8 flex flex-col items-center justify-center text-center border-2 border-blue-200">
+                <span class="absolute top-6 left-6 text-xs font-bold uppercase tracking-wider text-blue-500">Respuesta</span>
+                <!-- CORRECCIÓN AQUÍ: Eliminado 'flex items-center' para permitir flujo natural de texto y fórmulas -->
+                <div id="answer-text" class="text-xl md:text-2xl text-slate-800 leading-relaxed overflow-y-auto max-h-[80%] w-full block">
+                    ...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de Controles -->
+    <div class="mt-8 flex flex-col items-center w-full max-w-2xl gap-4">
+        
+        <!-- Indicador de Progreso -->
+        <div class="text-sm font-medium text-slate-500 bg-white px-4 py-1 rounded-full shadow-sm border border-slate-200">
+            Tarjeta <span id="current-index">1</span> de <span id="total-cards">0</span>
+        </div>
+
+        <!-- Botonera -->
+        <div class="flex gap-4 w-full justify-center">
+            <button onclick="prevCard(event)" class="flex-1 max-w-[120px] bg-white hover:bg-slate-50 text-slate-700 font-semibold py-3 px-4 border border-slate-300 rounded-lg shadow-sm transition-all active:scale-95 flex justify-center items-center gap-2" title="Flecha Izquierda">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                Anterior
+            </button>
+
+            <!-- CORRECCIÓN ICONO BARAJAR: Icono limpio de Refresh/Shuffle -->
+            <button onclick="shuffleCards(event)" class="bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-lg shadow-md transition-all active:scale-95" title="Barajar (Shuffle)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 3h5v5"></path>
+                    <path d="M4 20L21 3"></path>
+                    <path d="M21 16v5h-5"></path>
+                    <path d="M15 15l6 6"></path>
+                    <path d="M4 4l5 5"></path>
+                </svg>
+            </button>
+
+            <button onclick="nextCard(event)" class="flex-1 max-w-[120px] bg-white hover:bg-slate-50 text-slate-700 font-semibold py-3 px-4 border border-slate-300 rounded-lg shadow-sm transition-all active:scale-95 flex justify-center items-center gap-2" title="Flecha Derecha">
+                Siguiente
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+        </div>
+        
+        <p class="text-xs text-slate-400 mt-2">Atajos: Flechas para navegar, Espacio/Enter para voltear</p>
+    </div>
+
+    <script>
+        // --- DATOS CSV ---
+        const csvData = String.raw`¿Cuáles son los dos tipos de carga eléctrica existentes?,Carga positiva y carga negativa.
+¿Qué tipo de fuerza ejercen entre sí las cargas de igual signo?,Fuerzas de repulsión.
+¿Qué tipo de fuerza ejercen entre sí las cargas de distinto signo?,Fuerzas de atracción.
+¿Cómo se obtiene la carga eléctrica neta de un sistema material?,Restando la cantidad de carga negativa a la cantidad de carga positiva.
+¿Cuándo se dice que un sistema es eléctricamente neutro?,Cuando tiene la misma cantidad de carga positiva que negativa (carga neta cero).
+Enunciado del principio de conservación de la carga eléctrica.,"En un sistema aislado, la carga neta permanece constante."
+¿Qué significa que la carga eléctrica está cuantizada?,Que la carga de un cuerpo es un múltiplo entero de la carga eléctrica elemental $e$.
+Definición de la carga eléctrica elemental $e$.,Es el valor absoluto de la carga eléctrica de un protón o de un electrón.
+Nombre y símbolo de la unidad de carga eléctrica en el Sistema Internacional.,Culombio ($C$).
+Relación entre la fuerza eléctrica y la distancia $r$ según la Ley de Coulomb.,La fuerza es inversamente proporcional al cuadrado de la distancia ($r^2$).
+Relación entre la fuerza eléctrica y el valor de las cargas $q_1$ y $q_2$ según la Ley de Coulomb.,La fuerza es directamente proporcional al valor de las cargas.
+Expresión escalar de la Ley de Coulomb.,$F = K \frac{q_1 q_2}{r^2}$
+¿De qué factores depende la constante $K$ en la Ley de Coulomb?,Del sistema de unidades utilizado y del medio en el que se encuentren las cargas.
+Expresión vectorial de la Ley de Coulomb.,$\vec{F} = K \frac{q_1 q_2}{r^2} \vec{u}_r$
+Sentido del vector unitario $\vec{u}_r$ en la expresión vectorial de la Ley de Coulomb.,Va de la carga que ejerce la fuerza a la que la experimenta.
+¿Por qué las fuerzas eléctricas entre dos cargas se consideran fuerzas de acción y reacción?,Porque son iguales en módulos y de sentidos contrarios al atraerse o repelerse mutuamente.
+Valor aproximado de la constante $K$ en el Sistema Internacional para el vacío.,$K \approx 9 \cdot 10^9 N m^2 C^{-2}$
+Relación matemática entre la constante $K$ y la permitividad del medio $\epsilon$.,$K = \frac{1}{4 \pi \epsilon}$
+Unidad de medida de la constante dieléctrica $\epsilon$ en el Sistema Internacional.,$C^2 N^{-1} m^{-2}$
+Definición de la constante dieléctrica relativa $\epsilon_r$ de un medio.,$\epsilon_r = \frac{\epsilon}{\epsilon_0}$
+Valor de la constante dieléctrica del vacío $\epsilon_0$.,"$\epsilon_0 = 8,85 \cdot 10^{-12} C^2 N^{-1} m^{-2}$"
+Expresión de la Ley de Coulomb utilizando la permitividad del vacío $\epsilon_0$ y la relativa $\epsilon_r$.,$\vec{F} = \frac{1}{4 \pi \epsilon_r \epsilon_0} \frac{q_1 q_2}{r^2} \vec{u}_r$
+Valor de la constante dieléctrica relativa $\epsilon_r$ para el vacío.,$\epsilon_r = 1$
+¿Requiere la interacción electrostática un medio para transmitirse?,"No, se trata de una interacción a distancia que no necesita medio."
+¿Cómo varía el módulo de la fuerza electrostática con la distancia?,Disminuye rápidamente con la distancia como $r^{-2}$.
+¿Cuál es el radio de acción de la fuerza electrostática?,Todo el espacio excepto $r = 0$.
+Dirección en la que se da la interacción entre dos cargas puntuales.,En la dirección que pasa por los centros de las partículas.
+¿Por qué la interacción electrostática se considera una fuerza conservativa?,Porque es una fuerza central que solo depende de la distancia $r$ entre los centros.
+¿Cómo se calcula la fuerza resultante sobre una carga debido a un conjunto de cargas puntuales?,Sumando vectorialmente las fuerzas individuales de cada carga (principio de superposición).
+¿Qué dice el principio de superposición para la fuerza eléctrica? ,"La fuerza que ejercen las cargas $q_1$ y $q_2$ sobre $q_3$ se calcula sumando las fuerzas $\vec{F}_{13}$ y $\vec{F}_{23}$. Cada una de estas fuerzas se calculan por pares sin tener el cuenta la presencia de la tercera carga."
+¿Afecta la presencia de una tercera carga a la fuerza que ejercen entre sí dos cargas eléctricas?,"No, las fuerzas individuales no se ven afectadas por el resto de cargas."
+Definición de la energía potencial electrostática $E_{pA}$ en un punto $A$ respecto a otro O.,Es el trabajo que realiza el campo eléctrico para ir desde el punto de referencia O hasta A cambiado de signo. $E_{pA} = -W_{O\to A}^{E} =-\int_{O}^{A} \vec{F} \cdot d\vec{r}$
+Punto de referencia estándar $O$ donde la energía potencial electrostática se considera nula.,El infinito ($r \to \infty$).
+Fórmula de la energía potencial electrostática para una carga $q_1$ a una distancia $r$ de $q_2$.,$E_p = K \frac{q_1 q_2}{r}$
+Signo de la energía potencial si las dos cargas tienen el mismo signo.,Positivo.
+Signo de la energía potencial si las dos cargas tienen distinto signo.,Negativo.
+¿Qué le ocurre a la energía potencial del sistema al acercar dos cargas de igual signo?,La energía potencial aumenta.
+¿Qué le ocurre a la energía potencial del sistema al acercar dos cargas de signo distinto?,La energía potencial disminuye.
+Relación entre la energía potencial electrostática y el trabajo exterior $W_{ext}$.,$W_{ext} = E_{pA}$ (trabajo para traer la carga desde el infinito hasta $A$).
+¿Cómo debe ser la fuerza exterior al mover una carga en sentido no espontáneo?,La fuerza externa debe ser al menos igual y de sentido contrario a la fuerza que realiza el campo eléctrico $\vec{F}_{ext} = -\vec{F}$
+¿Qué dice el principio de superposición para la energía potencial eléctrica? ,"La energía potencial eléctrica de la carga $q_1$ en el campo creado por las cargas $q_1$ y $q_2$ se calcula sumando escalarmente las energías potenciales $Ep_{13}$ y $Ep_{23}$. Cada una de estas energías se calculan por pares sin tener el cuenta la presencia de la tercera carga."
+Definición de intensidad de campo eléctrico $\vec{E}$ en un punto.,Es la fuerza eléctrica $\vec{F}$ que experimenta la unidad de carga colocada en dicho punto.
+Relación matemática entre campo eléctrico $\vec{E}$, fuerza $\vec{F}$ y carga de prueba $q'$.",$\vec{E} = \frac{\vec{F}}{q'}$
+Unidad de medida de la intensidad de campo eléctrico en el Sistema Internacional.,$N C^{-1}$
+Fórmula del campo eléctrico $\vec{E}$ creado por una carga puntual $q$.,$\vec{E} = K \frac{q}{r^2} \vec{u}_r$
+¿Es el campo eléctrico una magnitud escalar o vectorial?,Magnitud vectorial.
+¿En qué punto del espacio no está definido el campo eléctrico de una partícula?,En $r = 0$ (la posición de la propia carga).
+Dependencia del módulo del campo eléctrico respecto a la distancia $r$.,Disminuye rápidamente con la distancia como $1/r^2$.
+Cálculo del campo eléctrico total $\vec{E}$ debido a un conjunto de partículas cargadas.,Es la suma vectorial de las intensidades de campo individuales (superposición).
+Definición de líneas de campo eléctrico.,Líneas para las que el vector campo es tangente a ellas en todos sus puntos.
+¿Por qué dos líneas de campo eléctrico no pueden cortarse?,Porque un mismo punto tendría asignado dos vectores intensidad de campo diferentes.
+¿De qué tipo de cargas 'salen' las líneas de campo eléctrico?,De las cargas positivas (fuentes).
+¿Hacia qué tipo de cargas 'entran' las líneas de campo eléctrico?,Hacia las cargas negativas (sumideros).
+Forma de las líneas de campo para una carga puntual aislada.,Rectas que pasan por el punto donde se encuentra la carga.
+Definición de potencial electrostático $V$ en un punto.,Es la energía potencial $E_p$ que tiene la unidad de carga cuando se sitúa en dicho punto.
+"Relación matemática entre potencial $V$, energía potencial $E_p$ y carga de prueba $q'$.",$V = \frac{E_p}{q'}$
+Fórmula del potencial electrostático $V$ creado por una carga puntual $q$.,$V = K \frac{q}{r}$
+Unidad y símbolo del potencial electrostático en el SI.,Voltio ($V$) o Julio por Culombio ($JC^{-1}$).
+¿Es el potencial electrostático una magnitud escalar o vectorial?,Magnitud escalar.
+¿Cómo varía el valor absoluto del potencial electrostático con la distancia $r$?,Disminuye rápidamente con la distancia como $1/r$.
+¿Qué tipo de simetría presenta el potencial de una carga puntual?,Simetría esférica (mismo valor a igual distancia).
+¿Por qué lo que tiene sentido físico es la diferencia de potencial y no el valor absoluto?,Porque el valor en un punto depende del nivel de referencia elegido para la energía potencial.
+Cálculo del potencial total $V$ debido a un conjunto de cargas.,Suma algebraica de los potenciales individuales creados por cada carga (superposición).
+Definición de superficie equipotencial.,Superficie en la que todos sus puntos tienen el mismo valor de potencial $V$.
+Cálculo del trabajo $W_{AB}$ para desplazar una carga $q$ entre dos puntos de una misma superficie equipotencial.,$W_{AB} = -q(V_B - V_A) = 0$
+Orientación del vector fuerza $\vec{F}$ respecto a las superficies equipotenciales.,Perpendicular a las superficies equipotenciales.
+Orientación del vector campo eléctrico $\vec{E}$ respecto a las superficies equipotenciales.,Perpendicular a las superficies equipotenciales.
+Geometría de las superficies equipotenciales de una carga puntual.,Esferas concéntricas centradas en la carga.
+Relación matemática entre la fuerza $\vec{F}$ y la energía potencial $E_p$., La fuerza es la derivada de la energía potencial respecto a la posición cambiada de signo por el vector unitario $\overrightarrow{F} =-\frac{\mathrm{d}Ep }{\mathrm{d} r}\overrightarrow{u_{r}}$
+Relación entre el campo eléctrico $\vec{E}$ y el potencial $dV$.", El campo eléctrico es la derivada del potencial eléctrico respecto a la posición cambiada de signo por el vector unitario $\overrightarrow{E} =-\frac{\mathrm{d}V }{\mathrm{d} r}\overrightarrow{u_{r}}$
+Relación entre el módulo del campo $E$ y la derivada del potencial $V$ respecto a la distancia $r$.,$E = \mp \frac{dV}{dr}$
+Expresión vectorial de la relación entre campo y potencial electrostáticos.,$\vec{E} = -\frac{dV}{dr} \vec{u}_r$
+Sentido de $\vec{E}$ respecto a $\vec{u}_r$ si la carga que crea el campo es positiva.,Mismo sentido que $\vec{u}_r$.
+Sentido de $\vec{E}$ respecto a $\vec{u}_r$ si la carga que crea el campo es negativa.,Sentido contrario a $\vec{u}_r$.
+¿Depende la intensidad del campo eléctrico del medio?,"Sí, su valor depende de la constante dieléctrica del medio."
+¿En qué sentido apunta la fuerza eléctrica?,Hacia dónde disminuya la energía potencial.
+¿En qué sentido apunta el campo eléctrica?,Hacia dónde disminuya el potencial.
+Propiedad de la materia que origina la interacción electromagnética.,La carga eléctrica.
+¿Cómo afecta el signo de las cargas a la dirección de la fuerza electrostática?,"La fuerza siempre actúa en la línea que une los centros, variando solo su sentido (atractivo o repulsivo)."
+¿Cómo varía la energía potencial de un sistema de dos cargas de signo opuesto al alejarlas?,"La energía potencial aumenta (se hace menos negativa, acercándose a cero)."
+¿Qué relación tiene la intensidad de campo eléctrico con la carga creadora $q$?,Es directamente proporcional a la carga.
+¿Qué indica el término 'campo central' aplicado al campo eléctrico?,Que el campo tiene dirección radial y su módulo depende solo de la distancia al centro.
+¿Qué ocurre con el trabajo electrostático si la trayectoria es cerrada?,"Es cero, debido a que el campo es conservativo."
+¿Cuál es la relación entre el campo eléctrico y la densidad de líneas de campo?,"A mayor densidad de líneas, mayor es el valor del campo $\vec{E}$."`;
+
+        // --- ESTADO DE LA APLICACIÓN ---
+        let cards = [];
+        let currentIndex = 0;
+        let isFlipped = false;
+
+        // --- PARSER CSV ---
+        function parseCSV(csvText) {
+            if (!csvText) return [];
+            
+            const lines = csvText.trim().split(/\r?\n/);
+            const result = [];
+            
+            // Detectar separador (coma o punto y coma)
+            let firstLine = lines.find(l => l.trim().length > 0);
+            if (!firstLine) return [];
+            
+            const separator = firstLine.indexOf(';') > -1 ? ';' : ',';
+
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i];
+                if (!line || line.trim() === "") continue;
+
+                // Regex para manejar comas dentro de comillas
+                const pattern = new RegExp(`\\s*${separator}(?=(?:(?:[^"]*"){2})*[^"]*$)\\s*`);
+                
+                const parts = line.split(pattern);
+
+                if (parts.length >= 2) {
+                    let question = parts[0];
+                    let answer = parts.slice(1).join(separator); 
+
+                    const cleanQuotes = (str) => {
+                        str = str.trim();
+                        if (str.startsWith('"') && str.endsWith('"')) {
+                            return str.substring(1, str.length - 1).replace(/""/g, '"');
+                        }
+                        return str;
+                    };
+
+                    result.push({
+                        q: cleanQuotes(question),
+                        a: cleanQuotes(answer)
+                    });
+                }
+            }
+            return result;
+        }
+
+        // --- FUNCIONES DE FORMATEO ---
+        function formatText(text) {
+            if (!text) return "";
+            let formatted = text.replace(/ (\?)$/, '&nbsp;$1');
+            return formatted;
+        }
+
+        function renderMathContent() {
+            const options = {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "$", right: "$", display: false}
+                ],
+                throwOnError: false
+            };
+            try {
+                renderMathInElement(document.getElementById('question-text'), options);
+                renderMathInElement(document.getElementById('answer-text'), options);
+            } catch (e) {
+                console.warn("KaTeX render error", e);
+            }
+        }
+
+        // --- CONTROL DE TARJETAS ---
+
+        function updateCard() {
+            const cardInner = document.getElementById('card-inner');
+            const questionEl = document.getElementById('question-text');
+            const answerEl = document.getElementById('answer-text');
+            const indexEl = document.getElementById('current-index');
+            const totalEl = document.getElementById('total-cards');
+
+            // Asegurar reset visual
+            cardInner.classList.remove('flipped');
+            isFlipped = false;
+
+            // Transición suave
+            setTimeout(() => {
+                if (cards.length === 0) return;
+                
+                const currentCard = cards[currentIndex];
+                questionEl.innerHTML = formatText(currentCard.q);
+                answerEl.innerHTML = formatText(currentCard.a);
+                
+                indexEl.textContent = currentIndex + 1;
+                totalEl.textContent = cards.length;
+
+                setTimeout(renderMathContent, 50);
+            }, 150);
+        }
+
+        function toggleFlip() {
+            const cardInner = document.getElementById('card-inner');
+            isFlipped = !isFlipped;
+            if (isFlipped) {
+                cardInner.classList.add('flipped');
+            } else {
+                cardInner.classList.remove('flipped');
+            }
+        }
+
+        function nextCard(e) {
+            if(e) e.stopPropagation();
+            if (currentIndex < cards.length - 1) {
+                currentIndex++;
+                updateCard();
+            }
+        }
+
+        function prevCard(e) {
+            if(e) e.stopPropagation();
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateCard();
+            }
+        }
+
+        function shuffleCards(e) {
+            if(e) e.stopPropagation();
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+            currentIndex = 0;
+            updateCard();
+            
+            // Animación botón
+            const btn = e.currentTarget;
+            btn.classList.add('ring-4', 'ring-indigo-300');
+            setTimeout(() => btn.classList.remove('ring-4', 'ring-indigo-300'), 200);
+        }
+
+        // --- INICIALIZACIÓN ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            cards = parseCSV(csvData);
+            
+            if (cards.length > 0) {
+                updateCard();
+            } else {
+                document.getElementById('question-text').textContent = "No se encontraron datos.";
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight') nextCard();
+                else if (e.key === 'ArrowLeft') prevCard();
+                else if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    toggleFlip();
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
