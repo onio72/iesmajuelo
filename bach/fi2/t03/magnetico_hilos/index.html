@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador: Campo Magnético Mejorado v1.4</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <style>
+        /* Reset margins and set the base font */
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+        #canvas-container { width: 100vw; height: 100vh; background: #f8fafc; }
+
+        /* Glassy sidebar styling */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Custom scrollbars for the sidebar */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        /* Range input styling */
+        input[type=range] {
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        /* Show numeric stepper arrows */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <!-- Sidebar overlay containing controls and readouts -->
+    <div class="absolute top-0 left-0 w-full h-full pointer-events-none flex">
+        <div class="pointer-events-auto w-80 h-full glass-panel flex flex-col text-slate-800 z-10 transition-transform duration-300" id="sidebar">
+            <!-- Header -->
+            <div class="p-5 border-b border-slate-200 bg-white/50">
+                <h1 class="text-xl font-bold text-slate-800 mb-1">Campo Magnético</h1>
+                <div class="flex justify-between items-center">
+                    <p class="text-xs text-slate-500">Hilos infinitos y rectilíneos</p>
+                    <span class="text-[10px] font-bold bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">v1.4</span>
+                </div>
+            </div>
+
+            <!-- Scrollable content -->
+            <div class="flex-1 overflow-y-auto custom-scroll p-5 space-y-6">
+                <!-- Visualization controls -->
+                <div class="space-y-3">
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Visualización</h2>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-200">
+                            <span class="text-sm font-medium text-slate-700">Vista Cenital (2D)</span>
+                            <button id="toggle-view-btn" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-xs rounded transition text-white font-semibold shadow-sm">
+                                Activar 2D
+                            </button>
+                        </div>
+                        
+                        <!-- Show Axes Checkbox -->
+                        <div class="flex items-center space-x-2 px-1">
+                            <input type="checkbox" id="show-axes-cb" checked class="form-checkbox h-4 w-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer">
+                            <label for="show-axes-cb" class="text-sm text-slate-600 cursor-pointer select-none">Mostrar Ejes</label>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic vector visibility panel -->
+                    <div id="visibility-controls" class="space-y-2 pt-2 border-t border-slate-100 mt-2">
+                        <!-- Filled dynamically -->
+                        <div class="text-xs text-slate-400 italic">Añade hilos para ver controles...</div>
+                    </div>
+                </div>
+
+                <!-- List of wires -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-end border-b border-slate-200 pb-2">
+                        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Conductores</h2>
+                        <button id="add-wire-btn" class="text-xs bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-2 py-1 rounded flex items-center gap-1 transition shadow-sm">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Añadir Hilo
+                        </button>
+                    </div>
+                    <div id="wires-list" class="space-y-3"></div>
+                </div>
+
+                <!-- Info Panel: displays test point data, magnitudes and legend -->
+                <div id="info-panel" class="hidden bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Punto de Testeo (P)</h3>
+                    
+                    <!-- Input fields for P coordinates -->
+                    <div class="mb-3 p-2 bg-slate-50 rounded border border-slate-100">
+                        <div class="text-xs text-slate-500 mb-1">Coordenadas:</div>
+                        <div class="flex gap-2">
+                            <div class="flex items-center gap-1 w-1/2">
+                                <label class="text-xs font-mono font-bold text-slate-600">X:</label>
+                                <input type="number" id="p-x-input" step="0.1" class="w-full text-xs p-1 border border-slate-300 rounded focus:border-blue-500 outline-none">
+                            </div>
+                            <div class="flex items-center gap-1 w-1/2">
+                                <label class="text-xs font-mono font-bold text-slate-600">Y:</label>
+                                <input type="number" id="p-y-input" step="0.1" class="w-full text-xs p-1 border border-slate-300 rounded focus:border-blue-500 outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="readout-content" class="text-xs font-mono space-y-1.5 text-slate-600"></div>
+                </div>
+            </div>
+
+            <!-- Footer instructions -->
+            <div class="p-3 border-t border-slate-200 text-center text-xs text-slate-400 bg-slate-50">
+                Haz clic en la pantalla para mover P.<br>
+                Arrastra los hilos para moverlos.
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        /*
+         * Configuración global
+         */
+        const CONFIG = {
+            k: 2,
+            wireHeight: 100,     
+            wireRadius: 0.1,
+            maxWires: 5,
+            fieldLineSegments: 128,
+            colors: {
+                wire: 0x64748b,      // Hilo Gris
+                vectorTotal: 0x15803d, // Verde
+                text: 0x0f172a,
+                grid1: 0xcbd5e1,
+                grid2: 0xe2e8f0,
+                axis: 0x64748b       // Color de ejes
+            },
+            // Colores fijos para los vectores según el índice del hilo
+            vectorColors: [
+                0xdc2626, // B1: Rojo
+                0x2563eb, // B2: Azul
+                0x9333ea, // B3: Violeta
+                0xd97706, // B4: Ambar
+                0x0891b2  // B5: Cyan
+            ],
+            arrowScale: {
+                // Factor de escalado visual. Longitud visual = Magnitud(T) * visualFactor
+                visualFactor: 0.6,
+                // Longitud máxima de la flecha para evitar que sea infinita muy cerca del hilo
+                maxLength: 6.0
+            }
+        };
+
+        const STATE = {
+            wires: [],
+            is2D: false,
+            showAxes: true,
+            testPoint: new THREE.Vector3(2, 2, 0),
+            visibleFields: { total: true }, 
+            wireCounter: 0
+        };
+
+        function toSubscript(str) {
+            const map = {
+                '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
+                '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+                't': 'ₜ', 'o': 'ₒ', 'a': 'ₐ', 'l': 'ₗ'
+            };
+            return str.toString().split('').map(c => map[c] || c).join('');
+        }
+
+        // --- Escena y Cámara ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf8fafc);
+
+        // Cuadrícula
+        const gridHelper = new THREE.GridHelper(40, 40, CONFIG.colors.grid1, CONFIG.colors.grid2);
+        gridHelper.rotation.x = -Math.PI / 2;
+        gridHelper.position.z = 0;
+        scene.add(gridHelper);
+
+        const planeGeometry = new THREE.PlaneGeometry(100, 100);
+        const planeMaterial = new THREE.MeshBasicMaterial({ visible: false });
+        const groundPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+        scene.add(groundPlane);
+
+        const aspect = window.innerWidth / window.innerHeight;
+        const camera3D = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
+        camera3D.position.set(20, 20, 20);
+        camera3D.up.set(0, 0, 1);
+        camera3D.lookAt(0, 0, 0);
+
+        const initialFrustum = 20;
+        const camera2D = new THREE.OrthographicCamera(
+            initialFrustum * aspect / -2, initialFrustum * aspect / 2,
+            initialFrustum / 2, initialFrustum / -2,
+            1, 1000
+        );
+        camera2D.position.set(0, 0, 50);
+        camera2D.up.set(0, 1, 0);
+        camera2D.lookAt(0, 0, 0);
+        
+        let activeCamera = camera3D;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera3D, renderer.domElement);
+        controls.enableDamping = true;
+        controls.maxPolarAngle = Math.PI / 2 - 0.1;
+        controls.enableZoom = false;
+        controls.enablePan = false;
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+        scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        dirLight.position.set(5, 10, 7);
+        scene.add(dirLight);
+
+        // Grupo principal de visualización
+        const visualsGroup = new THREE.Group();
+        visualsGroup.position.z = 0.2; 
+        scene.add(visualsGroup);
+
+        // --- Función auxiliar para crear flechas ---
+        function createFatArrow(dir, origin, length, color, thickness = 0.08) {
+            const group = new THREE.Group();
+            group.position.copy(origin);
+            const headLength = Math.min(length * 0.25, 1.0);
+            const shaftLength = Math.max(0.0, length - headLength);
+            
+            const shaftGeo = new THREE.CylinderGeometry(thickness, thickness, shaftLength, 8);
+            const mat = new THREE.MeshPhongMaterial({ color: color, shininess: 50, depthTest: false }); // depthTest false para ver vectores sobre todo
+            const shaft = new THREE.Mesh(shaftGeo, mat);
+            shaft.position.y = shaftLength / 2;
+            group.add(shaft);
+            
+            const headGeo = new THREE.ConeGeometry(thickness * 3, headLength, 12);
+            const head = new THREE.Mesh(headGeo, mat);
+            head.position.y = shaftLength + headLength / 2;
+            group.add(head);
+            
+            const axis = new THREE.Vector3(0, 1, 0);
+            const quaternion = new THREE.Quaternion().setFromUnitVectors(axis, dir.clone().normalize());
+            group.setRotationFromQuaternion(quaternion);
+            
+            return group;
+        }
+
+        // --- Ejes con flechas ---
+        const axesGroup = new THREE.Group(); // Ejes 2D
+        axesGroup.position.z = 0.02;
+        scene.add(axesGroup);
+        
+        const axes3DGroup = new THREE.Group(); // Ejes 3D
+        scene.add(axes3DGroup);
+
+        // Función para crear un eje con flecha
+        function createAxisArrow(dir, length, color, labelText) {
+            const axisArrow = createFatArrow(dir, new THREE.Vector3(0,0,0), length, color, 0.05);
+            
+            // Añadir etiqueta al final
+            const label = createTextSprite(labelText, '#64748b', 48);
+            // Posicionar etiqueta un poco más allá de la punta
+            const labelPos = dir.clone().multiplyScalar(length + 1.5);
+            label.position.copy(labelPos);
+            axisArrow.add(label);
+            
+            return axisArrow;
+        }
+
+        // Crear Ejes 2D (X e Y positivos)
+        {
+            // Eje X
+            axesGroup.add(createAxisArrow(new THREE.Vector3(1,0,0), 25, CONFIG.colors.axis, 'x'));
+            // Eje Y
+            axesGroup.add(createAxisArrow(new THREE.Vector3(0,1,0), 25, CONFIG.colors.axis, 'y'));
+            
+            // Líneas "negativas" más sutiles para completar la cruz en el origen sin flechas
+            const negMat = new THREE.LineBasicMaterial({ color: 0xcbd5e1 });
+            const negX = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-25,0,0), new THREE.Vector3(0,0,0)]);
+            axesGroup.add(new THREE.Line(negX, negMat));
+            const negY = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,-25,0), new THREE.Vector3(0,0,0)]);
+            axesGroup.add(new THREE.Line(negY, negMat));
+        }
+        axesGroup.visible = false;
+
+        // Crear Ejes 3D (X, Y, Z positivos)
+        {
+            const len3D = 8;
+            axes3DGroup.add(createAxisArrow(new THREE.Vector3(1,0,0), len3D, CONFIG.colors.axis, 'x'));
+            axes3DGroup.add(createAxisArrow(new THREE.Vector3(0,1,0), len3D, CONFIG.colors.axis, 'y'));
+            axes3DGroup.add(createAxisArrow(new THREE.Vector3(0,0,1), len3D, CONFIG.colors.axis, 'z'));
+        }
+        axes3DGroup.visible = true;
+
+        // --- Funciones de Texto y Utilidades ---
+
+        function autoFitCamera2D() {
+            if (!STATE.is2D) return;
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            let hasObjects = false;
+            STATE.wires.forEach(w => {
+                minX = Math.min(minX, w.data.x); maxX = Math.max(maxX, w.data.x);
+                minY = Math.min(minY, w.data.y); maxY = Math.max(maxY, w.data.y);
+                hasObjects = true;
+            });
+            if (STATE.testPoint) {
+                minX = Math.min(minX, STATE.testPoint.x); maxX = Math.max(maxX, STATE.testPoint.x);
+                minY = Math.min(minY, STATE.testPoint.y); maxY = Math.max(maxY, STATE.testPoint.y);
+                hasObjects = true;
+            }
+            if (!hasObjects) { minX = -10; maxX = 10; minY = -10; maxY = 10; }
+            
+            const padding = 10;
+            const width = (maxX - minX) + padding * 2;
+            const height = (maxY - minY) + padding * 2;
+            const centerX = (minX + maxX) / 2;
+            const centerY = (minY + maxY) / 2;
+            const size = Math.max(width, height, 20);
+            
+            const aspect = window.innerWidth / window.innerHeight;
+            camera2D.left = -size * aspect / 2;
+            camera2D.right = size * aspect / 2;
+            camera2D.top = size / 2;
+            camera2D.bottom = -size / 2;
+            
+            camera2D.position.x = centerX;
+            camera2D.position.y = centerY;
+            camera2D.lookAt(centerX, centerY, 0);
+            camera2D.updateProjectionMatrix();
+        }
+
+        function createTextSprite(message, color = '#1e293b', fontSize = 64) {
+            const fontFace = 'Arial';
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            context.font = 'bold ' + fontSize + 'px ' + fontFace;
+            const metrics = context.measureText(message);
+            const textWidth = metrics.width;
+            const paddingX = 20; const paddingY = 20;
+            canvas.width = textWidth + paddingX * 2;
+            canvas.height = fontSize + paddingY * 2;
+            context.font = 'bold ' + fontSize + 'px ' + fontFace;
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            
+            context.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+            context.lineWidth = 6;
+            context.strokeText(message, canvas.width / 2, canvas.height / 2);
+            context.fillStyle = color;
+            context.fillText(message, canvas.width / 2, canvas.height / 2);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ map: texture, depthTest: false, depthWrite: false, transparent: true });
+            const sprite = new THREE.Sprite(material);
+            const scale = 0.25 * (fontSize / 30);
+            sprite.scale.set(scale * canvas.width / canvas.height * 2, scale * 2, 1);
+            sprite.renderOrder = 999;
+            sprite.userData = { isLabel: true };
+            return sprite;
+        }
+
+        function createSubscriptLabel(mainChar, subChar, color = '#1e293b', mainSize = 64, subSize = 40) {
+            const fontFace = 'Arial';
+            const paddingX = 20; const paddingY = 20;
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.font = 'bold ' + mainSize + 'px ' + fontFace;
+            const mainWidth = tempCtx.measureText(mainChar).width;
+            tempCtx.font = 'bold ' + subSize + 'px ' + fontFace;
+            const subWidth = tempCtx.measureText(subChar).width;
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = mainWidth + subWidth + paddingX * 2;
+            canvas.height = mainSize + paddingY * 2;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.font = 'bold ' + mainSize + 'px ' + fontFace;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            const yMain = canvas.height / 2;
+            const xMain = paddingX;
+            
+            ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+            ctx.lineWidth = 6;
+            ctx.strokeText(mainChar, xMain, yMain);
+            ctx.fillStyle = color;
+            ctx.fillText(mainChar, xMain, yMain);
+            
+            ctx.font = 'bold ' + subSize + 'px ' + fontFace;
+            ctx.textBaseline = 'alphabetic';
+            const xSub = xMain + mainWidth;
+            const ySub = yMain + mainSize * 0.3;
+            
+            ctx.strokeText(subChar, xSub, ySub);
+            ctx.fillStyle = color;
+            ctx.fillText(subChar, xSub, ySub);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ map: texture, depthTest: false, depthWrite: false, transparent: true });
+            const sprite = new THREE.Sprite(material);
+            const scale = 0.25 * (mainSize / 30);
+            sprite.scale.set(scale * canvas.width / canvas.height * 2, scale * 2, 1);
+            sprite.renderOrder = 999;
+            sprite.userData = { isLabel: true };
+            return sprite;
+        }
+
+        function createSectionSymbol(type) {
+            const size = 128;
+            const canvas = document.createElement('canvas');
+            canvas.width = size; canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            const cx = size / 2; const cy = size / 2;
+            // Color fijo gris para los símbolos
+            const color = CONFIG.colors.wire;
+            const hexColor = '#' + new THREE.Color(color).getHexString();
+            const outerRadius = 45;
+            
+            ctx.beginPath();
+            ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = hexColor;
+            ctx.stroke();
+            
+            if (type === 'dot') {
+                ctx.beginPath();
+                ctx.arc(cx, cy, 15, 0, Math.PI * 2);
+                ctx.fillStyle = hexColor;
+                ctx.fill();
+            } else {
+                const offset = 25;
+                ctx.lineWidth = 10;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = hexColor;
+                ctx.beginPath();
+                ctx.moveTo(cx - offset, cy - offset);
+                ctx.lineTo(cx + offset, cy + offset);
+                ctx.moveTo(cx + offset, cy - offset);
+                ctx.lineTo(cx - offset, cy + offset);
+                ctx.stroke();
+            }
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ map: texture, depthTest: false, depthWrite: false, transparent: true });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(1.4, 1.4, 1);
+            return sprite;
+        }
+
+        // --- Clase Wire ---
+        class Wire {
+            constructor(x, y, current = 5) {
+                this.id = ++STATE.wireCounter;
+                this.data = { x, y, current, direction: 1 };
+                STATE.visibleFields[this.id] = true;
+                
+                // Color gris fijo para el hilo
+                const colorHex = CONFIG.colors.wire;
+                this.group = new THREE.Group();
+                this.group.userData = { isWire: true, parentWire: this };
+                
+                const halfHeight = CONFIG.wireHeight / 2;
+                const geoTop = new THREE.CylinderGeometry(CONFIG.wireRadius, CONFIG.wireRadius, halfHeight, 16);
+                const geoBottom = new THREE.CylinderGeometry(CONFIG.wireRadius, CONFIG.wireRadius, halfHeight, 16);
+                
+                const matTop = new THREE.MeshPhongMaterial({ color: colorHex });
+                const matBottom = new THREE.MeshPhongMaterial({ color: colorHex, transparent: true, opacity: 0.2 });
+                
+                this.topSegment = new THREE.Mesh(geoTop, matTop);
+                this.bottomSegment = new THREE.Mesh(geoBottom, matBottom);
+                
+                this.topSegment.position.y = halfHeight / 2;
+                this.bottomSegment.position.y = -halfHeight / 2;
+                this.group.add(this.topSegment);
+                this.group.add(this.bottomSegment);
+                
+                this.intersectionMarker = new THREE.Mesh(
+                    new THREE.CircleGeometry(0.3, 32),
+                    new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide })
+                );
+                this.intersectionMarker.rotation.x = -Math.PI / 2;
+                this.intersectionMarker.position.y = 0;
+                this.group.add(this.intersectionMarker);
+                
+                this.arrowGroup = new THREE.Group();
+                const arrowMat = new THREE.MeshPhongMaterial({ color: colorHex });
+                const arrowShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2, 8), arrowMat);
+                arrowShaft.position.y = 1;
+                const arrowHead = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.8, 12), arrowMat);
+                arrowHead.position.y = 2.4;
+                this.arrowGroup.add(arrowShaft);
+                this.arrowGroup.add(arrowHead);
+                this.arrowGroup.position.y = 1.0;
+                this.group.add(this.arrowGroup);
+                
+                this.labelSprite = createTextSprite(`Hilo ${this.id}`, '#1e293b', 48);
+                this.group.add(this.labelSprite);
+                
+                this.symbolDot = createSectionSymbol('dot');
+                this.symbolCross = createSectionSymbol('cross');
+                this.symbolDot.position.y = 0.1;
+                this.symbolCross.position.y = 0.1;
+                this.group.add(this.symbolDot);
+                this.group.add(this.symbolCross);
+                
+                this.group.rotation.x = Math.PI / 2;
+                this.group.position.set(x, y, 0);
+                scene.add(this.group);
+                
+                this.createUI();
+                this.updateVisuals();
+                updateVisibilityControls();
+            }
+
+            updateVisuals() {
+                const dir = this.data.direction;
+                // Siempre gris
+                const colorHex = CONFIG.colors.wire;
+                
+                this.topSegment.material.color.setHex(colorHex);
+                this.bottomSegment.material.color.setHex(colorHex);
+                this.bottomSegment.material.opacity = 0.2;
+                
+                this.arrowGroup.children.forEach(child => {
+                    if (child.material) child.material.color.setHex(colorHex);
+                });
+                
+                // Recrear símbolos (aunque siempre son grises, por consistencia)
+                this.group.remove(this.symbolDot);
+                this.group.remove(this.symbolCross);
+                this.symbolDot = createSectionSymbol('dot');
+                this.symbolCross = createSectionSymbol('cross');
+                this.symbolDot.position.y = 0.1;
+                this.symbolCross.position.y = 0.1;
+                this.group.add(this.symbolDot);
+                this.group.add(this.symbolCross);
+                
+                this.intersectionMarker.material.color.setHex(colorHex);
+                
+                if (dir === 1) {
+                    this.arrowGroup.rotation.x = 0;
+                    this.arrowGroup.position.y = 1;
+                } else {
+                    this.arrowGroup.rotation.x = Math.PI;
+                    this.arrowGroup.position.y = 1;
+                }
+                
+                this.symbolDot.visible = STATE.is2D && dir === 1;
+                this.symbolCross.visible = STATE.is2D && dir === -1;
+                this.arrowGroup.visible = !STATE.is2D;
+                this.intersectionMarker.visible = !STATE.is2D;
+                
+                if (STATE.is2D) {
+                    this.labelSprite.position.set(0.6, 0.6, 0.5);
+                    this.labelSprite.scale.set(1.5, 0.75, 1);
+                } else {
+                    // En 3D, etiqueta en Z=10
+                    this.labelSprite.position.set(0.5, 0, 10);
+                    this.labelSprite.scale.set(2.5, 1.25, 1);
+                }
+                updateCalculation();
+            }
+
+            setPosition(x, y) {
+                x = Math.round(x * 10) / 10;
+                y = Math.round(y * 10) / 10;
+                this.data.x = x;
+                this.data.y = y;
+                this.group.position.set(x, y, 0);
+                
+                const xInput = document.getElementById(`wire-x-${this.id}`);
+                const yInput = document.getElementById(`wire-y-${this.id}`);
+                if (xInput && yInput) {
+                    xInput.value = x;
+                    yInput.value = y;
+                }
+                updateCalculation();
+                autoFitCamera2D();
+            }
+
+            remove() {
+                scene.remove(this.group);
+                const uiElem = document.getElementById(`wire-control-${this.id}`);
+                if (uiElem) uiElem.remove();
+                delete STATE.visibleFields[this.id];
+                STATE.wires = STATE.wires.filter(w => w !== this);
+                updateVisibilityControls();
+                updateCalculation();
+                autoFitCamera2D();
+            }
+
+            createUI() {
+                const container = document.getElementById('wires-list');
+                const div = document.createElement('div');
+                div.id = `wire-control-${this.id}`;
+                div.className = 'bg-white p-3 rounded-lg border border-slate-200 shadow-sm hover:border-blue-300 transition-colors';
+                const headerColorClass = this.data.direction === 1 ? 'text-red-600' : 'text-blue-600';
+                
+                div.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold ${headerColorClass} transition-colors" id="wire-header-${this.id}">Hilo ${this.id}</span>
+                        <button class="delete-btn text-red-500 hover:text-red-700 text-xs hover:bg-red-50 px-2 py-0.5 rounded transition">Eliminar</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mb-2 bg-slate-50 p-2 rounded">
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs font-mono text-slate-500">X:</span>
+                            <input type="number" id="wire-x-${this.id}" step="0.1" value="${this.data.x}" class="w-full text-xs bg-white border border-slate-300 rounded px-1 py-0.5 outline-none focus:border-blue-500">
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs font-mono text-slate-500">Y:</span>
+                            <input type="number" id="wire-y-${this.id}" step="0.1" value="${this.data.y}" class="w-full text-xs bg-white border border-slate-300 rounded px-1 py-0.5 outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div>
+                            <label class="text-xs text-slate-500 font-medium">Intensidad (A)</label>
+                            <input type="number" class="current-input bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs w-full outline-none focus:border-blue-500" value="${this.data.current}" min="1" max="50">
+                        </div>
+                        <div class="flex flex-col items-end">
+                            <label class="text-xs text-slate-500 font-medium">Sentido</label>
+                            <button class="dir-btn w-full bg-slate-100 hover:bg-slate-200 text-xs py-1 px-2 rounded border border-slate-300 transition flex items-center justify-center gap-1 font-semibold text-slate-700">
+                                <span class="dir-icon text-lg font-bold">↑</span>
+                                <span class="dir-text">Hacia arriba</span>
+                            </button>
+                        </div>
+                    </div>
+                    <input type="range" class="current-slider w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer" min="1" max="20" step="0.5" value="${this.data.current}">
+                `;
+
+                const xInput = div.querySelector(`#wire-x-${this.id}`);
+                const yInput = div.querySelector(`#wire-y-${this.id}`);
+                const currentInput = div.querySelector('.current-input');
+                const slider = div.querySelector('.current-slider');
+                const dirBtn = div.querySelector('.dir-btn');
+                const header = div.querySelector(`#wire-header-${this.id}`);
+                const dirIcon = div.querySelector('.dir-icon');
+                const dirText = div.querySelector('.dir-text');
+
+                const updatePos = () => {
+                    const x = parseFloat(xInput.value) || 0;
+                    const y = parseFloat(yInput.value) || 0;
+                    this.setPosition(x, y);
+                };
+                xInput.onchange = updatePos;
+                yInput.onchange = updatePos;
+
+                const updateVal = v => {
+                    this.data.current = parseFloat(v);
+                    currentInput.value = this.data.current;
+                    slider.value = this.data.current;
+                    updateCalculation();
+                };
+                currentInput.oninput = e => updateVal(e.target.value);
+                slider.oninput = e => updateVal(e.target.value);
+
+                dirBtn.onclick = () => {
+                    this.data.direction *= -1;
+                    const isUp = this.data.direction === 1;
+                    dirIcon.innerHTML = isUp ? '↑' : '↓';
+                    dirText.innerText = isUp ? 'Hacia arriba' : 'Hacia abajo';
+                    header.className = `font-bold transition-colors ${isUp ? 'text-red-600' : 'text-blue-600'}`;
+                    this.updateVisuals();
+                };
+
+                div.querySelector('.delete-btn').onclick = () => this.remove();
+                container.appendChild(div);
+            }
+        }
+
+        // Checkbox para Ejes
+        const axesCheckbox = document.getElementById('show-axes-cb');
+        axesCheckbox.addEventListener('change', (e) => {
+            STATE.showAxes = e.target.checked;
+            updateCalculation();
+        });
+
+        function updateVisibilityControls() {
+            const container = document.getElementById('visibility-controls');
+            container.innerHTML = '';
+            
+            const totalDiv = document.createElement('div');
+            totalDiv.className = 'flex items-center space-x-2';
+            totalDiv.innerHTML = `
+                <input type="checkbox" id="show-total" ${STATE.visibleFields.total ? 'checked' : ''} class="form-checkbox h-4 w-4 text-green-600 rounded border-slate-300 focus:ring-green-500 cursor-pointer">
+                <label for="show-total" class="text-sm font-bold text-green-700 cursor-pointer select-none">Mostrar B<sub>t</sub></label>
+            `;
+            container.appendChild(totalDiv);
+            totalDiv.querySelector('input').onchange = e => {
+                STATE.visibleFields.total = e.target.checked;
+                updateCalculation();
+            };
+
+            STATE.wires.forEach(w => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center space-x-2';
+                div.innerHTML = `
+                    <input type="checkbox" id="show-b-${w.id}" ${STATE.visibleFields[w.id] !== false ? 'checked' : ''} class="form-checkbox h-4 w-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer">
+                    <label for="show-b-${w.id}" class="text-sm text-slate-600 cursor-pointer select-none">Mostrar B<sub>${w.id}</sub></label>
+                `;
+                container.appendChild(div);
+                div.querySelector('input').onchange = e => {
+                    STATE.visibleFields[w.id] = e.target.checked;
+                    updateCalculation();
+                };
+            });
+        }
+
+        function calculateB(point, wire) {
+            const dx = point.x - wire.data.x;
+            const dy = point.y - wire.data.y;
+            const rSq = dx * dx + dy * dy;
+            const r = Math.sqrt(rSq);
+            if (r < 0.05) return new THREE.Vector3();
+            
+            const magnitude = (CONFIG.k * wire.data.current) / r;
+            let bx, by;
+            if (wire.data.direction === 1) {
+                bx = -dy / r;
+                by = dx / r;
+            } else {
+                bx = dy / r;
+                by = -dx / r;
+            }
+            return new THREE.Vector3(bx * magnitude, by * magnitude, 0);
+        }
+
+        function updateCalculation() {
+            if (!STATE.testPoint) return;
+
+            // Lógica de visibilidad de ejes con checkbox
+            axesGroup.visible = STATE.is2D && STATE.showAxes;
+            axes3DGroup.visible = !STATE.is2D && STATE.showAxes;
+
+            while (visualsGroup.children.length > 0) {
+                const obj = visualsGroup.children[0];
+                if (obj.geometry) obj.geometry.dispose();
+                if (obj.material) obj.material.dispose();
+                visualsGroup.remove(obj);
+            }
+
+            const p = STATE.testPoint;
+            let totalB = new THREE.Vector3();
+
+            // Marcador P
+            const crossSize = 0.6;
+            const crossPoints = [
+                new THREE.Vector3(-crossSize/2, -crossSize/2, 0), new THREE.Vector3(crossSize/2, crossSize/2, 0),
+                new THREE.Vector3(-crossSize/2, crossSize/2, 0), new THREE.Vector3(crossSize/2, -crossSize/2, 0)
+            ];
+            const crossGeom = new THREE.BufferGeometry().setFromPoints(crossPoints);
+            const crossMat = new THREE.LineBasicMaterial({ color: 0x1e293b, linewidth: 2, depthTest: false, depthWrite: false });
+            const crossMarker = new THREE.LineSegments(crossGeom, crossMat);
+            crossMarker.position.copy(p);
+            visualsGroup.add(crossMarker);
+
+            // Etiqueta P en (0.7, 0.7)
+            const pLabel = createTextSprite('P', '#1e293b', 48);
+            pLabel.position.set(p.x + 0.7, p.y + 0.7, p.z + 0.7);
+            visualsGroup.add(pLabel);
+
+            // Actualizar inputs del DOM
+            const pxInput = document.getElementById('p-x-input');
+            const pyInput = document.getElementById('p-y-input');
+            if (pxInput && pyInput) {
+                if (document.activeElement !== pxInput) pxInput.value = p.x.toFixed(1);
+                if (document.activeElement !== pyInput) pyInput.value = p.y.toFixed(1);
+            }
+
+            let resultsHtml = '';
+            const wireResults = [];
+
+            STATE.wires.forEach(wire => {
+                const B = calculateB(p, wire);
+                const mag = B.length();
+                totalB.add(B);
+                wireResults.push({ wire, vector: B, magnitude: mag });
+            });
+
+            const totalMag = totalB.length();
+            
+            // --- NUEVO SISTEMA DE ESCALADO ---
+            // Longitud visual = Magnitud real * FactorVisual, limitada a MaxLength.
+            // Esto asegura que B1 no cambia de tamaño si B2 cambia.
+            const getVisualLength = (mag) => {
+                const rawLength = mag * CONFIG.arrowScale.visualFactor;
+                return Math.min(rawLength, CONFIG.arrowScale.maxLength);
+            };
+
+            const hideSingle = (STATE.wires.length === 1 && STATE.visibleFields.total);
+
+            wireResults.forEach((item, index) => {
+                const wire = item.wire;
+                const B = item.vector;
+                const mag = item.magnitude;
+
+                if (STATE.visibleFields[wire.id] !== false) {
+                    const radius = Math.sqrt(Math.pow(p.x - wire.data.x, 2) + Math.pow(p.y - wire.data.y, 2));
+                    const curve = new THREE.EllipseCurve(wire.data.x, wire.data.y, radius, radius, 0, 2 * Math.PI);
+                    const points2D = curve.getPoints(CONFIG.fieldLineSegments);
+                    const points = points2D.map(pt => new THREE.Vector3(pt.x, pt.y, 0));
+                    
+                    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                    const dashedMaterial = new THREE.LineDashedMaterial({
+                        color: 0x64748b, transparent: true, opacity: 0.6, dashSize: 0.3, gapSize: 0.3, depthTest: false
+                    });
+
+                    if (typeof geometry.computeLineDistances === 'function') {
+                        geometry.computeLineDistances();
+                    } else {
+                        const lineDistances = [0];
+                        let totalDistance = 0;
+                        for (let i = 1; i < points.length; i++) {
+                            totalDistance += points[i].distanceTo(points[i - 1]);
+                            lineDistances.push(totalDistance);
+                        }
+                        geometry.setAttribute('lineDistance', new THREE.Float32BufferAttribute(lineDistances, 1));
+                    }
+
+                    const line = new THREE.Line(geometry, dashedMaterial);
+                    line.renderOrder = 1;
+                    visualsGroup.add(line);
+                }
+
+                if (STATE.visibleFields[wire.id] !== false && !hideSingle) {
+                    // Seleccionar color fijo según índice del hilo
+                    const fixedColor = CONFIG.vectorColors[index % CONFIG.vectorColors.length];
+                    const fixedColorHex = '#' + new THREE.Color(fixedColor).getHexString();
+
+                    if (mag > 0.0001) {
+                        const len = getVisualLength(mag);
+                        const dir = B.clone().normalize();
+                        
+                        const arrow = createFatArrow(dir, p, len, fixedColor, 0.05);
+                        arrow.renderOrder = 1;
+                        visualsGroup.add(arrow);
+
+                        let perp = new THREE.Vector3(-dir.y, dir.x, 0);
+                        if (perp.length() > 0) perp.normalize();
+                        
+                        const offsetFactor = 0.6 + index * 0.3; 
+                        const labelPos = p.clone().add(dir.clone().multiplyScalar(len)).add(perp.clone().multiplyScalar(offsetFactor));
+                        if (!STATE.is2D) labelPos.z += 0.5;
+
+                        const labelText = `B${toSubscript(wire.id)}`;
+                        const label = createTextSprite(labelText, fixedColorHex, 56);
+                        label.position.copy(labelPos);
+                        visualsGroup.add(label);
+
+                        resultsHtml += `<div class="font-medium" style="color: ${fixedColorHex}">B${toSubscript(wire.id)}: ${mag.toFixed(2)} T</div>`;
+                    }
+                } else {
+                     if (STATE.visibleFields[wire.id] !== false) {
+                        const fixedColor = CONFIG.vectorColors[index % CONFIG.vectorColors.length];
+                        const fixedColorHex = '#' + new THREE.Color(fixedColor).getHexString();
+                        resultsHtml += `<div class="font-medium" style="color: ${fixedColorHex}">B${toSubscript(wire.id)}: ${mag.toFixed(2)} T</div>`;
+                     }
+                }
+            });
+
+            if (STATE.visibleFields.total && STATE.wires.length > 0) {
+                if (totalMag > 0.0001) {
+                    const lenTotal = getVisualLength(totalMag);
+                    const dirTotal = totalB.clone().normalize();
+                    const arrowTotal = createFatArrow(dirTotal, p, lenTotal, CONFIG.colors.vectorTotal, 0.07);
+                    arrowTotal.renderOrder = 1;
+                    visualsGroup.add(arrowTotal);
+
+                    const perpTotal = new THREE.Vector3(-dirTotal.y, dirTotal.x, 0);
+                    if (perpTotal.length() > 0) perpTotal.normalize();
+                    
+                    const totalLabelPos = p.clone().add(dirTotal.clone().multiplyScalar(lenTotal)).add(perpTotal.clone().multiplyScalar(0.8));
+                    if (!STATE.is2D) totalLabelPos.z += 0.6;
+
+                    const totalLabel = createSubscriptLabel('B', 't', '#15803d', 64, 40);
+                    totalLabel.position.copy(totalLabelPos);
+                    visualsGroup.add(totalLabel);
+
+                    resultsHtml += `<div class="mt-2 pt-2 border-t border-slate-300 font-bold" style="color: #15803d">TOTAL: ${totalMag.toFixed(2)} T</div>`;
+                }
+            }
+
+            document.getElementById('readout-content').innerHTML = resultsHtml;
+
+            // Mostrar el panel
+            const infoPanel = document.getElementById('info-panel');
+            if (infoPanel) {
+                infoPanel.classList.remove('hidden');
+                infoPanel.style.display = 'block';
+            }
+        }
+
+        // Lógica de inputs de P
+        const pXInput = document.getElementById('p-x-input');
+        const pYInput = document.getElementById('p-y-input');
+        
+        function updatePFromInput() {
+            const xVal = parseFloat(pXInput.value);
+            const yVal = parseFloat(pYInput.value);
+            
+            if (!isNaN(xVal) && !isNaN(yVal)) {
+                 // Validar distancia mínima
+                let tooClose = false;
+                STATE.wires.forEach(w => {
+                    const dx = xVal - w.data.x;
+                    const dy = yVal - w.data.y;
+                    if (Math.sqrt(dx * dx + dy * dy) < 0.2) tooClose = true;
+                });
+
+                if (!tooClose) {
+                    STATE.testPoint.x = xVal;
+                    STATE.testPoint.y = yVal;
+                    updateCalculation();
+                    autoFitCamera2D();
+                }
+            }
+        }
+        pXInput.addEventListener('change', updatePFromInput);
+        pYInput.addEventListener('change', updatePFromInput);
+
+
+        // --- Interacción ---
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let isDragging = false;
+        let selectedWire = null;
+        const dragPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+
+        function getWireFromIntersect(object) {
+            let curr = object;
+            while (curr) {
+                if (curr.userData?.isLabel) return null;
+                if (curr.userData?.parentWire) return curr.userData.parentWire;
+                curr = curr.parent;
+            }
+            return null;
+        }
+
+        window.addEventListener('mousemove', event => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, activeCamera);
+            if (isDragging && selectedWire) {
+                const intersectPoint = new THREE.Vector3();
+                const intersection = raycaster.ray.intersectPlane(dragPlane, intersectPoint);
+                if (intersection) {
+                    selectedWire.setPosition(intersection.x, intersection.y);
+                    container.style.cursor = 'grabbing';
+                }
+                return;
+            }
+            const intersects = raycaster.intersectObjects(STATE.wires.map(w => w.group), true);
+            let wire = null;
+            if (intersects.length > 0) {
+                wire = getWireFromIntersect(intersects[0].object);
+            }
+            container.style.cursor = wire ? 'grab' : 'crosshair';
+        });
+
+        window.addEventListener('mousedown', event => {
+            if (event.target.closest('#sidebar')) return;
+            raycaster.setFromCamera(mouse, activeCamera);
+            const intersects = raycaster.intersectObjects(STATE.wires.map(w => w.group), true);
+            if (intersects.length > 0) {
+                const wire = getWireFromIntersect(intersects[0].object);
+                if (wire) {
+                    isDragging = true;
+                    selectedWire = wire;
+                    controls.enabled = false;
+                    return;
+                }
+            }
+            const intersectsPlane = raycaster.intersectObject(groundPlane);
+            if (intersectsPlane.length > 0) {
+                const candidate = intersectsPlane[0].point;
+                let tooClose = false;
+                STATE.wires.forEach(w => {
+                    const dx = candidate.x - w.data.x;
+                    const dy = candidate.y - w.data.y;
+                    if (Math.sqrt(dx * dx + dy * dy) < 0.2) tooClose = true;
+                });
+                if (!tooClose) {
+                    STATE.testPoint = candidate;
+                    STATE.testPoint.z = 0;
+                    updateCalculation();
+                    autoFitCamera2D();
+                }
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+            selectedWire = null;
+            controls.enabled = false;
+            container.style.cursor = 'default';
+        });
+
+        document.getElementById('add-wire-btn').onclick = () => {
+            if (STATE.wires.length >= CONFIG.maxWires) return alert('Límite alcanzado');
+            const x = Math.round((Math.random() - 0.5) * 10 * 10) / 10;
+            const y = Math.round((Math.random() - 0.5) * 10 * 10) / 10;
+            const wire = new Wire(x, y);
+            STATE.wires.push(wire);
+            updateVisibilityControls();
+            autoFitCamera2D();
+        };
+
+        const toggleBtn = document.getElementById('toggle-view-btn');
+        toggleBtn.onclick = () => {
+            STATE.is2D = !STATE.is2D;
+            if (STATE.is2D) {
+                toggleBtn.innerText = 'Volver a 3D';
+                activeCamera = camera2D;
+                controls.enabled = false;
+                autoFitCamera2D();
+            } else {
+                toggleBtn.innerText = 'Activar 2D';
+                activeCamera = camera3D;
+                controls.enabled = false;
+            }
+            STATE.wires.forEach(w => w.updateVisuals());
+            updateCalculation();
+        };
+
+        // Inicializar
+        {
+            const w0 = new Wire(0, 0);
+            STATE.wires.push(w0);
+            // El cálculo inicial ocurre dentro del constructor de Wire al llamar updateVisuals/updateCalculation
+            // Pero forzamos updateCalculation para asegurar que los inputs de P se syncronicen
+            updateCalculation(); 
+            autoFitCamera2D();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (!STATE.is2D) controls.update();
+            renderer.render(scene, activeCamera);
+        }
+
+        window.addEventListener('resize', () => {
+            const aspect = window.innerWidth / window.innerHeight;
+            camera3D.aspect = aspect;
+            camera3D.updateProjectionMatrix();
+            autoFitCamera2D();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
