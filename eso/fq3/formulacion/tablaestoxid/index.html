@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla de Estados de Oxidación Interactiva</title>
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --cell-size: 64px;
+            --gap: 4px;
+            --primary-color: #4a90e2;
+            --correct-color: #d4edda;
+            --correct-border: #28a745;
+            --incorrect-color: #f8d7da;
+            --incorrect-border: #dc3545;
+            
+            /* Colores para distinguir positivos de negativos */
+            --pos-bg: #e3f2fd; /* Azul muy claro */
+            --pos-border: #90caf9;
+            --neg-bg: #ffebee; /* Rojo muy claro */
+            --neg-border: #ef9a9a;
+            
+            /* Color para elementos no interactivos */
+            --disabled-bg: #f0f0f0;
+            --disabled-color: #aaa;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        p.instructions {
+            max-width: 800px;
+            text-align: center;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--primary-color);
+            color: white;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #357abd;
+        }
+
+        button.secondary {
+            background-color: #6c757d;
+        }
+
+        button.secondary:hover {
+            background-color: #5a6268;
+        }
+
+        #score-board {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-left: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Periodic Table Grid Layout */
+        .periodic-table {
+            display: grid;
+            grid-template-columns: repeat(18, var(--cell-size));
+            grid-gap: var(--gap);
+            margin-bottom: 40px;
+            max-width: 100%;
+            overflow-x: auto;
+            padding-bottom: 20px;
+        }
+
+        .element {
+            width: var(--cell-size);
+            min-height: 85px;
+            border: 1px solid #ccc;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            border-radius: 4px;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+            position: relative;
+            padding-top: 4px;
+        }
+
+        /* Elemento desactivado (sin inputs) */
+        .element.disabled {
+            background-color: var(--disabled-bg);
+            color: var(--disabled-color);
+            border-color: #e0e0e0;
+            box-shadow: none;
+        }
+        .element.disabled .symbol {
+            color: #999;
+        }
+
+        /* Categorías (Colores suaves para elementos activos) */
+        .cat-alkali:not(.disabled) { background-color: #ffcccc; }
+        .cat-alkaline:not(.disabled) { background-color: #ffdead; }
+        .cat-transition:not(.disabled) { background-color: #e0e0e0; }
+        .cat-basic:not(.disabled) { background-color: #ccffcc; }
+        .cat-semi:not(.disabled) { background-color: #ccccff; }
+        .cat-nonmetal:not(.disabled) { background-color: #ffffcc; }
+        .cat-halogen:not(.disabled) { background-color: #ffccff; }
+        .cat-gas:not(.disabled) { background-color: #e6e6fa; }
+
+        .symbol {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 2px;
+            line-height: 1;
+        }
+        
+        .atomic-number {
+            font-size: 9px;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            color: #666;
+        }
+        .disabled .atomic-number { color: #bbb; }
+
+        .inputs-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2px;
+            width: 100%;
+            padding: 0 2px;
+        }
+
+        .valence-input {
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            font-size: 11px;
+            border: 1px solid #999;
+            border-radius: 3px;
+            outline: none;
+            padding: 0;
+            -moz-appearance: textfield;
+        }
+
+        .valence-input::-webkit-outer-spin-button,
+        .valence-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Estilos para distinguir positivos de negativos */
+        .valence-input.val-pos {
+            background-color: var(--pos-bg);
+            border-color: var(--pos-border);
+        }
+        
+        .valence-input.val-neg {
+            background-color: var(--neg-bg);
+            border-color: var(--neg-border);
+        }
+
+        /* Feedback States */
+        .correct {
+            background-color: var(--correct-color) !important;
+            border-color: var(--correct-border) !important;
+            color: #155724;
+            font-weight: bold;
+        }
+
+        .incorrect {
+            background-color: var(--incorrect-color) !important;
+            border-color: var(--incorrect-border) !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            :root { --cell-size: 55px; }
+            .element { min-height: 80px; }
+            .symbol { font-size: 14px; }
+            .valence-input { width: 18px; height: 18px; font-size: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Tabla de Estados de Oxidación Interactiva</h1>
+    <p class="instructions">Introduce los estados de oxidación en orden ascendente (primero positivos de menor a mayor, luego negativos). Las casillas <span style="background:#e3f2fd; padding:0 4px; border:1px solid #90caf9">azules</span> son positivas (usa el signo "+") y las <span style="background:#ffebee; padding:0 4px; border:1px solid #ef9a9a">rojas</span> negativas (usa el signo "-").</p>
+
+    <div class="controls">
+        <button onclick="checkAnswers()">Comprobar Resultados</button>
+        <button class="secondary" onclick="resetTable()">Reiniciar</button>
+        <button class="secondary" onclick="showHints()">Resolver</button>
+        <div id="score-board">Puntuación: 0%</div>
+    </div>
+
+    <div id="periodic-table" class="periodic-table"></div>
+
+<script>
+    // 1. BASE DE DATOS COMPLETA
+    const ALL_OXIDATION_STATES = [
+        { z: 1, sym: "H", name: "Hidrógeno", vals: [1, -1] },
+        { z: 2, sym: "He", name: "Helio", vals: [0] },
+        { z: 3, sym: "Li", name: "Litio", vals: [1] },
+        { z: 4, sym: "Be", name: "Berilio", vals: [2] },
+        { z: 5, sym: "B", name: "Boro", vals: [3] },
+        { z: 6, sym: "C", name: "Carbono", vals: [4, 3, 2, 1, -1, -2, -3, -4] },
+        { z: 7, sym: "N", name: "Nitrógeno", vals: [5, 4, 3, 2, -3] }, 
+        { z: 8, sym: "O", name: "Oxígeno", vals: [-1, -2] },
+        { z: 9, sym: "F", name: "Flúor", vals: [-1] },
+        { z: 10, sym: "Ne", name: "Neón", vals: [0] },
+        { z: 11, sym: "Na", name: "Sodio", vals: [1] },
+        { z: 12, sym: "Mg", name: "Magnesio", vals: [2] },
+        { z: 13, sym: "Al", name: "Aluminio", vals: [3] },
+        { z: 14, sym: "Si", name: "Silicio", vals: [4, -4] },
+        { z: 15, sym: "P", name: "Fósforo", vals: [5, 3, -3] },
+        { z: 16, sym: "S", name: "Azufre", vals: [6, 4, 2, -2] },
+        { z: 17, sym: "Cl", name: "Cloro", vals: [7, 5, 3, 1, -1] },
+        { z: 18, sym: "Ar", name: "Argón", vals: [0] },
+        { z: 19, sym: "K", name: "Potasio", vals: [1] },
+        { z: 20, sym: "Ca", name: "Calcio", vals: [2] },
+        { z: 21, sym: "Sc", name: "Escandio", vals: [3] },
+        { z: 22, sym: "Ti", name: "Titanio", vals: [4, 3] },
+        { z: 23, sym: "V", name: "Vanadio", vals: [5, 4, 3, 2, 0] },
+        { z: 24, sym: "Cr", name: "Cromo", vals: [6, 3, 2, 0] },
+        { z: 25, sym: "Mn", name: "Manganeso", vals: [7, 6, 4, 3, 2, 0, -1] },
+        { z: 26, sym: "Fe", name: "Hierro", vals: [6, 3, 2, 0, -2] },
+        { z: 27, sym: "Co", name: "Cobalto", vals: [3, 2, 0, -1] },
+        { z: 28, sym: "Ni", name: "Níquel", vals: [3, 2, 0] },
+        { z: 29, sym: "Cu", name: "Cobre", vals: [2, 1] },
+        { z: 30, sym: "Zn", name: "Zinc", vals: [2] },
+        { z: 31, sym: "Ga", name: "Galio", vals: [3] },
+        { z: 32, sym: "Ge", name: "Germanio", vals: [4] },
+        { z: 33, sym: "As", name: "Arsénico", vals: [5, 3, -3] },
+        { z: 34, sym: "Se", name: "Selenio", vals: [6, 4, -2] },
+        { z: 35, sym: "Br", name: "Bromo", vals: [7, 5, 3, 1, -1] },
+        { z: 36, sym: "Kr", name: "Kriptón", vals: [2] },
+        { z: 37, sym: "Rb", name: "Rubidio", vals: [1] },
+        { z: 38, sym: "Sr", name: "Estroncio", vals: [2] },
+        { z: 39, sym: "Y", name: "Itrio", vals: [3] },
+        { z: 40, sym: "Zr", name: "Circonio", vals: [4] },
+        { z: 41, sym: "Nb", name: "Niobio", vals: [5, 3] },
+        { z: 42, sym: "Mo", name: "Molibdeno", vals: [6, 5, 4, 3, 2, 0] },
+        { z: 43, sym: "Tc", name: "Tecnecio", vals: [7] },
+        { z: 44, sym: "Ru", name: "Rutenio", vals: [8, 6, 4, 3, 2, 0, -2] },
+        { z: 45, sym: "Rh", name: "Rodio", vals: [5, 4, 3, 2, 1, 0] },
+        { z: 46, sym: "Pd", name: "Paladio", vals: [4, 2, 0] },
+        { z: 47, sym: "Ag", name: "Plata", vals: [2, 1] },
+        { z: 48, sym: "Cd", name: "Cadmio", vals: [2] },
+        { z: 49, sym: "In", name: "Indio", vals: [3] },
+        { z: 50, sym: "Sn", name: "Estaño", vals: [4, 2] },
+        { z: 51, sym: "Sb", name: "Antimonio", vals: [5, 3, -3] },
+        { z: 52, sym: "Te", name: "Telurio", vals: [6, 4, -2] },
+        { z: 53, sym: "I", name: "Yodo", vals: [7, 5, 3, 1, -1] },
+        { z: 54, sym: "Xe", name: "Xenón", vals: [6, 4, 2, 0] },
+        { z: 55, sym: "Cs", name: "Cesio", vals: [1] },
+        { z: 56, sym: "Ba", name: "Bario", vals: [2] },
+        { z: 57, sym: "La", name: "Lantano", vals: [3] },
+        { z: 58, sym: "Ce", name: "Cerio", vals: [4, 3, 2] },
+        { z: 59, sym: "Pr", name: "Praseodimio", vals: [4, 3] },
+        { z: 60, sym: "Nd", name: "Neodimio", vals: [3] },
+        { z: 61, sym: "Pm", name: "Prometio", vals: [3] },
+        { z: 62, sym: "Sm", name: "Samario", vals: [3, 2] },
+        { z: 63, sym: "Eu", name: "Europio", vals: [3, 2] },
+        { z: 64, sym: "Gd", name: "Gadolinio", vals: [3] },
+        { z: 65, sym: "Tb", name: "Terbio", vals: [4, 3] },
+        { z: 66, sym: "Dy", name: "Disprosio", vals: [3] },
+        { z: 67, sym: "Ho", name: "Holmio", vals: [3] },
+        { z: 68, sym: "Er", name: "Erbio", vals: [3] },
+        { z: 69, sym: "Tm", name: "Tulio", vals: [3, 2] },
+        { z: 70, sym: "Yb", name: "Iterbio", vals: [3, 2] },
+        { z: 71, sym: "Lu", name: "Lutecio", vals: [3] },
+        { z: 72, sym: "Hf", name: "Hafnio", vals: [4] },
+        { z: 73, sym: "Ta", name: "Tántalo", vals: [5] },
+        { z: 74, sym: "W", name: "Wolframio", vals: [6, 5, 4, 3, 2, 0] },
+        { z: 75, sym: "Re", name: "Renio", vals: [7, 6, 4, 2, -1] },
+        { z: 76, sym: "Os", name: "Osmio", vals: [8, 6, 4, 3, 2, 0, -2] },
+        { z: 77, sym: "Ir", name: "Iridio", vals: [6, 4, 3, 2, 1, 0, -1] },
+        { z: 78, sym: "Pt", name: "Platino", vals: [4, 2] },
+        { z: 79, sym: "Au", name: "Oro", vals: [5, 4, 3, 2, 1, 0, -1] },
+        { z: 80, sym: "Hg", name: "Mercurio", vals: [2, 1] },
+        { z: 81, sym: "Tl", name: "Talio", vals: [3, 1] },
+        { z: 82, sym: "Pb", name: "Plomo", vals: [4, 2] },
+        { z: 83, sym: "Bi", name: "Bismuto", vals: [5, 3] },
+        { z: 84, sym: "Po", name: "Polonio", vals: [6, 4, 2] },
+        { z: 85, sym: "At", name: "Astato", vals: [7, 5, 3, 1, -1] },
+        { z: 86, sym: "Rn", name: "Radón", vals: [2, 0] },
+        { z: 87, sym: "Fr", name: "Francio", vals: [1] },
+        { z: 88, sym: "Ra", name: "Radio", vals: [2] },
+        { z: 89, sym: "Ac", name: "Actinio", vals: [3] },
+        { z: 90, sym: "Th", name: "Torio", vals: [4] },
+        { z: 91, sym: "Pa", name: "Protactinio", vals: [5, 4] },
+        { z: 92, sym: "U", name: "Uranio", vals: [6, 5, 4, 3] },
+        { z: 93, sym: "Np", name: "Neptunio", vals: [6, 5, 4, 3] },
+        { z: 94, sym: "Pu", name: "Plutonio", vals: [6, 5, 4, 3] },
+        { z: 95, sym: "Am", name: "Americio", vals: [6, 5, 4, 3] },
+        { z: 96, sym: "Cm", name: "Curio", vals: [4, 3] },
+        { z: 97, sym: "Bk", name: "Berkelio", vals: [4, 3] },
+        { z: 98, sym: "Cf", name: "Californio", vals: [4, 3] },
+        { z: 99, sym: "Es", name: "Einstenio", vals: [3] },
+        { z: 100, sym: "Fm", name: "Fermio", vals: [3] },
+        { z: 101, sym: "Md", name: "Mendelevio", vals: [3] },
+        { z: 102, sym: "No", name: "Nobelio", vals: [3] },
+        { z: 103, sym: "Lr", name: "Lawrencio", vals: [3] },
+        { z: 104, sym: "Rf", name: "Rutherfordio", vals: [4] },
+        { z: 105, sym: "Db", name: "Dubnio", vals: [5, 4] },
+        { z: 106, sym: "Sg", name: "Seaborgio", vals: [6, 5, 4] },
+        { z: 107, sym: "Bh", name: "Bohrio", vals: [7, 6, 5, 4, 3] },
+        { z: 108, sym: "Hs", name: "Hasio", vals: [8, 7, 6, 5, 4, 3, 2, 1] },
+        { z: 109, sym: "Mt", name: "Meitnerio", vals: [6, 5, 4, 3, 2, 1] },
+        { z: 110, sym: "Ds", name: "Darmstatio", vals: [6, 5, 4, 3, 2, 1] },
+        { z: 111, sym: "Rg", name: "Roentgenio", vals: [3, -1] },
+        { z: 112, sym: "Cn", name: "Copernicio", vals: [2, 1] },
+        { z: 113, sym: "Nh", name: "Nihonio", vals: [1] },
+        { z: 114, sym: "Fl", name: "Flerovio", vals: [2] },
+        { z: 115, sym: "Mc", name: "Moscovio", vals: [3, 1] },
+        { z: 116, sym: "Lv", name: "Livermorio", vals: [4, 2] },
+        { z: 117, sym: "Ts", name: "Teneso", vals: [5, 3, 1, -1] },
+        { z: 118, sym: "Og", name: "Oganesón", vals: [8, 6, 4, 2] }
+    ];
+
+    // 2. CONFIGURACIÓN INTERACTIVA
+    const interactiveData = [
+        // Period 1
+        { sym: 'H', vals: [1, -1], col: 1, row: 1, cat: 'cat-nonmetal' },
+        { sym: 'He', vals: [], col: 18, row: 1, cat: 'cat-gas' },
+
+        // Period 2
+        { sym: 'Li', vals: [1], col: 1, row: 2, cat: 'cat-alkali' },
+        { sym: 'Be', vals: [2], col: 2, row: 2, cat: 'cat-alkaline' },
+        { sym: 'B', vals: [3], col: 13, row: 2, cat: 'cat-semi' },
+        { sym: 'C', vals: [2, 4, -4], col: 14, row: 2, cat: 'cat-nonmetal' },
+        { sym: 'N', vals: [1, 3, 5, -3], col: 15, row: 2, cat: 'cat-nonmetal' },
+        { sym: 'O', vals: [-2], col: 16, row: 2, cat: 'cat-nonmetal' },
+        { sym: 'F', vals: [-1], col: 17, row: 2, cat: 'cat-halogen' },
+        { sym: 'Ne', vals: [], col: 18, row: 2, cat: 'cat-gas' },
+
+        // Period 3
+        { sym: 'Na', vals: [1], col: 1, row: 3, cat: 'cat-alkali' },
+        { sym: 'Mg', vals: [2], col: 2, row: 3, cat: 'cat-alkaline' },
+        { sym: 'Al', vals: [3], col: 13, row: 3, cat: 'cat-basic' },
+        { sym: 'Si', vals: [4, -4], col: 14, row: 3, cat: 'cat-semi' },
+        { sym: 'P', vals: [1, 3, 5, -3], col: 15, row: 3, cat: 'cat-nonmetal' },
+        { sym: 'S', vals: [2, 4, 6, -2], col: 16, row: 3, cat: 'cat-nonmetal' },
+        { sym: 'Cl', vals: [1, 3, 5, 7, -1], col: 17, row: 3, cat: 'cat-halogen' },
+        { sym: 'Ar', vals: [], col: 18, row: 3, cat: 'cat-gas' },
+
+        // Period 4
+        { sym: 'K', vals: [1], col: 1, row: 4, cat: 'cat-alkali' },
+        { sym: 'Ca', vals: [2], col: 2, row: 4, cat: 'cat-alkaline' },
+        // DESACTIVADOS (Sc-Mn) según app original
+        { sym: 'Sc', vals: [], col: 3, row: 4, cat: 'cat-transition' }, 
+        { sym: 'Ti', vals: [], col: 4, row: 4, cat: 'cat-transition' },
+        { sym: 'V', vals: [], col: 5, row: 4, cat: 'cat-transition' },
+        { sym: 'Cr', vals: [], col: 6, row: 4, cat: 'cat-transition' },
+        { sym: 'Mn', vals: [], col: 7, row: 4, cat: 'cat-transition' },
+        // ACTIVOS (Fe-Zn)
+        { sym: 'Fe', vals: [2, 3], col: 8, row: 4, cat: 'cat-transition' },
+        { sym: 'Co', vals: [2, 3], col: 9, row: 4, cat: 'cat-transition' },
+        { sym: 'Ni', vals: [2, 3], col: 10, row: 4, cat: 'cat-transition' },
+        { sym: 'Cu', vals: [1, 2], col: 11, row: 4, cat: 'cat-transition' },
+        { sym: 'Zn', vals: [2], col: 12, row: 4, cat: 'cat-transition' },
+        { sym: 'Ga', vals: [1, 3], col: 13, row: 4, cat: 'cat-basic' },
+        { sym: 'Ge', vals: [2, 4, -4], col: 14, row: 4, cat: 'cat-semi' },
+        { sym: 'As', vals: [1, 3, 5, -3], col: 15, row: 4, cat: 'cat-semi' },
+        { sym: 'Se', vals: [2, 4, 6, -2], col: 16, row: 4, cat: 'cat-nonmetal' },
+        { sym: 'Br', vals: [1, 3, 5, 7, -1], col: 17, row: 4, cat: 'cat-halogen' },
+        { sym: 'Kr', vals: [], col: 18, row: 4, cat: 'cat-gas' },
+
+        // Period 5
+        { sym: 'Rb', vals: [1], col: 1, row: 5, cat: 'cat-alkali' },
+        { sym: 'Sr', vals: [2], col: 2, row: 5, cat: 'cat-alkaline' },
+        // DESACTIVADOS (Y-Rh) según app original
+        { sym: 'Y', vals: [], col: 3, row: 5, cat: 'cat-transition' },
+        { sym: 'Zr', vals: [], col: 4, row: 5, cat: 'cat-transition' },
+        { sym: 'Nb', vals: [], col: 5, row: 5, cat: 'cat-transition' },
+        { sym: 'Mo', vals: [], col: 6, row: 5, cat: 'cat-transition' },
+        { sym: 'Tc', vals: [], col: 7, row: 5, cat: 'cat-transition' },
+        { sym: 'Ru', vals: [], col: 8, row: 5, cat: 'cat-transition' },
+        { sym: 'Rh', vals: [], col: 9, row: 5, cat: 'cat-transition' },
+        // ACTIVOS (Pd, Ag, Cd)
+        { sym: 'Pd', vals: [2, 4], col: 10, row: 5, cat: 'cat-transition' },
+        { sym: 'Ag', vals: [1], col: 11, row: 5, cat: 'cat-transition' },
+        { sym: 'Cd', vals: [2], col: 12, row: 5, cat: 'cat-transition' },
+        { sym: 'In', vals: [1, 3], col: 13, row: 5, cat: 'cat-basic' },
+        { sym: 'Sn', vals: [2, 4], col: 14, row: 5, cat: 'cat-basic' },
+        { sym: 'Sb', vals: [1, 3, 5, -3], col: 15, row: 5, cat: 'cat-semi' },
+        { sym: 'Te', vals: [2, 4, 6, -2], col: 16, row: 5, cat: 'cat-semi' },
+        { sym: 'I', vals: [1, 3, 5, 7, -1], col: 17, row: 5, cat: 'cat-halogen' },
+        { sym: 'Xe', vals: [], col: 18, row: 5, cat: 'cat-gas' },
+
+        // Period 6
+        { sym: 'Cs', vals: [1], col: 1, row: 6, cat: 'cat-alkali' },
+        { sym: 'Ba', vals: [2], col: 2, row: 6, cat: 'cat-alkaline' },
+        // DESACTIVADOS POR SOLICITUD (La-Ir)
+        { sym: 'La', vals: [], col: 3, row: 6, cat: 'cat-transition' },
+        { sym: 'Hf', vals: [], col: 4, row: 6, cat: 'cat-transition' },
+        { sym: 'Ta', vals: [], col: 5, row: 6, cat: 'cat-transition' },
+        { sym: 'W', vals: [], col: 6, row: 6, cat: 'cat-transition' },
+        { sym: 'Re', vals: [], col: 7, row: 6, cat: 'cat-transition' },
+        { sym: 'Os', vals: [], col: 8, row: 6, cat: 'cat-transition' },
+        { sym: 'Ir', vals: [], col: 9, row: 6, cat: 'cat-transition' },
+        // SIGUEN ACTIVOS
+        { sym: 'Pt', vals: [2, 4], col: 10, row: 6, cat: 'cat-transition' },
+        { sym: 'Au', vals: [1, 3], col: 11, row: 6, cat: 'cat-transition' },
+        { sym: 'Hg', vals: [1, 2], col: 12, row: 6, cat: 'cat-transition' },
+        { sym: 'Tl', vals: [1, 3], col: 13, row: 6, cat: 'cat-basic' },
+        { sym: 'Pb', vals: [2, 4], col: 14, row: 6, cat: 'cat-basic' },
+        { sym: 'Bi', vals: [1, 3, 5], col: 15, row: 6, cat: 'cat-basic' },
+        { sym: 'Po', vals: [2, 4, 6], col: 16, row: 6, cat: 'cat-basic' },
+        { sym: 'At', vals: [1, 3, 5, 7, -1], col: 17, row: 6, cat: 'cat-halogen' },
+        { sym: 'Rn', vals: [], col: 18, row: 6, cat: 'cat-gas' },
+
+        // Period 7 (Añadidos el resto sin activar)
+        { sym: 'Fr', vals: [1], col: 1, row: 7, cat: 'cat-alkali' },
+        { sym: 'Ra', vals: [2], col: 2, row: 7, cat: 'cat-alkaline' },
+        { sym: 'Ac', vals: [], col: 3, row: 7, cat: 'cat-transition' },
+        { sym: 'Rf', vals: [], col: 4, row: 7, cat: 'cat-transition' },
+        { sym: 'Db', vals: [], col: 5, row: 7, cat: 'cat-transition' },
+        { sym: 'Sg', vals: [], col: 6, row: 7, cat: 'cat-transition' },
+        { sym: 'Bh', vals: [], col: 7, row: 7, cat: 'cat-transition' },
+        { sym: 'Hs', vals: [], col: 8, row: 7, cat: 'cat-transition' },
+        { sym: 'Mt', vals: [], col: 9, row: 7, cat: 'cat-transition' },
+        { sym: 'Ds', vals: [], col: 10, row: 7, cat: 'cat-transition' },
+        { sym: 'Rg', vals: [], col: 11, row: 7, cat: 'cat-transition' },
+        { sym: 'Cn', vals: [], col: 12, row: 7, cat: 'cat-transition' },
+        { sym: 'Nh', vals: [], col: 13, row: 7, cat: 'cat-basic' },
+        { sym: 'Fl', vals: [], col: 14, row: 7, cat: 'cat-basic' },
+        { sym: 'Mc', vals: [], col: 15, row: 7, cat: 'cat-basic' },
+        { sym: 'Lv', vals: [], col: 16, row: 7, cat: 'cat-basic' },
+        { sym: 'Ts', vals: [], col: 17, row: 7, cat: 'cat-halogen' },
+        { sym: 'Og', vals: [], col: 18, row: 7, cat: 'cat-gas' }
+    ];
+
+    const tableContainer = document.getElementById('periodic-table');
+
+    function createTable() {
+        tableContainer.innerHTML = '';
+        
+        interactiveData.forEach(el => {
+            const cell = document.createElement('div');
+            // Si el array de valencias está vacío, lo marcamos como disabled (gris)
+            const isDisabled = el.vals.length === 0;
+            cell.className = `element ${el.cat} ${isDisabled ? 'disabled' : ''}`;
+            cell.style.gridColumn = el.col;
+            cell.style.gridRow = el.row;
+
+            const symbolDiv = document.createElement('div');
+            symbolDiv.className = 'symbol';
+            symbolDiv.textContent = el.sym;
+            cell.appendChild(symbolDiv);
+            
+            // Buscar número atómico
+            const fullInfo = ALL_OXIDATION_STATES.find(item => item.sym === el.sym);
+            if(fullInfo) {
+                const atomicNum = document.createElement('span');
+                atomicNum.className = 'atomic-number';
+                atomicNum.textContent = fullInfo.z;
+                cell.appendChild(atomicNum);
+            }
+
+            if (!isDisabled) {
+                const inputsDiv = document.createElement('div');
+                inputsDiv.className = 'inputs-container';
+                
+                // --- ORDENACIÓN MODIFICADA ---
+                // 1. Filtrar positivos y ordenar ascendente (1, 2, 3...)
+                const positives = el.vals.filter(v => v >= 0).sort((a, b) => a - b);
+                // 2. Filtrar negativos y ordenar por magnitud (descendente: -1, -2, -3...)
+                const negatives = el.vals.filter(v => v < 0).sort((a, b) => b - a);
+                
+                // Combinar: Primero positivos (asc), luego negativos
+                const sortedVals = [...positives, ...negatives];
+
+                sortedVals.forEach((val) => {
+                    const input = document.createElement('input');
+                    input.type = 'text'; 
+                    input.inputMode = 'text'; /* Cambiado a text para facilitar escritura de + en móviles */
+                    
+                    if (val < 0) {
+                        input.classList.add('valence-input', 'val-neg');
+                    } else {
+                        input.classList.add('valence-input', 'val-pos');
+                    }
+                    
+                    // Formatear valor: añadir '+' si es positivo
+                    const valStr = val > 0 ? '+' + val : val.toString();
+                    input.dataset.correct = valStr;
+
+                    input.addEventListener('keydown', (e) => handleNavigation(e, input));
+                    
+                    inputsDiv.appendChild(input);
+                });
+                cell.appendChild(inputsDiv);
+            }
+
+            tableContainer.appendChild(cell);
+        });
+    }
+
+    function checkAnswers() {
+        let correctCount = 0;
+        let totalInputs = 0;
+        const inputs = document.querySelectorAll('.valence-input');
+
+        inputs.forEach(input => {
+            totalInputs++;
+            const userValStr = input.value.trim();
+            const userVal = parseInt(userValStr);
+            const correctVal = parseInt(input.dataset.correct);
+
+            // Reset classes
+            input.classList.remove('correct', 'incorrect');
+
+            if (userValStr === '') {
+                return; 
+            }
+
+            if (!isNaN(userVal) && userVal === correctVal) {
+                input.classList.add('correct');
+                correctCount++;
+            } else {
+                input.classList.add('incorrect');
+            }
+        });
+
+        const percentage = totalInputs > 0 ? Math.round((correctCount / totalInputs) * 100) : 0;
+        const scoreBoard = document.getElementById('score-board');
+        scoreBoard.textContent = `Puntuación: ${percentage}% (${correctCount}/${totalInputs})`;
+        
+        if (percentage === 100) {
+            scoreBoard.style.backgroundColor = '#d4edda';
+            scoreBoard.style.color = '#155724';
+        } else {
+            scoreBoard.style.backgroundColor = 'white';
+            scoreBoard.style.color = 'black';
+        }
+    }
+
+    function resetTable() {
+        const inputs = document.querySelectorAll('.valence-input');
+        inputs.forEach(input => {
+            input.value = '';
+            input.classList.remove('correct', 'incorrect');
+        });
+        document.getElementById('score-board').textContent = 'Puntuación: 0%';
+        document.getElementById('score-board').style.backgroundColor = 'white';
+    }
+
+    function showHints() {
+        const inputs = document.querySelectorAll('.valence-input');
+        inputs.forEach(input => {
+            if (!input.classList.contains('correct')) {
+                input.value = input.dataset.correct;
+                input.classList.add('correct');
+            }
+        });
+        checkAnswers();
+    }
+
+    function handleNavigation(e, currentInput) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const next = currentInput.nextElementSibling;
+            if (next) {
+                next.focus();
+            } else {
+                // Saltar al siguiente elemento interactivo
+                const allInputs = Array.from(document.querySelectorAll('.valence-input'));
+                const currentIndex = allInputs.indexOf(currentInput);
+                if (currentIndex < allInputs.length - 1) {
+                    allInputs[currentIndex + 1].focus();
+                }
+            }
+        }
+    }
+
+    // Inicializar
+    createTable();
+
+</script>
+
+</body>
+</html>
