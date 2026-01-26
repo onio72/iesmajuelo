@@ -237,6 +237,82 @@ export default function App() {
       ctx.fillStyle = colors.field;
 
       const hasPositive = charges.some((c) => c.q > 0);
+      const totalPositiveLines = charges
+        .filter((c) => c.q > 0)
+        .reduce((sum, c) => sum + getLineCountForCharge(c.q), 0);
+      const totalNegativeLines = charges
+        .filter((c) => c.q < 0)
+        .reduce((sum, c) => sum + getLineCountForCharge(c.q), 0);
+
+      const traceFieldLine = (startX, startY, followField) => {
+        const points = [{ x: startX, y: startY }];
+        let currentX = startX;
+        let currentY = startY;
+
+        for (let step = 0; step < maxSteps; step++) {
+          const { Ex, Ey } = getElectricField(currentX, currentY, charges);
+          const E_mag = Math.hypot(Ex, Ey);
+
+          if (E_mag === 0) break;
+
+          let dx = Ex / E_mag;
+          let dy = Ey / E_mag;
+
+          if (!followField) {
+            dx = -dx;
+            dy = -dy;
+          }
+
+          const nextX = currentX + dx * stepSize;
+          const nextY = currentY + dy * stepSize;
+
+          let collision = false;
+          for (let target of charges) {
+            const targetRadius = getRadius(target.q);
+            const dist = Math.hypot(nextX - target.x, nextY - target.y);
+
+            if (dist < targetRadius) {
+              collision = true;
+              points.push({ x: nextX, y: nextY });
+              break;
+            }
+          }
+          if (collision) break;
+
+          if (
+            nextX < -20 ||
+            nextX > logicalWidth + 20 ||
+            nextY < -20 ||
+            nextY > logicalHeight + 20
+          ) {
+            break;
+          }
+
+          points.push({ x: nextX, y: nextY });
+          currentX = nextX;
+          currentY = nextY;
+        }
+
+        if (points.length > 1) {
+          ctx.beginPath();
+          ctx.moveTo(points[0].x, points[0].y);
+          for (let j = 1; j < points.length; j++) {
+            ctx.lineTo(points[j].x, points[j].y);
+          }
+          ctx.stroke();
+
+          if (showArrows) {
+            const arrowSpacing = 30;
+            for (let j = 15; j < points.length - 10; j += arrowSpacing) {
+              const p = points[j];
+              const p_next = points[j + 1] || p;
+              const angle = Math.atan2(p_next.y - p.y, p_next.x - p.x);
+              const visualAngle = followField ? angle : angle + Math.PI;
+              drawArrowHead(ctx, p.x, p.y, visualAngle);
+            }
+          }
+        }
+      };
 
       charges.forEach((startCharge) => {
         const isPositive = startCharge.q > 0;
@@ -248,78 +324,38 @@ export default function App() {
           const startRadius = getRadius(startCharge.q);
           let cx = startCharge.x + Math.cos(angle) * (startRadius + 2);
           let cy = startCharge.y + Math.sin(angle) * (startRadius + 2);
-
-          const points = [{ x: cx, y: cy }];
-          let currentX = cx;
-          let currentY = cy;
-
-          for (let step = 0; step < maxSteps; step++) {
-            const { Ex, Ey } = getElectricField(currentX, currentY, charges);
-            const E_mag = Math.hypot(Ex, Ey);
-
-            if (E_mag === 0) break;
-
-            let dx = Ex / E_mag;
-            let dy = Ey / E_mag;
-
-            if (!isPositive) {
-              dx = -dx;
-              dy = -dy;
-            }
-
-            const nextX = currentX + dx * stepSize;
-            const nextY = currentY + dy * stepSize;
-
-            let collision = false;
-            for (let target of charges) {
-              if (target.id === startCharge.id && step < 10) continue;
-
-              const targetRadius = getRadius(target.q);
-              const dist = Math.hypot(nextX - target.x, nextY - target.y);
-
-              if (dist < targetRadius) {
-                collision = true;
-                points.push({ x: nextX, y: nextY });
-                break;
-              }
-            }
-            if (collision) break;
-
-            if (
-              nextX < -20 ||
-              nextX > logicalWidth + 20 ||
-              nextY < -20 ||
-              nextY > logicalHeight + 20
-            ) {
-              break;
-            }
-
-            points.push({ x: nextX, y: nextY });
-            currentX = nextX;
-            currentY = nextY;
-          }
-
-          if (points.length > 1) {
-            ctx.beginPath();
-            ctx.moveTo(points[0].x, points[0].y);
-            for (let j = 1; j < points.length; j++) {
-              ctx.lineTo(points[j].x, points[j].y);
-            }
-            ctx.stroke();
-
-            if (showArrows) {
-              const arrowSpacing = 30;
-              for (let j = 15; j < points.length - 10; j += arrowSpacing) {
-                const p = points[j];
-                const p_next = points[j + 1] || p;
-                const angle = Math.atan2(p_next.y - p.y, p_next.x - p.x);
-                const visualAngle = isPositive ? angle : angle + Math.PI;
-                drawArrowHead(ctx, p.x, p.y, visualAngle);
-              }
-            }
-          }
+          traceFieldLine(cx, cy, isPositive);
         }
       });
+
+      if (hasPositive && totalNegativeLines > totalPositiveLines) {
+        const extraLines = totalNegativeLines - totalPositiveLines;
+        const negativeCharges = charges.filter((c) => c.q < 0);
+        if (negativeCharges.length > 0) {
+          const centerX = logicalWidth / 2;
+          const centerY = logicalHeight / 2;
+          const boundaryRadius = Math.min(logicalWidth, logicalHeight) * 0.48;
+
+          let used = 0;
+          negativeCharges.forEach((negCharge, idx) => {
+            const share = getLineCountForCharge(negCharge.q) / totalNegativeLines;
+            let count = Math.round(extraLines * share);
+            if (idx === negativeCharges.length - 1) {
+              count = extraLines - used;
+            }
+            used += count;
+
+            if (count <= 0) return;
+            const angleOffset = (Math.PI * 2 * idx) / negativeCharges.length;
+            for (let i = 0; i < count; i++) {
+              const angle = angleOffset + (Math.PI * 2 * i) / count;
+              const sx = centerX + Math.cos(angle) * boundaryRadius;
+              const sy = centerY + Math.sin(angle) * boundaryRadius;
+              traceFieldLine(sx, sy, true);
+            }
+          });
+        }
+      }
     }
 
     // 3. Dibujar las Cargas
