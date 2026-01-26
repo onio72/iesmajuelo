@@ -44,6 +44,14 @@ export default function App() {
     return baseRadius + (Math.abs(q) - 1) * 2;
   }, []);
 
+  const getLineCountForCharge = useCallback(
+    (q) => {
+      const scaled = Math.round(numLinesPerCharge * Math.abs(q));
+      return Math.min(maxLinesPerCharge, Math.max(4, scaled));
+    },
+    [numLinesPerCharge]
+  );
+
   const colors = {
     pos: '#ef4444',
     posStroke: '#991b1b',
@@ -230,13 +238,7 @@ export default function App() {
 
       charges.forEach((startCharge) => {
         const isPositive = startCharge.q > 0;
-        const hasPositive = charges.some((c) => c.q > 0);
-        if (hasPositive && !isPositive) return;
-
-        const lines = Math.min(
-          maxLinesPerCharge,
-          Math.max(4, Math.round(numLinesPerCharge * Math.abs(startCharge.q)))
-        );
+        const lines = getLineCountForCharge(startCharge.q);
 
         for (let i = 0; i < lines; i++) {
           const angle = (Math.PI * 2 * i) / lines;
@@ -391,6 +393,7 @@ export default function App() {
     getElectricField,
     getPotential,
     getRadius,
+    getLineCountForCharge,
   ]);
 
   // --- Event Handlers ---
