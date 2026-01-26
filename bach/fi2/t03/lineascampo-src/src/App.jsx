@@ -236,8 +236,11 @@ export default function App() {
       ctx.lineWidth = 1.2;
       ctx.fillStyle = colors.field;
 
+      const hasPositive = charges.some((c) => c.q > 0);
+
       charges.forEach((startCharge) => {
         const isPositive = startCharge.q > 0;
+        if (hasPositive && !isPositive) return;
         const lines = getLineCountForCharge(startCharge.q);
 
         for (let i = 0; i < lines; i++) {
