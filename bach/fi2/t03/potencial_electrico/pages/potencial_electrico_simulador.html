@@ -363,6 +363,16 @@
     </div>
   </div>
 <div id="espacioEntreBloques"></div>
+  <div>
+    <h3 class="text-sm font-semibold text-text-primary mb-3 flex items-center">
+      <i class="fas fa-location-arrow text-indigo-600 mr-2"></i>
+      Vectores Unitarios
+    </h3>
+    <div class="space-y-2 text-sm font-mono">
+      <div><span id="u1Vector">No calculado</span></div>
+      <div><span id="u2Vector">No calculado</span></div>
+    </div>
+  </div>
   
 </div>
 
@@ -432,6 +442,7 @@
   // Helper para renderizar con KaTeX en cada actualización
   function renderTex(targetId, tex) {
     const el = document.getElementById(targetId);
+    if (!el) return;
     el.innerHTML = katex.renderToString(tex, { throwOnError: false });
   }
         // Enhanced Electric Potential Calculator with Interactive Features
@@ -1095,4 +1106,3 @@ document.getElementById('q1Value').addEventListener('input', (e) => {
     <!-- Eliminado: script propio de Rocket (no existe en GitHub Pages) -->
 </body>
 </html>
-
