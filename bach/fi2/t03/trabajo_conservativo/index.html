@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Física: Trabajo en Campos Conservativos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- MathJax for nice equations -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #0f172a;
+            color: white;
+            overflow: hidden;
+            touch-action: none; 
+        }
+
+        canvas {
+            box-shadow: 0 0 50px rgba(56, 189, 248, 0.1);
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .btn {
+            transition: all 0.2s ease;
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        /* --- INPUT CARDS (Paths) --- */
+        .work-input-card {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid #475569;
+            padding: 6px 10px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            z-index: 20;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            min-width: 90px;
+        }
+        
+        /* STATIC LABEL (For given values in Mode 2) */
+        .work-static-card {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            background: rgba(51, 65, 85, 0.9);
+            border: 1px solid #94a3b8;
+            padding: 4px 8px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 15;
+            pointer-events: none;
+            min-width: 60px;
+        }
+
+        /* --- NODE INPUTS (Nodes) --- */
+        .node-input-wrapper {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 25;
+        }
+        
+        .node-input {
+            background: rgba(0, 0, 0, 0.3); /* Slight background for contrast */
+            border: none;
+            color: white;
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 15px;
+            width: 50px;
+            text-align: center;
+            outline: none;
+            border-bottom: 2px solid rgba(255,255,255,0.5);
+            border-radius: 4px 4px 0 0;
+            padding: 2px 0;
+        }
+        .node-input:focus {
+            border-bottom-color: #38bdf8;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Common Feedback Styles */
+        .correct {
+            border-color: #4ade80 !important;
+            background: rgba(20, 83, 45, 0.9) !important;
+            pointer-events: none;
+        }
+        .node-input.correct {
+            border-bottom-color: #4ade80 !important;
+            color: #4ade80;
+            background: transparent;
+        }
+
+        .wrong {
+            border-color: #f43f5e !important;
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .work-input-card input {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 4px 6px;
+            border-radius: 4px;
+            width: 60px;
+            text-align: center;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        
+        .work-input-card input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+        }
+
+        .unit-label {
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .label-math {
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        
+        .label-math-static {
+            font-size: 0.75rem;
+            color: #cbd5e1;
+            opacity: 0.8;
+        }
+        .value-static {
+            font-weight: bold;
+            color: #fbbf24;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate(-51%, -50%); }
+            20%, 80% { transform: translate(-49%, -50%); }
+            30%, 50%, 70% { transform: translate(-52%, -50%); }
+            40%, 60% { transform: translate(-48%, -50%); }
+        }
+
+        .score-pop {
+            position: absolute;
+            font-weight: bold;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            z-index: 50;
+            font-family: monospace;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-30px); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col items-center justify-center relative">
+
+    <!-- Version Label -->
+    <div class="absolute bottom-2 right-2 text-[10px] text-slate-500 font-mono opacity-50 z-50 pointer-events-none">v2.3</div>
+
+    <!-- UI Overlay Layer for Inputs -->
+    <div id="ui-layer" class="absolute top-0 left-0 w-full h-full pointer-events-none z-20"></div>
+
+    <!-- Header & Score -->
+    <div class="absolute top-4 left-0 w-full flex justify-between items-start pointer-events-none z-30 px-6">
+        <!-- Title -->
+        <div class="glass-panel px-6 py-3 rounded-2xl flex items-center gap-4 shadow-lg pointer-events-auto">
+            <div class="bg-blue-600/20 p-2 rounded-lg">
+                <i class="fas fa-atom text-blue-400 text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-base md:text-lg leading-tight text-blue-100">Campos Conservativos</h1>
+                <p class="text-xs text-blue-300/80 mt-1 font-mono">
+                    \( W_{A \to B} = Ep_A - Ep_B \)
+                </p>
+            </div>
+        </div>
+
+        <!-- Scoreboard -->
+        <div class="glass-panel px-6 py-3 rounded-2xl flex flex-col items-end shadow-lg pointer-events-auto min-w-[120px]">
+            <span class="text-xs text-slate-400 uppercase tracking-wider font-bold">Nota</span>
+            <!-- Initially red because 0 < 5 -->
+            <div class="text-3xl font-bold text-red-500" id="score-display">0.00</div>
+        </div>
+    </div>
+
+    <!-- Main Canvas -->
+    <canvas id="pathCanvas" class="absolute top-0 left-0 w-full h-full z-0"></canvas>
+
+    <!-- Controls -->
+    <div class="absolute bottom-6 w-full max-w-3xl px-6 pointer-events-none z-30">
+        <div class="glass-panel p-4 rounded-2xl flex items-center justify-between shadow-2xl pointer-events-auto w-full">
+            <div class="text-sm text-slate-300 flex flex-col md:flex-row gap-1 md:items-center">
+                <span id="instruction-text"><i class="fas fa-info-circle mr-2 text-cyan-400"></i>Cargando...</span>
+                <span class="text-xs text-slate-400 md:ml-1">(Pulsa <kbd class="font-mono bg-slate-700 px-1.5 py-0.5 rounded text-white border border-slate-600">Intro</kbd> para validar)</span>
+            </div>
+            
+            <button onclick="regenerateAll()" class="btn bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-xl font-bold shadow-lg flex items-center gap-2 border border-indigo-400/30 whitespace-nowrap ml-4">
+                <i class="fas fa-sync-alt"></i> Nuevo
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('pathCanvas');
+        const ctx = canvas.getContext('2d');
+        const uiLayer = document.getElementById('ui-layer');
+        const scoreDisplay = document.getElementById('score-display');
+        const instructionText = document.getElementById('instruction-text');
+
+        // State
+        let nodes = []; 
+        let paths = []; 
+        let animationFrameId;
+        let score = 0;
+        let gameMode = 1; // 1: Calculate Work, 2: Deduce Ep
+
+        // Scoring Constants
+        const POINTS_PER_HIT = 1.6666666 / 6; 
+        const POINTS_PENALTY = 0.1; 
+        const MAX_SCORE = 10;
+        const MIN_SCORE = 0;
+
+        // --- Resize Handling ---
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            regenerateAll(); 
+        }
+        window.addEventListener('resize', resize);
+        
+        // --- Core Logic ---
+
+        function regenerateAll() {
+            if (canvas.width === 0 || canvas.height === 0) return;
+
+            // Randomly choose game mode (50/50 chance)
+            gameMode = Math.random() > 0.5 ? 2 : 1;
+            
+            // Update Instructions
+            if (gameMode === 1) {
+                instructionText.innerHTML = '<i class="fas fa-info-circle mr-2 text-cyan-400"></i>Calcula el trabajo en cada ruta.';
+            } else {
+                instructionText.innerHTML = '<i class="fas fa-search mr-2 text-yellow-400"></i>Deduce las Ep faltantes y los trabajos.';
+            }
+
+            uiLayer.innerHTML = '';
+            
+            createPhysicsNodes(); 
+            createPaths();       
+            createDOMOverlays(); 
+            animateDrawing();
+            
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function updateScore(pointsAdded, x, y) {
+            let oldScore = score;
+            score += pointsAdded;
+            
+            // Clamp score
+            if (score > MAX_SCORE) score = MAX_SCORE;
+            if (score < MIN_SCORE) score = MIN_SCORE;
+            
+            // Display Logic
+            // Usamos el valor redondeado para la lógica de color, para que coincida con lo que ve el usuario.
+            const displayedScore = parseFloat(score.toFixed(2));
+            scoreDisplay.innerText = score.toFixed(2);
+            
+            // Color Logic (Fail < 5.00, Success >= 5.00)
+            if (displayedScore < 5.00) {
+                scoreDisplay.classList.remove('text-green-400', 'text-yellow-400');
+                scoreDisplay.classList.add('text-red-500');
+            } else {
+                scoreDisplay.classList.remove('text-red-500', 'text-yellow-400');
+                // Updated to GREEN for passing score
+                scoreDisplay.classList.add('text-green-400'); 
+            }
+            
+            // Pop effect
+            const floatEl = document.createElement('div');
+            floatEl.className = 'score-pop';
+            floatEl.style.left = x + 'px';
+            floatEl.style.top = y + 'px';
+            
+            floatEl.style.color = pointsAdded > 0 ? '#4ade80' : '#f43f5e';
+            floatEl.innerText = pointsAdded > 0 ? `+${pointsAdded.toFixed(2)}` : pointsAdded.toFixed(1);
+            document.body.appendChild(floatEl);
+            
+            setTimeout(() => floatEl.remove(), 1000);
+            playSound(pointsAdded > 0 ? 'success' : 'error');
+        }
+
+        function createPhysicsNodes() {
+            nodes = [];
+            const labels = ['A', 'B', 'C'];
+            const colors = ['#3b82f6', '#ef4444', '#eab308']; 
+            
+            const topHeaderMargin = 160; 
+            const sidePadding = 60;
+            const bottomPadding = 260; 
+
+            const playableHeight = canvas.height - topHeaderMargin - bottomPadding;
+            const cx = canvas.width / 2;
+            const cy = topHeaderMargin + (playableHeight / 2);
+            
+            const minDim = Math.max(50, Math.min(canvas.width, playableHeight));
+            const baseRadius = Math.max(100, minDim * 0.35); 
+
+            const globalRotation = Math.random() * Math.PI * 2;
+            const indices = [0, 1, 2].sort(() => Math.random() - 0.5);
+
+            let knownNodeIndex = -1;
+            if (gameMode === 2) {
+                knownNodeIndex = Math.floor(Math.random() * 3);
+            }
+
+            // --- Generate Ep values ensuring they are not all identical ---
+            let epValues = [];
+            // Generate initial values
+            for(let k=0; k<3; k++) epValues.push(Math.floor((Math.random() * 20) - 10) * 5);
+            
+            // Ensure not all three are the same
+            while (epValues[0] === epValues[1] && epValues[1] === epValues[2]) {
+                // Regenerate the last one until different
+                epValues[2] = Math.floor((Math.random() * 20) - 10) * 5;
+            }
+
+            for (let i = 0; i < 3; i++) {
+                const idx = indices[i];
+                const angle = globalRotation + (i * (Math.PI * 2) / 3);
+
+                const r = baseRadius * (0.9 + Math.random() * 0.2); 
+                const x = cx + Math.cos(angle) * r;
+                const y = cy + Math.sin(angle) * r;
+
+                const safeX = Math.max(sidePadding, Math.min(canvas.width - sidePadding, x));
+                const safeY = Math.max(topHeaderMargin, Math.min(canvas.height - bottomPadding, y));
+
+                // Use the pre-calculated Ep values
+                const ep = epValues[i];
+
+                const isUnknown = (gameMode === 2 && i !== knownNodeIndex);
+
+                nodes.push({
+                    x: safeX,
+                    y: safeY,
+                    label: labels[idx],
+                    color: colors[idx],
+                    ep: ep,
+                    isUnknown: isUnknown
+                });
+            }
+            
+            nodes.sort((a, b) => a.label.localeCompare(b.label));
+        }
+
+        function createPaths() {
+            paths = [];
+            
+            const centroid = {
+                x: (nodes[0].x + nodes[1].x + nodes[2].x) / 3,
+                y: (nodes[0].y + nodes[1].y + nodes[2].y) / 3
+            };
+            
+            let revealedPathIndices = [];
+            if (gameMode === 2) {
+                const ab = Math.random() > 0.5 ? 0 : 1; 
+                const bc = Math.random() > 0.5 ? 2 : 3;
+                revealedPathIndices = [ab, bc];
+            }
+
+            const connections = [[0, 1], [1, 2], [0, 2]]; 
+            let pathCounter = 0;
+
+            connections.forEach(pair => {
+                const nodeU = nodes[pair[0]];
+                const nodeV = nodes[pair[1]];
+
+                const isRevealed1 = revealedPathIndices.includes(pathCounter);
+                addPath(nodeU, nodeV, '#94a3b8', centroid, 0, isRevealed1);
+                pathCounter++;
+
+                const isRevealed2 = revealedPathIndices.includes(pathCounter);
+                addPath(nodeV, nodeU, '#94a3b8', centroid, 1, isRevealed2);
+                pathCounter++;
+            });
+        }
+
+        function addPath(start, end, color, centroid, layerIndex, isRevealed) {
+            const midX = (start.x + end.x) / 2;
+            const midY = (start.y + end.y) / 2;
+            
+            let dirX = midX - centroid.x;
+            let dirY = midY - centroid.y;
+            const len = Math.hypot(dirX, dirY) || 1;
+            dirX /= len;
+            dirY /= len;
+
+            const dist = Math.hypot(end.x - start.x, end.y - start.y);
+            
+            let pushFactor;
+            if (layerIndex === 0) {
+                pushFactor = dist * 0.25 + 30; 
+            } else {
+                pushFactor = dist * 0.65 + 60; 
+            }
+            
+            const cp1 = {
+                x: start.x + (end.x - start.x) * 0.33 + dirX * pushFactor,
+                y: start.y + (end.y - start.y) * 0.33 + dirY * pushFactor
+            };
+            const cp2 = {
+                x: start.x + (end.x - start.x) * 0.66 + dirX * pushFactor,
+                y: start.y + (end.y - start.y) * 0.66 + dirY * pushFactor
+            };
+
+            const t = 0.5;
+            const mt = 1-t;
+            const midPoint = {
+                x: (mt*mt*mt)*start.x + 3*(mt*mt)*t*cp1.x + 3*mt*(t*t)*cp2.x + (t*t*t)*end.x,
+                y: (mt*mt*mt)*start.y + 3*(mt*mt)*t*cp1.y + 3*mt*(t*t)*cp2.y + (t*t*t)*end.y
+            };
+
+            paths.push({
+                type: 'bezier',
+                data: { start, cp1, cp2, end },
+                color: isRevealed ? '#fbbf24' : color, 
+                progress: 0,
+                width: isRevealed ? 3 : 2, 
+                opacity: 0.5,
+                midPoint: midPoint,
+                startNode: start,
+                endNode: end,
+                isRevealed: isRevealed 
+            });
+        }
+
+        function createDOMOverlays() {
+            // 1. Path Overlays (Inputs or Static Labels)
+            paths.forEach((path) => {
+                const correctAnswer = path.startNode.ep - path.endNode.ep;
+
+                if (path.isRevealed) {
+                    const card = document.createElement('div');
+                    card.className = 'work-static-card';
+                    card.style.left = path.midPoint.x + 'px';
+                    card.style.top = path.midPoint.y + 'px';
+                    
+                    const label = document.createElement('div');
+                    label.className = 'label-math-static';
+                    label.innerHTML = `W<sub>${path.startNode.label}&rarr;${path.endNode.label}</sub>`;
+                    
+                    const value = document.createElement('div');
+                    value.className = 'value-static';
+                    value.innerText = `${correctAnswer} J`;
+                    
+                    card.appendChild(label);
+                    card.appendChild(value);
+                    uiLayer.appendChild(card);
+
+                } else {
+                    const card = document.createElement('div');
+                    card.className = 'work-input-card pointer-events-auto';
+                    card.style.left = path.midPoint.x + 'px';
+                    card.style.top = path.midPoint.y + 'px';
+
+                    const label = document.createElement('div');
+                    label.className = 'label-math';
+                    label.innerHTML = `W<sub>${path.startNode.label}&rarr;${path.endNode.label}</sub>`;
+
+                    const row = document.createElement('div');
+                    row.className = 'input-row';
+
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.placeholder = '?';
+                    
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            validateAnswer(input, card, correctAnswer, path.midPoint.x, path.midPoint.y);
+                        }
+                    });
+
+                    const unit = document.createElement('span');
+                    unit.className = 'unit-label';
+                    unit.innerText = 'J';
+
+                    row.appendChild(input);
+                    row.appendChild(unit);
+                    card.appendChild(label);
+                    card.appendChild(row);
+                    uiLayer.appendChild(card);
+                }
+            });
+
+            // 2. Node Inputs (Only if isUnknown is true)
+            nodes.forEach(node => {
+                if (node.isUnknown) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'node-input-wrapper pointer-events-auto';
+                    // Center the input in the enlarged circle
+                    wrapper.style.left = node.x + 'px';
+                    wrapper.style.top = (node.y + 10) + 'px'; 
+
+                    const input = document.createElement('input');
+                    input.className = 'node-input';
+                    input.type = 'number';
+                    input.placeholder = '?';
+
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            validateNodeAnswer(input, node.ep, node.x, node.y);
+                        }
+                    });
+
+                    wrapper.appendChild(input);
+                    uiLayer.appendChild(wrapper);
+                }
+            });
+        }
+
+        function validateAnswer(input, container, correct, x, y) {
+            const val = parseInt(input.value);
+            if (isNaN(val)) return;
+
+            if (val === correct) {
+                container.classList.remove('wrong');
+                container.classList.add('correct');
+                input.disabled = true;
+                
+                const check = document.createElement('i');
+                check.className = 'fas fa-check text-green-400 text-xs absolute -right-2 -top-2 bg-slate-900 rounded-full p-1 border border-green-500';
+                container.appendChild(check);
+                
+                updateScore(POINTS_PER_HIT, x, y - 50);
+            } else {
+                container.classList.add('wrong');
+                setTimeout(() => container.classList.remove('wrong'), 500);
+                updateScore(-POINTS_PENALTY, x, y - 50);
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        function validateNodeAnswer(input, correct, x, y) {
+            const val = parseInt(input.value);
+            if (isNaN(val)) return;
+
+            if (val === correct) {
+                input.classList.add('correct');
+                input.disabled = true;
+                input.style.borderBottom = 'none'; 
+                updateScore(POINTS_PER_HIT, x, y - 60); 
+            } else {
+                input.style.animation = 'shake 0.4s cubic-bezier(.36,.07,.19,.97) both';
+                setTimeout(() => input.style.animation = '', 500);
+                
+                updateScore(-POINTS_PENALTY, x, y - 60);
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        // --- Drawing ---
+
+        function animateDrawing() {
+            let stillAnimating = false;
+            paths.forEach(path => {
+                if (path.progress < 1) {
+                    path.progress += 0.02;
+                    if (path.progress > 1) path.progress = 1;
+                    stillAnimating = true;
+                }
+            });
+
+            redraw();
+
+            if (stillAnimating) {
+                animationFrameId = requestAnimationFrame(animateDrawing);
+            }
+        }
+
+        function redraw() {
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+
+            paths.forEach(path => {
+                const d = path.data;
+                ctx.beginPath();
+                ctx.moveTo(d.start.x, d.start.y);
+                ctx.bezierCurveTo(d.cp1.x, d.cp1.y, d.cp2.x, d.cp2.y, d.end.x, d.end.y);
+                
+                ctx.lineWidth = path.width;
+                ctx.strokeStyle = path.color;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.globalAlpha = path.opacity;
+                
+                const len = 3000;
+                ctx.setLineDash([len * path.progress, len]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                if (path.progress > 0.8) {
+                    drawBezierArrow(d, 0.75, path.color); 
+                }
+                
+                ctx.globalAlpha = 1.0;
+            });
+
+            nodes.forEach(node => drawPhysicsNode(node));
+        }
+
+        function drawBezierArrow(d, t, color) {
+            const mt = 1-t;
+            const mt2 = mt*mt;
+            const t2 = t*t;
+            
+            const x = (mt*mt*mt)*d.start.x + 3*mt2*t*d.cp1.x + 3*mt*t2*d.cp2.x + (t*t*t)*d.end.x;
+            const y = (mt*mt*mt)*d.start.y + 3*mt2*t*d.cp1.y + 3*mt*t2*d.cp2.y + (t*t*t)*d.end.y;
+            
+            const dx = 3*mt2*(d.cp1.x - d.start.x) + 6*mt*t*(d.cp2.x - d.cp1.x) + 3*t2*(d.end.x - d.cp2.x);
+            const dy = 3*mt2*(d.cp1.y - d.start.y) + 6*mt*t*(d.cp2.y - d.cp1.y) + 3*t2*(d.end.y - d.cp2.y);
+            
+            const angle = Math.atan2(dy, dx);
+            
+            const size = 12; 
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.fillStyle = color; 
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-size, -size/2);
+            ctx.lineTo(-size, size/2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawPhysicsNode(node) {
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = node.color;
+            
+            ctx.beginPath();
+            // --- CHANGE: Increased Radius to 35 for better input fit ---
+            ctx.arc(node.x, node.y, 35, 0, Math.PI * 2);
+            ctx.fillStyle = '#1e293b'; 
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = node.color;
+            ctx.stroke();
+
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = node.color;
+            ctx.font = 'bold 22px "Space Grotesk", sans-serif'; // Slightly bigger font
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(node.label, node.x, node.y - 12); // Moved up slightly
+
+            // Only draw text for Ep if it is KNOWN. If Unknown, an input is overlaying this area.
+            if (!node.isUnknown) {
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 13px monospace';
+                ctx.fillText(`${node.ep} J`, node.x, node.y + 12);
+            }
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            const gridSize = 40;
+            ctx.beginPath();
+            for (let x = 0; x < canvas.width; x += gridSize) {
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+            }
+            for (let y = 0; y < canvas.height; y += gridSize) {
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+            }
+            ctx.stroke();
+        }
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime;
+
+            if (type === 'success') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(500, now);
+                osc.frequency.exponentialRampToValueAtTime(1000, now + 0.1);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'error') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+        }
+
+        setTimeout(() => {
+            resize(); 
+        }, 100);
+
+    </script>
+</body>
+</html>
