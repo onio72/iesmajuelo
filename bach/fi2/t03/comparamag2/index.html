@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Misión Electrostática 2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                packages: {'[+]': ['cancel']},
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            loader: {load: ['[tex]/cancel']},
+            options: { enableMenu: false }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        
+        :root {
+            --bg-body: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-mode {
+            --bg-body: #f1f5f9;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(15, 23, 42, 0.1);
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-body); 
+            color: var(--text-main); 
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow-x: hidden; 
+        }
+
+        .glass { 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid var(--glass-border); 
+            transition: background 0.3s ease, border 0.3s ease;
+        }
+
+        .option-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .option-btn:hover { transform: translateY(-2px); background: rgba(125, 125, 125, 0.1); }
+        
+        .correct { background: #065f46 !important; border-color: #10b981 !important; color: white !important; }
+        .incorrect { background: #7f1d1d !important; border-color: #ef4444 !important; color: white !important; }
+        
+        .score-red { color: #ef4444; }
+        .score-green { color: #22c55e; }
+        .bar-red { background-color: #ef4444; }
+        .bar-green { background-color: #22c55e; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+
+        .theme-toggle {
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        .theme-toggle:hover { background: rgba(125, 125, 125, 0.2); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4">
+
+    <header class="w-full max-w-4xl flex justify-between items-center mb-8 mt-4">
+        <div>
+            <h1 class="text-3xl font-extrabold tracking-tighter">
+                MISIÓN <span class="text-violet-500">ELECTROSTÁTICA</span> <span class="text-white bg-violet-600 px-2 rounded">2</span>
+            </h1>
+            <p class="text-slate-400 text-sm">razonamiento proporcional</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <div id="theme-btn" class="theme-toggle glass" onclick="toggleTheme()" title="Cambiar tema">
+                <svg id="sun-icon" class="hidden w-6 h-6 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+                <svg id="moon-icon" class="w-6 h-6 text-indigo-400" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+            </div>
+            
+            <div class="flex flex-col items-end gap-1">
+                <div class="glass px-4 py-2 rounded-xl text-center min-w-[120px]">
+                    <p class="text-[10px] uppercase text-slate-500 font-bold tracking-widest">Puntuación</p>
+                    <p id="total-score" class="text-2xl font-black score-red">0.0</p>
+                </div>
+                <p id="status-msg" class="text-[9px] text-rose-400 font-bold uppercase"></p>
+            </div>
+        </div>
+    </header>
+
+    <main class="w-full max-w-3xl">
+        <div class="w-full bg-slate-300 dark:bg-slate-800 h-4 rounded-full mb-4 overflow-hidden border border-slate-700/20 shadow-inner">
+            <div id="progress-bar" class="bar-red h-full transition-all duration-700" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-between text-[10px] uppercase font-bold text-slate-500 mb-8 px-1">
+            <span>Inicio</span>
+            <span>Umbral (5.0)</span>
+            <span>Máximo (10.0)</span>
+        </div>
+
+        <div id="mastery-pills" class="flex flex-wrap gap-2 mb-8 justify-center"></div>
+
+        <div id="game-card" class="glass rounded-3xl p-6 md:p-10 shadow-2xl animate-fade-in relative overflow-hidden">
+            <div id="category-accent" class="w-12 h-1 rounded-full mb-6"></div>
+            <div id="difficulty-badge" class="absolute top-6 right-6 text-[10px] px-2 py-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase">Cargando...</div>
+            
+            <div id="question-container">
+                <h2 id="question-text" class="text-xl md:text-2xl font-semibold leading-relaxed mb-8"></h2>
+                <div id="options-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+        </div>
+
+        <div id="feedback-card" class="hidden glass rounded-3xl p-6 mt-6 border-l-4 animate-fade-in">
+            <h3 id="feedback-title" class="text-xl font-bold mb-4"></h3>
+            <div id="feedback-explanation" class="text-slate-500 dark:text-slate-300 space-y-4 overflow-x-auto"></div>
+            <button id="next-btn" onclick="nextQuestion()" class="mt-6 w-full py-4 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-xl transition-all shadow-lg">
+                Siguiente desafío
+            </button>
+        </div>
+    </main>
+
+    <script>
+        /**
+         * SCORM 1.2 Adapter
+         */
+        const SCORM = {
+            api: null,
+            findAPI: function(win) {
+                let nRetries = 0;
+                while ((win.API == null) && (win.parent != null) && (win.parent != win)) {
+                    nRetries++;
+                    if (nRetries > 500) return null;
+                    win = win.parent;
+                }
+                return win.API;
+            },
+            init: function() {
+                this.api = this.findAPI(window);
+                if (this.api) {
+                    this.api.LMSInitialize("");
+                    this.api.LMSSetValue("cmi.core.score.min", "0");
+                    this.api.LMSSetValue("cmi.core.score.max", "10");
+                    this.api.LMSSetValue("cmi.core.exit", "suspend");
+                }
+            },
+            setScore: function(score) {
+                if (this.api) {
+                    this.api.LMSSetValue("cmi.core.score.raw", score.toString());
+                    const status = score >= 10 ? "completed" : "incomplete";
+                    this.api.LMSSetValue("cmi.core.lesson_status", status);
+                    this.api.LMSCommit("");
+                }
+            },
+            finish: function() {
+                if (this.api) {
+                    this.api.LMSCommit("");
+                    this.api.LMSFinish("");
+                }
+            }
+        };
+
+        const magnitudes = [
+            { id: 'F', name: 'fuerza eléctrica', type: 'vector', color: 'pink', formula: 'F = k \\frac{|q_1 \\cdot q_2|}{r^2}', art: 'la', vars: ['q1', 'q2', 'r'] },
+            { id: 'E', name: 'campo eléctrico', type: 'vector', color: 'pink', formula: 'E = k \\frac{|Q|}{r^2}', art: 'el', vars: ['Q', 'r'] },
+            { id: 'Ep', name: 'energía potencial', type: 'scalar', color: 'blue', formula: 'E_p = k \\frac{q_1 \\cdot q_2}{r}', art: 'la', vars: ['q1', 'q2', 'r'] },
+            { id: 'V', name: 'potencial eléctrico', type: 'scalar', color: 'blue', formula: 'V = k \\frac{Q}{r}', art: 'el', vars: ['Q', 'r'] }
+        ];
+
+        const factors = [
+            { label: 'se duplica', val: 2, tex: '2' },
+            { label: 'se triplica', val: 3, tex: '3' },
+            { label: 'se reduce a la mitad', val: 0.5, tex: '\\frac{1}{2}' },
+            { label: 'se reduce a la cuarta parte', val: 0.25, tex: '\\frac{1}{4}' }
+        ];
+
+        let state = {
+            stats: { F: 0, E: 0, Ep: 0, V: 0 },
+            cycleIndex: 0,
+            cycleOrder: [],
+            currentQuestion: null,
+            isAnswered: false,
+            today: new Date().toISOString().split('T')[0],
+            theme: 'dark'
+        };
+
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex !== 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function toggleTheme() {
+            state.theme = state.theme === 'dark' ? 'light' : 'dark';
+            applyTheme();
+            saveProgress();
+        }
+
+        function applyTheme() {
+            const body = document.body;
+            const sun = document.getElementById('sun-icon');
+            const moon = document.getElementById('moon-icon');
+            if (state.theme === 'light') {
+                body.classList.add('light-mode');
+                sun.classList.remove('hidden');
+                moon.classList.add('hidden');
+            } else {
+                body.classList.remove('light-mode');
+                sun.classList.add('hidden');
+                moon.classList.remove('hidden');
+            }
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem(`mision_electro_v2_${state.today}`);
+            if (saved) {
+                const data = JSON.parse(saved);
+                state.stats = data.stats || { F: 0, E: 0, Ep: 0, V: 0 };
+                state.cycleIndex = data.cycleIndex || 0;
+                state.theme = data.theme || 'dark';
+            }
+            if (state.cycleIndex === 0 || state.cycleOrder.length === 0) {
+                state.cycleOrder = shuffle(['F', 'E', 'Ep', 'V']);
+            }
+            applyTheme();
+            updateUI();
+        }
+
+        function saveProgress() {
+            const score = calculateScore();
+            
+            // Local persistence
+            localStorage.setItem(`mision_electro_v2_${state.today}`, JSON.stringify({
+                stats: state.stats,
+                cycleIndex: state.cycleIndex,
+                theme: state.theme
+            }));
+
+            // SCORM persistence (LMS)
+            SCORM.setScore(score);
+            
+            updateUI();
+        }
+
+        function calculateScore() {
+            const totalAciertos = state.stats.F + state.stats.E + state.stats.Ep + state.stats.V;
+            let score = totalAciertos * 0.5;
+
+            const masteryF = state.stats.F >= 2;
+            const masteryE = state.stats.E >= 2;
+            const masteryEp = state.stats.Ep >= 2;
+            const masteryV = state.stats.V >= 2;
+            const hasMastery = masteryF && masteryE && masteryEp && masteryV;
+
+            if (score >= 5.0 && !hasMastery) return 4.9;
+            return Math.min(10.0, score);
+        }
+
+        function updateUI() {
+            const score = calculateScore();
+            const totalText = document.getElementById('total-score');
+            const progressBar = document.getElementById('progress-bar');
+            const statusMsg = document.getElementById('status-msg');
+            
+            totalText.innerText = score.toFixed(1);
+            progressBar.style.width = `${(score / 10) * 100}%`;
+
+            const hasMastery = (state.stats.F >= 2 && state.stats.E >= 2 && state.stats.Ep >= 2 && state.stats.V >= 2);
+
+            if (score < 5.0) {
+                totalText.className = "text-2xl font-black score-red";
+                progressBar.className = "bar-red h-full transition-all duration-700";
+                statusMsg.innerText = hasMastery ? "" : "Faltan objetivos de maestría";
+                statusMsg.className = "text-[9px] text-rose-500 font-bold uppercase";
+            } else {
+                totalText.className = "text-2xl font-black score-green";
+                progressBar.className = "bar-green h-full transition-all duration-700";
+                statusMsg.innerText = "Umbral superado ✓";
+                statusMsg.className = "text-[9px] text-green-500 font-bold uppercase";
+            }
+
+            const container = document.getElementById('mastery-pills');
+            container.innerHTML = magnitudes.map(m => {
+                const count = state.stats[m.id];
+                const isTargetMet = count >= 2;
+                return `
+                    <div class="px-3 py-1 rounded-full text-[10px] font-bold uppercase flex items-center gap-2 ${isTargetMet ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}">
+                        ${m.id}: ${count} ${isTargetMet ? '✓' : ''}
+                    </div>
+                `;
+            }).join('');
+
+            if (score >= 10) showDailyLimit();
+        }
+
+        function generateQuestion() {
+            if (calculateScore() >= 10) return;
+
+            let magId, difficulty;
+            const idx = state.cycleIndex;
+
+            if (idx >= 0 && idx <= 3) {
+                magId = state.cycleOrder[idx];
+                difficulty = 1;
+            } else if (idx === 4 || idx === 5) {
+                magId = idx === 4 ? 'V' : 'Ep';
+                difficulty = 2;
+            } else if (idx === 6 || idx === 7) {
+                magId = idx === 6 ? 'E' : 'V';
+                difficulty = 3;
+            } else {
+                magId = idx === 8 ? 'F' : 'Ep';
+                difficulty = 4;
+            }
+
+            const mag = magnitudes.find(m => m.id === magId);
+            document.getElementById('difficulty-badge').innerText = `Ciclo: ${idx + 1}/10 · Nivel ${difficulty}`;
+
+            const s1 = Math.random() > 0.5 ? 1 : -1;
+            const s2 = Math.random() > 0.5 ? 1 : -1;
+            const q1Text = s1 > 0 ? 'positiva (+)' : 'negativa (-)';
+            const q2Text = s2 > 0 ? 'positiva (+)' : 'negativa (-)';
+
+            let questionPre = mag.vars.length === 3 
+                ? `Si $q_1$ es ${q1Text} y $q_2$ es ${q2Text}`
+                : `Si la carga fuente $Q$ es ${q1Text}`;
+
+            let changes = [];
+            let multiplier = 1;
+            let numChanges = difficulty === 2 ? 1 : (difficulty === 1 ? 1 : (difficulty === 3 ? 2 : 3));
+            let usedVars = shuffle([...mag.vars]).slice(0, numChanges);
+
+            usedVars.forEach(v => {
+                const f = factors[Math.floor(Math.random() * factors.length)];
+                let label = "";
+                if (v === 'q1') label = `el valor absoluto de $q_1$ ${f.label}`;
+                if (v === 'q2') label = `el valor absoluto de $q_2$ ${f.label}`;
+                if (v === 'Q') label = `el valor absoluto de $Q$ ${f.label}`;
+                if (v === 'r') label = `la distancia $r$ ${f.label}`;
+                
+                changes.push(label);
+                if (v === 'r') {
+                    multiplier *= (mag.id === 'F' || mag.id === 'E') ? (1 / (f.val ** 2)) : (1 / f.val);
+                } else {
+                    multiplier *= f.val;
+                }
+            });
+
+            const changeDescription = changes.length > 1 
+                ? changes.slice(0, -1).join(', ') + ' y ' + changes.slice(-1)
+                : changes[0];
+
+            let questionText = `${questionPre}, y ${changeDescription}, ¿cómo varía ${mag.art} <b>${mag.name} (${mag.id})</b>?`;
+
+            if (difficulty === 2) {
+                questionText = `${questionPre}, y ${changeDescription}, ¿el nuevo valor de ${mag.art} <b>${mag.name} (${mag.id})</b> es mayor o menor que el inicial?`;
+            }
+
+            state.currentQuestion = {
+                mag, multiplier, s1, s2, usedVars, questionText, difficulty
+            };
+
+            renderQuestion();
+        }
+
+        function formatFraction(n) {
+            if (Math.abs(n - 1) < 0.001) return "";
+            const common = [
+                {v: 2, t: "2"}, {v: 4, t: "4"}, {v: 8, t: "8"}, {v: 16, t: "16"},
+                {v: 0.5, t: "\\frac{1}{2}"}, {v: 0.25, t: "\\frac{1}{4}"},
+                {v: 0.0625, t: "\\frac{1}{16}"}, {v: 0.125, t: "\\frac{1}{8}"},
+                {v: 1.5, t: "\\frac{3}{2}"}, {v: 2.25, t: "\\frac{9}{4}"},
+                {v: 0.111, t: "\\frac{1}{9}"}, {v: 9, t: "9"}, {v: 3, t: "3"}, {v: 0.333, t: "\\frac{1}{3}"}
+            ];
+            const match = common.find(c => Math.abs(c.v - n) < 0.01);
+            return match ? match.t : n.toFixed(2).replace(/\.00$/, '');
+        }
+
+        function renderQuestion() {
+            const q = state.currentQuestion;
+            document.getElementById('question-text').innerHTML = q.questionText;
+            document.getElementById('category-accent').className = `w-12 h-1 rounded-full mb-6 ${q.mag.color === 'pink' ? 'bg-pink-500 shadow-[0_0_8px_#ec4899]' : 'bg-cyan-500 shadow-[0_0_8px_#06b6d4]'}`;
+
+            const optionsGrid = document.getElementById('options-grid');
+            optionsGrid.innerHTML = '';
+
+            let options = [];
+            if (q.difficulty === 2) {
+                const initialVal = q.mag.id === 'Ep' ? q.s1 * q.s2 : q.s1;
+                const finalVal = initialVal * q.multiplier;
+                const isCorrectGreater = finalVal > initialVal;
+                
+                options = [
+                    { text: `Es mayor ($${q.mag.id}_f > ${q.mag.id}_i$)`, correct: isCorrectGreater },
+                    { text: `Es menor ($${q.mag.id}_f < ${q.mag.id}_i$)`, correct: !isCorrectGreater }
+                ];
+            } else {
+                const correctTex = `$${q.mag.id}_{f} = ${formatFraction(q.multiplier)} ${q.mag.id}_{i}$`;
+                options.push({ text: correctTex, correct: true });
+                
+                const distractors = [0.5, 2, 4, 0.25, 1, 3, 9, 16, 0.125, 2.25, 6, 0.75, 0.0625];
+                while (options.length < 4) {
+                    let d = distractors[Math.floor(Math.random() * distractors.length)];
+                    let tex = `$${q.mag.id}_{f} = ${formatFraction(d)} ${q.mag.id}_{i}$`;
+                    if (!options.find(o => o.text === tex)) options.push({ text: tex, correct: false });
+                }
+            }
+
+            shuffle(options).forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn glass p-4 rounded-2xl text-lg text-center border border-transparent';
+                btn.innerHTML = opt.text;
+                btn.onclick = () => checkAnswer(opt.correct, btn);
+                optionsGrid.appendChild(btn);
+            });
+
+            MathJax.typesetPromise();
+        }
+
+        function checkAnswer(isCorrect, btn) {
+            if (state.isAnswered) return;
+            state.isAnswered = true;
+
+            const q = state.currentQuestion;
+            const feedbackCard = document.getElementById('feedback-card');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const explanation = document.getElementById('feedback-explanation');
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                feedbackTitle.innerText = "¡Excelente razonamiento!";
+                feedbackTitle.className = "text-xl font-bold mb-4 text-emerald-500";
+                state.stats[q.mag.id]++;
+            } else {
+                btn.classList.add('incorrect');
+                feedbackTitle.innerText = "Revisemos el proceso...";
+                feedbackTitle.className = "text-xl font-bold mb-4 text-rose-500";
+                state.stats[q.mag.id] = Math.max(0, state.stats[q.mag.id] - 1);
+            }
+
+            state.cycleIndex++;
+            if (state.cycleIndex > 9) {
+                state.cycleIndex = 0;
+                state.cycleOrder = shuffle(['F', 'E', 'Ep', 'V']);
+            }
+
+            saveProgress();
+
+            let stepHtml = `<p><b>Análisis:</b> La ${q.mag.name} es una magnitud ${q.mag.type}.</p>`;
+            let texFormula = "";
+            const kStr = "\\cancel{k}";
+            const rPart = q.usedVars.includes('r') ? `(\\text{factor}_r \\cdot \\cancel{r})` : `\\cancel{r}`;
+            const rExp = (q.mag.id === 'F' || q.mag.id === 'E') ? '^2' : '';
+
+            if (q.mag.id === 'F') {
+                const q1 = q.usedVars.includes('q1') ? `(\\text{factor}_{q1} \\cdot |\\cancel{q_1}|)` : `|\\cancel{q_1}|`;
+                const q2 = q.usedVars.includes('q2') ? `(\\text{factor}_{q2} \\cdot |\\cancel{q_2}|)` : `|\\cancel{q_2}|`;
+                texFormula = `${q.mag.id}_{f} = ${kStr} \\frac{ ${q1} \\cdot ${q2} }{ ${rPart}${rExp} }`;
+            } else if (q.mag.id === 'E') {
+                const Q = q.usedVars.includes('Q') ? `(\\text{factor}_Q \\cdot |\\cancel{Q}|)` : `|\\cancel{Q}|`;
+                texFormula = `${q.mag.id}_{f} = ${kStr} \\frac{ ${Q} }{ ${rPart}${rExp} }`;
+            } else if (q.mag.id === 'Ep') {
+                const q1 = q.usedVars.includes('q1') ? `(\\text{factor}_{q1} \\cdot (\\pm\\cancel{q_1}))` : `(\\pm\\cancel{q_1})`;
+                const q2 = q.usedVars.includes('q2') ? `(\\text{factor}_{q2} \\cdot (\\pm\\cancel{q_2}))` : `(\\pm\\cancel{q_2})`;
+                texFormula = `${q.mag.id}_{f} = ${kStr} \\frac{ ${q1} \\cdot ${q2} }{ ${rPart} }`;
+            } else if (q.mag.id === 'V') {
+                const Q = q.usedVars.includes('Q') ? `(\\text{factor}_Q \\cdot (\\pm\\cancel{Q}))` : `(\\pm\\cancel{Q})`;
+                texFormula = `${q.mag.id}_{f} = ${kStr} \\frac{ ${Q} }{ ${rPart} }`;
+            }
+
+            stepHtml += `<div class="bg-slate-200 dark:bg-slate-800 p-4 rounded-xl font-mono text-center transition-colors">
+                $$ ${texFormula} $$
+                <p class="text-xs text-slate-500 mt-2">Factor resultante: <b>${formatFraction(q.multiplier)}</b></p>
+            </div>`;
+
+            if (q.mag.type === 'scalar') {
+                const initialSign = q.mag.id === 'Ep' ? q.s1 * q.s2 : q.s1;
+                const isNeg = initialSign < 0;
+                let signText = isNeg 
+                    ? (q.multiplier > 1 ? "Al ser negativo y aumentar su módulo, se aleja del cero por la izquierda. El valor real disminuye." : "Al ser negativo y disminuir su módulo, se acerca al cero. El valor real aumenta.")
+                    : (q.multiplier >= 1 ? "Al ser positivo y aumentar su módulo, el valor real aumenta." : "Al ser positivo y disminuir su módulo, el valor real disminuye.");
+                stepHtml += `<p class="border-t border-slate-700/20 pt-4 text-sm"><span class="text-blue-500 font-bold">Análisis de signo:</span> ${signText}</p>`;
+            }
+
+            explanation.innerHTML = stepHtml;
+            feedbackCard.classList.remove('hidden');
+            MathJax.typesetPromise();
+        }
+
+        function nextQuestion() {
+            state.isAnswered = false;
+            document.getElementById('feedback-card').classList.add('hidden');
+            generateQuestion();
+        }
+
+        function showDailyLimit() {
+            const card = document.getElementById('game-card');
+            document.getElementById('feedback-card').classList.add('hidden');
+            card.innerHTML = `
+                <div class="text-center py-10">
+                    <div class="w-20 h-20 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <h2 class="text-3xl font-black mb-4">¡Puntuación máxima!</h2>
+                    <p class="text-lg text-slate-400 mb-8 px-4">Has dominado todos los niveles de razonamiento proporcional. Vuelve mañana para más desafíos.</p>
+                </div>
+            `;
+        }
+
+        /**
+         * Lifecycle Events
+         */
+        window.onload = () => {
+            SCORM.init();
+            loadProgress();
+            if (calculateScore() < 10) generateQuestion();
+        };
+
+        window.onunload = () => {
+            SCORM.finish();
+        };
+    </script>
+</body>
+</html>
