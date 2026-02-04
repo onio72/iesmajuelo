@@ -238,7 +238,7 @@
 <body class="h-screen w-screen flex flex-col items-center justify-center relative bg-slate-900">
 
     <!-- Version Label -->
-    <div class="absolute bottom-1 right-1 text-[9px] text-slate-600 font-mono opacity-40 z-50 pointer-events-none">v2.4 Resp</div>
+    <div class="absolute bottom-1 right-1 text-[9px] text-slate-600 font-mono opacity-40 z-50 pointer-events-none">v2.5 Spacing</div>
 
     <!-- UI Overlay Layer for Inputs -->
     <div id="ui-layer" class="absolute top-0 left-0 w-full h-full pointer-events-none z-20"></div>
@@ -380,7 +380,6 @@
             regenerateAll(); 
         }
         
-        // Use debounce for resize to avoid spamming regeneration
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
@@ -390,10 +389,8 @@
         function regenerateAll() {
             if (canvas.width === 0 || canvas.height === 0) return;
 
-            // Randomly choose game mode (50/50 chance)
             gameMode = Math.random() > 0.5 ? 2 : 1;
             
-            // Update Instructions
             if (gameMode === 1) {
                 instructionText.innerHTML = '<i class="fas fa-info-circle mr-1 text-cyan-400"></i>Calcula el trabajo en cada ruta.';
             } else {
@@ -449,13 +446,12 @@
             const labels = ['A', 'B', 'C'];
             const colors = ['#3b82f6', '#ef4444', '#eab308']; 
             
-            // --- RESPONSIVE LOGIC ---
-            const isMobile = canvas.width < 768; // Check for tablet/mobile width
+            // --- RESPONSIVE LOGIC (SPACING FIX) ---
+            const isMobile = canvas.width < 768; 
 
-            // Adjust margins based on screen size to prevent overlap with header/footer
-            const topHeaderMargin = isMobile ? 100 : 160; 
-            // Increase bottom padding on mobile because controls might stack vertically
-            const bottomPadding = isMobile ? 140 : 260; 
+            // Reduced margins significantly on desktop to allow nodes to spread out
+            const topHeaderMargin = isMobile ? 100 : 100; // Was 160
+            const bottomPadding = isMobile ? 140 : 180;   // Was 260
             const sidePadding = isMobile ? 30 : 60;
 
             const playableHeight = canvas.height - topHeaderMargin - bottomPadding;
@@ -463,9 +459,13 @@
             const cy = topHeaderMargin + (playableHeight / 2);
             
             const minDim = Math.max(50, Math.min(canvas.width, playableHeight));
-            // Reduce scaling slightly on mobile to keep nodes away from edges
-            const scaleFactor = isMobile ? 0.32 : 0.35; 
-            const baseRadius = Math.max(80, minDim * scaleFactor); 
+            
+            // INCREASED scale factor for better spread on Desktop (was 0.35)
+            const scaleFactor = isMobile ? 0.32 : 0.40; 
+            
+            // INCREASED min radius for Desktop (was 80, now 130) to prevent clustering
+            const minRadiusFloor = isMobile ? 80 : 130;
+            const baseRadius = Math.max(minRadiusFloor, minDim * scaleFactor); 
 
             const globalRotation = Math.random() * Math.PI * 2;
             const indices = [0, 1, 2].sort(() => Math.random() - 0.5);
@@ -485,11 +485,11 @@
                 const idx = indices[i];
                 const angle = globalRotation + (i * (Math.PI * 2) / 3);
 
-                const r = baseRadius * (0.9 + Math.random() * 0.2); 
+                // Reduced randomization of radius (0.2 -> 0.1) to keep them more uniformly spaced
+                const r = baseRadius * (0.95 + Math.random() * 0.1); 
                 const x = cx + Math.cos(angle) * r;
                 const y = cy + Math.sin(angle) * r;
 
-                // Clamp to safe area
                 const safeX = Math.max(sidePadding, Math.min(canvas.width - sidePadding, x));
                 const safeY = Math.max(topHeaderMargin, Math.min(canvas.height - bottomPadding, y));
 
@@ -551,7 +551,7 @@
 
             const dist = Math.hypot(end.x - start.x, end.y - start.y);
             
-            // Adjust curve push factor based on distance to prevent overlap
+            // Adjust curve push factor
             let pushFactor;
             if (layerIndex === 0) {
                 pushFactor = dist * 0.25 + 30; 
@@ -627,11 +627,10 @@
                     input.type = 'number';
                     input.placeholder = '?';
                     
-                    // Allow focus on mobile without zooming if possible
                     input.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter') {
                             validateAnswer(input, card, correctAnswer, path.midPoint.x, path.midPoint.y);
-                            input.blur(); // Hide keyboard on mobile
+                            input.blur(); 
                         }
                     });
 
@@ -651,7 +650,6 @@
                 if (node.isUnknown) {
                     const wrapper = document.createElement('div');
                     wrapper.className = 'node-input-wrapper pointer-events-auto';
-                    // Slightly adjust input position based on screen size
                     const yOffset = window.innerWidth < 640 ? 5 : 10;
                     wrapper.style.left = node.x + 'px';
                     wrapper.style.top = (node.y + yOffset) + 'px'; 
@@ -796,7 +794,6 @@
             ctx.shadowColor = node.color;
             
             ctx.beginPath();
-            // Scale node size slightly on mobile to avoid taking too much space
             const radius = window.innerWidth < 640 ? 28 : 35;
             ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
             ctx.fillStyle = '#1e293b'; 
@@ -811,7 +808,6 @@
             ctx.font = `bold ${fontSize} "Space Grotesk", sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            // Adjust label position slightly
             const yOffset = window.innerWidth < 640 ? 10 : 12;
             ctx.fillText(node.label, node.x, node.y - yOffset);
 
