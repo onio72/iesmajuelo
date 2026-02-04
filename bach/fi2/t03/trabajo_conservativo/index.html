@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Física: Trabajo en Campos Conservativos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -183,36 +183,86 @@
             0% { transform: translateY(0); opacity: 1; }
             100% { transform: translateY(-30px); opacity: 0; }
         }
+
+        /* --- RESPONSIVE TWEAKS --- */
+        @media (max-width: 640px) {
+            /* Compact Header */
+            .glass-panel {
+                padding: 0.5rem 0.75rem;
+            }
+            .fa-atom {
+                font-size: 1.25rem;
+            }
+            h1 {
+                font-size: 0.9rem !important;
+            }
+            p.text-xs {
+                font-size: 0.65rem !important;
+            }
+            
+            /* Compact Input Cards */
+            .work-input-card {
+                padding: 4px 6px;
+                min-width: 70px;
+                border-radius: 8px;
+            }
+            .work-input-card input {
+                width: 45px;
+                padding: 2px 4px;
+                font-size: 0.8rem;
+            }
+            .label-math {
+                font-size: 0.7rem;
+            }
+            .unit-label {
+                font-size: 0.75rem;
+            }
+
+            /* Compact Node Inputs */
+            .node-input {
+                width: 40px;
+                font-size: 13px;
+            }
+
+            /* Controls */
+            #instruction-text {
+                font-size: 0.8rem;
+            }
+            .btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.85rem;
+            }
+        }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col items-center justify-center relative">
+<body class="h-screen w-screen flex flex-col items-center justify-center relative bg-slate-900">
 
     <!-- Version Label -->
-    <div class="absolute bottom-2 right-2 text-[10px] text-slate-500 font-mono opacity-50 z-50 pointer-events-none">v2.3</div>
+    <div class="absolute bottom-1 right-1 text-[9px] text-slate-600 font-mono opacity-40 z-50 pointer-events-none">v2.4 Resp</div>
 
     <!-- UI Overlay Layer for Inputs -->
     <div id="ui-layer" class="absolute top-0 left-0 w-full h-full pointer-events-none z-20"></div>
 
     <!-- Header & Score -->
-    <div class="absolute top-4 left-0 w-full flex justify-between items-start pointer-events-none z-30 px-6">
+    <div class="absolute top-2 md:top-4 left-0 w-full flex justify-between items-start pointer-events-none z-30 px-2 md:px-6">
         <!-- Title -->
-        <div class="glass-panel px-6 py-3 rounded-2xl flex items-center gap-4 shadow-lg pointer-events-auto">
-            <div class="bg-blue-600/20 p-2 rounded-lg">
-                <i class="fas fa-atom text-blue-400 text-2xl"></i>
+        <div class="glass-panel px-4 py-2 md:px-6 md:py-3 rounded-2xl flex items-center gap-2 md:gap-4 shadow-lg pointer-events-auto max-w-[65%]">
+            <div class="bg-blue-600/20 p-1.5 md:p-2 rounded-lg shrink-0">
+                <i class="fas fa-atom text-blue-400 text-xl md:text-2xl"></i>
             </div>
-            <div>
-                <h1 class="font-bold text-base md:text-lg leading-tight text-blue-100">Campos Conservativos</h1>
-                <p class="text-xs text-blue-300/80 mt-1 font-mono">
+            <div class="overflow-hidden">
+                <h1 class="font-bold text-sm md:text-lg leading-tight text-blue-100 truncate">Campos Conservativos</h1>
+                <p class="text-[10px] md:text-xs text-blue-300/80 mt-0.5 md:mt-1 font-mono truncate">
                     \( W_{A \to B} = Ep_A - Ep_B \)
                 </p>
             </div>
         </div>
 
         <!-- Scoreboard -->
-        <div class="glass-panel px-6 py-3 rounded-2xl flex flex-col items-end shadow-lg pointer-events-auto min-w-[120px]">
-            <span class="text-xs text-slate-400 uppercase tracking-wider font-bold">Nota</span>
+        <div class="glass-panel px-4 py-2 md:px-6 md:py-3 rounded-2xl flex flex-col items-end shadow-lg pointer-events-auto min-w-[80px] md:min-w-[120px]">
+            <span class="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-bold">Nota</span>
             <!-- Initially red because 0 < 5 -->
-            <div class="text-3xl font-bold text-red-500" id="score-display">0.00</div>
+            <div class="text-xl md:text-3xl font-bold text-red-500" id="score-display">0.00</div>
         </div>
     </div>
 
@@ -220,20 +270,91 @@
     <canvas id="pathCanvas" class="absolute top-0 left-0 w-full h-full z-0"></canvas>
 
     <!-- Controls -->
-    <div class="absolute bottom-6 w-full max-w-3xl px-6 pointer-events-none z-30">
-        <div class="glass-panel p-4 rounded-2xl flex items-center justify-between shadow-2xl pointer-events-auto w-full">
-            <div class="text-sm text-slate-300 flex flex-col md:flex-row gap-1 md:items-center">
-                <span id="instruction-text"><i class="fas fa-info-circle mr-2 text-cyan-400"></i>Cargando...</span>
-                <span class="text-xs text-slate-400 md:ml-1">(Pulsa <kbd class="font-mono bg-slate-700 px-1.5 py-0.5 rounded text-white border border-slate-600">Intro</kbd> para validar)</span>
+    <div class="absolute bottom-4 md:bottom-6 w-full max-w-3xl px-2 md:px-6 pointer-events-none z-30">
+        <div class="glass-panel p-3 md:p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-3 shadow-2xl pointer-events-auto w-full">
+            <div class="text-xs md:text-sm text-slate-300 flex flex-col items-center md:items-start text-center md:text-left w-full">
+                <span id="instruction-text" class="leading-tight mb-1"><i class="fas fa-info-circle mr-1 text-cyan-400"></i>Cargando...</span>
+                <span class="text-[10px] md:text-xs text-slate-500 hidden md:inline">(Pulsa <kbd class="font-mono bg-slate-700 px-1 py-0.5 rounded text-white border border-slate-600">Intro</kbd>)</span>
             </div>
             
-            <button onclick="regenerateAll()" class="btn bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-xl font-bold shadow-lg flex items-center gap-2 border border-indigo-400/30 whitespace-nowrap ml-4">
-                <i class="fas fa-sync-alt"></i> Nuevo
+            <button onclick="regenerateAll()" class="btn bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-xl font-bold shadow-lg flex items-center gap-2 border border-indigo-400/30 whitespace-nowrap text-sm md:text-base w-full md:w-auto justify-center">
+                <i class="fas fa-sync-alt"></i> <span class="md:hidden">Reiniciar</span><span class="hidden md:inline">Nuevo</span>
             </button>
         </div>
     </div>
 
     <script>
+        /***********************************************************
+         * SCORM 1.2 API WRAPPER (Nativo & Safe)
+         ***********************************************************/
+        var scormAPI = null;
+        var scormInitialized = false;
+
+        function findAPI(win) {
+            var findAPITries = 0;
+            while (true) {
+                try {
+                    if (win.API != null) return win.API;
+                } catch (e) {}
+                findAPITries++;
+                if (findAPITries > 10) return null;
+                if (win.parent != null && win.parent != win) win = win.parent;
+                else return null;
+            }
+        }
+
+        function getAPI() {
+            var theAPI = findAPI(window);
+            if ((theAPI == null) && (window.opener != null) && (typeof(window.opener) != "undefined")) {
+                theAPI = findAPI(window.opener);
+            }
+            return theAPI;
+        }
+
+        function initSCORM() {
+            scormAPI = getAPI();
+            if (scormAPI) {
+                var result = scormAPI.LMSInitialize("");
+                if (result.toString() === "true") {
+                    scormInitialized = true;
+                    var status = scormAPI.LMSGetValue("cmi.core.lesson_status");
+                    if (status === "not attempted") {
+                        scormAPI.LMSSetValue("cmi.core.lesson_status", "incomplete");
+                        scormAPI.LMSSetValue("cmi.core.score.min", "0");
+                        scormAPI.LMSSetValue("cmi.core.score.max", "10");
+                        scormAPI.LMSCommit("");
+                    }
+                    console.log("SCORM Conectado.");
+                }
+            } else {
+                console.warn("SCORM API no encontrada - Modo Standalone");
+            }
+        }
+
+        function reportToLMS(currentScore) {
+            if (!scormInitialized || !scormAPI) return;
+            var scoreFormatted = currentScore.toFixed(2);
+            scormAPI.LMSSetValue("cmi.core.score.raw", scoreFormatted);
+            var lessonStatus = (currentScore >= 5.0) ? "passed" : "incomplete";
+            scormAPI.LMSSetValue("cmi.core.lesson_status", lessonStatus);
+            scormAPI.LMSCommit("");
+        }
+
+        function finishSCORM() {
+            if (scormInitialized && scormAPI) {
+                scormAPI.LMSSetValue("cmi.core.exit", "suspend");
+                scormAPI.LMSFinish("");
+                scormInitialized = false;
+            }
+        }
+
+        window.addEventListener("load", initSCORM);
+        window.addEventListener("unload", finishSCORM);
+        window.addEventListener("beforeunload", finishSCORM);
+
+        /***********************************************************
+         * LÓGICA DEL JUEGO
+         ***********************************************************/
         const canvas = document.getElementById('pathCanvas');
         const ctx = canvas.getContext('2d');
         const uiLayer = document.getElementById('ui-layer');
@@ -245,7 +366,7 @@
         let paths = []; 
         let animationFrameId;
         let score = 0;
-        let gameMode = 1; // 1: Calculate Work, 2: Deduce Ep
+        let gameMode = 1; 
 
         // Scoring Constants
         const POINTS_PER_HIT = 1.6666666 / 6; 
@@ -253,16 +374,19 @@
         const MAX_SCORE = 10;
         const MIN_SCORE = 0;
 
-        // --- Resize Handling ---
         function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             regenerateAll(); 
         }
-        window.addEventListener('resize', resize);
         
-        // --- Core Logic ---
-
+        // Use debounce for resize to avoid spamming regeneration
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(resize, 200);
+        });
+        
         function regenerateAll() {
             if (canvas.width === 0 || canvas.height === 0) return;
 
@@ -271,9 +395,9 @@
             
             // Update Instructions
             if (gameMode === 1) {
-                instructionText.innerHTML = '<i class="fas fa-info-circle mr-2 text-cyan-400"></i>Calcula el trabajo en cada ruta.';
+                instructionText.innerHTML = '<i class="fas fa-info-circle mr-1 text-cyan-400"></i>Calcula el trabajo en cada ruta.';
             } else {
-                instructionText.innerHTML = '<i class="fas fa-search mr-2 text-yellow-400"></i>Deduce las Ep faltantes y los trabajos.';
+                instructionText.innerHTML = '<i class="fas fa-search mr-1 text-yellow-400"></i>Deduce Ep y trabajos.';
             }
 
             uiLayer.innerHTML = '';
@@ -292,37 +416,32 @@
             let oldScore = score;
             score += pointsAdded;
             
-            // Clamp score
             if (score > MAX_SCORE) score = MAX_SCORE;
             if (score < MIN_SCORE) score = MIN_SCORE;
             
-            // Display Logic
-            // Usamos el valor redondeado para la lógica de color, para que coincida con lo que ve el usuario.
             const displayedScore = parseFloat(score.toFixed(2));
             scoreDisplay.innerText = score.toFixed(2);
             
-            // Color Logic (Fail < 5.00, Success >= 5.00)
             if (displayedScore < 5.00) {
                 scoreDisplay.classList.remove('text-green-400', 'text-yellow-400');
                 scoreDisplay.classList.add('text-red-500');
             } else {
                 scoreDisplay.classList.remove('text-red-500', 'text-yellow-400');
-                // Updated to GREEN for passing score
                 scoreDisplay.classList.add('text-green-400'); 
             }
             
-            // Pop effect
             const floatEl = document.createElement('div');
             floatEl.className = 'score-pop';
             floatEl.style.left = x + 'px';
             floatEl.style.top = y + 'px';
-            
             floatEl.style.color = pointsAdded > 0 ? '#4ade80' : '#f43f5e';
             floatEl.innerText = pointsAdded > 0 ? `+${pointsAdded.toFixed(2)}` : pointsAdded.toFixed(1);
             document.body.appendChild(floatEl);
             
             setTimeout(() => floatEl.remove(), 1000);
             playSound(pointsAdded > 0 ? 'success' : 'error');
+
+            reportToLMS(score);
         }
 
         function createPhysicsNodes() {
@@ -330,16 +449,23 @@
             const labels = ['A', 'B', 'C'];
             const colors = ['#3b82f6', '#ef4444', '#eab308']; 
             
-            const topHeaderMargin = 160; 
-            const sidePadding = 60;
-            const bottomPadding = 260; 
+            // --- RESPONSIVE LOGIC ---
+            const isMobile = canvas.width < 768; // Check for tablet/mobile width
+
+            // Adjust margins based on screen size to prevent overlap with header/footer
+            const topHeaderMargin = isMobile ? 100 : 160; 
+            // Increase bottom padding on mobile because controls might stack vertically
+            const bottomPadding = isMobile ? 140 : 260; 
+            const sidePadding = isMobile ? 30 : 60;
 
             const playableHeight = canvas.height - topHeaderMargin - bottomPadding;
             const cx = canvas.width / 2;
             const cy = topHeaderMargin + (playableHeight / 2);
             
             const minDim = Math.max(50, Math.min(canvas.width, playableHeight));
-            const baseRadius = Math.max(100, minDim * 0.35); 
+            // Reduce scaling slightly on mobile to keep nodes away from edges
+            const scaleFactor = isMobile ? 0.32 : 0.35; 
+            const baseRadius = Math.max(80, minDim * scaleFactor); 
 
             const globalRotation = Math.random() * Math.PI * 2;
             const indices = [0, 1, 2].sort(() => Math.random() - 0.5);
@@ -349,14 +475,9 @@
                 knownNodeIndex = Math.floor(Math.random() * 3);
             }
 
-            // --- Generate Ep values ensuring they are not all identical ---
             let epValues = [];
-            // Generate initial values
             for(let k=0; k<3; k++) epValues.push(Math.floor((Math.random() * 20) - 10) * 5);
-            
-            // Ensure not all three are the same
             while (epValues[0] === epValues[1] && epValues[1] === epValues[2]) {
-                // Regenerate the last one until different
                 epValues[2] = Math.floor((Math.random() * 20) - 10) * 5;
             }
 
@@ -368,12 +489,11 @@
                 const x = cx + Math.cos(angle) * r;
                 const y = cy + Math.sin(angle) * r;
 
+                // Clamp to safe area
                 const safeX = Math.max(sidePadding, Math.min(canvas.width - sidePadding, x));
                 const safeY = Math.max(topHeaderMargin, Math.min(canvas.height - bottomPadding, y));
 
-                // Use the pre-calculated Ep values
                 const ep = epValues[i];
-
                 const isUnknown = (gameMode === 2 && i !== knownNodeIndex);
 
                 nodes.push({
@@ -385,13 +505,11 @@
                     isUnknown: isUnknown
                 });
             }
-            
             nodes.sort((a, b) => a.label.localeCompare(b.label));
         }
 
         function createPaths() {
             paths = [];
-            
             const centroid = {
                 x: (nodes[0].x + nodes[1].x + nodes[2].x) / 3,
                 y: (nodes[0].y + nodes[1].y + nodes[2].y) / 3
@@ -433,6 +551,7 @@
 
             const dist = Math.hypot(end.x - start.x, end.y - start.y);
             
+            // Adjust curve push factor based on distance to prevent overlap
             let pushFactor;
             if (layerIndex === 0) {
                 pushFactor = dist * 0.25 + 30; 
@@ -471,7 +590,6 @@
         }
 
         function createDOMOverlays() {
-            // 1. Path Overlays (Inputs or Static Labels)
             paths.forEach((path) => {
                 const correctAnswer = path.startNode.ep - path.endNode.ep;
 
@@ -492,7 +610,6 @@
                     card.appendChild(label);
                     card.appendChild(value);
                     uiLayer.appendChild(card);
-
                 } else {
                     const card = document.createElement('div');
                     card.className = 'work-input-card pointer-events-auto';
@@ -510,9 +627,11 @@
                     input.type = 'number';
                     input.placeholder = '?';
                     
+                    // Allow focus on mobile without zooming if possible
                     input.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter') {
                             validateAnswer(input, card, correctAnswer, path.midPoint.x, path.midPoint.y);
+                            input.blur(); // Hide keyboard on mobile
                         }
                     });
 
@@ -528,14 +647,14 @@
                 }
             });
 
-            // 2. Node Inputs (Only if isUnknown is true)
             nodes.forEach(node => {
                 if (node.isUnknown) {
                     const wrapper = document.createElement('div');
                     wrapper.className = 'node-input-wrapper pointer-events-auto';
-                    // Center the input in the enlarged circle
+                    // Slightly adjust input position based on screen size
+                    const yOffset = window.innerWidth < 640 ? 5 : 10;
                     wrapper.style.left = node.x + 'px';
-                    wrapper.style.top = (node.y + 10) + 'px'; 
+                    wrapper.style.top = (node.y + yOffset) + 'px'; 
 
                     const input = document.createElement('input');
                     input.className = 'node-input';
@@ -545,6 +664,7 @@
                     input.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter') {
                             validateNodeAnswer(input, node.ep, node.x, node.y);
+                            input.blur();
                         }
                     });
 
@@ -595,8 +715,6 @@
                 input.focus();
             }
         }
-
-        // --- Drawing ---
 
         function animateDrawing() {
             let stillAnimating = false;
@@ -678,8 +796,9 @@
             ctx.shadowColor = node.color;
             
             ctx.beginPath();
-            // --- CHANGE: Increased Radius to 35 for better input fit ---
-            ctx.arc(node.x, node.y, 35, 0, Math.PI * 2);
+            // Scale node size slightly on mobile to avoid taking too much space
+            const radius = window.innerWidth < 640 ? 28 : 35;
+            ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
             ctx.fillStyle = '#1e293b'; 
             ctx.fill();
             ctx.lineWidth = 3;
@@ -688,16 +807,19 @@
 
             ctx.shadowBlur = 0;
             ctx.fillStyle = node.color;
-            ctx.font = 'bold 22px "Space Grotesk", sans-serif'; // Slightly bigger font
+            const fontSize = window.innerWidth < 640 ? '18px' : '22px';
+            ctx.font = `bold ${fontSize} "Space Grotesk", sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(node.label, node.x, node.y - 12); // Moved up slightly
+            // Adjust label position slightly
+            const yOffset = window.innerWidth < 640 ? 10 : 12;
+            ctx.fillText(node.label, node.x, node.y - yOffset);
 
-            // Only draw text for Ep if it is KNOWN. If Unknown, an input is overlaying this area.
             if (!node.isUnknown) {
                 ctx.fillStyle = 'white';
-                ctx.font = 'bold 13px monospace';
-                ctx.fillText(`${node.ep} J`, node.x, node.y + 12);
+                const epFontSize = window.innerWidth < 640 ? '11px' : '13px';
+                ctx.font = `bold ${epFontSize} monospace`;
+                ctx.fillText(`${node.ep} J`, node.x, node.y + yOffset);
             }
         }
 
