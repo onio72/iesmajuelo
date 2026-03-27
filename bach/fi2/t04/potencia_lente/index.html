@@ -187,43 +187,61 @@
             ctx.fillText("R2", xRight + s2 + 5, centerY + h + 15);
         }
 
-        function drawRays(focal) {
+        function drawRays(focal, r1, r2) {
             const centerY = canvas.height / 2;
             const centerX = OFFSET_X;
             const numRays = 9;
             const spacing = 18;
+            const h = 80;
+            const baseThickness = 12;
+
+            const visualScale = 2500;
+            const s1 = visualScale / r1;           
+            const s2 = -visualScale / r2; 
+            const xLeftBase = centerX - baseThickness / 2;
+            const xRightBase = centerX + baseThickness / 2;
 
             ctx.lineWidth = 1.2;
 
             for (let i = 0; i < numRays; i++) {
                 const y = centerY + (i - (numRays - 1) / 2) * spacing;
                 
+                // Calcular intersección con las caras de la lente (Bezier cuadrática)
+                // t va de 0 a 1 para y desde centerY-h a centerY+h
+                const t = (y - (centerY - h)) / (2 * h);
+                const lensX1 = xLeftBase - 2 * s1 * t * (1 - t);
+                const lensX2 = xRightBase + 2 * s2 * t * (1 - t);
+
                 // Rayo incidente
                 ctx.beginPath();
                 ctx.strokeStyle = 'rgba(245, 158, 11, 0.6)';
                 ctx.moveTo(0, y);
-                ctx.lineTo(centerX, y);
+                ctx.lineTo(lensX1, y);
                 ctx.stroke();
 
                 // Rayo refractado
                 ctx.beginPath();
                 ctx.strokeStyle = 'rgba(59, 130, 246, 0.8)';
-                ctx.moveTo(centerX, y);
+                ctx.moveTo(lensX2, y);
                 
                 if (Math.abs(focal) > 10000) {
                     ctx.lineTo(canvas.width, y);
                 } else {
-                    const focusX = centerX + focal;
+                    const focusX = centerX + focal; // El foco se mide desde el centro óptico
                     const focusY = centerY;
                     const dx = focusX - centerX;
                     const dy = focusY - y;
-                    const t = (canvas.width - centerX) / dx;
-                    ctx.lineTo(canvas.width, y + dy * t);
+                    const slope = dy / dx;
+                    
+                    // Prolongamos el rayo desde lensX2 hasta el final del canvas
+                    const targetX = canvas.width;
+                    const targetY = y + slope * (targetX - centerX);
+                    ctx.lineTo(targetX, targetY);
                 }
                 ctx.stroke();
             }
 
-            if (Math.abs(focal) < 10000 && (centerX + focal) < canvas.width) {
+            if (Math.abs(focal) < 10000 && (centerX + focal) < canvas.width && (centerX + focal) > 0) {
                 ctx.beginPath();
                 ctx.fillStyle = '#ef4444';
                 ctx.arc(centerX + focal, centerY, 4, 0, Math.PI * 2);
@@ -258,7 +276,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             drawAxis();
-            drawRays(focal);
+            drawRays(focal, r1, r2);
             drawLens(r1, r2);
         }
 
