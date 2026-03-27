@@ -74,6 +74,14 @@
                     <input type="range" id="inputN" min="1.1" max="2.5" step="0.01" value="1.50" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600">
                 </div>
 
+                <!-- Checkbox Simetría -->
+                <div class="flex items-center space-x-2 pt-2">
+                    <input type="checkbox" id="checkSymmetry" class="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500">
+                    <label for="checkSymmetry" class="text-sm font-medium text-slate-700 select-none cursor-pointer">
+                        Lente simétrica (\( R_1 = |R_2| \))
+                    </label>
+                </div>
+
                 <!-- Resultado Focal -->
                 <div class="pt-4 border-t border-slate-100">
                     <div class="p-3 bg-slate-50 rounded-lg">
@@ -104,6 +112,7 @@
         const inputR1 = document.getElementById('inputR1');
         const inputR2 = document.getElementById('inputR2');
         const inputN = document.getElementById('inputN');
+        const checkSymmetry = document.getElementById('checkSymmetry');
         const valR1 = document.getElementById('valR1');
         const valR2 = document.getElementById('valR2');
         const valN = document.getElementById('valN');
@@ -119,6 +128,19 @@
         function calculateFocal(n, r1, r2) {
             const invF = (n - 1) * (1 / r1 - 1 / r2);
             return 1 / invF;
+        }
+
+        function handleInput(e) {
+            if (checkSymmetry.checked) {
+                if (e.target === inputR1) {
+                    inputR2.value = -inputR1.value;
+                } else if (e.target === inputR2) {
+                    inputR1.value = Math.abs(inputR2.value);
+                } else if (e.target === checkSymmetry) {
+                    inputR2.value = -inputR1.value;
+                }
+            }
+            draw();
         }
 
         function drawLens(r1, r2) {
@@ -230,8 +252,8 @@
             draw();
         });
 
-        [inputR1, inputR2, inputN].forEach(input => {
-            input.addEventListener('input', draw);
+        [inputR1, inputR2, inputN, checkSymmetry].forEach(input => {
+            input.addEventListener('input', handleInput);
         });
 
         setupCanvas();
