@@ -155,20 +155,27 @@
             const centerY = canvas.height / 2;
             const centerX = OFFSET_X;
             const h = 80; 
+            const baseThickness = 12; // Separación base para evitar que desaparezca
 
             // Escala visual de las curvaturas
             const visualScale = 2500;
             const s1 = visualScale / r1;           
             const s2 = -visualScale / r2; 
 
+            const xLeft = centerX - baseThickness / 2;
+            const xRight = centerX + baseThickness / 2;
+
             ctx.beginPath();
             ctx.fillStyle = 'rgba(173, 216, 230, 0.4)';
             ctx.strokeStyle = '#0284c7';
             ctx.lineWidth = 2;
 
-            ctx.moveTo(centerX, centerY - h);
-            ctx.quadraticCurveTo(centerX + s2, centerY, centerX, centerY + h);
-            ctx.quadraticCurveTo(centerX - s1, centerY, centerX, centerY - h);
+            // Dibujamos el contorno: tapa superior, cara derecha, tapa inferior, cara izquierda
+            ctx.moveTo(xLeft, centerY - h);
+            ctx.lineTo(xRight, centerY - h);
+            ctx.quadraticCurveTo(xRight + s2, centerY, xRight, centerY + h);
+            ctx.lineTo(xLeft, centerY + h);
+            ctx.quadraticCurveTo(xLeft - s1, centerY, xLeft, centerY - h);
             
             ctx.fill();
             ctx.stroke();
@@ -176,8 +183,8 @@
 
             ctx.fillStyle = '#64748b';
             ctx.font = '10px sans-serif';
-            ctx.fillText("R1", centerX - s1 - 20, centerY + h + 15);
-            ctx.fillText("R2", centerX + s2 + 5, centerY + h + 15);
+            ctx.fillText("R1", xLeft - s1 - 20, centerY + h + 15);
+            ctx.fillText("R2", xRight + s2 + 5, centerY + h + 15);
         }
 
         function drawRays(focal) {
