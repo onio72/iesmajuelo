@@ -233,15 +233,15 @@
                 if (Math.abs(focal) > 10000) {
                     ctx.lineTo(canvas.width, y);
                 } else {
-                    const focusX = centerX + focal; // El foco se mide desde el centro óptico
+                    const focusX = centerX + focal; 
                     const focusY = centerY;
-                    const dx = focusX - centerX;
+                    const dx = focusX - lensX2; // Calculamos la pendiente desde el punto de salida real
                     const dy = focusY - y;
                     const slope = dy / dx;
                     
                     // Prolongamos el rayo desde lensX2 hasta el final del canvas
                     const targetX = canvas.width;
-                    const targetY = y + slope * (targetX - centerX);
+                    const targetY = y + slope * (targetX - lensX2);
                     ctx.lineTo(targetX, targetY);
                 }
                 ctx.stroke();
