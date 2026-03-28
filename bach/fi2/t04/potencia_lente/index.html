@@ -155,15 +155,18 @@
             const centerY = canvas.height / 2;
             const centerX = OFFSET_X;
             const h = 80; 
-            const baseThickness = 12; // Separación base para evitar que desaparezca
-
+            
             // Escala visual de las curvaturas
             const visualScale = 2500;
             const s1 = visualScale / r1;           
             const s2 = -visualScale / r2; 
 
-            const xLeft = centerX - baseThickness / 2;
-            const xRight = centerX + baseThickness / 2;
+            // Calculamos una separación dinámica para que las caras no se crucen
+            const minCenterThickness = 10;
+            const dynamicThickness = Math.max(12, minCenterThickness - s1 - s2);
+
+            const xLeft = centerX - dynamicThickness / 2;
+            const xRight = centerX + dynamicThickness / 2;
 
             ctx.beginPath();
             ctx.fillStyle = 'rgba(173, 216, 230, 0.4)';
@@ -193,13 +196,16 @@
             const numRays = 9;
             const spacing = 18;
             const h = 80;
-            const baseThickness = 12;
 
             const visualScale = 2500;
             const s1 = visualScale / r1;           
             const s2 = -visualScale / r2; 
-            const xLeftBase = centerX - baseThickness / 2;
-            const xRightBase = centerX + baseThickness / 2;
+            
+            const minCenterThickness = 10;
+            const dynamicThickness = Math.max(12, minCenterThickness - s1 - s2);
+
+            const xLeftBase = centerX - dynamicThickness / 2;
+            const xRightBase = centerX + dynamicThickness / 2;
 
             ctx.lineWidth = 1.2;
 
