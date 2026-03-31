@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Lente Biconvexa</title>
+    <title>Simulador de Lente Biconvexa Simétrica</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         window.MathJax = {
@@ -42,28 +42,19 @@
 <body class="p-4 md:p-8">
     <div class="max-w-5xl mx-auto">
         <header class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-slate-800">Simulador de Lentes Delgadas</h1>
-            <p class="text-slate-600">Laboratorio Virtual de Óptica Geométrica - Rangos Ajustados</p>
+            <h1 class="text-3xl font-bold text-slate-800">Simulador de Lente Biconvexa Simétrica</h1>
+            <p class="text-slate-600">Laboratorio Virtual de Óptica Geométrica</p>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="control-panel space-y-6">
-                <!-- Control R1: -300 a 300 cm (salto en -30..30) -->
+                <!-- Control R: 30 a 300 cm -->
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-2">
-                        Radio \( R_1 \) (Cara Izquierda): <span id="valR1" class="font-bold text-blue-600 math-value">100</span> cm
+                        Radio de curvatura (\( R \)): <span id="valR" class="font-bold text-blue-600 math-value">100</span> cm
                     </label>
-                    <input type="range" id="inputR1" min="-300" max="300" value="100" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                    <p class="text-[10px] text-slate-400 mt-1 uppercase">Rango: 30 a 300 / -30 a -300 cm</p>
-                </div>
-
-                <!-- Control R2: -300 a 300 cm (salto en -30..30) -->
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">
-                        Radio \( R_2 \) (Cara Derecha): <span id="valR2" class="font-bold text-red-600 math-value">-100</span> cm
-                    </label>
-                    <input type="range" id="inputR2" min="-300" max="300" value="-100" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-600">
-                    <p class="text-[10px] text-slate-400 mt-1 uppercase">Rango: 30 a 300 / -30 a -300 cm</p>
+                    <input type="range" id="inputR" min="30" max="300" value="100" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    <p class="text-[10px] text-slate-400 mt-1 uppercase">Rango: 30 a 300 cm (\( R_1 = -R_2 = R \))</p>
                 </div>
 
                 <!-- Control n -->
@@ -72,14 +63,6 @@
                         Índice de Refracción (\( n \)): <span id="valN" class="font-bold text-emerald-600 math-value">1.50</span>
                     </label>
                     <input type="range" id="inputN" min="1.1" max="2.5" step="0.01" value="1.50" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600">
-                </div>
-
-                <!-- Checkbox Simetría -->
-                <div class="flex items-center space-x-2 pt-2">
-                    <input type="checkbox" id="checkSymmetry" class="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500">
-                    <label for="checkSymmetry" class="text-sm font-medium text-slate-700 select-none cursor-pointer">
-                        Lente simétrica (\( R_1 = |R_2| \))
-                    </label>
                 </div>
 
                 <!-- Resultado Focal -->
@@ -93,7 +76,7 @@
                 <!-- Ecuación -->
                 <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
                     <div class="text-sm text-blue-900">
-                        \[ \frac{1}{f'} = (n - 1) \left( \frac{1}{R_1} - \frac{1}{R_2} \right) \]
+                        \[ \frac{1}{f'} = (n - 1) \frac{2}{R} \]
                     </div>
                 </div>
             </div>
@@ -109,12 +92,9 @@
         const canvas = document.getElementById('opticsCanvas');
         const ctx = canvas.getContext('2d');
         
-        const inputR1 = document.getElementById('inputR1');
-        const inputR2 = document.getElementById('inputR2');
+        const inputR = document.getElementById('inputR');
         const inputN = document.getElementById('inputN');
-        const checkSymmetry = document.getElementById('checkSymmetry');
-        const valR1 = document.getElementById('valR1');
-        const valR2 = document.getElementById('valR2');
+        const valR = document.getElementById('valR');
         const valN = document.getElementById('valN');
         const valFocal = document.getElementById('valFocal');
 
@@ -125,46 +105,24 @@
             canvas.height = canvas.offsetHeight;
         }
 
-        function calculateFocal(n, r1, r2) {
-            const invF = (n - 1) * (1 / r1 - 1 / r2);
+        function calculateFocal(n, r) {
+            // Para lente biconvexa simétrica: 1/f' = (n-1)(1/R - 1/(-R)) = (n-1)(2/R)
+            const invF = (n - 1) * (2 / r);
             return 1 / invF;
         }
 
-        function handleInput(e) {
-            let val = parseFloat(e.target.value);
-            
-            // Saltar el intervalo [-30, 30]
-            if (e.target === inputR1 || e.target === inputR2) {
-                if (val > -30 && val < 0) e.target.value = -30;
-                if (val >= 0 && val < 30) e.target.value = 30;
-            }
-
-            if (checkSymmetry.checked) {
-                if (e.target === inputR1) {
-                    inputR2.value = -inputR1.value;
-                } else if (e.target === inputR2) {
-                    inputR1.value = -inputR2.value;
-                } else if (e.target === checkSymmetry) {
-                    inputR2.value = -inputR1.value;
-                }
-            }
-            draw();
-        }
-
-        function drawLens(r1, r2) {
+        function drawLens(r) {
+            const r1 = r;
+            const r2 = -r;
             const centerY = canvas.height / 2;
             const centerX = OFFSET_X;
             const h = 80; 
             
-            // Escala visual de las curvaturas
             const visualScale = 2500;
             const s1 = visualScale / r1;           
             const s2 = -visualScale / r2; 
 
-            // Calculamos una separación dinámica para que las caras no se crucen
-            const minCenterThickness = 10;
-            const dynamicThickness = Math.max(12, minCenterThickness - s1 - s2);
-
+            const dynamicThickness = Math.max(12, 10 - s1 - s2);
             const xLeft = centerX - dynamicThickness / 2;
             const xRight = centerX + dynamicThickness / 2;
 
@@ -173,7 +131,6 @@
             ctx.strokeStyle = '#0284c7';
             ctx.lineWidth = 2;
 
-            // Dibujamos el contorno: tapa superior, cara derecha, tapa inferior, cara izquierda
             ctx.moveTo(xLeft, centerY - h);
             ctx.lineTo(xRight, centerY - h);
             ctx.quadraticCurveTo(xRight + s2, centerY, xRight, centerY + h);
@@ -186,11 +143,12 @@
 
             ctx.fillStyle = '#64748b';
             ctx.font = '10px sans-serif';
-            ctx.fillText("R1", xLeft - s1 - 20, centerY + h + 15);
-            ctx.fillText("R2", xRight + s2 + 5, centerY + h + 15);
+            ctx.fillText("R", xLeft - s1 - 15, centerY + h + 15);
         }
 
-        function drawRays(focal, r1, r2) {
+        function drawRays(focal, r) {
+            const r1 = r;
+            const r2 = -r;
             const centerY = canvas.height / 2;
             const centerX = OFFSET_X;
             const numRays = 9;
@@ -201,9 +159,7 @@
             const s1 = visualScale / r1;           
             const s2 = -visualScale / r2; 
             
-            const minCenterThickness = 10;
-            const dynamicThickness = Math.max(12, minCenterThickness - s1 - s2);
-
+            const dynamicThickness = Math.max(12, 10 - s1 - s2);
             const xLeftBase = centerX - dynamicThickness / 2;
             const xRightBase = centerX + dynamicThickness / 2;
 
@@ -211,21 +167,16 @@
 
             for (let i = 0; i < numRays; i++) {
                 const y = centerY + (i - (numRays - 1) / 2) * spacing;
-                
-                // Calcular intersección con las caras de la lente (Bezier cuadrática)
-                // t va de 0 a 1 para y desde centerY-h a centerY+h
                 const t = (y - (centerY - h)) / (2 * h);
                 const lensX1 = xLeftBase - 2 * s1 * t * (1 - t);
                 const lensX2 = xRightBase + 2 * s2 * t * (1 - t);
 
-                // Rayo incidente
                 ctx.beginPath();
                 ctx.strokeStyle = 'rgba(245, 158, 11, 0.6)';
                 ctx.moveTo(0, y);
                 ctx.lineTo(lensX1, y);
                 ctx.stroke();
 
-                // Rayo refractado
                 ctx.beginPath();
                 ctx.strokeStyle = 'rgba(59, 130, 246, 0.8)';
                 ctx.moveTo(lensX2, y);
@@ -235,11 +186,10 @@
                 } else {
                     const focusX = centerX + focal; 
                     const focusY = centerY;
-                    const dx = focusX - lensX2; // Calculamos la pendiente desde el punto de salida real
+                    const dx = focusX - lensX2; 
                     const dy = focusY - y;
                     const slope = dy / dx;
                     
-                    // Prolongamos el rayo desde lensX2 hasta el final del canvas
                     const targetX = canvas.width;
                     const targetY = y + slope * (targetX - lensX2);
                     ctx.lineTo(targetX, targetY);
@@ -247,7 +197,7 @@
                 ctx.stroke();
             }
 
-            if (Math.abs(focal) < 10000 && (centerX + focal) < canvas.width && (centerX + focal) > 0) {
+            if (Math.abs(focal) < 10000 && (centerX + focal) < canvas.width) {
                 ctx.beginPath();
                 ctx.fillStyle = '#ef4444';
                 ctx.arc(centerX + focal, centerY, 4, 0, Math.PI * 2);
@@ -269,21 +219,19 @@
         }
 
         function draw() {
-            const r1 = parseFloat(inputR1.value);
-            const r2 = parseFloat(inputR2.value);
+            const r = parseFloat(inputR.value);
             const n = parseFloat(inputN.value);
-            const focal = calculateFocal(n, r1, r2);
+            const focal = calculateFocal(n, r);
 
-            valR1.innerText = r1;
-            valR2.innerText = r2;
+            valR.innerText = r;
             valN.innerText = n.toFixed(2);
             valFocal.innerText = focal.toFixed(1);
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             drawAxis();
-            drawRays(focal, r1, r2);
-            drawLens(r1, r2);
+            drawRays(focal, r);
+            drawLens(r);
         }
 
         window.addEventListener('resize', () => {
@@ -291,8 +239,8 @@
             draw();
         });
 
-        [inputR1, inputR2, inputN, checkSymmetry].forEach(input => {
-            input.addEventListener('input', handleInput);
+        [inputR, inputN].forEach(input => {
+            input.addEventListener('input', draw);
         });
 
         setupCanvas();
