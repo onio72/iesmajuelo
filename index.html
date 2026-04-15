@@ -20,11 +20,7 @@
             --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             --radius: 0.75rem;
         }
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-body);
@@ -34,8 +30,6 @@
             display: flex;
             flex-direction: column;
         }
-
-        /* Header & Navigation */
         header {
             background: white;
             border-bottom: 1px solid var(--border);
@@ -91,8 +85,6 @@
             transform: translateY(-50%);
             opacity: 0.4;
         }
-
-        /* Toolbar / Breadcrumbs */
         .toolbar {
             background: white;
             border-bottom: 1px solid var(--border);
@@ -136,8 +128,6 @@
         .breadcrumb-item { cursor: pointer; transition: color 0.2s; }
         .breadcrumb-item:hover { color: var(--primary); }
         .breadcrumb-sep { opacity: 0.3; font-weight: 300; }
-
-        /* Main Content */
         main {
             flex: 1;
             max-width: 1100px;
@@ -152,8 +142,6 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        /* Grid Layout */
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -191,26 +179,10 @@
         .card-icon {
             font-size: 3rem;
             margin-bottom: 1.25rem;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
         }
-        .card h2 {
-            font-size: 1.25rem;
-            margin-bottom: 0.5rem;
-            font-weight: 700;
-        }
-        .card p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            line-height: 1.4;
-        }
-
-        /* Resource Groups */
-        .resource-section-title {
-            margin: 2rem 0 1rem;
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--text-main);
-        }
+        .card h2 { font-size: 1.25rem; margin-bottom: 0.5rem; font-weight: 700; }
+        .card p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.4; }
+        .resource-section-title { margin: 2rem 0 1rem; font-size: 1.5rem; font-weight: 800; }
         .resource-group {
             background: white;
             padding: 1.5rem;
@@ -252,32 +224,17 @@
             border-color: var(--primary);
             color: var(--primary);
             transform: translateX(3px);
-            box-shadow: var(--shadow-sm);
         }
-        .link-item::before {
-            content: '🔗';
-            margin-right: 10px;
-            font-size: 1rem;
-            filter: grayscale(1);
-        }
-        .link-item:hover::before { filter: grayscale(0); }
-
-        /* Search Results View */
+        .link-item::before { content: '🔗'; margin-right: 10px; font-size: 1rem; }
         .search-results-info {
             padding: 1rem;
             margin-bottom: 1rem;
             background: var(--primary-light);
             border-radius: var(--radius);
             font-size: 0.9rem;
-            color: var(--primary-dark);
         }
-        .no-results {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: var(--text-muted);
-        }
+        .no-results { text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
         .hidden { display: none !important; }
-
         footer {
             text-align: center;
             padding: 3rem 1rem;
@@ -287,13 +244,10 @@
             background: white;
             margin-top: auto;
         }
-
         @media (max-width: 600px) {
             .header-content { flex-direction: column; align-items: flex-start; }
             .search-container { max-width: 100%; width: 100%; }
-            .grid { grid-template-columns: 1fr; }
-            .links-grid { grid-template-columns: 1fr; }
-            .brand { font-size: 1rem; }
+            .grid, .links-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -306,7 +260,7 @@
         </div>
         <div class="search-container">
             <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" class="search-input" placeholder="Buscar temas, ejercicios, simuladores..." oninput="handleSearch()">
+            <input type="text" id="searchInput" class="search-input" placeholder="Buscar temas, ejercicios..." oninput="handleSearch()">
         </div>
     </div>
 </header>
@@ -324,7 +278,7 @@
 
 <footer>
     <p>&copy; 2024 Antonio González - Repositorio de Recursos Educativos creados con IA</p>
-    <p style="margin-top: 0.5rem; opacity: 0.7">Hecho con fines educativos para el IES Majuelo</p>
+    <p style="margin-top: 0.5rem; opacity: 0.7">Hecho para el IES Majuelo</p>
 </footer>
 
 <script>
@@ -343,23 +297,23 @@
             ]
         },
         eso: { 
-            title: "ESO", 
-            items: [
+             title: "ESO", 
+             items: [
                 { id: 'fq2', title: 'FQ 2º ESO', icon: '🧪', desc: 'Física y Química' }, 
-                { id: 'fq3', title: 'FQ 3º ESO', icon: '⚗️', desc: 'Física y Química' }, 
-                { id: 'fq4', title: 'FQ 4º ESO', icon: '⚛️', desc: 'Física y Química' }
+                 { id: 'fq3', title: 'FQ 3º ESO', icon: '⚗️', desc: 'Física y Química' }, 
+                 { id: 'fq4', title: 'FQ 4º ESO', icon: '⚛️', desc: 'Física y Química' }
             ] 
-        },
+         },
         bach: { 
-            title: "Bachillerato", 
-            items: [
+             title: "Bachillerato", 
+             items: [
                 { id: 'fq1', title: 'FQ 1º Bach', icon: '📚', desc: 'Física y Química' }, 
-                { id: 'fi2', title: 'Física 2º Bach', icon: '🌌', desc: 'Preparación PAU/EBAU' }
+                 { id: 'fi2', title: 'Física 2º Bach', icon: '🌌', desc: 'Preparación PAU/EBAU' }
             ] 
-        },
+         },
         fq2: { 
-            title: "FQ 2º ESO", 
-            groups: [
+             title: "FQ 2º ESO", 
+             groups: [
                 { name: "Formulación", links: [{ name: "Fórmulas químicas", url: "https://onio72.github.io/iesmajuelo/eso/fq2/formulasquimicas/" }] },
                 { name: "Teoría Cinético Molecular", links: [
                     { name: "Simulador gases", url: "https://onio72.github.io/iesmajuelo/eso/fq2/tcm/FQ2_simulador_gas_v02.html" },
@@ -374,10 +328,10 @@
                     { name: "Cálculo de velocidad", url: "https://onio72.github.io/iesmajuelo/eso/fq2/cinematica/mru_calculov.html" }
                 ]}
             ] 
-        },
+         },
         fq3: { 
-            title: "FQ 3º ESO", 
-            groups: [
+             title: "FQ 3º ESO", 
+             groups: [
                 { name: "T01 - Método Científico", links: [
                     { name: "Repaso Sistema Internacional", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/repasoSI.html" },
                     { name: "Representación gráfica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/repgrafica.html" },
@@ -385,152 +339,59 @@
                     { name: "Cambio de unidades de volumen", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t01/cambiosvolumen.html" }
                 ]},
                 { name: "T02 - El Átomo y Tabla Periódica", links: [
-                    { name: "Símbolos, nombres y posiciones en la tabla periódica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla_simbolosnomb/" },
-                    { name: "Grandes familias de elementos químicos", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla_familias/" },
-                    { name: "Grandes familias de elementos químicos(II)", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla_familias2/" },
-                    { name: "Masas atómicas y molares", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla01/" },
-                    { name: "Abundancia isotópica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/abundisot/" },
+                    { name: "Símbolos y nombres", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla_simbolosnomb/" },
                     { name: "Configuración electrónica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/configelect/" },
-                    { name: "Aprendiendo configuraciones electrónica y tabla periódica", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/configtabla/" },
-                    { name: "Reto configuración electrónica y tabla", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/retoconfigtabla/" },
-                    { name: "Trabajando con la tabla periódica(I)", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/table02/" },
-                    { name: "Trabajando con la tabla periódica(II)", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla03/" }
-                    
-                ]}, 
-                { name: "T03 - Uniones entre átomos", links: [
-                    { name: "Sustancias y tipos de enlaces", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t03/sustenlaces/" },
-                    { name: "Sustancias y tipos de enlaces", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t03/sustenlaces2/" },
-                    { name: "Enlaces y propiedades", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t03/enlacesprop/" },
-                    { name: "Predice el tipo de enlace", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t03/enlaces/" },
-                    { name: "Flashcards sobre enlaces", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t03/flashcards_enlaces/" },
-                    { name: "¿Cómo enlazan los átomos?", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t03/enlaces_form/" }
+                    { name: "Masa molar", url: "https://onio72.github.io/iesmajuelo/eso/fq3/t02/tabla01/" }
                 ]},
-                { name: "T04 - Formulación y Nomenclatura Química", links: [
-                    { name: "Tabla de estados de oxidación", url: "https://onio72.github.io/iesmajuelo/eso/fq3/formulacion/tablaestoxid/" },
-                    { name: "Estudiando la teoría", url: "https://onio72.github.io/iesmajuelo/eso/fq3/formulacion/flashcards/" },
+                { name: "T04 - Formulación", links: [
+                    { name: "Tabla de estados oxidación", url: "https://onio72.github.io/iesmajuelo/eso/fq3/formulacion/tablaestoxid/" },
                     { name: "Cuestionario de formulación", url: "https://onio72.github.io/iesmajuelo/eso/fq3/formulacion/cuestionario/" }
                 ]}
             ] 
-        },
-        fq4: { title: "FQ 4º ESO", groups: [{ name: "Cinemática", links: [{ name: "MCU (Movimiento Circular)", url: "https://onio72.github.io/iesmajuelo/eso/fq4/mcu/index.html" }] }] },
-        fq1: { 
-            title: "FQ 1º Bach", 
-            groups: [
-                { name: "Química", links: [{ name: "Fórmula empírica", url: "https://onio72.github.io/iesmajuelo/bach/fq1/formulaempirica/" }] },
-                { name: "Física - Cinemática", links: [
-                    { name: "Caída libre - Grifo", url: "https://onio72.github.io/iesmajuelo/bach/fq1/caidalibre/grifo/index.html" },
-                    { name: "Tiro parabólico (Simulador)", url: "https://onio72.github.io/iesmajuelo/bach/fq1/tiro_parabolico/" },
-                    { name: "Generador Tiro Parabólico", url: "https://onio72.github.io/iesmajuelo/bach/fq1/tiroparabgen/" }
-                ]},
-                { name: "Dinámica", links: [
-                    { name: "Plano inclinado", url: "https://onio72.github.io/iesmajuelo/bach/fq1/planoinclinado/" },
-                    { name: "Plano inclinado con rozamiento", url: "https://onio72.github.io/iesmajuelo/bach/fq1/planoincroz/" },
-                    { name: "Cuerpos enlazados", url: "https://onio72.github.io/iesmajuelo/bach/fq1/cuerposenlazados/" }
-                ]},
-                { name: "Colisiones", links: [
-                    { name: "Choque inelástico", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choques.html" },
-                    { name: "Choque elástico", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque01.html" },
-                    { name: "Choque coef. restitución", url: "https://onio72.github.io/iesmajuelo/bach/fq1/choques/choque03.html" },
-                    { name: "Generador problemas momento lineal", url: "https://onio72.github.io/iesmajuelo/bach/fq1/t10/genprob01/index.html" },
-                    { name: "Conservación del momento lineal (masa variable)", url: "https://onio72.github.io/iesmajuelo/bach/fq1/t10/conservapmvar/index.html" }
-                ]}
-            ] 
-        },
-        fi2: { 
-            title: "Física 2º Bach", 
-            groups: [
-                { name: "Campo gravitatorio", links: [
-                    { name: "Campo gravitatorio (2 masas)", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/campo_gravitatorio/" },
-                    { name: "Fuerza gravitatoria", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/fuerza_gravitatoria/" },
-                    { name: "Teoría: Campo gravitatorio", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t01/cuestteor01/" }
-                ]},
-                { name: "Vibraciones y ondas", links: [
-                    { name: "Principio de Huygens", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/huygens/" },
-                    { name: "Modos vibración", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/modosvib01/" },
-                    { name: "Lab. ondas estacionarias", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/estacionaria/" }
-                ]},
-                { name: "Campo eléctrico", links: [
-                    { name: "Fuerza eléctrica (2 cargas)", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/fuerza_electrica/" },
-                    { name: "Campo eléctrico (2 cargas)", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/campo_electrico/" },
-                    { name: "Energía potencial eléctrica", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/energia_potencial/" },
-                    { name: "Potencial eléctrico", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/potencial_electrico/" },
-                    { name: "Trabajo eléctrico", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/trabajo/" },
-                    { name: "Compara magnitudes eléctricas", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/comparamag/" },
-                    { name: "Compara magnitudes eléctricas", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/comparamag2/" },
-                    { name: "Dirección y sentido de la fuerza de Coulomb", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/coulomb01/" },
-                    { name: "Cálculo del vector unitario", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/coulomb02/" },
-                    { name: "Cálculo de la fuerza de Coulomb", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/coulomb03/" },
-                    { name: "¿Dónde se anula...?", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/teor_anulamag/" },
-                     { name: "¿Dónde se anula el potencial?", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/potencial_cero/" },
-                    { name: "Preguntas sobre líneas de campo", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/preguntas_lineas/" },
-                    { name: "Líneas de campo eléctrico y superficies equipotenciales", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/lineascampo/" },
-                    { name: "Tarjetas de memoria del campo eléctrico", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/flashcardsE/" },
-                    { name: "¿Entiendes qué significa que el trabajo eléctrico es conservativo?", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/trabajo_conservativo/" },
-                    { name: "Campo magnético creado por uno o más hilos de corriente", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/magnetico_hilos/" }
-                ]},
-                { name: "Óptica geométrica", links: [
-                    { name: "Simulador de Lente Biconvexa", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t04/potencia_lente/index.html" },
-                    { name: "Trazado de rayos", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t04/trazadorayos/" },
-                    { name: "Campo magnético creado por uno o más hilos de corriente", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/magnetico_hilos/" }
-                ]},
-                { name: "Física del siglo XX", links: [
-                    { name: "Simulador de desintegración nuclear", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t05/simulacion_dados/index.html" },
-                    { name: "Simulador de desintegración nuclear", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t05/simulacion_dados/index.html" }
-            ] 
-        },
-        fpb2: { 
-             title: "FPB 2", 
-             groups: [
-                 { name: "Geometría y Volumen", links: [
-                     { name: "Reconocer figuras 3D", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3D/" },
-                     { name: "Teorema de Euler", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3Deuler/" },
-                     { name: "Problemas de volumen", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/probvol/" }
-                 ]},
-                 { name: "Estadística", links: [
-                     { name: "Tabla de frecuencias paso a paso", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/tablafrecuencias/" },
-                     { name: "Ejercicio de tabla de frecuencias", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/tablafrec_ej/" },
-                     { name: "Crea gráfico de barras(I)", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/grafbarras01/" },
-                     { name: "Crea gráfico de barras(II)", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/grafbarras02/" },
-                     { name: "Crea gráfico de barras(III)", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/grafbarras03/" },
-                     { name: "Cálculo de media, mediana y moda", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/calculommm/" }
-                 ]}
-             ] 
          },
-        tools: { title: "Herramientas", groups: [{ name: "Simuladores", links: [{ name: "Dibuja átomos", url: "https://onio72.github.io/iesmajuelo/tools/atomo.html" }] }] },
-        cdd: { title: "CDD", groups: [{ name: "Digital", links: [{ name: "Repositorio de píldoras", url: "https://onio72.github.io/cdd/" }] }] },
-        equipo: { 
-            title: "Equipo Directivo", 
-            groups: [
-                { name: "Gestión", links: [
-                    { name: "Calendario", url: "https://onio72.github.io/ed/calendario.html" },
-                    { name: "Flujos de trabajo", url: "https://onio72.github.io/ed/flujo/index.html" },
-                    { name: "Tránsito", url: "https://onio72.github.io/ed/transito/index.html" },
-                    { name: "Parte de guardias", url: "https://onio72.github.io/ed/parteguardias/index.html" },
-                    { name: "Itinerarios", url: "https://onio72.github.io/ed/itinerarios/index.html" },
-                    { name: "Repetición, Promoción y Titulación", url: "https://onio72.github.io/ed/reproti/index.html" },
-                    { name: "Oferta educativa 1º ESO", url: "https://onio72.github.io/ed/oferta1eso/index.html" },
-                    { name: "Gestión permisos", url: "https://onio72.github.io/ed/permisos/index.html" }
-                ]}
+        fq4: { title: "FQ 4º ESO", groups: [{ name: "Cinemática", links: [{ name: "MCU", url: "https://onio72.github.io/iesmajuelo/eso/fq4/mcu/index.html" }] }] },
+        fq1: { 
+             title: "FQ 1º Bach", 
+             groups: [
+                { name: "Cinemática", links: [{ name: "Tiro parabólico", url: "https://onio72.github.io/iesmajuelo/bach/fq1/tiro_parabolico/" }] },
+                { name: "Dinámica", links: [{ name: "Plano inclinado", url: "https://onio72.github.io/iesmajuelo/bach/fq1/planoinclinado/" }] }
             ] 
-        },
-        departamento: { title: "Departamento", groups: [{ name: "Organización", links: [{ name: "Reparto materias", url: "https://onio72.github.io/iesmajuelo/departamentoFQ/reparto/" }, { name: "Evaluando por competencias", url: "https://onio72.github.io/iesmajuelo/departamentoFQ/evalcomp/index.html" }] }] },
-        otros: { title: "Otros", groups: [{ name: "Varios", links: [{ name: "Bingo viajero", url: "https://onio72.github.io/bingo/" }] }] }
+         },
+        fi2: { 
+             title: "Física 2º Bach", 
+             groups: [
+                { name: "Campo Eléctrico", links: [{ name: "Fuerza eléctrica", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t03/fuerza_electrica/" }] },
+                { name: "Óptica", links: [{ name: "Trazado de rayos", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t04/trazadorayos/" }] }
+            ] 
+         },
+        fpb2: {
+              title: "FPB 2",
+              groups: [
+                 { name: "Geometría", links: [{ name: "Figuras 3D", url: "https://onio72.github.io/iesmajuelo/fpb2/t04/figuras3D/" }] },
+                 { name: "Estadística", links: [{ name: "Media, Mediana, Moda", url: "https://onio72.github.io/iesmajuelo/fpb2/t05/calculommm/" }] }
+              ]
+          },
+        tools: { title: "Herramientas", groups: [{ name: "Simuladores", links: [{ name: "Átomo", url: "https://onio72.github.io/iesmajuelo/tools/atomo.html" }] }] },
+        cdd: { title: "CDD", groups: [{ name: "Digital", links: [{ name: "Píldoras", url: "https://onio72.github.io/cdd/" }] }] },
+        equipo: { title: "Gestión", groups: [{ name: "Directivo", links: [{ name: "Calendario", url: "https://onio72.github.io/ed/calendario.html" }] }] },
+        departamento: { title: "Dpto FQ", groups: [{ name: "Organización", links: [{ name: "Reparto", url: "https://onio72.github.io/iesmajuelo/departamentoFQ/reparto/" }] }] },
+        otros: { title: "Otros", groups: [{ name: "Varios", links: [{ name: "Bingo", url: "https://onio72.github.io/bingo/" }] }] }
     };
 
     let navigationStack = ['root'];
     let isSearchActive = false;
 
+    // --- FUNCIONES PRINCIPALES ---
+
     function navigateTo(id) {
         if (!DATA[id]) return;
         
-        // Limpiar búsqueda al navegar
         document.getElementById('searchInput').value = '';
         isSearchActive = false;
 
         if (id === 'root') {
             navigationStack = ['root'];
         } else {
-            // Evitar duplicados consecutivos en el stack
             if (navigationStack[navigationStack.length - 1] !== id) {
                 navigationStack.push(id);
             }
@@ -543,6 +404,11 @@
             navigationStack.pop();
             render();
         }
+    }
+
+    function jumpToStack(index) {
+        navigationStack = navigationStack.slice(0, index + 1);
+        render();
     }
 
     function handleSearch() {
@@ -559,18 +425,16 @@
 
         isSearchActive = true;
         backBtn.classList.remove('hidden');
-        breadcrumbs.innerHTML = `Resultados de: <strong>${query}</strong>`;
+        breadcrumbs.innerHTML = `Resultados: <strong>${query}</strong>`;
         
         const results = [];
-        
-        // Buscar en todo el objeto DATA
         Object.keys(DATA).forEach(key => {
             const node = DATA[key];
             if (node.groups) {
                 node.groups.forEach(group => {
                     group.links.forEach(link => {
                         if (link.name.toLowerCase().includes(query) || group.name.toLowerCase().includes(query)) {
-                            results.push({ ...link, category: node.title, group: group.name });
+                            results.push({ ...link, category: node.title, groupName: group.name });
                         }
                     });
                 });
@@ -578,28 +442,22 @@
         });
 
         let html = `<div class="view-container">`;
-
         if (results.length > 0) {
-            html += `<div class="search-results-info">Se han encontrado ${results.length} recursos</div>`;
+            html += `<div class="search-results-info">Encontrados ${results.length} recursos</div>`;
             html += `<div class="links-grid">`;
             results.forEach(res => {
                 html += `
                     <a href="${res.url}" class="link-item" target="_blank">
                         <div style="display:flex; flex-direction:column">
                             <span>${res.name}</span>
-                            <small style="font-size:0.7rem; opacity:0.6">${res.category} › ${res.group}</small>
+                            <small style="font-size:0.7rem; opacity:0.6">${res.category} › ${res.groupName}</small>
                         </div>
-                    </a>
-                `;
+                    </a>`;
             });
             html += `</div>`;
         } else {
-            html += `<div class="no-results">
-                <div style="font-size: 3rem; margin-bottom: 1rem">🔍</div>
-                <p>No se encontraron recursos que coincidan con "${query}"</p>
-            </div>`;
+            html += `<div class="no-results">🔍 No hay coincidencias</div>`;
         }
-        
         html += `</div>`;
         app.innerHTML = html;
     }
@@ -613,20 +471,17 @@
         const currentId = navigationStack[navigationStack.length - 1];
         const currentData = DATA[currentId];
 
-        // Update Breadcrumbs
+        if (!app) return;
+
+        // Breadcrumbs logic
         if (currentId === 'root') {
             backBtn.classList.add('hidden');
-            breadcrumbs.innerHTML = '<span class="breadcrumb-item">Inicio</span>';
+            breadcrumbs.innerHTML = 'Inicio';
         } else {
             backBtn.classList.remove('hidden');
-            let bHtml = '';
-            navigationStack.forEach((id, index) => {
-                bHtml += `<span class="breadcrumb-item" onclick="jumpToStack(${index})">${DATA[id].title}</span>`;
-                if (index < navigationStack.length - 1) {
-                    bHtml += `<span class="breadcrumb-sep">/</span>`;
-                }
-            });
-            breadcrumbs.innerHTML = bHtml;
+            breadcrumbs.innerHTML = navigationStack.map((id, index) => 
+                `<span class="breadcrumb-item" onclick="jumpToStack(${index})">${DATA[id].title}</span>`
+            ).join(' <span class="breadcrumb-sep">/</span> ');
         }
 
         let html = `<div class="view-container">`;
@@ -639,8 +494,7 @@
                         <div class="card-icon">${item.icon}</div>
                         <h2>${item.title}</h2>
                         <p>${item.desc || ''}</p>
-                    </div>
-                `;
+                    </div>`;
             });
             html += `</div>`;
         } else if (currentData.groups) {
@@ -648,7 +502,7 @@
             currentData.groups.forEach(group => {
                 html += `
                     <div class="resource-group">
-                        <h3><span>📂</span> ${group.name}</h3>
+                        <h3>📂 ${group.name}</h3>
                         <div class="links-grid">
                             ${group.links.map(link => `
                                 <a href="${link.url}" class="link-item" target="_blank" rel="noopener">
@@ -656,8 +510,7 @@
                                 </a>
                             `).join('')}
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
         }
         
@@ -666,12 +519,11 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function jumpToStack(index) {
-        navigationStack = navigationStack.slice(0, index + 1);
+    // Inicialización segura cuando el DOM está listo
+    document.addEventListener('DOMContentLoaded', () => {
         render();
-    }
-
-    window.onload = render;
+    });
 </script>
+
 </body>
 </html>
