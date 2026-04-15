@@ -229,6 +229,8 @@
         let isShaking = false;
         let pendingRemovalCount = 0;
         let history = [];
+        let globalExpHalfLife = 0;
+        let globalTheoHalfLife = 0;
 
         // --- THREE.JS LOGIC ---
         let scene, camera, renderer, cubeMesh;
@@ -468,8 +470,13 @@
             }
             const p = currentModel / 6;
             const tHalfTheo = Math.log(0.5) / Math.log(1 - p);
-            document.getElementById('exp-half-life').textContent = tHalfExp.toFixed(2) + " t";
-            document.getElementById('theo-half-life').textContent = tHalfTheo.toFixed(2) + " t";
+            
+            globalExpHalfLife = tHalfExp.toFixed(2);
+            globalTheoHalfLife = tHalfTheo.toFixed(2);
+
+            document.getElementById('exp-half-life').textContent = globalExpHalfLife + " t";
+            document.getElementById('theo-half-life').textContent = globalTheoHalfLife + " t";
+            
             ['chart-container', 'summary-container'].forEach(id => {
                 const el = document.getElementById(id);
                 el.classList.remove('hidden');
@@ -500,13 +507,36 @@
         function downloadChart() {
             const canvas = document.getElementById('decayChart');
             const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
+            
+            // Añadimos espacio extra debajo para los metadatos
+            const extraHeight = 100;
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height + extraHeight;
+            
             const ctx = tempCanvas.getContext('2d');
-            ctx.fillStyle = "white"; ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            // Fondo blanco
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            // Dibujar gráfica
             ctx.drawImage(canvas, 0, 0);
+            
+            // Añadir información de texto
+            ctx.fillStyle = "#334155";
+            ctx.font = "bold 14px sans-serif";
+            ctx.textAlign = "left";
+            
+            const pValue = (currentModel / 6).toFixed(3);
+            const infoY = canvas.height + 30;
+            
+            ctx.fillText(`Modelo: p = ${currentModel}/6 (p ≈ ${pValue})`, 20, infoY);
+            ctx.fillText(`Vida Media Teórica (t_1/2): ${globalTheoHalfLife} t`, 20, infoY + 25);
+            ctx.fillText(`Vida Media Experimental (t_1/2): ${globalExpHalfLife} t`, 20, infoY + 50);
+            
             const link = document.createElement('a');
-            link.href = tempCanvas.toDataURL('image/jpeg');
-            link.download = "grafica_decaimiento.jpg";
+            link.href = tempCanvas.toDataURL('image/jpeg', 0.9);
+            link.download = `grafica_decaimiento_modelo_${currentModel}.jpg`;
             link.click();
         }
 
