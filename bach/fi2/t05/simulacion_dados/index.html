@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Decaimiento Radiactivo Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js para el cubo 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- MathJax para fórmulas matemáticas -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        .die {
+            width: 40px;
+            height: 40px;
+            perspective: 1000px;
+            transition: all 0.4s ease;
+        }
+        .die-face {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #333;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .die.decayed-ready {
+            cursor: pointer;
+            animation: pulse 1.5s infinite;
+        }
+        .die.decayed-ready .die-face {
+            background-color: #dcfce7;
+            border-color: #22c55e;
+            color: #166534;
+        }
+        .die.decayed-done {
+            opacity: 0.3;
+            filter: grayscale(1);
+            pointer-events: none;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .shaking {
+            animation: shake 0.5s infinite;
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .config-face {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            background: white;
+            transition: all 0.3s;
+        }
+        .config-face.stable {
+            background-color: #22c55e;
+            border-color: #166534;
+            color: white;
+        }
+        #cube-3d-container {
+            width: 180px;
+            height: 180px;
+            cursor: grab;
+        }
+        #cube-3d-container:active {
+            cursor: grabbing;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 font-sans pb-12">
+
+    <div class="max-w-6xl mx-auto p-6">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-light tracking-tight text-slate-900 mb-2">Simulación de Decaimiento Radiactivo</h1>
+            <p class="text-slate-500">Un modelo estadístico 3D para comprender la inestabilidad nuclear.</p>
+        </header>
+
+        <!-- FASE 1: CONFIGURACIÓN -->
+        <div id="setup-view" class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 max-w-4xl mx-auto">
+            <h2 class="text-xl font-semibold mb-4 text-slate-700 text-center">Configuración del Experimento</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center mb-8">
+                <!-- Explicación -->
+                <div class="text-sm text-slate-500 space-y-4 leading-relaxed">
+                    <p>Representamos cada <strong>átomo</strong> mediante un dado de 6 caras. Los números determinan el estado del núcleo:</p>
+                    <ul class="list-disc list-inside ml-2 space-y-2">
+                        <li>Números <strong>2 al 6</strong>: Estados <strong>inestables</strong>.</li>
+                        <li>Número <strong>1</strong> (verde): Núcleo <strong>estable</strong> (ya desintegrado).</li>
+                    </ul>
+                    <p>Al "Cambiar Modelo", verás cómo el dado se transforma: más caras pasan a ser un <strong>1</strong>, aumentando la probabilidad de decaimiento.</p>
+                    
+                    <div class="flex flex-wrap gap-2 pt-2" id="config-die-display">
+                        <!-- Caras 2D -->
+                    </div>
+
+                    <button onclick="nextModel()" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl transition-all font-medium w-full justify-center mt-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 11V6h5"/><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 13v5h-5"/></svg>
+                        Cambiar Modelo (Isótopo)
+                    </button>
+                </div>
+
+                <!-- Adorno 3D -->
+                <div class="flex flex-col items-center justify-center bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                    <div id="cube-3d-container"></div>
+                    <p class="text-[10px] text-slate-400 mt-2 uppercase tracking-widest">Arrastra para rotar el núcleo</p>
+                </div>
+            </div>
+
+            <div class="bg-indigo-50 p-6 rounded-2xl text-center border border-indigo-100 mb-8">
+                <div class="text-sm text-indigo-900 space-y-2">
+                    <p>Probabilidad de desintegración ($p$): <strong><span id="prob-display">1/6</span></strong></p>
+                    <p>Constante de decaimiento ($\lambda \approx$ <span id="prob-percent">16.7</span>%)</p>
+                </div>
+            </div>
+
+            <div class="flex justify-center">
+                <button onclick="startSimulation()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-12 py-4 rounded-full font-bold transition-all shadow-lg shadow-indigo-200 text-lg">
+                    Comenzar Simulación
+                </button>
+            </div>
+        </div>
+
+        <!-- FASE 2: SIMULACIÓN -->
+        <div id="sim-view" class="hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-7 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 h-fit">
+                    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                        <div class="text-sm font-medium uppercase tracking-wider text-slate-400">
+                            Núcleos Activos ($N$): <span id="rem-count" class="text-slate-900 text-lg font-bold">100</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="shake-btn" onclick="shakeDice()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-full transition-all shadow-lg shadow-indigo-100">
+                                Agitar Dados
+                            </button>
+                            <button onclick="resetApp()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-full text-sm">
+                                Reiniciar
+                            </button>
+                        </div>
+                    </div>
+                    <div id="grid" class="grid grid-cols-10 gap-2 justify-items-center mb-6"></div>
+                    <div id="status-msg" class="p-4 rounded-xl text-center text-sm font-medium border min-h-[64px] flex items-center justify-center"></div>
+                </div>
+
+                <div class="lg:col-span-5 flex flex-col gap-6">
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-semibold text-slate-700">Registro de Datos</h2>
+                            <button onclick="downloadCSV()" class="text-indigo-600 text-xs font-bold hover:underline">CSV</button>
+                        </div>
+                        <div class="overflow-y-auto max-h-48 custom-scrollbar pr-2">
+                            <table class="w-full text-left text-sm">
+                                <thead class="sticky top-0 bg-white border-b border-slate-100">
+                                    <tr>
+                                        <th class="py-2 text-slate-400 font-medium">Tiempo ($t$)</th>
+                                        <th class="py-2 text-slate-400 font-medium text-center">Desint.</th>
+                                        <th class="py-2 text-slate-400 font-medium text-right">Restantes ($N$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="data-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="chart-container" class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 hidden opacity-0 transition-all duration-700">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-semibold text-slate-700">Gráfica $N(t)$</h2>
+                            <button onclick="downloadChart()" class="text-indigo-600 text-xs font-bold hover:underline">JPG</button>
+                        </div>
+                        <canvas id="decayChart" height="200"></canvas>
+                    </div>
+
+                    <div id="summary-container" class="bg-slate-900 text-white p-6 rounded-3xl shadow-xl hidden opacity-0 transition-all duration-700">
+                        <h2 class="text-lg font-bold mb-4">Análisis de Vida Media</h2>
+                        <div class="space-y-4 text-sm">
+                            <div class="flex justify-between border-b border-slate-700 pb-2">
+                                <span>Experimental ($t_{1/2}$):</span>
+                                <span id="exp-half-life" class="font-bold text-green-400">-</span>
+                            </div>
+                            <div class="flex justify-between border-b border-slate-700 pb-2">
+                                <span>Teórico ($t_{1/2}$):</span>
+                                <span id="theo-half-life" class="font-bold text-sky-400">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ESTADO GLOBAL
+        let currentModel = 1; 
+        const TOTAL_DICE = 100;
+        let diceStates = [];
+        let currentTime = 0;
+        let chart = null;
+        let isShaking = false;
+        let pendingRemovalCount = 0;
+        let history = [];
+
+        // --- THREE.JS LOGIC ---
+        let scene, camera, renderer, cubeMesh;
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+
+        function init3D() {
+            const container = document.getElementById('cube-3d-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(width, height);
+            container.appendChild(renderer.domElement);
+
+            const geometry = new THREE.BoxGeometry(3, 3, 3);
+            update3DCubeMaterials(); // Inicializa materiales
+
+            camera.position.z = 6;
+
+            // Iluminación
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+            const pointLight = new THREE.PointLight(0xffffff, 0.5);
+            pointLight.position.set(10, 10, 10);
+            scene.add(pointLight);
+
+            // Eventos de ratón para rotación
+            container.addEventListener('mousedown', () => isDragging = true);
+            window.addEventListener('mouseup', () => isDragging = false);
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging || !cubeMesh) return;
+                const deltaMove = {
+                    x: e.offsetX - previousMousePosition.x,
+                    y: e.offsetY - previousMousePosition.y
+                };
+                cubeMesh.rotation.y += deltaMove.x * 0.01;
+                cubeMesh.rotation.x += deltaMove.y * 0.01;
+                previousMousePosition = { x: e.offsetX, y: e.offsetY };
+            });
+
+            animate3D();
+        }
+
+        function createDieFaceTexture(number, isStable) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+
+            // Fondo
+            ctx.fillStyle = isStable ? '#22c55e' : '#ffffff';
+            ctx.fillRect(0, 0, 128, 128);
+            
+            // Borde
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 12;
+            ctx.strokeRect(0, 0, 128, 128);
+
+            // Número
+            ctx.fillStyle = isStable ? '#ffffff' : '#333333';
+            ctx.font = 'bold 80px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(number, 64, 64);
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function update3DCubeMaterials() {
+            if (cubeMesh) scene.remove(cubeMesh);
+
+            const materials = [];
+            for (let i = 1; i <= 6; i++) {
+                const isStable = (i <= currentModel && i < 6);
+                const val = isStable ? 1 : i;
+                materials.push(new THREE.MeshStandardMaterial({ map: createDieFaceTexture(val, isStable) }));
+            }
+
+            const geometry = new THREE.BoxGeometry(3, 3, 3);
+            cubeMesh = new THREE.Mesh(geometry, materials);
+            scene.add(cubeMesh);
+        }
+
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+            if (!isDragging && cubeMesh) {
+                cubeMesh.rotation.x += 0.005;
+                cubeMesh.rotation.y += 0.005;
+            }
+            renderer.render(scene, camera);
+        }
+
+        // --- CONFIGURACIÓN Y SIMULACIÓN ---
+        function refreshMath() {
+            if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+        }
+
+        function updateConfigUI() {
+            const container = document.getElementById('config-die-display');
+            container.innerHTML = '';
+            for (let i = 1; i <= 6; i++) {
+                const isStable = (i <= currentModel && i < 6);
+                const val = isStable ? 1 : i;
+                const face = document.createElement('div');
+                face.className = `config-face ${isStable ? 'stable' : ''}`;
+                face.textContent = val;
+                container.appendChild(face);
+            }
+            document.getElementById('prob-display').textContent = `${currentModel}/6`;
+            document.getElementById('prob-percent').textContent = ((currentModel/6)*100).toFixed(1);
+            
+            if (cubeMesh) update3DCubeMaterials();
+            refreshMath();
+        }
+
+        function nextModel() {
+            currentModel = (currentModel % 5) + 1;
+            updateConfigUI();
+        }
+
+        function startSimulation() {
+            document.getElementById('setup-view').classList.add('hidden');
+            document.getElementById('sim-view').classList.remove('hidden');
+            initSim();
+        }
+
+        function initSim() {
+            diceStates = Array.from({ length: TOTAL_DICE }, (_, i) => ({
+                id: i, value: 6, decayed: false, finalized: false, logged: false
+            }));
+            currentTime = 0;
+            history = [{t: 0, d: 0, n: 100}];
+            renderDice();
+            initChart();
+            addTableRow(0, 0, 100);
+            updateStats();
+        }
+
+        function renderDice() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            diceStates.forEach(die => {
+                const dieEl = document.createElement('div');
+                let statusClass = die.finalized ? 'decayed-done' : (die.decayed ? 'decayed-ready' : '');
+                dieEl.className = `die ${statusClass}`;
+                dieEl.id = `die-${die.id}`;
+                dieEl.innerHTML = `<div class="die-face">${die.value}</div>`;
+                if (die.decayed && !die.finalized) dieEl.onclick = () => finalizeBatch();
+                grid.appendChild(dieEl);
+            });
+        }
+
+        function finalizeBatch() {
+            let countToFinalize = 0;
+            diceStates.forEach(die => {
+                if (die.decayed && !die.finalized) {
+                    die.finalized = true;
+                    countToFinalize++;
+                    const el = document.getElementById(`die-${die.id}`);
+                    if (el) el.classList.replace('decayed-ready', 'decayed-done');
+                }
+            });
+            pendingRemovalCount -= countToFinalize;
+            updateStats();
+            if (pendingRemovalCount === 0) onRoundFinished();
+        }
+
+        async function shakeDice() {
+            if (isShaking || pendingRemovalCount > 0) return;
+            isShaking = true;
+            currentTime++;
+            document.getElementById('shake-btn').disabled = true;
+            diceStates.filter(d => !d.finalized).forEach(d => document.getElementById(`die-${d.id}`)?.classList.add('shaking'));
+            await new Promise(r => setTimeout(r, 600));
+            let countDecayed = 0;
+            diceStates.forEach(die => {
+                if (!die.finalized) {
+                    let roll = Math.floor(Math.random() * 6) + 1;
+                    if (roll <= currentModel) {
+                        die.value = 1; die.decayed = true; countDecayed++;
+                    } else {
+                        die.value = roll; die.decayed = false;
+                    }
+                }
+            });
+            diceStates.filter(d => !d.finalized).forEach(d => document.getElementById(`die-${d.id}`)?.classList.remove('shaking'));
+            pendingRemovalCount = countDecayed;
+            renderDice();
+            isShaking = false;
+            if (countDecayed === 0) onRoundFinished(); 
+            else updateStats();
+        }
+
+        function updateStats() {
+            const remaining = diceStates.filter(d => !d.finalized).length;
+            const msg = document.getElementById('status-msg');
+            const shakeBtn = document.getElementById('shake-btn');
+            document.getElementById('rem-count').textContent = remaining;
+            if (pendingRemovalCount > 0) {
+                msg.innerHTML = `<span class="text-green-700 font-bold">⚠️ ${pendingRemovalCount} núcleos estables (1). Haz clic en uno verde.</span>`;
+                msg.className = "p-4 rounded-xl text-center text-sm bg-green-50 border-green-200";
+                shakeBtn.disabled = true;
+            } else if (remaining === 0) {
+                msg.innerHTML = `<span class="text-indigo-700 font-bold">✅ Todos los núcleos se han desintegrado.</span>`;
+                msg.className = "p-4 rounded-xl text-center text-sm bg-indigo-50 border-indigo-200";
+                shakeBtn.disabled = true;
+                calculateFinalAnalysis();
+            } else {
+                msg.innerHTML = `<span class="text-slate-500">Pulsa "Agitar" para avanzar al tiempo $t = ${currentTime + 1}$.</span>`;
+                msg.className = "p-4 rounded-xl text-center text-sm bg-slate-100 border-slate-200";
+                shakeBtn.disabled = false;
+            }
+            refreshMath();
+        }
+
+        function onRoundFinished() {
+            const remaining = diceStates.filter(d => !d.finalized).length;
+            const decayed = diceStates.filter(d => d.finalized && !d.logged);
+            decayed.forEach(d => d.logged = true);
+            history.push({t: currentTime, d: decayed.length, n: remaining});
+            addTableRow(currentTime, decayed.length, remaining);
+            updateChart(currentTime, remaining);
+            updateStats();
+        }
+
+        function calculateFinalAnalysis() {
+            let tHalfExp = 0;
+            for (let i = 0; i < history.length - 1; i++) {
+                if (history[i].n >= 50 && history[i+1].n <= 50) {
+                    const n1 = history[i].n, n2 = history[i+1].n, t1 = history[i].t, t2 = history[i+1].t;
+                    tHalfExp = t1 + (t2 - t1) * (n1 - 50) / (n1 - n2);
+                    break;
+                }
+            }
+            const p = currentModel / 6;
+            const tHalfTheo = Math.log(0.5) / Math.log(1 - p);
+            document.getElementById('exp-half-life').textContent = tHalfExp.toFixed(2) + " t";
+            document.getElementById('theo-half-life').textContent = tHalfTheo.toFixed(2) + " t";
+            ['chart-container', 'summary-container'].forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('hidden');
+                setTimeout(() => el.classList.add('opacity-100'), 50);
+            });
+            refreshMath();
+        }
+
+        function addTableRow(t, d, n) {
+            const row = document.createElement('tr');
+            row.className = "border-b border-slate-50 hover:bg-slate-50";
+            row.innerHTML = `<td class="py-2 text-slate-500 font-mono">${t}</td><td class="py-2 text-center text-red-500">${d}</td><td class="py-2 text-right font-bold">${n}</td>`;
+            document.getElementById('data-table-body').appendChild(row);
+            const container = document.getElementById('data-table-body').parentElement.parentElement;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function downloadCSV() {
+            let csv = "Tiempo (t),Desintegrados,Restantes (N)\n";
+            history.forEach(row => csv += `${row.t},${row.d},${row.n}\n`);
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "decaimiento_experimental.csv";
+            link.click();
+        }
+
+        function downloadChart() {
+            const canvas = document.getElementById('decayChart');
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
+            const ctx = tempCanvas.getContext('2d');
+            ctx.fillStyle = "white"; ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            ctx.drawImage(canvas, 0, 0);
+            const link = document.createElement('a');
+            link.href = tempCanvas.toDataURL('image/jpeg');
+            link.download = "grafica_decaimiento.jpg";
+            link.click();
+        }
+
+        function resetApp() { location.reload(); }
+
+        function initChart() {
+            const ctx = document.getElementById('decayChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [0],
+                    datasets: [{
+                        label: 'N(t)', data: [100], borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)', fill: true, tension: 0.3, borderWidth: 3, pointRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, max: 100 }, x: { title: { display: true, text: 'Tiempo (t)' } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function updateChart(t, N) {
+            chart.data.labels.push(t);
+            chart.data.datasets[0].data.push(N);
+            chart.update();
+        }
+
+        window.onload = () => {
+            init3D();
+            updateConfigUI();
+        };
+    </script>
+</body>
+</html>
