@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulación de Decaimiento Radiactivo Pro</title>
+    <title>Simulación de Decaimiento Radiactivo (Cromática)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Three.js para el cubo 3D -->
@@ -20,24 +20,22 @@
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
+        :root {
+            --color-unstable: #f97316; /* Orange 500 */
+            --color-stable: #3b82f6;   /* Blue 500 */
+        }
         .die {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             perspective: 1000px;
             transition: all 0.4s ease;
         }
         .die-face {
             width: 100%;
             height: 100%;
-            background: white;
-            border: 2px solid #333;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: #333;
+            background-color: var(--color-unstable);
+            border: 2px solid rgba(0,0,0,0.1);
+            border-radius: 6px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .die.decayed-ready {
@@ -45,15 +43,18 @@
             animation: pulse 1.5s infinite;
         }
         .die.decayed-ready .die-face {
-            background-color: #dcfce7;
-            border-color: #22c55e;
-            color: #166534;
+            background-color: var(--color-stable);
+            border-color: #1d4ed8;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
         }
         .die.decayed-done {
-            opacity: 0.3;
-            filter: grayscale(1);
+            opacity: 0.25;
             pointer-events: none;
         }
+        .die.decayed-done .die-face {
+            background-color: var(--color-stable);
+        }
+        
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.1); }
@@ -66,160 +67,152 @@
             0% { transform: translate(1px, 1px) rotate(0deg); }
             10% { transform: translate(-1px, -2px) rotate(-1deg); }
             20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
             100% { transform: translate(1px, -2px) rotate(-1deg); }
         }
         .config-face {
             width: 40px;
             height: 40px;
-            border: 2px solid #333;
             border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            background: white;
+            background-color: var(--color-unstable);
+            border: 2px solid rgba(0,0,0,0.1);
             transition: all 0.3s;
         }
         .config-face.stable {
-            background-color: #22c55e;
-            border-color: #166534;
-            color: white;
+            background-color: var(--color-stable);
         }
         #cube-3d-container {
-            width: 180px;
-            height: 180px;
+            width: 200px;
+            height: 200px;
             cursor: grab;
         }
-        #cube-3d-container:active {
-            cursor: grabbing;
-        }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-800 font-sans pb-12">
+<body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
 
-    <div class="max-w-6xl mx-auto p-6">
-        <header class="mb-8 text-center">
-            <h1 class="text-3xl font-light tracking-tight text-slate-900 mb-2">Simulación de Decaimiento Radiactivo</h1>
-            <p class="text-slate-500">Un modelo estadístico 3D para comprender la inestabilidad nuclear.</p>
+    <div class="max-w-6xl mx-auto p-4 md:p-6">
+        <header class="mb-6 text-center">
+            <h1 class="text-3xl font-light tracking-tight text-slate-900 mb-1">Simulación de Decaimiento Radiactivo</h1>
+            <p class="text-slate-500 text-sm italic">Modelo Cromático e Inclusivo para Física Nuclear</p>
         </header>
 
         <!-- FASE 1: CONFIGURACIÓN -->
-        <div id="setup-view" class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 max-w-4xl mx-auto">
-            <h2 class="text-xl font-semibold mb-4 text-slate-700 text-center">Configuración del Experimento</h2>
+        <div id="setup-view" class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200 max-w-4xl mx-auto">
+            <h2 class="text-xl font-semibold mb-6 text-slate-700 text-center">Configuración del Isótopo</h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center mb-8">
-                <!-- Explicación -->
-                <div class="text-sm text-slate-500 space-y-4 leading-relaxed">
-                    <p>Representamos cada <strong>átomo</strong> mediante un dado con 6 caras. Los números determinan el estado del núcleo:</p>
-                    <ul class="list-disc list-inside ml-2 space-y-2">
-                        <li>Números del <strong>2 al 6</strong>: Estados del núcleo <strong>inestable</strong>.</li>
-                        <li>Número <strong>1</strong> (verde): El núcleo una vez desintegrado (<strong>estable</strong>).</li>
-                    </ul>
-                    <p>Al pulsar "Cambiar Modelo", modificas la probabilidad de decaimiento, simulando diferentes isótopos.</p>
-                    
-                    <div class="flex flex-wrap gap-2 pt-2" id="config-die-display">
-                        <!-- Caras 2D -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center mb-8">
+                <div class="text-sm text-slate-600 space-y-4 leading-relaxed">
+                    <p>En este modelo, cada núcleo se representa por un dado de 6 caras. El color indica su estado:</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-6 h-6 rounded bg-orange-500"></div>
+                        <span><strong>Naranja:</strong> Núcleo inestable (Padre)</span>
                     </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-6 h-6 rounded bg-blue-500"></div>
+                        <span><strong>Azul:</strong> Núcleo desintegrado y estable (Hijo)</span>
+                    </div>
+                    <p class="pt-2">Al "Cambiar Modelo", aumentas la cantidad de caras <strong>azules</strong> en el dado, lo que incrementa la probabilidad de desintegración en cada intervalo de tiempo.</p>
+                    
+                    <div class="flex gap-2 justify-center md:justify-start pt-4" id="config-die-display"></div>
 
-                    <button id="next-model-btn" onclick="nextModel()" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl transition-all font-medium w-full justify-center mt-4 shadow-md">
+                    <button onclick="nextModel()" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl transition-all font-medium w-full justify-center mt-4">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 11V6h5"/><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 13v5h-5"/></svg>
-                        Cambiar Isótopo (Probabilidad)
+                        Cambiar Probabilidad
                     </button>
                 </div>
 
-                <!-- Adorno 3D -->
-                <div class="flex flex-col items-center justify-center bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                <div class="flex flex-col items-center justify-center bg-slate-100 rounded-3xl p-6 border border-slate-200 shadow-inner">
                     <div id="cube-3d-container"></div>
-                    <p class="text-[10px] text-slate-400 mt-2 uppercase tracking-widest">Arrastra para rotar el núcleo</p>
+                    <p class="text-[10px] text-slate-400 mt-2 uppercase tracking-widest font-bold">Interacción 3D</p>
                 </div>
             </div>
 
-            <div class="bg-indigo-50 p-6 rounded-2xl text-center border border-indigo-100 mb-8">
-                <div class="text-sm text-indigo-900 space-y-2">
-                    <p>Probabilidad por paso ($p$): <strong><span id="prob-display">1/6</span></strong> ($\approx$ <span id="prob-percent">16.7</span>%)</p>
-                    <p>Cte. de desintegración ($\lambda = -\ln(1-p) \approx$ <span id="lambda-val">0.182</span> $t^{-1}$)</p>
+            <div class="bg-indigo-50 p-5 rounded-2xl text-center border border-indigo-100 mb-8">
+                <div class="text-sm text-indigo-900">
+                    Probabilidad de desintegración ($p$): <strong><span id="prob-display">1/6</span></strong> (<span id="prob-percent">16.7</span>%) | 
+                    $\lambda = -\ln(1-p) \approx$ <span id="lambda-val" class="font-bold text-indigo-600">0.182</span> $t^{-1}$
                 </div>
             </div>
 
             <div class="flex justify-center">
                 <button onclick="startSimulation()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-12 py-4 rounded-full font-bold transition-all shadow-lg shadow-indigo-200 text-lg">
-                    Comenzar Simulación
+                    Iniciar Simulación
                 </button>
             </div>
         </div>
 
         <!-- FASE 2: SIMULACIÓN -->
         <div id="sim-view" class="hidden">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <div class="lg:col-span-7 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 h-fit">
-                    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-                        <div class="text-sm font-medium uppercase tracking-wider text-slate-400">
-                            Núcleos Activos ($N$): <span id="rem-count" class="text-slate-900 text-lg font-bold">100</span>
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Población Activa</span>
+                            <span id="rem-count" class="text-3xl font-bold text-orange-600">100</span>
                         </div>
                         <div class="flex gap-2">
-                            <button id="shake-btn" onclick="shakeDice()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-full transition-all shadow-lg shadow-indigo-100">
-                                Agitar Dados
+                            <button id="shake-btn" onclick="shakeDice()" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full font-bold shadow-lg shadow-orange-100">
+                                Agitar Núcleos
                             </button>
-                            <button onclick="resetApp()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-full text-sm">
+                            <button onclick="resetApp()" class="bg-slate-100 hover:bg-slate-200 text-slate-500 px-4 py-2 rounded-full text-xs font-bold">
                                 Reiniciar
                             </button>
                         </div>
                     </div>
                     <div id="grid" class="grid grid-cols-10 gap-2 justify-items-center mb-6"></div>
-                    <div id="status-msg" class="p-4 rounded-xl text-center text-sm font-medium border min-h-[64px] flex items-center justify-center text-slate-500"></div>
+                    <div id="status-msg" class="p-4 rounded-2xl text-center text-sm font-medium border min-h-[64px] flex items-center justify-center bg-slate-50 shadow-inner"></div>
                 </div>
 
-                <div class="lg:col-span-5 flex flex-col gap-6">
-                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-lg font-semibold text-slate-700">Registro de Datos</h2>
-                            <button onclick="downloadCSV()" class="text-indigo-600 text-xs font-bold hover:underline">CSV</button>
+                <div class="lg:col-span-5 flex flex-col gap-6 max-h-[85vh]">
+                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 shrink-0">
+                        <div class="flex justify-between items-center mb-3">
+                            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Historial de Decaimiento</h2>
+                            <button onclick="downloadCSV()" class="text-indigo-600 text-[10px] font-bold border border-indigo-100 px-2 py-1 rounded">CSV</button>
                         </div>
-                        <div class="overflow-y-auto max-h-48 custom-scrollbar pr-2">
-                            <table class="w-full text-left text-sm">
-                                <thead class="sticky top-0 bg-white border-b border-slate-100">
+                        <div class="overflow-y-auto max-h-36 custom-scrollbar pr-1">
+                            <table class="w-full text-left text-xs">
+                                <thead class="sticky top-0 bg-white border-b text-slate-400">
                                     <tr>
-                                        <th class="py-2 text-slate-400 font-medium">Tiempo ($t$)</th>
-                                        <th class="py-2 text-slate-400 font-medium text-center">Desint.</th>
-                                        <th class="py-2 text-slate-400 font-medium text-right">Restantes ($N$)</th>
+                                        <th class="py-1">Tiempo ($t$)</th>
+                                        <th class="py-1 text-center">Desintegrados</th>
+                                        <th class="py-1 text-right">Restantes ($N$)</th>
                                     </tr>
                                 </thead>
-                                <tbody id="data-table-body"></tbody>
+                                <tbody id="data-table-body" class="text-slate-600"></tbody>
                             </table>
                         </div>
                     </div>
 
-                    <div id="chart-container" class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 hidden opacity-0 transition-all duration-700">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-lg font-semibold text-slate-700">Gráfica $N(t)$</h2>
-                            <div class="flex gap-3">
-                                <button onclick="toggleTheoCurve()" id="toggle-theo-btn" class="text-emerald-600 text-[10px] font-bold border border-emerald-200 px-2 py-1 rounded hover:bg-emerald-50">
-                                    VER CURVA EXP.
-                                </button>
-                                <button onclick="downloadChart()" class="text-indigo-600 text-[10px] font-bold border border-indigo-200 px-2 py-1 rounded hover:bg-indigo-50">
-                                    JPG
-                                </button>
+                    <div id="results-wrapper" class="space-y-6 overflow-y-auto pr-1 custom-scrollbar">
+                        <div id="chart-container" class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 hidden opacity-0 transition-all duration-700">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-sm font-bold text-slate-700 uppercase text-xs md:text-sm">Gráfica $N(t)$</h2>
+                                <div class="flex gap-2">
+                                    <button onclick="toggleTheoCurve()" id="toggle-theo-btn" class="text-emerald-600 text-[9px] font-bold border border-emerald-200 px-2 py-1 rounded">VER TEORÍA</button>
+                                    <button onclick="downloadChart()" class="text-indigo-600 text-[9px] font-bold border border-indigo-200 px-2 py-1 rounded">JPG</button>
+                                </div>
+                            </div>
+                            <div style="position: relative; height: 240px;">
+                                <canvas id="decayChart"></canvas>
                             </div>
                         </div>
-                        <div style="position: relative; height: 250px;">
-                            <canvas id="decayChart"></canvas>
-                        </div>
-                    </div>
 
-                    <div id="summary-container" class="bg-slate-900 text-white p-6 rounded-3xl shadow-xl hidden opacity-0 transition-all duration-700">
-                        <h2 class="text-lg font-bold mb-4">Análisis del Isótopo</h2>
-                        <div class="space-y-4 text-sm">
-                            <div class="flex justify-between border-b border-slate-700 pb-2">
-                                <span>Vida Media Experimental ($t_{1/2}$):</span>
-                                <span id="exp-half-life" class="font-bold text-green-400">-</span>
-                            </div>
-                            <div class="flex justify-between border-b border-slate-700 pb-2">
-                                <span>Vida Media Teórica ($\ln 2 / \lambda$):</span>
-                                <span id="theo-half-life" class="font-bold text-sky-400">-</span>
+                        <div id="summary-container" class="bg-slate-900 text-white p-6 rounded-3xl shadow-xl hidden opacity-0 transition-all duration-700">
+                            <h2 class="text-sm font-bold mb-4 uppercase text-slate-400">Análisis del Periodo ($t_{1/2}$)</h2>
+                            <div class="space-y-4 text-sm">
+                                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                                    <span>Experimental:</span>
+                                    <span id="exp-half-life" class="font-bold text-orange-400">-</span>
+                                </div>
+                                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                                    <span>Teórico ($\ln 2 / \lambda$):</span>
+                                    <span id="theo-half-life" class="font-bold text-blue-400">-</span>
+                                </div>
+                                <p class="text-[10px] text-slate-500 italic">
+                                    Las líneas discontinuas en la gráfica señalan el punto de corte donde quedan el 50% de los núcleos iniciales.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -229,7 +222,6 @@
     </div>
 
     <script>
-        // ESTADO GLOBAL
         let currentModel = 1; 
         const TOTAL_DICE = 100;
         let diceStates = [];
@@ -242,30 +234,25 @@
         let globalTheoHalfLife = 0;
         let showTheoretical = false;
 
-        // --- THREE.JS LOGIC ---
+        const COLORS = { unstable: '#f97316', stable: '#3b82f6' };
+
+        // --- THREE.JS ---
         let scene, camera, renderer, cubeMesh;
         let isDragging = false;
 
         function init3D() {
             const container = document.getElementById('cube-3d-container');
             if (!container) return;
-            const width = container.clientWidth;
-            const height = container.clientHeight;
-
+            const w = container.clientWidth, h = container.clientHeight;
             scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+            camera = new THREE.PerspectiveCamera(75, w/h, 0.1, 1000);
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(width, height);
+            renderer.setSize(w, h);
             container.appendChild(renderer.domElement);
-
-            update3DCubeMaterials();
-            camera.position.set(0, 0, 6);
-
-            scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-            const pointLight = new THREE.PointLight(0xffffff, 0.5);
-            pointLight.position.set(10, 10, 10);
-            scene.add(pointLight);
-
+            update3DCube();
+            camera.position.z = 6;
+            scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+            const dl = new THREE.DirectionalLight(0xffffff, 0.4); dl.position.set(5,5,5); scene.add(dl);
             container.addEventListener('mousedown', () => isDragging = true);
             window.addEventListener('mouseup', () => isDragging = false);
             window.addEventListener('mousemove', (e) => {
@@ -273,98 +260,72 @@
                 cubeMesh.rotation.y += e.movementX * 0.01;
                 cubeMesh.rotation.x += e.movementY * 0.01;
             });
-
             animate3D();
         }
 
-        function createDieFaceTexture(number, isStable) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 128; canvas.height = 128;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = isStable ? '#22c55e' : '#ffffff';
-            ctx.fillRect(0, 0, 128, 128);
-            ctx.strokeStyle = '#333333'; ctx.lineWidth = 12;
-            ctx.strokeRect(0, 0, 128, 128);
-            ctx.fillStyle = isStable ? '#ffffff' : '#333333';
-            ctx.font = 'bold 80px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText(number, 64, 64);
-            return new THREE.CanvasTexture(canvas);
-        }
-
-        function update3DCubeMaterials() {
+        function update3DCube() {
             if (cubeMesh) scene.remove(cubeMesh);
-            const materials = [];
+            const mats = [];
             for (let i = 1; i <= 6; i++) {
-                const isStable = (i <= currentModel && i < 6);
-                const val = isStable ? 1 : i;
-                materials.push(new THREE.MeshStandardMaterial({ map: createDieFaceTexture(val, isStable) }));
+                const stable = (i <= currentModel && i < 6);
+                mats.push(new THREE.MeshStandardMaterial({ 
+                    color: stable ? COLORS.stable : COLORS.unstable,
+                    roughness: 0.3, metalness: 0.1
+                }));
             }
-            cubeMesh = new THREE.Mesh(new THREE.BoxGeometry(3, 3, 3), materials);
+            cubeMesh = new THREE.Mesh(new THREE.BoxGeometry(3.2, 3.2, 3.2), mats);
             scene.add(cubeMesh);
         }
 
         function animate3D() {
             requestAnimationFrame(animate3D);
-            if (!isDragging && cubeMesh) {
-                cubeMesh.rotation.x += 0.005;
-                cubeMesh.rotation.y += 0.005;
-            }
+            if (!isDragging && cubeMesh) { cubeMesh.rotation.x += 0.006; cubeMesh.rotation.y += 0.006; }
             renderer.render(scene, camera);
         }
 
-        // --- LÓGICA DE SIMULACIÓN ---
-        function refreshMath() {
-            if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
-        }
+        // --- SIMULACIÓN ---
+        function refreshMath() { if (window.MathJax) MathJax.typesetPromise(); }
 
         function updateConfigUI() {
             const container = document.getElementById('config-die-display');
             if (!container) return;
             container.innerHTML = '';
             for (let i = 1; i <= 6; i++) {
-                const isStable = (i <= currentModel && i < 6);
-                const val = isStable ? 1 : i;
+                const stable = (i <= currentModel && i < 6);
                 const face = document.createElement('div');
-                face.className = `config-face ${isStable ? 'stable' : ''}`;
-                face.textContent = val;
+                face.className = `config-face ${stable ? 'stable' : ''}`;
                 container.appendChild(face);
             }
-            const p = currentModel / 6;
-            const lambda = -Math.log(1 - p);
+            const p = currentModel / 6, lambda = -Math.log(1 - p);
             
-            const probDisplay = document.getElementById('prob-display');
-            const lambdaVal = document.getElementById('lambda-val');
-            const probPercent = document.getElementById('prob-percent');
+            const probEl = document.getElementById('prob-display');
+            const percentEl = document.getElementById('prob-percent');
+            const lambdaEl = document.getElementById('lambda-val');
             
-            if (probDisplay) probDisplay.textContent = `${currentModel}/6`;
-            if (lambdaVal) lambdaVal.textContent = lambda.toFixed(3);
-            if (probPercent) probPercent.textContent = (p*100).toFixed(1);
+            if (probEl) probEl.textContent = `${currentModel}/6`;
+            if (percentEl) percentEl.textContent = (p*100).toFixed(1);
+            if (lambdaEl) lambdaEl.textContent = lambda.toFixed(3);
             
-            if (cubeMesh) update3DCubeMaterials();
+            if (cubeMesh) update3DCube();
             refreshMath();
         }
 
-        function nextModel() {
-            currentModel = (currentModel % 5) + 1;
-            updateConfigUI();
-        }
+        function nextModel() { currentModel = (currentModel % 5) + 1; updateConfigUI(); }
 
         function startSimulation() {
-            document.getElementById('setup-view').classList.add('hidden');
-            document.getElementById('sim-view').classList.remove('hidden');
+            const setup = document.getElementById('setup-view');
+            const sim = document.getElementById('sim-view');
+            if (setup && sim) {
+                setup.classList.add('hidden');
+                sim.classList.remove('hidden');
+            }
             initSim();
         }
 
         function initSim() {
-            diceStates = Array.from({ length: TOTAL_DICE }, (_, i) => ({
-                id: i, value: 6, decayed: false, finalized: false, logged: false
-            }));
-            currentTime = 0;
-            history = [{t: 0, d: 0, n: 100}];
-            renderDice();
-            initChart();
-            addTableRow(0, 0, 100);
-            updateStats();
+            diceStates = Array.from({ length: TOTAL_DICE }, (_, i) => ({ id: i, decayed: false, finalized: false, logged: false }));
+            currentTime = 0; history = [{t: 0, d: 0, n: 100}];
+            renderDice(); initChart(); addTableRow(0, 0, 100); updateStats();
         }
 
         function renderDice() {
@@ -373,204 +334,171 @@
             grid.innerHTML = '';
             diceStates.forEach(die => {
                 const dieEl = document.createElement('div');
-                let statusClass = die.finalized ? 'decayed-done' : (die.decayed ? 'decayed-ready' : '');
-                dieEl.className = `die ${statusClass}`;
-                dieEl.id = `die-${die.id}`;
-                dieEl.innerHTML = `<div class="die-face">${die.value}</div>`;
-                if (die.decayed && !die.finalized) dieEl.onclick = () => finalizeBatch();
+                let sc = die.finalized ? 'decayed-done' : (die.decayed ? 'decayed-ready' : '');
+                dieEl.className = `die ${sc}`; dieEl.id = `die-${die.id}`;
+                dieEl.innerHTML = `<div class="die-face"></div>`;
+                if (die.decayed && !die.finalized) dieEl.onclick = finalizeBatch;
                 grid.appendChild(dieEl);
             });
         }
 
         function finalizeBatch() {
-            let countToFinalize = 0;
+            let count = 0;
             diceStates.forEach(die => {
                 if (die.decayed && !die.finalized) {
-                    die.finalized = true;
-                    countToFinalize++;
+                    die.finalized = true; count++;
                     const el = document.getElementById(`die-${die.id}`);
                     if (el) el.classList.replace('decayed-ready', 'decayed-done');
                 }
             });
-            pendingRemovalCount -= countToFinalize;
-            updateStats();
-            if (pendingRemovalCount === 0) onRoundFinished();
+            pendingRemovalCount -= count; updateStats(false);
+            if (pendingRemovalCount === 0) { onRoundFinished(); refreshMath(); }
         }
 
         async function shakeDice() {
             if (isShaking || pendingRemovalCount > 0) return;
-            isShaking = true;
-            currentTime++;
-            document.getElementById('shake-btn').disabled = true;
+            isShaking = true; currentTime++;
+            const btn = document.getElementById('shake-btn');
+            if (btn) btn.disabled = true;
             diceStates.filter(d => !d.finalized).forEach(d => document.getElementById(`die-${d.id}`)?.classList.add('shaking'));
             await new Promise(r => setTimeout(r, 600));
-            let countDecayed = 0;
+            let dc = 0;
             diceStates.forEach(die => {
                 if (!die.finalized) {
-                    let roll = Math.floor(Math.random() * 6) + 1;
-                    if (roll <= currentModel) {
-                        die.value = 1; die.decayed = true; countDecayed++;
-                    } else {
-                        die.value = roll; die.decayed = false;
-                    }
+                    let r = Math.floor(Math.random() * 6) + 1;
+                    if (r <= currentModel) { die.decayed = true; dc++; } else { die.decayed = false; }
                 }
             });
             diceStates.filter(d => !d.finalized).forEach(d => document.getElementById(`die-${d.id}`)?.classList.remove('shaking'));
-            pendingRemovalCount = countDecayed;
-            renderDice();
-            isShaking = false;
-            if (countDecayed === 0) onRoundFinished(); 
-            else updateStats();
+            pendingRemovalCount = dc; renderDice(); isShaking = false;
+            if (dc === 0) onRoundFinished(); else updateStats();
         }
 
-        function updateStats() {
-            const remaining = diceStates.filter(d => !d.finalized).length;
+        function updateStats(m = true) {
+            const rem = diceStates.filter(d => !d.finalized).length;
+            const countEl = document.getElementById('rem-count');
+            if (countEl) countEl.textContent = rem;
             const msg = document.getElementById('status-msg');
-            const shakeBtn = document.getElementById('shake-btn');
-            const remCountEl = document.getElementById('rem-count');
-            if (remCountEl) remCountEl.textContent = remaining;
-            
+            const btn = document.getElementById('shake-btn');
             if (pendingRemovalCount > 0) {
-                msg.innerHTML = `<span class="text-green-700 font-bold">⚠️ ${pendingRemovalCount} núcleos han decaído. Haz clic en uno verde.</span>`;
-                msg.className = "p-4 rounded-xl text-center text-sm bg-green-50 border-green-200";
-                shakeBtn.disabled = true;
-            } else if (remaining === 0) {
-                msg.innerHTML = `<span class="text-indigo-700 font-bold">✅ Todos los núcleos se han estabilizado.</span>`;
-                msg.className = "p-4 rounded-xl text-center text-sm bg-indigo-50 border-indigo-200";
-                shakeBtn.disabled = true;
+                if (msg) msg.innerHTML = `<span class="text-blue-600 font-bold">⚠️ ${pendingRemovalCount} núcleos estables (Azul). Pulsa en uno para contarlos.</span>`;
+                if (btn) btn.disabled = true;
+            } else if (rem === 0) {
+                if (msg) msg.innerHTML = `<span class="text-indigo-700 font-bold">✅ Fin del experimento. Analizando curva...</span>`;
+                if (btn) btn.disabled = true; 
                 calculateFinalAnalysis();
             } else {
-                msg.innerHTML = `<span class="text-slate-500 font-normal">Pulsa "Agitar" para avanzar al tiempo $t = ${currentTime + 1}$.</span>`;
-                msg.className = "p-4 rounded-xl text-center text-sm bg-slate-100 border-slate-200";
-                shakeBtn.disabled = false;
+                if (msg) msg.innerHTML = `<span class="text-slate-500">Pulsa "Agitar" para avanzar al tiempo $t = ${currentTime + 1}$.</span>`;
+                if (btn) btn.disabled = false;
             }
-            refreshMath();
+            if (m) refreshMath();
         }
 
         function onRoundFinished() {
-            const remaining = diceStates.filter(d => !d.finalized).length;
-            const decayed = diceStates.filter(d => d.finalized && !d.logged);
-            decayed.forEach(d => d.logged = true);
-            history.push({t: currentTime, d: decayed.length, n: remaining});
-            addTableRow(currentTime, decayed.length, remaining);
-            updateChart(currentTime, remaining);
+            const rem = diceStates.filter(d => !d.finalized).length;
+            const dec = diceStates.filter(d => d.finalized && !d.logged);
+            dec.forEach(d => d.logged = true);
+            history.push({t: currentTime, d: dec.length, n: rem});
+            addTableRow(currentTime, dec.length, rem);
+            updateChart(currentTime, rem);
             updateStats();
         }
 
         function calculateFinalAnalysis() {
-            let tHalfExp = 0;
+            let tExp = 0;
             for (let i = 0; i < history.length - 1; i++) {
                 if (history[i].n >= 50 && history[i+1].n <= 50) {
                     const n1 = history[i].n, n2 = history[i+1].n, t1 = history[i].t, t2 = history[i+1].t;
-                    tHalfExp = t1 + (t2 - t1) * (n1 - 50) / (n1 - n2);
-                    break;
+                    tExp = t1 + (t2 - t1) * (n1 - 50) / (n1 - n2); break;
                 }
             }
-            const p = currentModel / 6;
-            const lambda = -Math.log(1 - p);
-            const tHalfTheo = Math.log(2) / lambda;
+            const p = currentModel / 6, lambda = -Math.log(1 - p), tTheo = Math.log(2) / lambda;
+            globalExpHalfLife = tExp.toFixed(2); globalTheoHalfLife = tTheo.toFixed(2);
             
-            globalExpHalfLife = tHalfExp.toFixed(2);
-            globalTheoHalfLife = tHalfTheo.toFixed(2);
-
-            document.getElementById('exp-half-life').textContent = globalExpHalfLife + " t";
-            document.getElementById('theo-half-life').textContent = globalTheoHalfLife + " t";
+            const expEl = document.getElementById('exp-half-life');
+            const theoEl = document.getElementById('theo-half-life');
+            if (expEl) expEl.textContent = globalExpHalfLife + " t";
+            if (theoEl) theoEl.textContent = globalTheoHalfLife + " t";
             
-            const maxT = history[history.length - 1].t;
-            chart.data.datasets[2].data = [{x: 0, y: 50}, {x: maxT, y: 50}];
-            chart.data.datasets[3].data = [{x: globalExpHalfLife, y: 0}, {x: globalExpHalfLife, y: 50}];
-            chart.data.datasets[4].data = [{x: globalTheoHalfLife, y: 0}, {x: globalTheoHalfLife, y: 50}];
+            const maxT = Math.max(history[history.length-1].t, tTheo * 1.5);
+            const theoData = [];
+            for(let t=0; t<=maxT; t+=0.05) theoData.push({x: t, y: 100 * Math.exp(-lambda * t)});
             
-            const cont = document.getElementById('chart-container');
-            const summ = document.getElementById('summary-container');
-            if (cont) {
-                cont.classList.remove('hidden');
-                setTimeout(() => cont.classList.add('opacity-100'), 50);
+            if (chart) {
+                chart.data.datasets[1].data = theoData;
+                chart.options.scales.x.max = Math.ceil(maxT);
+                chart.data.datasets[2].data = [{x: 0, y: 50}, {x: maxT, y: 50}];
+                chart.data.datasets[3].data = [{x: globalExpHalfLife, y: 0}, {x: globalExpHalfLife, y: 50}];
+                chart.data.datasets[4].data = [{x: globalTheoHalfLife, y: 0}, {x: globalTheoHalfLife, y: 50}];
+                chart.update();
             }
-            if (summ) {
-                summ.classList.remove('hidden');
-                setTimeout(() => summ.classList.add('opacity-100'), 50);
-            }
-            chart.update();
+            
+            const cont = document.getElementById('chart-container'), summ = document.getElementById('summary-container');
+            if (cont) { cont.classList.remove('hidden'); setTimeout(() => cont.classList.add('opacity-100'), 50); }
+            if (summ) { summ.classList.remove('hidden'); setTimeout(() => summ.classList.add('opacity-100'), 50); }
             refreshMath();
         }
 
         function toggleTheoCurve() {
+            if (!chart) return;
             showTheoretical = !showTheoretical;
             chart.setDatasetVisibility(1, showTheoretical);
             chart.setDatasetVisibility(4, showTheoretical);
-            document.getElementById('toggle-theo-btn').textContent = showTheoretical ? "OCULTAR CURVA EXP." : "VER CURVA EXP.";
+            const btn = document.getElementById('toggle-theo-btn');
+            if (btn) btn.textContent = showTheoretical ? "OCULTAR TEORÍA" : "VER TEORÍA";
             chart.update();
         }
 
         function addTableRow(t, d, n) {
-            const tableBody = document.getElementById('data-table-body');
-            if (!tableBody) return;
+            const tb = document.getElementById('data-table-body');
+            if (!tb) return;
             const row = document.createElement('tr');
-            row.className = "border-b border-slate-50 hover:bg-slate-50";
-            row.innerHTML = `<td class="py-2 text-slate-500 font-mono">${t}</td><td class="py-2 text-center text-red-500">${d}</td><td class="py-2 text-right font-bold">${n}</td>`;
-            tableBody.appendChild(row);
-            const container = tableBody.parentElement.parentElement;
-            container.scrollTop = container.scrollHeight;
+            row.className = "border-b border-slate-50";
+            row.innerHTML = `<td class="py-1 font-mono">${t}</td><td class="text-center font-bold text-blue-500">${d}</td><td class="text-right font-bold text-slate-800">${n}</td>`;
+            tb.appendChild(row); tb.parentElement.parentElement.scrollTop = tb.parentElement.parentElement.scrollHeight;
         }
 
         function downloadCSV() {
             let csv = "Tiempo (t),Desintegrados,Restantes (N)\n";
-            history.forEach(row => csv += `${row.t},${row.d},${row.n}\n`);
+            history.forEach(r => csv += `${r.t},${r.d},${r.n}\n`);
             const blob = new Blob([csv], { type: 'text/csv' });
             const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `decaimiento_modelo_${currentModel}.csv`;
-            link.click();
+            link.href = URL.createObjectURL(blob); link.download = `experimento_decaimiento_${currentModel}_6.csv`; link.click();
         }
 
         function downloadChart() {
             const canvas = document.getElementById('decayChart');
             if (!canvas) return;
-            const tempCanvas = document.createElement('canvas');
-            const extraHeight = 120;
-            tempCanvas.width = canvas.width;
-            tempCanvas.height = canvas.height + extraHeight;
-            const ctx = tempCanvas.getContext('2d');
-            ctx.fillStyle = "white"; ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            const temp = document.createElement('canvas'); temp.width = canvas.width; temp.height = canvas.height + 130;
+            const ctx = temp.getContext('2d'); ctx.fillStyle = "white"; ctx.fillRect(0,0,temp.width,temp.height);
             ctx.drawImage(canvas, 0, 0);
-            ctx.fillStyle = "#334155"; ctx.font = "bold 14px sans-serif"; ctx.textAlign = "left";
+            ctx.fillStyle = "#334155"; ctx.font = "bold 14px sans-serif";
+            const infoY = canvas.height + 35;
             const lambda = (-Math.log(1 - (currentModel / 6))).toFixed(4);
-            const infoY = canvas.height + 30;
-            ctx.fillText(`Modelo Isótopo: p = ${currentModel}/6 (λ ≈ ${lambda} t⁻¹)`, 20, infoY);
-            ctx.fillText(`Vida Media Teórica (ln 2 / λ): ${globalTheoHalfLife} t`, 20, infoY + 25);
-            ctx.fillText(`Vida Media Experimental (t_1/2): ${globalExpHalfLife} t`, 20, infoY + 50);
+            ctx.fillText(`Isótopo: Modelo ${currentModel}/6 caras (λ ≈ ${lambda} t⁻¹)`, 30, infoY);
+            ctx.fillText(`Vida Media Teórica (ln 2 / λ): ${globalTheoHalfLife} t`, 30, infoY + 28);
+            ctx.fillText(`Vida Media Experimental: ${globalExpHalfLife} t`, 30, infoY + 56);
             ctx.font = "italic 11px sans-serif";
-            ctx.fillText("Nota: Curva teórica basada en N(t) = N₀ · e^(-λt).", 20, infoY + 75);
-            const link = document.createElement('a');
-            link.href = tempCanvas.toDataURL('image/jpeg', 0.9);
-            link.download = `analisis_decaimiento_modelo_${currentModel}.jpg`;
-            link.click();
+            ctx.fillText("Naranja = Núcleo Inestable | Azul = Núcleo Estable", 30, infoY + 85);
+            const link = document.createElement('a'); link.href = temp.toDataURL('image/jpeg', 0.9);
+            link.download = `grafica_decaimiento_modelo_${currentModel}.jpg`; link.click();
         }
 
         function resetApp() { 
-            // En lugar de recargar la página, reiniciamos el estado
-            document.getElementById('sim-view').classList.add('hidden');
-            document.getElementById('chart-container').classList.add('hidden');
-            document.getElementById('chart-container').classList.remove('opacity-100');
-            document.getElementById('summary-container').classList.add('hidden');
-            document.getElementById('summary-container').classList.remove('opacity-100');
-            document.getElementById('setup-view').classList.remove('hidden');
+            const sim = document.getElementById('sim-view');
+            const setup = document.getElementById('setup-view');
+            const cont = document.getElementById('chart-container');
+            const summ = document.getElementById('summary-container');
             
-            // Limpiar datos
-            diceStates = [];
-            currentTime = 0;
-            history = [];
-            pendingRemovalCount = 0;
-            showTheoretical = false;
-            document.getElementById('data-table-body').innerHTML = '';
-            document.getElementById('shake-btn').disabled = false;
+            if (sim) sim.classList.add('hidden');
+            if (cont) cont.classList.add('hidden');
+            if (summ) summ.classList.add('hidden');
+            if (setup) setup.classList.remove('hidden');
             
-            if (chart) {
-                chart.destroy();
-                chart = null;
-            }
-
+            diceStates = []; currentTime = 0; history = []; pendingRemovalCount = 0; showTheoretical = false;
+            const tb = document.getElementById('data-table-body');
+            if (tb) tb.innerHTML = '';
+            if (chart) { chart.destroy(); chart = null; }
             updateConfigUI();
         }
 
@@ -581,40 +509,28 @@
             chart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: [],
                     datasets: [
-                        { label: 'Experimental N(t)', data: [{x: 0, y: 100}], borderColor: '#4f46e5', backgroundColor: 'rgba(79, 70, 229, 0.1)', fill: true, tension: 0.3, borderWidth: 3, pointRadius: 3 },
-                        { label: 'Teórico Exponencial', data: [{x: 0, y: 100}], borderColor: '#10b981', borderWidth: 2, tension: 0.3, pointRadius: 0, hidden: true },
-                        { label: 'Línea N=50', data: [], borderColor: '#94a3b8', borderDash: [5, 5], pointRadius: 0, borderWidth: 1, fill: false },
-                        { label: 'T1/2 Exp', data: [], borderColor: '#4f46e5', borderDash: [5, 5], pointRadius: 0, borderWidth: 1 },
-                        { label: 'T1/2 Theo', data: [], borderColor: '#10b981', borderDash: [5, 5], pointRadius: 0, borderWidth: 1, hidden: true }
+                        { label: 'Exp.', data: [{x:0, y:100}], borderColor: '#f97316', backgroundColor: 'rgba(249, 115, 22, 0.1)', fill: true, tension: 0, borderWidth: 3, pointRadius: 5 },
+                        { label: 'Theo.', data: [], borderColor: '#10b981', borderWidth: 2, tension: 0.3, pointRadius: 0, hidden: true },
+                        { label: 'N=50', data: [], borderColor: '#94a3b8', borderDash: [6, 4], pointRadius: 0, borderWidth: 1 },
+                        { label: 'T1/2 Exp', data: [], borderColor: '#f97316', borderDash: [4, 4], pointRadius: 0, borderWidth: 1.5 },
+                        { label: 'T1/2 Theo', data: [], borderColor: '#10b981', borderDash: [4, 4], pointRadius: 0, borderWidth: 1.5, hidden: true }
                     ]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     scales: {
-                        x: { type: 'linear', position: 'bottom', title: {display: true, text: 'Tiempo (t)'} },
-                        y: { beginAtZero: true, max: 100, title: {display: true, text: 'Núcleos activos (N)'} }
+                        x: { type: 'linear', position: 'bottom', title: {display: true, text: 'Tiempo (t)', font: {weight: 'bold'}}, ticks: { stepSize: 1 } },
+                        y: { beginAtZero: true, max: 100, title: {display: true, text: 'Núcleos activos (N)', font: {weight: 'bold'}} }
                     },
                     plugins: { legend: { display: false } }
                 }
             });
         }
 
-        function updateChart(t, N) {
-            if (!chart) return;
-            chart.data.datasets[0].data.push({x: t, y: N});
-            const p = currentModel / 6;
-            const lambda = -Math.log(1 - p);
-            const nTheo = 100 * Math.exp(-lambda * t);
-            chart.data.datasets[1].data.push({x: t, y: nTheo});
-            chart.update();
-        }
+        function updateChart(t, N) { if (chart) { chart.data.datasets[0].data.push({x: t, y: N}); chart.update(); } }
 
-        window.onload = () => {
-            init3D();
-            updateConfigUI();
-        };
+        window.onload = () => { init3D(); updateConfigUI(); };
     </script>
 </body>
 </html>
