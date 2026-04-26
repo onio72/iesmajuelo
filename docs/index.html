@@ -354,7 +354,8 @@
             title: "Bachillerato", 
             items: [
                 { id: 'fq1', title: 'FQ 1º Bach', icon: '📚', desc: 'Física y Química' }, 
-                { id: 'fi2', title: 'Física 2º Bach', icon: '🌌', desc: 'Preparación PAU/EBAU' }
+                { id: 'fi2', title: 'Física 2º Bach', icon: '🌌', desc: 'Preparación PAU/EBAU' },
+                { url: 'https://onio72.github.io/iesmajuelo/apuntes/fi2/index.html', title: 'Apuntes FI2', icon: '📝', desc: 'Temas 1 al 5' }
             ] 
         },
         fq2: { 
@@ -605,7 +606,7 @@
             html += `<div class="grid">`;
             currentData.items.forEach(item => {
                 html += `
-                    <div class="card" onclick="navigateTo('${item.id}')">
+                    <div class="card" onclick="${item.url ? `window.open('${item.url}','_self')` : `navigateTo('${item.id}')`}">
                         <div class="card-icon">${item.icon}</div>
                         <h2>${item.title}</h2>
                         <p>${item.desc || ''}</p>
