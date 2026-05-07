@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Física 2º Bachillerato - Desintegración Radiactiva</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .slider-thumb::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; background: #3b82f6; cursor: pointer; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .slider-thumb::-moz-range-thumb { width: 20px; height: 20px; background: #3b82f6; cursor: pointer; border-radius: 50%; border: none; }
+        
+        .toggle-checkbox:checked { right: 0; border-color: #3b82f6; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #3b82f6; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-10">
+        <!-- Header -->
+        <header class="mb-8 border-b border-slate-50 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-semibold text-slate-800">Cinética de Desintegración Radiactiva</h1>
+                <p class="text-slate-500 mt-2">Observa cómo la constante $\lambda$ afecta a la pendiente de la curva.</p>
+            </div>
+            <div id="isotopeBadge" class="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-sm transition-all duration-300">
+                Cargando...
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            
+            <!-- Controls Sidebar -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                
+                <!-- Toggle Scale Mode -->
+                <div class="flex items-center justify-between bg-slate-100 p-3 rounded-xl">
+                    <span class="text-sm font-semibold text-slate-700">Fijar escala (Eje X)</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="fixedScaleToggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+
+                <!-- Slider -->
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                    <label for="lambdaSlider" class="block text-sm font-semibold text-slate-700 mb-4">
+                        Constante $\lambda$: <span id="lambdaVal" class="text-blue-600"></span>
+                    </label>
+                    <input type="range" id="lambdaSlider" min="-2.5" max="0.7" step="0.01" value="-0.3" 
+                        class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    <div class="flex justify-between text-[10px] text-slate-400 mt-2 font-medium">
+                        <span>ESTABLE (Pendiente suave)</span>
+                        <span>INESTABLE (Pendiente abrupta)</span>
+                    </div>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="flex items-center justify-between p-4 bg-blue-50 rounded-xl border border-blue-100">
+                        <div>
+                            <p class="text-[10px] text-blue-600 uppercase tracking-wider font-bold">Semidesintegración</p>
+                            <p class="text-xl font-semibold text-blue-900" id="tHalfVal">--</p>
+                        </div>
+                        <div class="text-[10px] text-blue-400 font-mono bg-white px-2 py-1 rounded border border-blue-100">
+                            $T_{1/2}$
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                        <div>
+                            <p class="text-[10px] text-emerald-600 uppercase tracking-wider font-bold">Vida Media</p>
+                            <p class="text-xl font-semibold text-emerald-900" id="tauVal">--</p>
+                        </div>
+                        <div class="text-[10px] text-emerald-400 font-mono bg-white px-2 py-1 rounded border border-emerald-100">
+                            $\tau$
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Card -->
+                <div id="isotopeInfo" class="text-xs text-slate-600 bg-amber-50 p-4 rounded-xl border border-amber-100 leading-relaxed shadow-inner">
+                    <p class="font-bold text-amber-800 mb-1">Contexto Real:</p>
+                    <div id="isotopeDesc">Desliza para explorar isótopos.</div>
+                </div>
+            </div>
+
+            <!-- Chart Area -->
+            <div class="lg:col-span-8 h-[450px] relative">
+                <canvas id="decayChart"></canvas>
+                <div id="scaleIndicator" class="absolute top-4 right-4 bg-white/80 backdrop-blur px-3 py-1 rounded border border-slate-200 text-[10px] text-slate-500 font-semibold uppercase tracking-widest hidden">
+                    Escala Fija: 10s
+                </div>
+            </div>
+        </div>
+        
+        <!-- Formula Footer -->
+        <div class="mt-10 pt-6 border-t border-slate-100 flex flex-wrap justify-center gap-8 text-xs font-mono text-slate-400">
+            <div>$N(t) = N_0 \cdot e^{-\lambda t}$</div>
+            <div>Pendiente inicial $\propto -\lambda \cdot N_0$</div>
+        </div>
+    </div>
+
+    <script>
+        window.MathJax = { 
+            tex: { inlineMath: [['$', '$']] },
+            options: { enableMenu: false }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script>
+        const ctx = document.getElementById('decayChart').getContext('2d');
+        const lambdaSlider = document.getElementById('lambdaSlider');
+        const fixedScaleToggle = document.getElementById('fixedScaleToggle');
+        const scaleIndicator = document.getElementById('scaleIndicator');
+        const lambdaValDisplay = document.getElementById('lambdaVal');
+        const tHalfValDisplay = document.getElementById('tHalfVal');
+        const tauValDisplay = document.getElementById('tauVal');
+        const isotopeBadge = document.getElementById('isotopeBadge');
+        const isotopeDesc = document.getElementById('isotopeDesc');
+
+        let decayChart;
+        const N0 = 100;
+        let currentMaxTime = 10;
+        const FIXED_TIME = 10;
+
+        const isotopes = [
+            { name: "Plomo-211", lambda: 0.00032, tHalf: "36.1 min", desc: "Su decaimiento es casi imperceptible en pocos segundos." },
+            { name: "Bismuto-214", lambda: 0.00058, tHalf: "19.9 min", desc: "Isótopo de la cadena del Uranio-238." },
+            { name: "Nitrógeno-13", lambda: 0.0011, tHalf: "10 min", desc: "Su pendiente es muy suave comparada con isótopos PET." },
+            { name: "Oxígeno-15", lambda: 0.0056, tHalf: "122 s", desc: "Utilizado para estudiar la actividad metabólica cerebral." },
+            { name: "Neón-23", lambda: 0.018, tHalf: "37.2 s", desc: "Isótopo gaseoso de vida corta." },
+            { name: "Nitrógeno-16", lambda: 0.097, tHalf: "7.1 s", desc: "Aquí la pendiente ya empieza a ser claramente visible en 10s." },
+            { name: "Oxígeno-19", lambda: 0.25, tHalf: "2.7 s", desc: "Desintegración rápida; la curva cae con fuerza." },
+            { name: "Carbono-15", lambda: 0.28, tHalf: "2.45 s", desc: "Casi desaparece por completo en el intervalo mostrado." },
+            { name: "Helio-6", lambda: 0.86, tHalf: "0.8 s", desc: "Extremadamente inestable. La pendiente inicial es brutal." },
+            { name: "Litio-9", lambda: 3.89, tHalf: "0.17 s", desc: "Decaimiento instantáneo a escala macroscópica." }
+        ];
+
+        function getLambdaFromSlider(val) {
+            return Math.pow(10, val);
+        }
+
+        function formatScientific(num) {
+            const exp = Math.floor(Math.log10(num));
+            const base = (num / Math.pow(10, exp)).toFixed(2);
+            return `$${base} \\cdot 10^{${exp}}$ s⁻¹`;
+        }
+
+        function findClosestIsotope(lambda) {
+            return isotopes.reduce((prev, curr) => {
+                return (Math.abs(curr.lambda - lambda) < Math.abs(prev.lambda - lambda) ? curr : prev);
+            });
+        }
+
+        function calculateData(lambda) {
+            const data = [];
+            const isFixed = fixedScaleToggle.checked;
+            
+            if (isFixed) {
+                currentMaxTime = FIXED_TIME;
+            } else {
+                currentMaxTime = (Math.log(2) / lambda) * 5; 
+                if (currentMaxTime < 0.5) currentMaxTime = 0.5;
+            }
+
+            // Generamos puntos para la curva
+            for (let t = 0; t <= currentMaxTime; t += (currentMaxTime / 120)) {
+                data.push({ x: t, y: N0 * Math.exp(-lambda * t) });
+            }
+            return data;
+        }
+
+        async function updateChart() {
+            const lambda = getLambdaFromSlider(parseFloat(lambdaSlider.value));
+            const tHalf = Math.log(2) / lambda;
+            const tau = 1 / lambda;
+            const data = calculateData(lambda);
+            const isFixed = fixedScaleToggle.checked;
+
+            // UI Updates
+            lambdaValDisplay.innerHTML = formatScientific(lambda);
+            tHalfValDisplay.innerText = tHalf < 0.1 ? tHalf.toFixed(4) + ' s' : tHalf.toFixed(2) + ' s';
+            tauValDisplay.innerText = tau < 0.1 ? tau.toFixed(4) + ' s' : tau.toFixed(2) + ' s';
+            
+            scaleIndicator.classList.toggle('hidden', !isFixed);
+
+            const closest = findClosestIsotope(lambda);
+            isotopeBadge.innerText = `Isótopo: ${closest.name}`;
+            isotopeDesc.innerHTML = `<strong>${closest.name}:</strong> ${closest.desc} <br>T₁/₂ real: ${closest.tHalf}.`;
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([lambdaValDisplay, isotopeDesc]);
+            }
+
+            // Chart Update
+            decayChart.data.datasets[0].data = data;
+            decayChart.options.scales.x.max = currentMaxTime;
+            decayChart.update('none');
+        }
+
+        function init() {
+            decayChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Núcleos (N)',
+                        data: [],
+                        borderColor: '#3b82f6',
+                        borderWidth: 4,
+                        pointRadius: 0,
+                        fill: false,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: { display: true, text: 'Tiempo (s)', color: '#64748b', font: { weight: 'bold' } },
+                            min: 0,
+                            grid: { color: '#f1f5f9' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Nº Núcleos (N)', color: '#64748b', font: { weight: 'bold' } },
+                            min: 0, max: N0,
+                            grid: { color: '#f1f5f9' }
+                        }
+                    }
+                },
+                plugins: [{
+                    id: 'decayLines',
+                    afterDraw: (chart) => {
+                        const {ctx, scales: {x, y}} = chart;
+                        const lambda = getLambdaFromSlider(parseFloat(lambdaSlider.value));
+                        const tHalf = Math.log(2) / lambda;
+                        const tau = 1 / lambda;
+
+                        ctx.save();
+                        
+                        // Línea de Semidesintegración (T 1/2)
+                        const xHalf = x.getPixelForValue(tHalf);
+                        const yHalf = y.getPixelForValue(N0 / 2);
+                        if (xHalf <= x.getPixelForValue(currentMaxTime) && xHalf >= x.getPixelForValue(0)) {
+                            ctx.setLineDash([6, 4]);
+                            ctx.strokeStyle = '#3b82f6';
+                            ctx.lineWidth = 1.5;
+                            ctx.beginPath(); ctx.moveTo(xHalf, yHalf); ctx.lineTo(xHalf, y.getPixelForValue(0)); ctx.stroke();
+                            ctx.beginPath(); ctx.moveTo(x.getPixelForValue(0), yHalf); ctx.lineTo(xHalf, yHalf); ctx.stroke();
+                            ctx.fillStyle = '#3b82f6';
+                            ctx.font = 'bold 12px Inter';
+                            ctx.fillText('T₁/₂', xHalf - 12, y.getPixelForValue(0) - 12);
+                        }
+
+                        // Línea de Vida Media (TAU)
+                        const xTau = x.getPixelForValue(tau);
+                        const yTau = y.getPixelForValue(N0 / Math.E);
+                        if (xTau <= x.getPixelForValue(currentMaxTime) && xTau >= x.getPixelForValue(0)) {
+                            ctx.strokeStyle = '#10b981';
+                            ctx.lineWidth = 1.5;
+                            ctx.beginPath(); ctx.moveTo(xTau, yTau); ctx.lineTo(xTau, y.getPixelForValue(0)); ctx.stroke();
+                            ctx.beginPath(); ctx.moveTo(x.getPixelForValue(0), yTau); ctx.lineTo(xTau, yTau); ctx.stroke();
+                            ctx.fillStyle = '#059669';
+                            ctx.font = 'bold 12px Inter';
+                            ctx.fillText('τ', xTau + 8, y.getPixelForValue(0) - 12);
+                        }
+                        
+                        ctx.restore();
+                    }
+                }]
+            });
+
+            lambdaSlider.addEventListener('input', updateChart);
+            fixedScaleToggle.addEventListener('change', updateChart);
+            
+            setTimeout(updateChart, 500);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
