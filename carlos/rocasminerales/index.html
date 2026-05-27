@@ -1,0 +1,916 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rocas y minerales</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f7f3;
+      --panel: #ffffff;
+      --panel-2: #eef3ed;
+      --text: #17201b;
+      --muted: #66756d;
+      --line: #d8e1da;
+      --accent: #1f7a5a;
+      --accent-2: #d77a32;
+      --ok: #18794e;
+      --bad: #b42318;
+      --shadow: 0 18px 45px rgba(24, 38, 29, .12);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.75), rgba(244,247,243,.95)),
+        url("esquema.jpeg") center / cover fixed;
+      color: var(--text);
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    .app {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 32px;
+    }
+
+    header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 4rem);
+      line-height: .95;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 8px;
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(216,225,218,.9);
+      border-radius: 8px;
+      backdrop-filter: blur(12px);
+    }
+
+    .tab {
+      border: 0;
+      border-radius: 7px;
+      padding: 10px 13px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      color: #fff;
+      background: var(--accent);
+      box-shadow: 0 8px 18px rgba(31, 122, 90, .25);
+    }
+
+    main {
+      background: rgba(255,255,255,.9);
+      border: 1px solid rgba(216,225,218,.9);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .view {
+      display: none;
+      min-height: 660px;
+      padding: 22px;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .scorebar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 36px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+    }
+
+    .stage {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .photo-wrap {
+      background: #101510;
+      border-radius: 8px;
+      min-height: 460px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .photo-wrap img {
+      width: 100%;
+      max-height: 660px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .study-photo {
+      min-height: 560px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 18px;
+    }
+
+    .answer-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 12px 13px;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(31, 122, 90, .14);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 7px;
+      padding: 11px 14px;
+      font-weight: 900;
+      cursor: pointer;
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn.secondary {
+      background: #233128;
+    }
+
+    .btn.ghost {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .choice-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .choice {
+      min-height: 54px;
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .choice.selected {
+      background: var(--accent-2);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .result {
+      min-height: 48px;
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+
+    .study-layout {
+      display: grid;
+      gap: 16px;
+    }
+
+    .study-caption {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .study-name {
+      font-size: clamp(1.35rem, 2.4vw, 2.25rem);
+      font-weight: 950;
+      letter-spacing: 0;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 840px) {
+      .app {
+        width: min(100vw - 20px, 760px);
+        padding-top: 12px;
+      }
+
+      header {
+        align-items: start;
+        flex-direction: column;
+      }
+
+      .view {
+        min-height: auto;
+        padding: 14px;
+      }
+
+      .stage {
+        grid-template-columns: 1fr;
+      }
+
+      .photo-wrap,
+      .study-photo {
+        min-height: 330px;
+      }
+
+      .tabs {
+        width: 100%;
+      }
+
+      .tab {
+        flex: 1 1 150px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>Rocas y minerales</h1>
+        <p class="subtitle">Estudio y tests con fotografías locales</p>
+      </div>
+      <nav class="tabs" aria-label="Pestañas">
+        <button class="tab active" data-tab="estudio-rocas">Estudio rocas</button>
+        <button class="tab" data-tab="estudio-minerales">Estudio minerales</button>
+        <button class="tab" data-tab="estudio-completo">Estudio completo</button>
+        <button class="tab" data-tab="test-rocas">Test de rocas</button>
+        <button class="tab" data-tab="test-minerales">Test de minerales</button>
+        <button class="tab" data-tab="tipo">¿Roca o mineral?</button>
+        <button class="tab" data-tab="completo">Test completo</button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="estudio-rocas" class="view active" data-study="studyRocks">
+        <div class="toolbar">
+          <span class="pill" data-study-counter></span>
+          <div class="actions">
+            <button class="btn ghost" data-study-action="prev">Anterior</button>
+            <button class="btn secondary" data-study-action="shuffle">Mezclar</button>
+            <button class="btn" data-study-action="next">Siguiente</button>
+          </div>
+        </div>
+        <div class="study-layout">
+          <div class="photo-wrap study-photo">
+            <img data-study-image alt="Fotografía de roca con nombre">
+          </div>
+          <div class="study-caption card">
+            <div>
+              <div class="study-name" data-study-name></div>
+              <div class="subtitle" data-study-details></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="estudio-minerales" class="view" data-study="studyMinerals">
+        <div class="toolbar">
+          <span class="pill" data-study-counter></span>
+          <div class="actions">
+            <button class="btn ghost" data-study-action="prev">Anterior</button>
+            <button class="btn secondary" data-study-action="shuffle">Mezclar</button>
+            <button class="btn" data-study-action="next">Siguiente</button>
+          </div>
+        </div>
+        <div class="study-layout">
+          <div class="photo-wrap study-photo">
+            <img data-study-image alt="Fotografía de mineral con nombre">
+          </div>
+          <div class="study-caption card">
+            <div>
+              <div class="study-name" data-study-name></div>
+              <div class="subtitle" data-study-details></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="estudio-completo" class="view" data-study="studyFull">
+        <div class="toolbar">
+          <span class="pill" data-study-counter></span>
+          <div class="actions">
+            <button class="btn ghost" data-study-action="prev">Anterior</button>
+            <button class="btn secondary" data-study-action="shuffle">Mezclar</button>
+            <button class="btn" data-study-action="next">Siguiente</button>
+          </div>
+        </div>
+        <div class="study-layout">
+          <div class="photo-wrap study-photo">
+            <img data-study-image alt="Fotografía de estudio con nombre">
+          </div>
+          <div class="study-caption card">
+            <div>
+              <div class="study-name" data-study-name></div>
+              <div class="subtitle" data-study-details></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="test-rocas" class="view">
+        <div class="toolbar">
+          <div class="scorebar" id="rockScores"></div>
+        </div>
+        <div class="stage">
+          <div class="photo-wrap"><img id="rockImage" alt="Roca sin nombre"></div>
+          <div class="card">
+            <div class="answer-grid">
+              <label>Nombre de la roca <input id="rockName" autocomplete="off"></label>
+              <label>Tipo de roca <input id="rockType" autocomplete="off" placeholder="sedimentaria, volcánica, plutónica o metamórfica"></label>
+            </div>
+            <div class="actions">
+              <button class="btn" id="checkRock">Comprobar</button>
+              <button class="btn secondary" id="newRock">Nueva pregunta</button>
+            </div>
+            <div class="result" id="rockResult"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="test-minerales" class="view">
+        <div class="toolbar">
+          <div class="scorebar" id="mineralScores"></div>
+        </div>
+        <div class="stage">
+          <div class="photo-wrap"><img id="mineralImage" alt="Mineral sin nombre"></div>
+          <div class="card">
+            <div class="answer-grid">
+              <label>Nombre del mineral <input id="mineralName" autocomplete="off"></label>
+              <label>Composición química <input id="mineralComposition" autocomplete="off"></label>
+            </div>
+            <div class="actions">
+              <button class="btn" id="checkMineral">Comprobar</button>
+              <button class="btn secondary" id="newMineral">Nueva pregunta</button>
+            </div>
+            <div class="result" id="mineralResult"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tipo" class="view">
+        <div class="toolbar">
+          <div class="scorebar" id="kindScores"></div>
+        </div>
+        <div class="stage">
+          <div class="photo-wrap"><img id="kindImage" alt="Roca o mineral sin nombre"></div>
+          <div class="card">
+            <div class="choice-row">
+              <button class="btn choice" data-kind-choice="roca">Roca</button>
+              <button class="btn choice" data-kind-choice="mineral">Mineral</button>
+            </div>
+            <div class="actions">
+              <button class="btn" id="checkKind">Comprobar</button>
+              <button class="btn secondary" id="newKind">Nueva pregunta</button>
+            </div>
+            <div class="result" id="kindResult"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="completo" class="view">
+        <div class="toolbar">
+          <div class="scorebar" id="fullScores"></div>
+        </div>
+        <div class="stage">
+          <div class="photo-wrap"><img id="fullImage" alt="Imagen sin nombre"></div>
+          <div class="card">
+            <div class="answer-grid">
+              <div>
+                <div class="subtitle">Primero elige una opción</div>
+                <div class="choice-row" style="margin-top: 8px;">
+                  <button class="btn choice" data-full-choice="roca">Roca</button>
+                  <button class="btn choice" data-full-choice="mineral">Mineral</button>
+                </div>
+              </div>
+              <div id="fullRockFields" class="answer-grid hidden">
+                <label>Nombre de la roca <input id="fullRockName" autocomplete="off"></label>
+                <label>Tipo de roca <input id="fullRockType" autocomplete="off"></label>
+              </div>
+              <div id="fullMineralFields" class="answer-grid hidden">
+                <label>Nombre del mineral <input id="fullMineralName" autocomplete="off"></label>
+                <label>Composición química <input id="fullMineralComposition" autocomplete="off"></label>
+              </div>
+            </div>
+            <div class="actions">
+              <button class="btn" id="checkFull">Comprobar</button>
+              <button class="btn secondary" id="newFull">Nueva pregunta</button>
+            </div>
+            <div class="result" id="fullResult"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    /*
+      LISTA DE IMAGENES
+      Anade o quita archivos aqui. Las rutas son relativas a este index.html.
+      Las respuestas se obtienen del nombre del archivo y se pueden ajustar en
+      MANUAL_MINERALS si algun archivo no separa bien nombre y composicion.
+    */
+    const STUDY_ROCK_FILES = [
+      "connombre/rocas/conglomerado_sed.png",
+      "connombre/rocas/arenisca_sed.png",
+      "connombre/rocas/lavacordada_volc.jpeg",
+      "connombre/rocas/granito_plut.jpeg",
+      "connombre/rocas/gneis_meta.jpeg",
+      "connombre/rocas/lapilli_volc.jpeg"
+    ];
+
+    const STUDY_MINERAL_FILES = [
+      "connombre/minerales/azufrenativo_min.png",
+      "connombre/minerales/andalucita_silicatoaluminio_min.png",
+      "connombre/minerales/berilo_silicatoberilio_min.png",
+      "connombre/minerales/galena_sulfurodeplomo_min.png",
+      "connombre/minerales/goethita_oxidohierro_min.png",
+      "connombre/minerales/yesofibroso_sulfatocalcio_min.png",
+      "connombre/minerales/halita_halurodesodio_min.png",
+      "connombre/minerales/biotita_silicatogrupomicas_min.png",
+      "connombre/minerales/azurita_carbonatodecobre_min.png",
+      "connombre/minerales/cinabrio_sulfurodemercurio_min.png",
+      "connombre/minerales/cobrenativo_min.png",
+      "connombre/minerales/hornblenda_silicatoaluminio_min.png",
+      "connombre/minerales/agatasilicato_min.png",
+      "connombre/minerales/silvina_haluropotasio_min.png",
+      "connombre/minerales/almandino_silicatoaluminio_min.png"
+    ];
+
+    const TEST_ROCK_FILES = [
+      "sinnombre/rocas/arenisca_sed.png",
+      "sinnombre/rocas/lavacordada_volc.jpeg",
+      "sinnombre/rocas/granito_plut.jpeg",
+      "sinnombre/rocas/gneis_meta.jpeg",
+      "sinnombre/rocas/conglomerado_sed1.png",
+      "sinnombre/rocas/conglomerado_sed2.png",
+      "sinnombre/rocas/lapilli_volc.jpeg"
+    ];
+
+    const TEST_MINERAL_FILES = [
+      "sinnombre/minerales/azufrenativo_min.png",
+      "sinnombre/minerales/andalucita_silicatoaluminio_min.png",
+      "sinnombre/minerales/berilo_silicatoberilio_min.png",
+      "sinnombre/minerales/galena_sulfurodeplomo_min.png",
+      "sinnombre/minerales/goethita_oxidohierro_min.png",
+      "sinnombre/minerales/yesofibroso_sulfatocalcio_min.png",
+      "sinnombre/minerales/halita_halurodesodio_min.png",
+      "sinnombre/minerales/biotita_min.png",
+      "sinnombre/minerales/azurita_carbonatodecobre_min.png",
+      "sinnombre/minerales/cinabrio_sulfurodemercurio_min.png",
+      "sinnombre/minerales/cobrenativo_min.png",
+      "sinnombre/minerales/hornblenda_silicatoaluminio_min.png",
+      "sinnombre/minerales/agatasilicato_min.png",
+      "sinnombre/minerales/silvina_haluropotasio_min.png",
+      "sinnombre/minerales/almandino_silicatoaluminio_min.png"
+    ];
+
+    const ROCK_TYPES = {
+      sed: "sedimentaria",
+      volc: "volcánica",
+      plut: "plutónica",
+      meta: "metamórfica"
+    };
+
+    const DISPLAY_NAMES = {
+      lavacordada: "lava cordada",
+      yesofibroso: "yeso fibroso",
+      azufrenativo: "azufre nativo",
+      cobrenativo: "cobre nativo",
+      agatasilicato: "ágata",
+      silicatoaluminio: "silicato de aluminio",
+      silicatoberilio: "silicato de berilio",
+      sulfurodeplomo: "sulfuro de plomo",
+      oxidohierro: "óxido de hierro",
+      sulfatocalcio: "sulfato de calcio",
+      halurodesodio: "haluro de sodio",
+      silicatogrupomicas: "silicato del grupo de las micas",
+      carbonatodecobre: "carbonato de cobre",
+      sulfurodemercurio: "sulfuro de mercurio",
+      haluropotasio: "haluro de potasio"
+    };
+
+    const MANUAL_MINERALS = {
+      azufrenativo: { name: "azufre nativo", composition: "azufre" },
+      cobrenativo: { name: "cobre nativo", composition: "cobre" },
+      agatasilicato: { name: "ágata", composition: "silicato" },
+      biotita: { name: "biotita", composition: "silicato del grupo de las micas" }
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => [...document.querySelectorAll(selector)];
+
+    const state = {
+      studyRocks: { items: [], source: [], index: 0 },
+      studyMinerals: { items: [], source: [], index: 0 },
+      studyFull: { items: [], source: [], index: 0 },
+      rocks: makeTestState("rocks"),
+      minerals: makeTestState("minerals"),
+      kind: makeTestState("kind"),
+      full: makeTestState("full"),
+      kindChoice: "",
+      fullChoice: ""
+    };
+
+    function makeTestState(key) {
+      return {
+        current: null,
+        score: 0,
+        best: Number(sessionStorage.getItem(`best-${key}`) || 0),
+        checked: false
+      };
+    }
+
+    function baseName(path) {
+      return path.split("/").pop().replace(/\.[^.]+$/, "");
+    }
+
+    function cleanRockSlug(slug) {
+      return slug.replace(/_(sed|volc|plut|meta)\d*$/, "");
+    }
+
+    function pretty(slug) {
+      return DISPLAY_NAMES[slug] || slug.replace(/\d+$/g, "").replace(/_/g, " ");
+    }
+
+    function title(text) {
+      return text.charAt(0).toUpperCase() + text.slice(1);
+    }
+
+    function normalize(text) {
+      return String(text || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]/g, "");
+    }
+
+    function isAnswer(userValue, answers) {
+      const normalUser = normalize(userValue);
+      return answers.some((answer) => normalize(answer) === normalUser);
+    }
+
+    function shuffle(items) {
+      const copy = [...items];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function randomItem(items) {
+      return items[Math.floor(Math.random() * items.length)];
+    }
+
+    function parseRock(path, named = false) {
+      const slug = baseName(path);
+      const typeKey = (slug.match(/_(sed|volc|plut|meta)\d*$/) || [])[1];
+      const nameSlug = cleanRockSlug(slug);
+      const name = pretty(nameSlug);
+      return {
+        kind: "roca",
+        path,
+        name,
+        type: ROCK_TYPES[typeKey],
+        named,
+        nameAnswers: [name, nameSlug],
+        typeAnswers: [ROCK_TYPES[typeKey], typeKey]
+      };
+    }
+
+    function parseMineral(path, named = false) {
+      const slug = baseName(path).replace(/_min$/, "");
+      const parts = slug.split("_");
+      const manual = MANUAL_MINERALS[parts[0]] || MANUAL_MINERALS[slug];
+      const name = manual ? manual.name : pretty(parts[0]);
+      const compositionSlug = manual ? manual.composition : pretty(parts.slice(1).join("_"));
+      return {
+        kind: "mineral",
+        path,
+        name,
+        composition: compositionSlug,
+        named,
+        nameAnswers: [name, parts[0]],
+        compositionAnswers: [compositionSlug, parts.slice(1).join("_")]
+      };
+    }
+
+    const studyRockItems = STUDY_ROCK_FILES.map((path) => parseRock(path, true));
+    const studyMineralItems = STUDY_MINERAL_FILES.map((path) => parseMineral(path, true));
+    const studyItems = [...studyRockItems, ...studyMineralItems];
+    const rockItems = TEST_ROCK_FILES.map((path) => parseRock(path));
+    const mineralItems = TEST_MINERAL_FILES.map((path) => parseMineral(path));
+    const mixedItems = [...rockItems, ...mineralItems];
+
+    function setScore(testKey, scoreSelector) {
+      const test = state[testKey];
+      $(scoreSelector).innerHTML = `
+        <span class="pill">Puntuación: ${test.score}</span>
+        <span class="pill">Máxima: ${test.best}</span>
+      `;
+    }
+
+    function addPoints(testKey, points) {
+      const test = state[testKey];
+      test.score += points;
+      test.best = Math.max(test.best, test.score);
+      sessionStorage.setItem(`best-${testKey}`, String(test.best));
+    }
+
+    function resultLine(ok, label, correct) {
+      return `<div class="${ok ? "ok" : "bad"}">${label}: ${ok ? "correcto" : `incorrecto. Respuesta: ${correct}`}</div>`;
+    }
+
+    function studySection(key) {
+      return $(`[data-study="${key}"]`);
+    }
+
+    function showStudy(key) {
+      const section = studySection(key);
+      const study = state[key];
+      const item = study.items[study.index];
+      section.querySelector("[data-study-image]").src = item.path;
+      section.querySelector("[data-study-name]").textContent = title(item.name);
+      section.querySelector("[data-study-details]").textContent = item.kind === "roca" ? `Roca ${item.type}` : `Mineral - ${item.composition || "composición no indicada"}`;
+      section.querySelector("[data-study-counter]").textContent = `${study.index + 1} de ${study.items.length}`;
+    }
+
+    function moveStudy(key, direction) {
+      const study = state[key];
+      study.index = (study.index + direction + study.items.length) % study.items.length;
+      showStudy(key);
+    }
+
+    function shuffleStudy(key) {
+      const study = state[key];
+      study.items = shuffle(study.source);
+      study.index = 0;
+      showStudy(key);
+    }
+
+    function initStudy(key, source) {
+      state[key].source = source;
+      state[key].items = shuffle(source);
+      state[key].index = 0;
+      const section = studySection(key);
+      section.querySelector('[data-study-action="prev"]').addEventListener("click", () => moveStudy(key, -1));
+      section.querySelector('[data-study-action="next"]').addEventListener("click", () => moveStudy(key, 1));
+      section.querySelector('[data-study-action="shuffle"]').addEventListener("click", () => shuffleStudy(key));
+      showStudy(key);
+    }
+
+    function newRockQuestion() {
+      state.rocks.current = randomItem(rockItems);
+      state.rocks.checked = false;
+      $("#rockImage").src = state.rocks.current.path;
+      $("#rockName").value = "";
+      $("#rockType").value = "";
+      $("#rockResult").innerHTML = "";
+      setScore("rocks", "#rockScores");
+      $("#rockName").focus();
+    }
+
+    function checkRock() {
+      if (state.rocks.checked) return;
+      const item = state.rocks.current;
+      const nameOk = isAnswer($("#rockName").value, item.nameAnswers);
+      const typeOk = isAnswer($("#rockType").value, item.typeAnswers);
+      addPoints("rocks", Number(nameOk) + Number(typeOk));
+      state.rocks.checked = true;
+      $("#rockResult").innerHTML = [
+        resultLine(nameOk, "Nombre", title(item.name)),
+        resultLine(typeOk, "Tipo", item.type)
+      ].join("");
+      setScore("rocks", "#rockScores");
+    }
+
+    function newMineralQuestion() {
+      state.minerals.current = randomItem(mineralItems);
+      state.minerals.checked = false;
+      $("#mineralImage").src = state.minerals.current.path;
+      $("#mineralName").value = "";
+      $("#mineralComposition").value = "";
+      $("#mineralResult").innerHTML = "";
+      setScore("minerals", "#mineralScores");
+      $("#mineralName").focus();
+    }
+
+    function checkMineral() {
+      if (state.minerals.checked) return;
+      const item = state.minerals.current;
+      const nameOk = isAnswer($("#mineralName").value, item.nameAnswers);
+      const compositionOk = isAnswer($("#mineralComposition").value, item.compositionAnswers);
+      addPoints("minerals", Number(nameOk) + Number(compositionOk));
+      state.minerals.checked = true;
+      $("#mineralResult").innerHTML = [
+        resultLine(nameOk, "Nombre", title(item.name)),
+        resultLine(compositionOk, "Composición", item.composition)
+      ].join("");
+      setScore("minerals", "#mineralScores");
+    }
+
+    function selectKind(choice) {
+      state.kindChoice = choice;
+      $$("[data-kind-choice]").forEach((button) => button.classList.toggle("selected", button.dataset.kindChoice === choice));
+    }
+
+    function newKindQuestion() {
+      state.kind.current = randomItem(mixedItems);
+      state.kind.checked = false;
+      state.kindChoice = "";
+      $("#kindImage").src = state.kind.current.path;
+      $("#kindResult").innerHTML = "";
+      $$("[data-kind-choice]").forEach((button) => button.classList.remove("selected"));
+      setScore("kind", "#kindScores");
+    }
+
+    function checkKind() {
+      if (state.kind.checked) return;
+      if (!state.kindChoice) {
+        $("#kindResult").innerHTML = '<div class="bad">Elige roca o mineral antes de comprobar.</div>';
+        return;
+      }
+      const item = state.kind.current;
+      const ok = state.kindChoice === item.kind;
+      addPoints("kind", Number(ok));
+      state.kind.checked = true;
+      $("#kindResult").innerHTML = resultLine(ok, "Tipo de imagen", item.kind);
+      setScore("kind", "#kindScores");
+    }
+
+    function selectFull(choice) {
+      state.fullChoice = choice;
+      $$("[data-full-choice]").forEach((button) => button.classList.toggle("selected", button.dataset.fullChoice === choice));
+      $("#fullRockFields").classList.toggle("hidden", choice !== "roca");
+      $("#fullMineralFields").classList.toggle("hidden", choice !== "mineral");
+    }
+
+    function newFullQuestion() {
+      state.full.current = randomItem(mixedItems);
+      state.full.checked = false;
+      state.fullChoice = "";
+      $("#fullImage").src = state.full.current.path;
+      $("#fullResult").innerHTML = "";
+      ["#fullRockName", "#fullRockType", "#fullMineralName", "#fullMineralComposition"].forEach((selector) => $(selector).value = "");
+      $$("[data-full-choice]").forEach((button) => button.classList.remove("selected"));
+      $("#fullRockFields").classList.add("hidden");
+      $("#fullMineralFields").classList.add("hidden");
+      setScore("full", "#fullScores");
+    }
+
+    function checkFull() {
+      if (state.full.checked) return;
+      const item = state.full.current;
+      const kindOk = state.fullChoice === item.kind;
+      let points = Number(kindOk);
+      const lines = [resultLine(kindOk, "Roca o mineral", item.kind)];
+
+      if (item.kind === "roca") {
+        const nameOk = isAnswer($("#fullRockName").value, item.nameAnswers);
+        const typeOk = isAnswer($("#fullRockType").value, item.typeAnswers);
+        points += Number(nameOk) + Number(typeOk);
+        lines.push(resultLine(nameOk, "Nombre", title(item.name)));
+        lines.push(resultLine(typeOk, "Tipo", item.type));
+      } else {
+        const nameOk = isAnswer($("#fullMineralName").value, item.nameAnswers);
+        const compositionOk = isAnswer($("#fullMineralComposition").value, item.compositionAnswers);
+        points += Number(nameOk) + Number(compositionOk);
+        lines.push(resultLine(nameOk, "Nombre", title(item.name)));
+        lines.push(resultLine(compositionOk, "Composición", item.composition));
+      }
+
+      addPoints("full", points);
+      state.full.checked = true;
+      $("#fullResult").innerHTML = lines.join("");
+      setScore("full", "#fullScores");
+    }
+
+    function initTabs() {
+      $$(".tab").forEach((button) => {
+        button.addEventListener("click", () => {
+          $$(".tab").forEach((tab) => tab.classList.remove("active"));
+          $$(".view").forEach((view) => view.classList.remove("active"));
+          button.classList.add("active");
+          $(`#${button.dataset.tab}`).classList.add("active");
+        });
+      });
+    }
+
+    function init() {
+      initTabs();
+
+      initStudy("studyRocks", studyRockItems);
+      initStudy("studyMinerals", studyMineralItems);
+      initStudy("studyFull", studyItems);
+
+      $("#checkRock").addEventListener("click", checkRock);
+      $("#newRock").addEventListener("click", newRockQuestion);
+      $("#checkMineral").addEventListener("click", checkMineral);
+      $("#newMineral").addEventListener("click", newMineralQuestion);
+      $$("[data-kind-choice]").forEach((button) => button.addEventListener("click", () => selectKind(button.dataset.kindChoice)));
+      $("#checkKind").addEventListener("click", checkKind);
+      $("#newKind").addEventListener("click", newKindQuestion);
+      $$("[data-full-choice]").forEach((button) => button.addEventListener("click", () => selectFull(button.dataset.fullChoice)));
+      $("#checkFull").addEventListener("click", checkFull);
+      $("#newFull").addEventListener("click", newFullQuestion);
+
+      newRockQuestion();
+      newMineralQuestion();
+      newKindQuestion();
+      newFullQuestion();
+    }
+
+    init();
+  </script>
+</body>
+</html>
