@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrícula IES El Majuelo</title>
+    <!-- Tailwind CSS para el diseño moderno -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --green: #4f7f68;
+            --green-hover: #3f6854;
+            --green-light: #edf5f0;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        /* Custom Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        /* Card Hover Effects */
+        .selection-card {
+            transition: all 0.2s ease-in-out;
+            border: 2px solid transparent;
+        }
+        .selection-card:hover:not(:disabled) {
+            transform: translateY(-4px);
+            border-color: var(--green);
+            box-shadow: 0 10px 25px -5px rgba(79, 127, 104, 0.2);
+        }
+        
+        /* Checkbox/Radio Styling */
+        .subject-choice input[type="radio"],
+        .subject-choice input[type="checkbox"] {
+            display: none;
+        }
+        .subject-choice {
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+        }
+        .subject-choice:hover:not(.disabled) {
+            border-color: var(--green);
+            background-color: var(--green-light);
+        }
+        .subject-choice.selected {
+            border-color: var(--green);
+            background-color: var(--green-light);
+            box-shadow: 0 0 0 1px var(--green);
+        }
+        .subject-choice.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Progess Bar */
+        .meter-fill {
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Encabezado y Navegación (Migas de Pan) -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <!-- Logo y Título -->
+                <div class="flex items-center gap-4 cursor-pointer" onclick="app.goToStep(1)">
+                    <div class="w-12 h-12 flex items-center justify-center rounded-xl shadow-lg bg-white">
+                        <img src="logo_majuelo.png" alt="Logo IES El Majuelo" class="w-full h-full object-cover rounded-xl">
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900 leading-tight">IES El Majuelo</h1>
+                        <p class="text-sm text-gray-500 font-medium">Asistente de Matrícula</p>
+                    </div>
+                </div>
+
+                <!-- Migas de Pan (Breadcrumbs) -->
+                <nav id="breadcrumbs" class="flex items-center gap-2 text-sm font-medium text-gray-500 overflow-x-auto whitespace-nowrap pb-1 md:pb-0" aria-label="Breadcrumb">
+                    <!-- Dinámico -->
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenedor Principal -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        
+        <!-- PANTALLA 1: ETAPA -->
+        <div id="step-1" class="step-container hidden animate-fade-in">
+            <div class="text-center max-w-2xl mx-auto mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">¿Qué enseñanza vas a cursar?</h2>
+                <p class="text-gray-600">Selecciona la etapa educativa para comenzar tu matrícula.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+                <button onclick="app.selectEtapa('eso')" class="selection-card bg-white p-8 rounded-2xl shadow-sm flex flex-col items-center gap-4 text-center">
+                    <div class="w-16 h-16 bg-[#edf5f0] text-[#4f7f68] rounded-full flex items-center justify-center">
+                        <i data-lucide="book-open" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900">E.S.O.</h3>
+                    <p class="text-sm text-gray-500">Educación Secundaria Obligatoria (1º a 4º)</p>
+                </button>
+                
+                <button onclick="app.selectEtapa('bach')" class="selection-card bg-white p-8 rounded-2xl shadow-sm flex flex-col items-center gap-4 text-center">
+                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
+                        <i data-lucide="graduation-cap" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900">Bachillerato</h3>
+                    <p class="text-sm text-gray-500">Modalidades de Ciencias, Humanidades y Sociales</p>
+                </button>
+
+                <button onclick="app.selectEtapa('espa')" class="selection-card bg-white p-8 rounded-2xl shadow-sm flex flex-col items-center gap-4 text-center">
+                    <div class="w-16 h-16 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center">
+                        <i data-lucide="library" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900">ESPA</h3>
+                    <p class="text-sm text-gray-500">Secundaria para Personas Adultas</p>
+                </button>
+
+                <button disabled class="selection-card bg-gray-50 opacity-60 p-8 rounded-2xl border border-gray-200 flex flex-col items-center gap-4 text-center cursor-not-allowed">
+                    <div class="w-16 h-16 bg-gray-200 text-gray-400 rounded-full flex items-center justify-center">
+                        <i data-lucide="briefcase" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900">BTOPA</h3>
+                    <p class="text-sm text-gray-500">Próximamente disponible</p>
+                </button>
+            </div>
+        </div>
+
+        <!-- PANTALLA 2: CURSO -->
+        <div id="step-2" class="step-container hidden animate-fade-in">
+            <div class="text-center max-w-2xl mx-auto mb-10">
+                <h2 id="step-2-title" class="text-3xl font-bold text-gray-900 mb-4">Elige tu curso</h2>
+                <p class="text-gray-600">Selecciona el curso específico en el que te vas a matricular.</p>
+            </div>
+            <div id="course-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <!-- Dinámico -->
+            </div>
+        </div>
+
+        <!-- PANTALLA 3: ITINERARIO / MODALIDAD -->
+        <div id="step-3" class="step-container hidden animate-fade-in">
+            <div class="text-center max-w-2xl mx-auto mb-10">
+                <h2 id="step-3-title" class="text-3xl font-bold text-gray-900 mb-4">Selecciona tu modalidad</h2>
+                <p class="text-gray-600">Elige el itinerario que mejor se adapte a tus futuros estudios.</p>
+            </div>
+            <div id="path-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                <!-- Dinámico -->
+            </div>
+        </div>
+
+        <!-- PANTALLA 4: MATERIAS -->
+        <div id="step-4" class="step-container hidden animate-fade-in">
+            <div class="flex flex-col lg:flex-row gap-8">
+                
+                <!-- Columna Izquierda: Selección -->
+                <div class="flex-grow lg:w-2/3 space-y-8">
+                    <div>
+                        <h2 id="final-course-title" class="text-3xl font-bold text-[#4f7f68]"></h2>
+                        <p id="final-course-subtitle" class="text-gray-600 mt-2 font-medium"></p>
+                    </div>
+                    
+                    <div id="subjects-area" class="space-y-6">
+                        <!-- Dinámico: Materias fijas y opciones -->
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Barra Lateral de Resumen -->
+                <aside class="lg:w-1/3">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sticky top-24">
+                        <div class="mb-6 pb-6 border-b border-gray-100">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                <i data-lucide="clipboard-list" class="w-5 h-5 text-[#4f7f68]"></i>
+                                Tu Elección
+                            </h3>
+                            <div id="print-list" class="space-y-3 max-h-[40vh] overflow-y-auto pr-2 text-sm text-gray-700">
+                                <!-- Dinámico -->
+                            </div>
+                        </div>
+
+                        <div id="hours-summary" class="mb-6">
+                            <div class="flex justify-between items-end mb-2">
+                                <span class="font-bold text-gray-700">Horas elegidas</span>
+                                <span id="total-hours" class="text-2xl font-black text-gray-900">0/30</span>
+                            </div>
+                            <div class="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
+                                <div id="meter-fill" class="h-full meter-fill w-0 bg-[#4f7f68]"></div>
+                            </div>
+                        </div>
+
+                        <div id="status-box" class="flex items-start gap-3 p-4 rounded-xl mb-6 bg-amber-50 text-amber-800 text-sm font-medium">
+                            <!-- Dinámico -->
+                        </div>
+
+                        <button onclick="window.print()" class="w-full py-3 px-4 bg-[#4f7f68] hover:bg-[#3f6854] text-white rounded-xl font-bold flex justify-center items-center gap-2 transition-colors">
+                            <i data-lucide="printer" class="w-5 h-5"></i>
+                            Imprimir resguardo
+                        </button>
+                    </div>
+                </aside>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- BASE DE DATOS ORIGINAL (Adaptada estructuralmente) ---
+        const SUBJECT_ICONS = {
+            "Lengua Castellana y Literatura": "book-open", "Lengua Castellana y Literatura I": "book-open", "Lengua castellana y literatura II": "book-open",
+            "Matemáticas": "calculator", "Matemáticas A": "calculator", "Matemáticas B": "calculator", "Matemáticas I": "calculator", "Matemáticas II": "calculator", "Matemáticas Aplicadas a las Ciencias Sociales I": "calculator", "Matemáticas Aplicadas a las Ciencias Sociales": "calculator",
+            "Educación Física": "dumbbell", "Educación física": "dumbbell",
+            "Geografía e Historia": "landmark", "Historia de España": "landmark", "Historia de la Filosofía": "brain", "Historia del Mundo contemporáneo": "globe-2", "Historia del Arte": "palette",
+            "Biología y Geología": "microscope", "Biología": "microscope", "Geología y Ciencias Ambientales": "mountain",
+            "Física y Química": "atom", "Física": "magnet", "Química": "flask-conical",
+            "Filosofía": "brain",
+            "Tecnología y Digitalización": "cpu", "Tecnología": "wrench", "Digitalización": "monitor-cog", "Tecnología e Ingeniería I": "cpu", "Tecnología e Ingeniería II": "cpu", "Tecnologías de la Información y Comunic. I": "monitor", "Tecnologías de la Información y Comunic. II": "monitor",
+            "Música": "music", "Educación Plástica, Visual y Audiovisual": "palette", "Expresión Artística": "brush",
+            "Dibujo Técnico I": "drafting-compass", "Dibujo Técnico II": "drafting-compass", "Dibujo Técnico": "drafting-compass",
+            "Latín": "scroll-text", "Latín I": "scroll-text", "Latín II": "scroll-text", "Griego I": "scroll-text", "Griego II": "scroll-text",
+            "Economía": "chart-line", "Economía y Emprendimiento": "chart-line", "Empresa y Diseño de Modelos de Negocio": "briefcase-business",
+            "Religión": "church", "Atención educativa": "heart", "Proyectos transv. de educ. en valores": "heart-handshake",
+            "Tutoría": "users", "Tutoría con el grupo de referencia": "users", "Tutoría con la orientadora": "user-round-check",
+            "Primera Lengua Extranjera": "languages", "1ª Lengua extranjera I": "languages", "1ª Lengua extranjera II": "languages",
+            "Segunda Lengua Extranjera": "languages", "Segunda Lengua Extranjera II": "languages",
+            "Computación y robótica": "bot", "Cultura Clásica": "columns-3", "Oratoria y Debate": "message-square-text", "Cultura del Flamenco": "guitar",
+            "Formación y Orientación Personal y Profesional": "compass",
+            "Ámbito de comunicación": "messages-square", "Ámbito científico-tecnológico": "blocks", "Ámbito lingüístico y social": "messages-square", "Ámbito social": "landmark",
+            "Laboratorio STEAM": "flask-conical", "Anatomía Aplicada": "activity", "Antropología y Sociología": "users-round", "Estadística": "chart-no-axes-combined", "Psicología": "brain", "Formación Investigadora": "search-check", "Análisis y Elaboración de Textos": "file-text", "Actividad Física, Salud y Sociedad": "heart-pulse", "Finanzas y Economía": "badge-euro", "Literatura Universal": "library-big", "Geografía": "map", "Patrimonio cultural y Artístico de Andalucía": "museum", "Aprendizaje Social y Emocional": "hand-heart", "Artes Escénicas y Danza": "theater", "Cultura Científica": "telescope", "Ampliación de Cultura Clásica": "columns-3", "Preparación Nivel B1 Inglés": "languages", "Estética y Cultura de la Imagen": "image"
+        };
+
+        function s(name, hours, group) { return { id: slug(name), name, hours, group, icon: SUBJECT_ICONS[name] || "circle-dot" }; }
+        function choice(label, min, max, hoursEach, options) { return { id: slug(label), label, min, max, hoursEach, options }; }
+        function choiceHours(label, targetHours, options) { return { id: slug(label), label, mode: "hours", targetHours, options }; }
+        function slug(value) { return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/(^-|-$)/g, "").toLowerCase(); }
+
+        // Funciones auxiliares de generacion de opciones (Mantenidas idénticas al original)
+        function adultModules(modules) {
+            const scopes = ["Ámbito de comunicación", "Ámbito científico-tecnológico", "Ámbito social"];
+            return modules.flatMap(module => scopes.map(scope => ({ ...s(`Módulo ${module} · ${scope}`, 0, "Ámbito"), id: `${slug(scope)}-${slug(module)}` })));
+        }
+        function bach1Common() { return [s("Educación fisica", 2, "Común"), s("Filosofía", 3, "Común"), s("Lengua Castellana y Literatura I", 4, "Común"), s("1ª Lengua extranjera I", 4, "Común")]; }
+        function bach2Common() { return [s("Historia de España", 4, "Común"), s("Historia de la Filosofía", 3, "Común"), s("Lengua castellana y literatura II", 3, "Común"), s("1ª Lengua extranjera II", 3, "Común")]; }
+        function eso4Choices(extraNames, optativaCount) {
+            return [
+                choice("Religión / Atención educativa", 1, 1, 1, [s("Religión", 1, "Religión / Atención educativa"), s("Atención educativa", 1, "Religión / Atención educativa")]),
+                choice("Optativas", optativaCount, optativaCount, 3, extraNames.map(name => s(name, 3, "Optativa"))),
+                communityChoice()
+            ];
+        }
+        function communityChoice(includeDibujoTecnico = true) {
+            const options = [s("Ampliación de Cultura Clásica", 2, "Optativa propia"), s("Aprendizaje Social y Emocional", 2, "Optativa propia"), s("Artes Escénicas y Danza", 2, "Optativa propia"), s("Cultura Científica", 2, "Optativa propia"), s("Filosofía", 2, "Optativa propia")];
+            if (includeDibujoTecnico) options.splice(4, 0, s("Dibujo Técnico", 2, "Optativa propia"));
+            return choice("Optativas propias de la comunidad", 1, 1, 2, options);
+        }
+        function bach1Optativas({ modalityChoice = null, fourHourOptions = [], twoHourSet = "ciencias", label = "Optativas de 2 horas", includeReligion = true } = {}) {
+            const groups = [];
+            if (modalityChoice) groups.push(modalityChoice);
+            const commonTwoHourOptions = [s("Antropología y Sociología", 2, "Optativa"), s("Preparación Nivel B1 Inglés", 2, "Optativa"), s("Estadística", 2, "Optativa"), s("Segunda Lengua Extranjera", 2, "Optativa"), s("Tecnologías de la Información y Comunic. I", 2, "Optativa")];
+            const twoHourOptions = twoHourSet === "humanidades"
+                ? commonTwoHourOptions.concat([s("Cultura Emprendedora y Empresarial", 2, "Optativa"), s("Patrimonio cultural y Artístico de Andalucía", 2, "Optativa")])
+                : [s("Anatomía Aplicada", 2, "Optativa"), s("Antropología y Sociología", 2, "Optativa"), s("Laboratorio STEAM", 2, "Optativa"), s("Preparación Nivel B1 Inglés", 2, "Optativa"), s("Estadística", 2, "Optativa"), s("Segunda Lengua Extranjera", 2, "Optativa"), s("Tecnologías de la Información y Comunic. I", 2, "Optativa")];
+            groups.push(choiceHours(label, 4, [...fourHourOptions, ...twoHourOptions]));
+            if (includeReligion) groups.push(choice("Religión / Proyectos transversales", 1, 1, 1, [s("Religión", 1, "Religión / Proyectos transversales"), s("Proyectos transv. de educ. en valores", 1, "Religión / Proyectos transversales")]));
+            return groups;
+        }
+        function bach2Optativas({ modalityChoice, twoHourSet = "ciencias", label = "Optativas de 2 horas" }) {
+            const base = [s("Actividad Física, Salud y Sociedad", 2, "Optativa"), s("Segunda Lengua Extranjera II", 2, "Optativa"), s("Psicología", 2, "Optativa"), s("Análisis y Elaboración de Textos", 2, "Optativa")];
+            const twoHourOptions = twoHourSet === "humanidades"
+                ? base.concat([s("Segunda Lengua Extranjera II", 2, "Optativa"), s("Estética y Cultura de la Imagen", 2, "Optativa")]).filter((option, index, list) => list.findIndex(item => item.id === option.id) === index)
+                : twoHourSet === "sociales"
+                ? base.concat([s("Finanzas y Economía", 2, "Optativa"), s("Estética y Cultura de la Imagen", 2, "Optativa")])
+                : base.concat([s("Tecnologías de la Información y Comunic. II", 2, "Optativa"), s("Formación Investigadora", 2, "Optativa")]);
+            return [
+                choiceHours(label, 4, [...modalityChoice.options.map(item => ({ ...item, group: "Optativa" })), ...twoHourOptions]),
+                choice("Religión / Proyectos transversales", 1, 1, 1, [s("Religión", 1, "Religión / Proyectos transversales"), s("Proyectos transv. de educ. en valores", 1, "Religión / Proyectos transversales")])
+            ];
+        }
+
+        // Datos re-estructurados
+        const db = {
+            eso: {
+                label: "ESO",
+                courses: [
+                    { id: "eso1", label: "1º ESO", path: "", icon: "compass",
+                        plan: { title: "1º ESO", subtitle: "Materias comunes, Religión/Valores y optativa.", target: 30, fixed: [s("Biología y Geología", 3, "Común"), s("Educación Física", 3, "Común"), s("Educación Plástica, Visual y Audiovisual", 1, "Común"), s("Geografía e Historia", 3, "Común"), s("Lengua Castellana y Literatura", 4, "Común"), s("Matemáticas", 4, "Común"), s("Música", 2, "Común"), s("Primera Lengua Extranjera", 4, "Común"), s("Segunda Lengua Extranjera", 2, "Común"), s("Tutoría", 1, "Tutoría")], choices: [choice("Religión / Atención educativa", 1, 1, 1, [s("Religión", 1, "Religión / Atención educativa"), s("Atención educativa", 1, "Religión / Atención educativa")]), choice("Optativas", 1, 1, 2, [s("Computación y robótica", 2, "Optativa"), s("Cultura Clásica", 2, "Optativa"), s("Oratoria y Debate", 2, "Optativa")])] }
+                    },
+                    { id: "eso2", label: "2º ESO", path: "", icon: "panels-top-left",
+                        plan: { title: "2º ESO", subtitle: "Materias comunes, Religión/Valores y optativa.", target: 30, fixed: [s("Educación Física", 2, "Común"), s("Física y Química", 3, "Común"), s("Geografía e Historia", 3, "Común"), s("Lengua Castellana y Literatura", 4, "Común"), s("Matemáticas", 4, "Común"), s("Música", 2, "Común"), s("Primera Lengua Extranjera", 4, "Común"), s("Tecnología y Digitalización", 3, "Común"), s("Educación en Valores Cívicos y Éticos", 1, "Común"), s("Tutoría", 1, "Tutoría")], choices: [choice("Religión / Atención educativa", 1, 1, 1, [s("Religión", 1, "Religión / Atención educativa"), s("Atención educativa", 1, "Religión / Atención educativa")]), choice("Optativas", 1, 1, 2, [s("Computación y robótica", 2, "Optativa"), s("Cultura Clásica", 2, "Optativa"), s("Oratoria y Debate", 2, "Optativa"), s("Proyecto de Educación Plástica y Audiovisual", 2, "Optativa"), s("Segunda Lengua Extranjera", 2, "Optativa")])] }
+                    },
+                    { id: "eso3", label: "3º ESO", path: "normal", icon: "route",
+                        plan: { title: "3º ESO", subtitle: "Materias comunes y optativas de 3º ESO.", target: 30, fixed: [s("Biología y Geología", 2, "Común"), s("Educación Física", 2, "Común"), s("Educación Plastica, Visual y Audiovisual", 2, "Común"), s("Física y Química", 3, "Común"), s("Geografía e Historia", 3, "Común"), s("Lengua Castellana y Literatura", 4, "Común"), s("Matemáticas", 4, "Común"), s("Primera Lengua Extranjera", 4, "Común"), s("Tecnología y Digitalización", 2, "Común"), s("Tutoría", 1, "Tutoría")], choices: [choice("Religión / Atención educativa", 1, 1, 1, [s("Religión", 1, "Religión / Atención educativa"), s("Atención educativa", 1, "Religión / Atención educativa")]), choice("Optativas", 1, 1, 2, [s("Computación y robótica", 2, "Optativa"), s("Cultura Clásica", 2, "Optativa"), s("Cultura del Flamenco", 2, "Optativa"), s("Filosofía y Argumentación", 2, "Optativa"), s("Iniciación a la Actividad Emprendedora y Empresarial", 2, "Optativa"), s("Oratoria y Debate", 2, "Optativa"), s("Segunda Lengua Extranjera", 2, "Optativa")])] }
+                    },
+                    { id: "eso3", label: "3º ESO Diversificación", path: "diversificacion", icon: "split",
+                        plan: { title: "3º ESO Diversificación", subtitle: "Materias propias del Programa de Diversificación Curricular.", target: 30, fixed: [s("Ámbito científico-tecnologico", 8, "Ámbito"), s("Ámbito lingüístico y social", 9, "Ámbito"), s("Educación Física", 2, "Común"), s("Educación Plastica, Visual y Audiovisual", 2, "Común"), s("Tecnología y Digitalización", 2, "Común"), s("Tutoría con el grupo de referencia", 1, "Tutoría"), s("Tutoría con la orientadora", 1, "Tutoría")], choices: [choice("Religión / Atención educativa", 1, 1, 1, [s("Religión", 1, "Religión / Atención educativa"), s("Atención educativa", 1, "Religión / Atención educativa")]), choice("Optativas", 2, 2, 2, [s("Computación y robótica", 2, "Optativa"), s("Cultura Clásica", 2, "Optativa"), s("Cultura del Flamenco", 2, "Optativa"), s("Filosofía y Argumentación", 2, "Optativa"), s("Iniciación a la Actividad Emprendedora y Empresarial", 2, "Optativa"), s("Oratoria y Debate", 2, "Optativa"), s("Segunda Lengua Extranjera", 2, "Optativa")])] }
+                    },
+                    { id: "eso4", label: "4º ESO", path: "?", icon: "target",
+                        paths: [
+                            { id: "it1", label: "Ciencias y Tecnología", subtitle: "Aconsejado para Bachillerato de Ciencia y Tecnología.", icon: "atom", plan: { title: "4º ESO: Ciencias y Tecnología", target: 30, fixed: [s("Educación Física", 2, "Común"), s("Geografía e Historia", 3, "Común"), s("Lengua Castellana y Literatura", 4, "Común"), s("Matemáticas B", 4, "Común"), s("Primera Lengua Extranjera", 4, "Común"), s("Biología y Geología", 3, "Obligatoria de itinerario"), s("Física y Química", 3, "Obligatoria de itinerario"), s("Tutoría", 1, "Tutoría")], choices: eso4Choices(["Digitalización", "Economía y Emprendimiento", "Expresión Artística", "Formación y Orientación Personal y Profesional", "Música", "Segunda Lengua Extranjera", "Tecnología"], 1) } },
+                            { id: "it2", label: "Humanidades y CC.SS.", subtitle: "Aconsejado para Bachillerato de Humanidades y Ciencias Sociales.", icon: "landmark", plan: { title: "4º ESO: Humanidades y Ciencias Sociales", target: 30, fixed: [s("Educación Física", 2, "Común"), s("Geografía e Historia", 3, "Común"), s("Lengua Castellana y Literatura", 4, "Común"), s("Matemáticas B", 4, "Común"), s("Primera Lengua Extranjera", 4, "Común"), s("Economía y Emprendimiento", 3, "Obligatoria de itinerario"), s("Latín", 3, "Obligatoria de itinerario"), s("Tutoría", 1, "Tutoría")], choices: eso4Choices(["Digitalización", "Expresión Artística", "Formación y Orientación Personal y Profesional", "Música", "Segunda Lengua Extranjera", "Tecnología"], 1) } },
+                            { id: "it3", label: "Artes y Ciclos Formativos", subtitle: "Aconsejado para Bachillerato de Artes o Ciclos Formativos.", icon: "palette", plan: { title: "4º ESO: Artes y Ciclos Formativos", target: 30, fixed: [s("Educación Física", 2, "Común"), s("Geografía e Historia", 3, "Común"), s("Lengua Castellana y Literatura", 4, "Común"), s("Matemáticas A", 4, "Común"), s("Primera Lengua Extranjera", 4, "Común"), s("Formación y Orientación Personal y Profesional", 3, "Obligatoria de itinerario"), s("Tutoría", 1, "Tutoría")], choices: eso4Choices(["Digitalización", "Economía y Emprendimiento", "Expresión Artística", "Música", "Segunda Lengua Extranjera", "Tecnología"], 2) } }
+                        ]
+                    },
+                    { id: "eso4div", label: "4º ESO Diversificación", path: "it4", icon: "git-branch",
+                        plan: { title: "4º ESO Diversificación", subtitle: "Para continuar estudios en un Ciclo Formativo de Grado Medio.", target: 30, fixed: [s("Ámbito científico-tecnologico", 8, "Ámbito"), s("Ámbito lingüístico y social", 9, "Ámbito"), s("Educación Física", 2, "Común"), s("Formación y Orientación Personal y Profesional", 3, "Obligatoria de itinerario"), s("Tutoría con el grupo de referencia", 1, "Tutoría"), s("Tutoría con la orientadora", 1, "Tutoría")], choices: [choice("Religión / Atención educativa", 1, 1, 1, [s("Religión", 1, "Religión / Atención educativa"), s("Atención educativa", 1, "Religión / Atención educativa")]), choice("Optativas", 1, 1, 3, ["Digitalización", "Expresión Artística", "Música", "Segunda Lengua Extranjera", "Tecnología"].map(name => s(name, 3, "Optativa"))), communityChoice(false)] }
+                    }
+                ]
+            },
+            bach: {
+                label: "Bachillerato",
+                courses: [
+                    { id: "bach1", label: "1º Bachillerato", path: "?", icon: "atom",
+                        paths: [
+                            { id: "bach1Tec", label: "C. y Tecnología: Tecnológico", icon: "cpu", plan: { title: "1º Bach. Tecnológico", target: 30, fixed: bach1Common().concat([s("Matemáticas I", 4, "Modalidad"), s("Física y Química", 4, "Modalidad")]), choices: bach1Optativas({ modalityChoice: choice("Modalidad", 1, 1, 4, [s("Dibujo Técnico I", 4, "Modalidad"), s("Tecnología e Ingeniería I", 4, "Modalidad")]), fourHourOptions: [s("Tecnología e Ingeniería I", 4, "Optativa")], twoHourSet: "ciencias" }) } },
+                            { id: "bach1Salud", label: "C. y Tecnología: Salud", icon: "microscope", plan: { title: "1º Bach. Naturaleza y Salud", target: 30, fixed: bach1Common().concat([s("Matemáticas I", 4, "Modalidad"), s("Física y Química", 4, "Modalidad"), s("Biología y Geología", 4, "Modalidad")]), choices: bach1Optativas({ fourHourOptions: [s("Tecnología e Ingeniería I", 4, "Optativa")], twoHourSet: "ciencias", label: "Optativas" }) } },
+                            { id: "bach1Hum", label: "Humanidades", icon: "scroll-text", plan: { title: "1º Bach. Humanidades", target: 30, fixed: bach1Common().concat([s("Latín I", 4, "Modalidad")]), choices: [choice("Especificas de modalidad", 2, 2, 4, [s("Griego I", 4, "Modalidad"), s("Historia del Mundo contemporáneo", 4, "Modalidad"), s("Literatura Universal", 4, "Modalidad")]), ...bach1Optativas({ fourHourOptions: [s("Literatura Universal", 4, "Optativa")], twoHourSet: "humanidades" })] } },
+                            { id: "bach1Sociales", label: "Ciencias Sociales", icon: "landmark", plan: { title: "1º Bach. Ciencias Sociales", target: 30, fixed: bach1Common().concat([s("Matemáticas Aplicadas a las Ciencias Sociales I", 4, "Modalidad")]), choices: [choice("Especificas de modalidad", 2, 2, 4, [s("Economía", 4, "Modalidad"), s("Historia del Mundo contemporáneo", 4, "Modalidad"), s("Latín I", 4, "Modalidad")]), ...bach1Optativas({ fourHourOptions: [s("Latín I", 4, "Optativa"), s("Literatura Universal", 4, "Optativa")], twoHourSet: "humanidades", label: "Optativas" })] } }
+                        ]
+                    },
+                    { id: "bach2", label: "2º Bachillerato", path: "?", icon: "award",
+                        paths: [
+                            { id: "bach2Tec", label: "C. y Tecnología: Tecnológico", icon: "cpu", plan: { title: "2º Bach. Tecnológico", target: 30, fixed: bach2Common(), choices: [choice("Modalidad: elegir una", 1, 1, 4, [s("Matemáticas II", 4, "Modalidad"), s("Matemáticas Aplicadas a las Ciencias Sociales", 4, "Modalidad")]), choice("Modalidad: elegir dos", 2, 2, 4, [s("Dibujo Técnico II", 4, "Modalidad"), s("Física", 4, "Modalidad"), s("Química", 4, "Modalidad"), s("Tecnología e Ingeniería II", 4, "Modalidad")]), ...bach2Optativas({ modalityChoice: choice("Optativa de 4 horas", 1, 1, 4, [s("Tecnología e Ingeniería II", 4, "Optativa")]), twoHourSet: "ciencias" })] } },
+                            { id: "bach2Salud", label: "C. y Tecnología: Salud", icon: "microscope", plan: { title: "2º Bach. Naturaleza y Salud", target: 30, fixed: bach2Common(), choices: [choice("Modalidad: elegir una", 1, 1, 4, [s("Matemáticas II", 4, "Modalidad"), s("Matemáticas Aplicadas a las Ciencias Sociales", 4, "Modalidad")]), choice("Modalidad: elegir dos", 2, 2, 4, [s("Biología", 4, "Modalidad"), s("Geología y Ciencias Ambientales", 4, "Modalidad"), s("Química", 4, "Modalidad")]), ...bach2Optativas({ modalityChoice: choice("Optativa de 4 horas", 1, 1, 4, [s("Geología y Ciencias Ambientales", 4, "Optativa")]), twoHourSet: "ciencias" })] } },
+                            { id: "bach2Hum", label: "Humanidades", icon: "scroll-text", plan: { title: "2º Bach. Humanidades", target: 30, fixed: bach2Common().concat([s("Latín II", 4, "Modalidad")]), choices: [choice("Modalidad: elegir dos", 2, 2, 4, [s("Geografía", 4, "Modalidad"), s("Griego II", 4, "Modalidad"), s("Historia del Arte", 4, "Modalidad")]), ...bach2Optativas({ modalityChoice: choice("Optativa de 4 horas", 1, 1, 4, [s("Geografía", 4, "Optativa")]), twoHourSet: "humanidades" })] } },
+                            { id: "bach2Sociales", label: "Ciencias Sociales", icon: "landmark", plan: { title: "2º Bach. Ciencias Sociales", target: 30, fixed: bach2Common().concat([s("Matemáticas Aplicadas a las Ciencias Sociales", 4, "Modalidad"), s("Empresa y Diseño de Modelos de Negocio", 4, "Modalidad")]), choices: [choice("Modalidad: elegir una", 1, 1, 4, [s("Geografía", 4, "Modalidad"), s("Historia del Arte", 4, "Modalidad"), s("Latín II", 4, "Modalidad")]), ...bach2Optativas({ modalityChoice: choice("Optativa de 4 horas", 1, 1, 4, [s("Geografía", 4, "Optativa")]), twoHourSet: "sociales", label: "Optativas" })] } }
+                        ]
+                    }
+                ]
+            },
+            espa: {
+                label: "Personas Adultas",
+                courses: [
+                    { id: "espa1", label: "ESPA I", path: "", icon: "book-open-check", plan: { title: "ESPA I", subtitle: "Cada módulo corresponde a un trimestre.", noHours: true, fixed: [], choices: [choice("Módulos ESPA I", 0, 9, 0, adultModules(["I", "II", "III"]))] } },
+                    { id: "espa2", label: "ESPA II", path: "", icon: "library-big", plan: { title: "ESPA II", subtitle: "Cada módulo corresponde a un trimestre.", noHours: true, fixed: [], choices: [choice("Módulos ESPA II", 0, 9, 0, adultModules(["IV", "V", "VI"]))] } }
+                ]
+            }
+        };
+
+        // --- ESTADO DE LA APLICACIÓN ---
+        const app = {
+            step: 1, // 1: Etapa, 2: Curso, 3: Itinerario, 4: Materias
+            etapa: null,
+            cursoId: null,
+            pathId: null,
+            languages: { first: "" },
+            selections: {},
+
+            goToStep(stepNum) {
+                if (stepNum === 1) {
+                    this.etapa = null; this.cursoId = null; this.pathId = null;
+                } else if (stepNum === 2) {
+                    this.cursoId = null; this.pathId = null;
+                } else if (stepNum === 3) {
+                    this.pathId = null;
+                }
+                this.step = stepNum;
+                this.render();
+            },
+
+            selectEtapa(etapaId) {
+                this.etapa = db[etapaId];
+                this.cursoId = null;
+                this.step = 2;
+                this.render();
+            },
+
+            selectCurso(cursoId) {
+                const curso = this.etapa.courses.find(c => c.id === cursoId);
+                this.cursoId = curso.id;
+                this.selections = {}; // reset
+                this.languages.first = "";
+
+                if (curso.path === "?") {
+                    this.step = 3; // Necesita elegir itinerario
+                } else {
+                    this.pathId = curso.path;
+                    this.step = 4; // Va directo a materias
+                }
+                this.render();
+            },
+
+            selectItinerario(pathId) {
+                this.pathId = pathId;
+                this.selections = {};
+                this.languages.first = "";
+                this.step = 4;
+                this.render();
+            },
+
+            getPlan() {
+                const curso = this.etapa.courses.find(c => c.id === this.cursoId);
+                if (curso.paths) {
+                    const path = curso.paths.find(p => p.id === this.pathId);
+                    return path.plan;
+                }
+                return curso.plan;
+            },
+
+            render() {
+                // Gestionar visibilidad de pantallas
+                document.querySelectorAll('.step-container').forEach(el => el.classList.add('hidden'));
+                document.getElementById(`step-${this.step}`).classList.remove('hidden');
+
+                this.renderBreadcrumbs();
+
+                if (this.step === 2) this.renderCursos();
+                if (this.step === 3) this.renderItinerarios();
+                if (this.step === 4) this.renderMaterias();
+
+                lucide.createIcons();
+            },
+
+            renderBreadcrumbs() {
+                const nav = document.getElementById("breadcrumbs");
+                if (this.step === 1) {
+                    nav.innerHTML = "";
+                    return;
+                }
+                
+                let html = `<button onclick="app.goToStep(1)" class="hover:text-gray-800 transition-colors">Inicio</button>`;
+                
+                if (this.etapa) {
+                    html += ` <i data-lucide="chevron-right" class="w-4 h-4 mx-1 opacity-50"></i> 
+                              <button onclick="app.goToStep(2)" class="hover:text-gray-800 transition-colors ${this.step===2?'font-bold text-gray-900':''}">${this.etapa.label}</button>`;
+                }
+                if (this.cursoId) {
+                    const curso = this.etapa.courses.find(c => c.id === this.cursoId);
+                    html += ` <i data-lucide="chevron-right" class="w-4 h-4 mx-1 opacity-50"></i> 
+                              <button onclick="app.goToStep(${curso.path==='?' ? 3 : 2})" class="hover:text-gray-800 transition-colors ${this.step===3 || (this.step===4 && curso.path!=='?')?'font-bold text-gray-900':''}">${curso.label}</button>`;
+                }
+                if (this.pathId && this.step === 4) {
+                    const curso = this.etapa.courses.find(c => c.id === this.cursoId);
+                    if (curso.paths) {
+                        const path = curso.paths.find(p => p.id === this.pathId);
+                        html += ` <i data-lucide="chevron-right" class="w-4 h-4 mx-1 opacity-50"></i> 
+                                  <span class="font-bold text-gray-900">${path.label}</span>`;
+                    }
+                }
+                nav.innerHTML = html;
+            },
+
+            renderCursos() {
+                document.getElementById("step-2-title").textContent = `Cursos de ${this.etapa.label}`;
+                const grid = document.getElementById("course-grid");
+                grid.innerHTML = this.etapa.courses.map(c => `
+                    <button onclick="app.selectCurso('${c.id}')" class="selection-card bg-white p-6 rounded-2xl shadow-sm flex items-center gap-4 text-left">
+                        <div class="w-12 h-12 bg-gray-50 text-[#4f7f68] rounded-xl flex items-center justify-center shrink-0">
+                            <i data-lucide="${c.icon}" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">${c.label}</h3>
+                        </div>
+                    </button>
+                `).join("");
+            },
+
+            renderItinerarios() {
+                const curso = this.etapa.courses.find(c => c.id === this.cursoId);
+                const grid = document.getElementById("path-grid");
+                grid.innerHTML = curso.paths.map(p => `
+                    <button onclick="app.selectItinerario('${p.id}')" class="selection-card bg-white p-6 rounded-2xl shadow-sm flex items-start gap-4 text-left">
+                        <div class="w-12 h-12 bg-gray-50 text-[#4f7f68] rounded-xl flex items-center justify-center shrink-0 mt-1">
+                            <i data-lucide="${p.icon}" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">${p.label}</h3>
+                            <p class="text-sm text-gray-500 mt-1 leading-relaxed">${p.subtitle || ''}</p>
+                        </div>
+                    </button>
+                `).join("");
+            },
+
+            // --- LÓGICA DE SELECCIÓN DE MATERIAS ---
+            
+            getSelectionKey(groupId) {
+                return `${this.cursoId}:${this.pathId || "default"}:${groupId}`;
+            },
+
+            isLanguageSubject(name) {
+                return name === "Primera Lengua Extranjera" || name === "Segunda Lengua Extranjera" || name.startsWith("1ª Lengua extranjera");
+            },
+            
+            getOppositeLanguage() {
+                return this.languages.first === "Inglés" ? "Francés" : (this.languages.first === "Francés" ? "Inglés" : "");
+            },
+
+            displaySubject(subject) {
+                if (subject.name === "Segunda Lengua Extranjera" || subject.name === "Segunda Lengua Extranjera II") {
+                    const suffix = subject.name.endsWith("II") ? "2ª Lengua Extranjera II" : "2ª Lengua Extranjera";
+                    const lang = this.getOppositeLanguage();
+                    return { ...subject, name: lang ? `${lang} (${suffix})` : subject.name };
+                }
+                return subject;
+            },
+
+            renderMaterias() {
+                const plan = this.getPlan();
+                document.getElementById("final-course-title").textContent = plan.title;
+                document.getElementById("final-course-subtitle").textContent = plan.subtitle || "";
+                
+                this.ensureDefaults(plan);
+
+                const area = document.getElementById("subjects-area");
+                let html = "";
+
+                // Materias fijas (excluyendo lenguas extranjeras que requieren elegir idioma base)
+                let fixed = plan.fixed || [];
+                let firstLangBase = fixed.find(s => s.name === "Primera Lengua Extranjera" || s.name.startsWith("1ª Lengua extranjera"));
+                
+                const showFixed = fixed.filter(s => s !== firstLangBase && (this.etapa.label === "Bachillerato" || !this.isLanguageSubject(s.name)));
+                
+                if (showFixed.length > 0) {
+                    html += `
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-gray-900 flex items-center gap-2"><i data-lucide="book-marked" class="w-5 h-5 text-blue-600"></i> ${plan.noHours ? 'Ámbitos' : 'Materias comunes'}</h3>
+                            <span class="text-sm font-medium text-gray-500">${showFixed.reduce((sum,s)=>sum+(s.hours||0),0)} horas</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            ${showFixed.map(s => `
+                                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><i data-lucide="${s.icon}" class="w-4 h-4"></i></div>
+                                    <div class="flex-grow min-w-0">
+                                        <p class="text-sm font-bold text-gray-900 truncate">${s.name}</p>
+                                        <p class="text-xs text-gray-500">${s.group}</p>
+                                    </div>
+                                    ${s.hours ? `<div class="font-black text-sm bg-gray-200 px-2 py-1 rounded-md text-gray-700">${s.hours}h</div>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>`;
+                }
+
+                // Selector de Idioma (Si hay primera lengua)
+                if (firstLangBase) {
+                    html += `
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border ${!this.languages.first ? 'border-amber-300 ring-2 ring-amber-100' : 'border-gray-100'}">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-gray-900 flex items-center gap-2"><i data-lucide="languages" class="w-5 h-5 text-indigo-600"></i> 1ª Lengua Extranjera</h3>
+                            ${!this.languages.first ? '<span class="text-xs font-bold bg-amber-100 text-amber-800 px-2 py-1 rounded-full">Requerido</span>' : `<span class="text-sm font-medium text-gray-500">${firstLangBase.hours} horas</span>`}
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            ${['Inglés', 'Francés'].map(lang => `
+                                <button onclick="app.setFirstLanguage('${lang}')" class="subject-choice flex items-center justify-between p-3 rounded-xl ${this.languages.first === lang ? 'selected' : ''}">
+                                    <span class="font-bold text-gray-900">${lang}</span>
+                                    <span class="text-sm font-black text-gray-500">${firstLangBase.hours}h</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>`;
+                }
+
+                // Opciones y Optativas
+                if (plan.choices) {
+                    html += plan.choices.map(group => {
+                        const selectedIds = this.selections[this.getSelectionKey(group.id)] || [];
+                        const selectedHours = group.mode === "hours" ? selectedIds.reduce((sum, id) => sum + (group.options.find(o=>o.id===id)?.hours||0), 0) : 0;
+                        const isComplete = group.mode === "hours" ? selectedHours === group.targetHours : (selectedIds.length >= group.min && selectedIds.length <= group.max);
+                        
+                        return `
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border ${!isComplete && group.min > 0 ? 'border-amber-300 ring-2 ring-amber-100' : 'border-gray-100'}">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+                                <h3 class="font-bold text-gray-900 flex items-center gap-2"><i data-lucide="list-checks" class="w-5 h-5 text-[#4f7f68]"></i> ${group.label}</h3>
+                                <div class="text-sm font-medium text-gray-500">
+                                    ${group.mode === "hours" ? `${selectedHours}/${group.targetHours} horas` : (group.min === group.max ? `Elige ${group.min}` : `Elige entre ${group.min} y ${group.max}`)}
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                ${group.options.map(opt => {
+                                    const isSelected = selectedIds.includes(opt.id);
+                                    const displayOpt = this.displaySubject(opt);
+                                    const wouldExceed = group.mode === "hours" && !isSelected && (selectedHours + opt.hours > group.targetHours);
+                                    const isDisabled = wouldExceed;
+                                    
+                                    return `
+                                    <label class="subject-choice flex items-center gap-3 p-3 rounded-xl cursor-pointer ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}">
+                                        <input type="${group.mode==='hours' || group.max>1 ? 'checkbox' : 'radio'}" 
+                                               name="${group.id}" value="${opt.id}" 
+                                               ${isSelected ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}
+                                               onchange="app.handleChoiceChange('${group.id}', '${opt.id}', this.checked)">
+                                        <div class="flex-grow min-w-0">
+                                            <p class="text-sm font-bold text-gray-900 leading-tight">${displayOpt.name}</p>
+                                        </div>
+                                        ${opt.hours ? `<div class="font-black text-sm text-gray-500">${opt.hours}h</div>` : ''}
+                                    </label>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>`;
+                    }).join('');
+                }
+
+                area.innerHTML = html;
+                this.updateSidebar(plan, fixed, firstLangBase);
+            },
+
+            setFirstLanguage(lang) {
+                this.languages.first = lang;
+                this.renderMaterias();
+            },
+
+            handleChoiceChange(groupId, optionId, isChecked) {
+                const plan = this.getPlan();
+                const group = plan.choices.find(g => g.id === groupId);
+                const key = this.getSelectionKey(groupId);
+                let current = this.selections[key] || [];
+
+                if (group.mode === "hours") {
+                    if (isChecked) {
+                        const opt = group.options.find(o => o.id === optionId);
+                        let next = current.filter(id => {
+                            const o = group.options.find(x=>x.id===id);
+                            return o && o.hours < group.targetHours;
+                        });
+                        while (opt && this.calcHours(next, group) + opt.hours > group.targetHours) next.shift();
+                        this.selections[key] = [...next, optionId];
+                    } else {
+                        this.selections[key] = current.filter(id => id !== optionId);
+                    }
+                } else if (group.max === 1) {
+                    this.selections[key] = [optionId];
+                } else if (isChecked) {
+                    const next = current.filter(id => id !== optionId);
+                    while (next.length >= group.max) next.shift();
+                    this.selections[key] = [...next, optionId];
+                } else {
+                    this.selections[key] = current.filter(id => id !== optionId);
+                }
+                this.renderMaterias();
+            },
+
+            calcHours(ids, group) {
+                return ids.reduce((sum, id) => sum + (group.options.find(o=>o.id===id)?.hours||0), 0);
+            },
+
+            ensureDefaults(plan) {
+                for (const group of plan.choices || []) {
+                    const key = this.getSelectionKey(group.id);
+                    if (!this.selections[key] && group.min > 0) this.selections[key] = [];
+                }
+            },
+
+            updateSidebar(plan, fixed, firstLangBase) {
+                let allSelected = [];
+                let totalHours = 0;
+
+                // Fijas
+                fixed.forEach(s => {
+                    if (s !== firstLangBase && (this.etapa.label === "Bachillerato" || !this.isLanguageSubject(s.name))) {
+                        allSelected.push(s);
+                        totalHours += (s.hours || 0);
+                    }
+                });
+
+                // Idioma
+                if (firstLangBase && this.languages.first) {
+                    allSelected.push({ ...firstLangBase, name: `${this.languages.first} (1ª Lengua)` });
+                    totalHours += firstLangBase.hours;
+                }
+                
+                if (this.cursoId === "eso1" && this.languages.first) {
+                    let secondBase = fixed.find(s => s.name === "Segunda Lengua Extranjera");
+                    if(secondBase) {
+                        allSelected.push({ ...secondBase, name: `${this.getOppositeLanguage()} (2ª Lengua)` });
+                        totalHours += secondBase.hours;
+                    }
+                }
+
+                // Opciones
+                let isComplete = true;
+                (plan.choices || []).forEach(group => {
+                    const ids = this.selections[this.getSelectionKey(group.id)] || [];
+                    let groupHours = 0;
+                    ids.forEach(id => {
+                        const opt = group.options.find(o=>o.id===id);
+                        if(opt) {
+                            allSelected.push(this.displaySubject(opt));
+                            totalHours += (opt.hours || 0);
+                            groupHours += (opt.hours || 0);
+                        }
+                    });
+                    
+                    if (group.mode === "hours" && groupHours !== group.targetHours) isComplete = false;
+                    if (group.mode !== "hours" && (ids.length < group.min || ids.length > group.max)) isComplete = false;
+                });
+
+                if (firstLangBase && !this.languages.first) isComplete = false;
+
+                // Render lista
+                document.getElementById("print-list").innerHTML = allSelected
+                    .sort((a,b) => (b.hours||0) - (a.hours||0) || a.name.localeCompare(b.name))
+                    .map(s => `
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                        <span class="font-medium">${s.name}</span>
+                        ${s.hours ? `<span class="font-bold bg-gray-100 px-2 py-0.5 rounded text-xs">${s.hours}h</span>` : ''}
+                    </div>`).join('');
+
+                // Horas y estado
+                const summaryDiv = document.getElementById("hours-summary");
+                if (plan.noHours) {
+                    summaryDiv.classList.add("hidden");
+                    const status = document.getElementById("status-box");
+                    status.className = "flex items-start gap-3 p-4 rounded-xl mb-6 text-sm font-medium bg-green-50 text-green-800";
+                    status.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5 mt-0.5 shrink-0"></i><span>Módulos seleccionados.</span>`;
+                } else {
+                    summaryDiv.classList.remove("hidden");
+                    const target = plan.target || 30;
+                    document.getElementById("total-hours").textContent = `${totalHours}/${target}`;
+                    
+                    const meter = document.getElementById("meter-fill");
+                    const percent = Math.min(100, Math.round((totalHours / target) * 100));
+                    meter.style.width = `${percent}%`;
+                    
+                    const status = document.getElementById("status-box");
+                    if (totalHours === target && isComplete) {
+                        meter.style.backgroundColor = "var(--green)";
+                        status.className = "flex items-start gap-3 p-4 rounded-xl mb-6 text-sm font-medium bg-green-50 text-green-800";
+                        status.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5 mt-0.5 shrink-0"></i><span>Selección completa. Ya puedes imprimir.</span>`;
+                    } else if (totalHours > target) {
+                        meter.style.backgroundColor = "#ef4444"; // red
+                        status.className = "flex items-start gap-3 p-4 rounded-xl mb-6 text-sm font-medium bg-red-50 text-red-800";
+                        status.innerHTML = `<i data-lucide="triangle-alert" class="w-5 h-5 mt-0.5 shrink-0"></i><span>Has superado el límite de ${target} horas.</span>`;
+                    } else {
+                        meter.style.backgroundColor = "#f59e0b"; // amber
+                        status.className = "flex items-start gap-3 p-4 rounded-xl mb-6 text-sm font-medium bg-amber-50 text-amber-800";
+                        status.innerHTML = `<i data-lucide="circle-alert" class="w-5 h-5 mt-0.5 shrink-0"></i><span>Faltan horas o opciones por marcar.</span>`;
+                    }
+                }
+                lucide.createIcons();
+            }
+        };
+
+        // Iniciar app
+        app.render();
+
+    </script>
+</body>
+</html>
