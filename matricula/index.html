@@ -823,9 +823,9 @@
                              ${isSelected ? '!bg-[#edf5f0] !border-l-[#4f7f68] shadow-md' : ''}"
                              style="border-left-color: ${isSelected ? 'var(--green)' : flagInfo.border}">
                              
-                            <div class="flex items-center gap-3 truncate pr-2">
+                            <div class="flex items-center gap-3 min-w-0 pr-2">
                                 <img src="${flagInfo.url}" class="w-[22px] h-[15px] rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.05)] shrink-0 object-cover">
-                                <strong class="text-[13px] sm:text-[14px] font-bold text-gray-800 peer-checked:text-[#4f7f68] truncate transition-colors">${subj.name}</strong>
+                                <strong class="text-[13px] sm:text-[14px] font-bold text-gray-800 peer-checked:text-[#4f7f68] leading-tight transition-colors">${subj.name}</strong>
                             </div>
                             ${subj.hours ? `<span class="font-black text-gray-600 text-[13px] sm:text-[14px] peer-checked:text-[#4f7f68] shrink-0 transition-colors">${subj.hours}h</span>` : ''}
                         </div>
@@ -904,7 +904,8 @@
                 if (plan.choices) {
                     plan.choices.forEach(group => {
                         const activeCount = group.options.length;
-                        const cols = activeCount === 1 ? 'grid-cols-1' : (activeCount === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3');
+                        const isBtopaOptativa = this.cursoId === 'btopa' && group.label === 'Materia Optativa';
+                        const cols = activeCount === 1 ? 'grid-cols-1' : (activeCount === 2 || isBtopaOptativa ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3');
 
                         html += `<div class="w-full mt-6 mb-3 border-t border-gray-100 pt-5"><h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest text-left mb-1">${group.label}</h3></div>`;
                         html += `<div class="grid ${cols} gap-4 w-full items-stretch">`;
