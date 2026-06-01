@@ -1061,7 +1061,7 @@
                 const summaryDiv = document.getElementById("hours-summary");
                 const status = document.getElementById("status-box");
                 const hoursLabel = summaryDiv.querySelector("span.font-bold");
-                if (hoursLabel) hoursLabel.textContent = isEspa ? "Horas presenciales al trimestre" : (isSemipresencial ? "Horas presenciales" : "Horas elegidas");
+                if (hoursLabel) hoursLabel.textContent = isEspa ? "Horas presenciales a la semana" : (isSemipresencial ? "Horas presenciales" : "Horas elegidas");
 
                 if (plan.noHours) {
                     summaryDiv.classList.add("hidden");
@@ -1076,7 +1076,7 @@
                         document.getElementById("total-hours").textContent = selectedModules.length === 0
                             ? "0h"
                             : sameHours
-                                ? `${trimesterTotals[selectedModules[0]]}h/trimestre`
+                                ? `${trimesterTotals[selectedModules[0]]}h/semana`
                                 : selectedModules.map(module => `${module}: ${trimesterTotals[module]}h`).join(" · ");
                     } else {
                         document.getElementById("total-hours").textContent = isSemipresencial ? `${totalHours}h presenciales` : `${totalHours}`;
@@ -1086,7 +1086,7 @@
                     meter.style.width = `100%`;
                     meter.style.backgroundColor = "var(--green)";
                     status.className = "flex items-start gap-3 p-4 rounded-xl text-sm font-medium bg-green-50 text-green-800";
-                    status.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5 mt-0.5 shrink-0"></i><span>${isEspa ? 'Suma presencial trimestral actualizada.' : (isSemipresencial ? 'Suma presencial actualizada.' : 'Selección libre completada.')}</span>`;
+                    status.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5 mt-0.5 shrink-0"></i><span>${isEspa ? 'Suma presencial semanal actualizada.' : (isSemipresencial ? 'Suma presencial actualizada.' : 'Selección libre completada.')}</span>`;
                 } else {
                     summaryDiv.classList.remove("hidden");
                     const target = plan.target || 30;
