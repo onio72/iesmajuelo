@@ -266,13 +266,27 @@
         };
 
         function s(name, hours, group) { return { id: slug(name), name, hours, group, icon: SUBJECT_ICONS[name] || "puzzle" }; }
+        function msp(name, hours, group) {
+            const slp = hours === 4 ? 2 : 1;
+            return { ...s(name, hours, group), slp, st: hours - slp };
+        }
         function choice(label, min, max, hoursEach, options) { return { id: slug(label), label, min, max, hoursEach, options }; }
         function choiceHours(label, targetHours, options) { return { id: slug(label), label, mode: "hours", targetHours, options }; }
         function slug(value) { return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "").toLowerCase(); }
 
         function adultModules(modules) {
-            const scopes = ["Ámbito de comunicación", "Ámbito científico-tecnológico", "Ámbito social"];
-            return modules.flatMap(module => scopes.map(scope => ({ ...s(`Módulo ${module} · ${scope}`, 0, "Ámbito"), id: `${slug(scope)}-${slug(module)}` })));
+            const scopes = [
+                { name: "Ámbito de comunicación", slp: 3, st: 3 },
+                { name: "Ámbito científico-tecnológico", slp: 3, st: 4 },
+                { name: "Ámbito social", slp: 2, st: 3 }
+            ];
+            return modules.flatMap(module => scopes.map(scope => ({
+                ...s(`Módulo ${module} · ${scope.name}`, scope.slp + scope.st, "Ámbito"),
+                id: `${slug(scope.name)}-${slug(module)}`,
+                module,
+                slp: scope.slp,
+                st: scope.st
+            })));
         }
         function bach1Common() { return [s("Educación fisica", 2, "Común"), s("Filosofía", 3, "Común"), s("Lengua Castellana y Literatura I", 4, "Común"), s("1ª Lengua extranjera I", 4, "Común")]; }
         function bach2Common() { return [s("Historia de España", 4, "Común"), s("Historia de la Filosofía", 3, "Común"), s("Lengua castellana y literatura II", 3, "Común"), s("1ª Lengua extranjera II", 3, "Común")]; }
@@ -354,8 +368,8 @@
                 courses: [
                     { id: "espa", label: "Enseñanza Secundaria para Personas Adultas (ESPA)", path: "?", icon: "book-open-check",
                         paths: [
-                            { id: "espa1", label: "Nivel I", icon: "book-open", plan: { title: "ESPA Nivel I", subtitle: "Cada módulo corresponde a un trimestre.", noHours: true, fixed: [], choices: [choice("Módulos ESPA Nivel I", 0, 9, 0, adultModules(["I", "II", "III"]))] } },
-                            { id: "espa2", label: "Nivel II", icon: "library-big", plan: { title: "ESPA Nivel II", subtitle: "Cada módulo corresponde a un trimestre.", noHours: true, fixed: [], choices: [choice("Módulos ESPA Nivel II", 0, 9, 0, adultModules(["IV", "V", "VI"]))] } }
+                            { id: "espa1", label: "Nivel I", icon: "book-open", plan: { title: "ESPA Nivel I", subtitle: "Cada módulo corresponde a un trimestre.", semipresencial: true, flexibleTarget: true, fixed: [], choices: [choice("Módulos ESPA Nivel I", 0, 9, 0, adultModules(["I", "II", "III"]))] } },
+                            { id: "espa2", label: "Nivel II", icon: "library-big", plan: { title: "ESPA Nivel II", subtitle: "Cada módulo corresponde a un trimestre.", semipresencial: true, flexibleTarget: true, fixed: [], choices: [choice("Módulos ESPA Nivel II", 0, 9, 0, adultModules(["IV", "V", "VI"]))] } }
                         ]
                     },
                     { id: "btopa", label: "Bachillerato para Personas Adultas (BTOPA)", path: "?", icon: "briefcase", 
@@ -369,22 +383,23 @@
                                             title: "1º Bachillerato de Adultos",
                                             subtitle: "Modalidad de Ciencias y Tecnología",
                                             flexibleTarget: true,
+                                            semipresencial: true,
                                             fixed: [
-                                                s("Lengua Castellana y Literatura I", 4, "Común"),
-                                                s("Filosofía", 3, "Común"),
-                                                s("Inglés I", 4, "Común"),
-                                                s("Matemáticas I", 4, "Modalidad"),
-                                                s("Física y Química", 4, "Modalidad"),
-                                                s("Biología, Geología y Ciencias Ambientales", 4, "Modalidad")
+                                                msp("Lengua Castellana y Literatura I", 4, "Común"),
+                                                msp("Filosofía", 3, "Común"),
+                                                msp("Inglés I", 4, "Común"),
+                                                msp("Matemáticas I", 4, "Modalidad"),
+                                                msp("Física y Química", 4, "Modalidad"),
+                                                msp("Biología, Geología y Ciencias Ambientales", 4, "Modalidad")
                                             ],
                                             choices: [
                                                 choice("Materia Optativa", 1, 1, 2, [
-                                                    s("Patrimonio cultural y Artístico de Andalucía", 2, "Optativa"),
-                                                    s("Tecnologías de la Información y la Comunicación I", 2, "Optativa"),
-                                                    s("Anatomía aplicada", 2, "Optativa"),
-                                                    s("Antropología y sociología", 2, "Optativa"),
-                                                    s("Cultura Emprendedora y Empresarial", 2, "Optativa"),
-                                                    s("Francés I", 2, "Optativa")
+                                                    msp("Patrimonio cultural y Artístico de Andalucía", 2, "Optativa"),
+                                                    msp("Tecnologías de la Información y la Comunicación I", 2, "Optativa"),
+                                                    msp("Anatomía aplicada", 2, "Optativa"),
+                                                    msp("Antropología y sociología", 2, "Optativa"),
+                                                    msp("Cultura Emprendedora y Empresarial", 2, "Optativa"),
+                                                    msp("Francés I", 2, "Optativa")
                                                 ])
                                             ]
                                         }
@@ -395,22 +410,23 @@
                                             title: "1º Bachillerato de Adultos",
                                             subtitle: "Modalidad de Humanidades y Ciencias Sociales",
                                             flexibleTarget: true,
+                                            semipresencial: true,
                                             fixed: [
-                                                s("Lengua Castellana y Literatura I", 4, "Común"),
-                                                s("Filosofía", 3, "Común"),
-                                                s("Inglés I", 4, "Común"),
-                                                s("Matemáticas Aplicadas a las Ciencias Sociales I", 4, "Modalidad"),
-                                                s("Economía", 4, "Modalidad"),
-                                                s("Historia del Mundo contemporáneo", 4, "Modalidad")
+                                                msp("Lengua Castellana y Literatura I", 4, "Común"),
+                                                msp("Filosofía", 3, "Común"),
+                                                msp("Inglés I", 4, "Común"),
+                                                msp("Matemáticas Aplicadas a las Ciencias Sociales I", 4, "Modalidad"),
+                                                msp("Economía", 4, "Modalidad"),
+                                                msp("Historia del Mundo contemporáneo", 4, "Modalidad")
                                             ],
                                             choices: [
                                                 choice("Materia Optativa", 1, 1, 2, [
-                                                    s("Patrimonio cultural y Artístico de Andalucía", 2, "Optativa"),
-                                                    s("Tecnologías de la Información y la Comunicación I", 2, "Optativa"),
-                                                    s("Anatomía aplicada", 2, "Optativa"),
-                                                    s("Antropología y sociología", 2, "Optativa"),
-                                                    s("Cultura Emprendedora y Empresarial", 2, "Optativa"),
-                                                    s("Francés I", 2, "Optativa")
+                                                    msp("Patrimonio cultural y Artístico de Andalucía", 2, "Optativa"),
+                                                    msp("Tecnologías de la Información y la Comunicación I", 2, "Optativa"),
+                                                    msp("Anatomía aplicada", 2, "Optativa"),
+                                                    msp("Antropología y sociología", 2, "Optativa"),
+                                                    msp("Cultura Emprendedora y Empresarial", 2, "Optativa"),
+                                                    msp("Francés I", 2, "Optativa")
                                                 ])
                                             ]
                                         }
@@ -426,21 +442,22 @@
                                             title: "2º Bachillerato de Adultos",
                                             subtitle: "Modalidad de Ciencias y Tecnología",
                                             flexibleTarget: true,
+                                            semipresencial: true,
                                             fixed: [
-                                                s("Lengua castellana y literatura II", 3, "Común"),
-                                                s("Historia de la Filosofía", 3, "Común"),
-                                                s("Historia de España", 4, "Común"),
-                                                s("Inglés II", 3, "Común"),
-                                                s("Matemáticas II", 4, "Modalidad"),
-                                                s("Química", 4, "Modalidad"),
-                                                s("Biología", 4, "Modalidad")
+                                                msp("Lengua castellana y literatura II", 3, "Común"),
+                                                msp("Historia de la Filosofía", 3, "Común"),
+                                                msp("Historia de España", 4, "Común"),
+                                                msp("Inglés II", 3, "Común"),
+                                                msp("Matemáticas II", 4, "Modalidad"),
+                                                msp("Química", 4, "Modalidad"),
+                                                msp("Biología", 4, "Modalidad")
                                             ],
                                             choices: [
                                                 choice("Materia Optativa", 1, 1, 2, [
-                                                    s("Ciencias de la Tierra y Medio Ambiente", 2, "Optativa"),
-                                                    s("Psicología", 2, "Optativa"),
-                                                    s("Fundamentos de Administración y Gestión", 2, "Optativa"),
-                                                    s("Francés II", 2, "Optativa")
+                                                    msp("Ciencias de la Tierra y Medio Ambiente", 2, "Optativa"),
+                                                    msp("Psicología", 2, "Optativa"),
+                                                    msp("Fundamentos de Administración y Gestión", 2, "Optativa"),
+                                                    msp("Francés II", 2, "Optativa")
                                                 ])
                                             ]
                                         }
@@ -451,21 +468,22 @@
                                             title: "2º Bachillerato de Adultos",
                                             subtitle: "Modalidad de Humanidades y Ciencias Sociales",
                                             flexibleTarget: true,
+                                            semipresencial: true,
                                             fixed: [
-                                                s("Lengua castellana y literatura II", 3, "Común"),
-                                                s("Historia de la Filosofía", 3, "Común"),
-                                                s("Historia de España", 4, "Común"),
-                                                s("Inglés II", 3, "Común"),
-                                                s("Matemáticas Aplicadas a las Ciencias Sociales II", 4, "Modalidad"),
-                                                s("Empresa y diseño de modelos de negocio", 4, "Modalidad"),
-                                                s("Historia del Arte", 4, "Modalidad")
+                                                msp("Lengua castellana y literatura II", 3, "Común"),
+                                                msp("Historia de la Filosofía", 3, "Común"),
+                                                msp("Historia de España", 4, "Común"),
+                                                msp("Inglés II", 3, "Común"),
+                                                msp("Matemáticas Aplicadas a las Ciencias Sociales II", 4, "Modalidad"),
+                                                msp("Empresa y diseño de modelos de negocio", 4, "Modalidad"),
+                                                msp("Historia del Arte", 4, "Modalidad")
                                             ],
                                             choices: [
                                                 choice("Materia Optativa", 1, 1, 2, [
-                                                    s("Ciencias de la Tierra y Medio Ambiente", 2, "Optativa"),
-                                                    s("Psicología", 2, "Optativa"),
-                                                    s("Fundamentos de Administración y Gestión", 2, "Optativa"),
-                                                    s("Francés II", 2, "Optativa")
+                                                    msp("Ciencias de la Tierra y Medio Ambiente", 2, "Optativa"),
+                                                    msp("Psicología", 2, "Optativa"),
+                                                    msp("Fundamentos de Administración y Gestión", 2, "Optativa"),
+                                                    msp("Francés II", 2, "Optativa")
                                                 ])
                                             ]
                                         }
@@ -753,19 +771,39 @@
                 return subject;
             },
 
+            renderSemipresencialLegend() {
+                return `<div class="w-full bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-5 text-xs sm:text-sm font-bold text-gray-700 flex flex-col sm:flex-row gap-3 sm:items-center">
+                    <span class="text-gray-500 uppercase tracking-wider text-[11px]">Leyenda</span>
+                    <span class="inline-flex items-center gap-2"><span class="w-8 h-4 rounded bg-emerald-100 border border-emerald-200"></span> Horas presenciales</span>
+                    <span class="inline-flex items-center gap-2"><span class="w-8 h-4 rounded bg-sky-100 border border-sky-200"></span> Horas no presenciales</span>
+                </div>`;
+            },
+
+            renderHourBlocks(subj) {
+                const hasSemipresencialHours = Number.isFinite(subj.slp) && Number.isFinite(subj.st);
+                if (!hasSemipresencialHours) {
+                    return subj.hours ? `<span class="font-black text-gray-600 text-[13px] sm:text-[14px] shrink-0">${subj.hours}h</span>` : '';
+                }
+                return `<div class="grid gap-1 shrink-0 w-[320px] max-w-[56%] text-[10px] sm:text-[11px] font-black" style="grid-template-columns: minmax(112px, ${subj.slp}fr) minmax(128px, ${subj.st}fr);">
+                    <span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-md whitespace-nowrap text-center overflow-hidden">Presenciales ${subj.slp}h</span>
+                    <span class="bg-sky-100 text-sky-800 px-2 py-1 rounded-md whitespace-nowrap text-center overflow-hidden">No presenciales ${subj.st}h</span>
+                </div>`;
+            },
+
             renderFixedRow(subj) {
                 const widthPercent = getPillWidth(subj.hours);
                 const flagInfo = getFlagInfo(subj.name, this.programaId, this.languages.first, this.cursoId);
+                const hasMspHours = Number.isFinite(subj.slp) && Number.isFinite(subj.st);
                 return `
                 <div class="flex justify-start w-full mb-2.5">
                     <div class="transition-all duration-500" style="width: ${widthPercent}%;">
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 flex items-center justify-between p-3" 
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 flex items-center justify-between gap-2 p-3 h-[58px]"
                              style="border-left-color: ${flagInfo.border}">
-                            <div class="flex items-center gap-3 truncate pr-2">
+                            <div class="flex items-center gap-3 pr-1 min-w-0 flex-1">
                                 <img src="${flagInfo.url}" class="w-[22px] h-[15px] rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.05)] shrink-0 object-cover">
-                                <strong class="text-[13px] sm:text-[14px] font-bold text-gray-800 truncate">${subj.name}</strong>
+                                <strong class="text-[13px] sm:text-[14px] font-bold text-gray-800 leading-tight" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${subj.name}</strong>
                             </div>
-                            ${subj.hours ? `<span class="font-black text-gray-600 text-[13px] sm:text-[14px] shrink-0">${subj.hours}h</span>` : ''}
+                            ${this.renderHourBlocks(subj)}
                         </div>
                     </div>
                 </div>`;
@@ -801,13 +839,15 @@
 
                 const flagInfo = getFlagInfo(subj.name, this.programaId, this.languages.first, this.cursoId);
                 const needsAction = !isComplete && !isSelected && !isDisabled;
+                const hasMspHours = Number.isFinite(subj.slp) && Number.isFinite(subj.st);
+                const isBtopaOptativa = this.cursoId === 'btopa' && groupObj.label === 'Materia Optativa';
                 
                 // Siempre usamos checkbox para permitir deseleccionar
                 const inputType = 'checkbox';
                 const widthStyle = activeCount === 1 ? `width: ${getPillWidth(subj.hours)}%;` : 'width: 100%;';
                 
                 return `
-                <div class="flex justify-start w-full h-full">
+                <div class="flex justify-start w-full">
                     <label class="choice-pill-wrapper block transition-all duration-500 cursor-pointer w-full
                         ${isDisabled ? '!pointer-events-none' : ''} 
                         ${isFaded ? fadeClass : ''}"
@@ -818,16 +858,15 @@
                                data-group="${groupObj.id}" class="hidden peer" 
                                ${isSelected ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
                                
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 flex items-center justify-between p-3 h-full
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 flex items-center justify-between gap-2 p-3 ${isBtopaOptativa ? 'min-h-[58px]' : 'h-[58px]'}
                              ${needsAction ? 'animate-pulse-glow z-10' : 'hover:border-[#4f7f68]'} 
                              ${isSelected ? '!bg-[#edf5f0] !border-l-[#4f7f68] shadow-md' : ''}"
                              style="border-left-color: ${isSelected ? 'var(--green)' : flagInfo.border}">
-                             
-                            <div class="flex items-center gap-3 min-w-0 pr-2">
+                            <div class="flex items-center gap-3 min-w-0 pr-1 flex-1">
                                 <img src="${flagInfo.url}" class="w-[22px] h-[15px] rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.05)] shrink-0 object-cover">
-                                <strong class="text-[13px] sm:text-[14px] font-bold text-gray-800 peer-checked:text-[#4f7f68] leading-tight transition-colors">${subj.name}</strong>
+                                <strong class="text-[13px] sm:text-[14px] font-bold text-gray-800 peer-checked:text-[#4f7f68] leading-tight transition-colors" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${subj.name}</strong>
                             </div>
-                            ${subj.hours ? `<span class="font-black text-gray-600 text-[13px] sm:text-[14px] peer-checked:text-[#4f7f68] shrink-0 transition-colors">${subj.hours}h</span>` : ''}
+                            ${this.renderHourBlocks(subj)}
                         </div>
                     </label>
                 </div>
@@ -881,6 +920,10 @@
                     </div>`;
                 }
 
+                if (plan.semipresencial) {
+                    html += this.renderSemipresencialLegend();
+                }
+
                 let fixed = plan.fixed || [];
                 let firstLangBase = fixed.find(s => this.isFirstLanguageSubject(s.name));
                 const showFixed = fixed.filter(s => !this.isFirstLanguageSubject(s.name)).map(s => this.displaySubject(s));
@@ -905,7 +948,8 @@
                     plan.choices.forEach(group => {
                         const activeCount = group.options.length;
                         const isBtopaOptativa = this.cursoId === 'btopa' && group.label === 'Materia Optativa';
-                        const cols = activeCount === 1 ? 'grid-cols-1' : (activeCount === 2 || isBtopaOptativa ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3');
+                        const isEspaModules = this.cursoId === 'espa';
+                        const cols = activeCount === 1 || isBtopaOptativa || isEspaModules ? 'grid-cols-1' : (activeCount === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3');
 
                         html += `<div class="w-full mt-6 mb-3 border-t border-gray-100 pt-5"><h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest text-left mb-1">${group.label}</h3></div>`;
                         html += `<div class="grid ${cols} gap-4 w-full items-stretch">`;
@@ -961,19 +1005,22 @@
             updateSidebar(plan, fixedOriginal, firstLangBase) {
                 let allSelected = [];
                 let totalHours = 0;
+                const isSemipresencial = !!plan.semipresencial;
+                const isEspa = this.cursoId === 'espa';
+                const getCountedHours = subject => isSemipresencial ? (subject.slp || 0) : (subject.hours || 0);
 
                 fixedOriginal.forEach(s => {
                     // Omitimos 1ª lengua solo si NO es de adultos (en BTOPA la lengua viene fija como "Inglés I")
                     if (!this.isFirstLanguageSubject(s.name) || this.cursoId === 'btopa') {
                         const displayed = this.displaySubject(s);
                         allSelected.push(displayed);
-                        totalHours += (displayed.hours || 0);
+                        totalHours += getCountedHours(displayed);
                     }
                 });
 
                 if (firstLangBase && this.languages.first && this.programaId !== 'div' && this.cursoId !== 'btopa') {
                     allSelected.push({ ...firstLangBase, name: `${this.languages.first} (1ª Lengua)` });
-                    totalHours += firstLangBase.hours;
+                    totalHours += getCountedHours(firstLangBase);
                 }
 
                 let isComplete = true;
@@ -984,7 +1031,7 @@
                         const opt = group.options.find(o=>o.id===id);
                         if(opt) {
                             allSelected.push(this.displaySubject(opt));
-                            totalHours += (opt.hours || 0);
+                            totalHours += getCountedHours(opt);
                             groupHours += (opt.hours || 0);
                         }
                     });
@@ -994,12 +1041,27 @@
 
                 if (firstLangBase && !this.languages.first && this.programaId !== 'div' && this.cursoId !== 'btopa') isComplete = false;
 
+                const trimesterTotals = {};
+                if (isEspa) {
+                    allSelected.forEach(subject => {
+                        if (!subject.module) return;
+                        trimesterTotals[subject.module] = (trimesterTotals[subject.module] || 0) + getCountedHours(subject);
+                    });
+                    totalHours = Math.max(0, ...Object.values(trimesterTotals));
+                }
+
                 document.getElementById("print-list").innerHTML = allSelected
-                    .sort((a,b) => (b.hours||0) - (a.hours||0) || a.name.localeCompare(b.name))
-                    .map(s => `<div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0"><span class="font-medium">${s.name}</span>${s.hours ? `<span class="font-bold bg-gray-100 px-2 py-0.5 rounded text-xs">${s.hours}h</span>` : ''}</div>`).join('');
+                    .sort((a,b) => getCountedHours(b) - getCountedHours(a) || a.name.localeCompare(b.name))
+                    .map(s => {
+                        const hours = getCountedHours(s);
+                        const label = isSemipresencial ? `${hours}h presenciales` : `${hours}h`;
+                        return `<div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0"><span class="font-medium">${s.name}</span>${hours ? `<span class="font-bold bg-gray-100 px-2 py-0.5 rounded text-xs whitespace-nowrap">${label}</span>` : ''}</div>`;
+                    }).join('');
 
                 const summaryDiv = document.getElementById("hours-summary");
                 const status = document.getElementById("status-box");
+                const hoursLabel = summaryDiv.querySelector("span.font-bold");
+                if (hoursLabel) hoursLabel.textContent = isEspa ? "Horas presenciales al trimestre" : (isSemipresencial ? "Horas presenciales" : "Horas elegidas");
 
                 if (plan.noHours) {
                     summaryDiv.classList.add("hidden");
@@ -1007,13 +1069,24 @@
                     status.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5 mt-0.5 shrink-0"></i><span>Módulos seleccionados.</span>`;
                 } else if (plan.flexibleTarget) {
                     summaryDiv.classList.remove("hidden");
-                    document.getElementById("total-hours").textContent = `${totalHours}`;
+                    if (isEspa) {
+                        const moduleOrder = this.pathId === 'espa2' ? ["IV", "V", "VI"] : ["I", "II", "III"];
+                        const selectedModules = moduleOrder.filter(module => trimesterTotals[module]);
+                        const sameHours = selectedModules.length > 0 && selectedModules.every(module => trimesterTotals[module] === trimesterTotals[selectedModules[0]]);
+                        document.getElementById("total-hours").textContent = selectedModules.length === 0
+                            ? "0h"
+                            : sameHours
+                                ? `${trimesterTotals[selectedModules[0]]}h/trimestre`
+                                : selectedModules.map(module => `${module}: ${trimesterTotals[module]}h`).join(" · ");
+                    } else {
+                        document.getElementById("total-hours").textContent = isSemipresencial ? `${totalHours}h presenciales` : `${totalHours}`;
+                    }
                     
                     const meter = document.getElementById("meter-fill");
                     meter.style.width = `100%`;
                     meter.style.backgroundColor = "var(--green)";
                     status.className = "flex items-start gap-3 p-4 rounded-xl text-sm font-medium bg-green-50 text-green-800";
-                    status.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5 mt-0.5 shrink-0"></i><span>Selección libre completada.</span>`;
+                    status.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5 mt-0.5 shrink-0"></i><span>${isEspa ? 'Suma presencial trimestral actualizada.' : (isSemipresencial ? 'Suma presencial actualizada.' : 'Selección libre completada.')}</span>`;
                 } else {
                     summaryDiv.classList.remove("hidden");
                     const target = plan.target || 30;
