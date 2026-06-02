@@ -797,19 +797,19 @@
             },
 
             renderFixedRow(subj) {
-                const widthPercent = getPillWidth(subj.hours);
-                const flagInfo = getFlagInfo(subj.name, this.programaId, this.languages.first, this.cursoId);
                 const hasMspHours = Number.isFinite(subj.slp) && Number.isFinite(subj.st);
+                const widthPercent = hasMspHours ? 100 : getPillWidth(subj.hours);
+                const flagInfo = getFlagInfo(subj.name, this.programaId, this.languages.first, this.cursoId);
                 return `
                 <div class="flex justify-start w-full mb-2.5">
                     <div class="transition-all duration-500" style="width: ${widthPercent}%;">
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 min-h-[58px]"
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 ${hasMspHours ? 'flex flex-col items-stretch gap-2' : 'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2'} p-3 min-h-[58px]"
                              style="border-left-color: ${flagInfo.border}">
                             <div class="flex items-center gap-3 pr-1 min-w-0 flex-1 w-full">
                                 ${flagInfo.lang !== 'es' ? `<img src="${flagInfo.url}" class="w-[22px] h-[15px] rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.05)] shrink-0 object-cover">` : ''}
                                 <strong class="text-[13px] sm:text-[14px] font-bold text-gray-800 leading-tight">${subj.name}</strong>
                             </div>
-                            ${this.renderHourBlocks(subj)}
+                            ${this.renderHourBlocks(subj, hasMspHours)}
                         </div>
                     </div>
                 </div>`;
@@ -873,7 +873,7 @@
                                data-group="${groupObj.id}" class="hidden peer" 
                                ${isSelected ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
                                
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 ${isEspaModule ? 'flex flex-col items-stretch justify-center gap-2 min-h-[108px]' : 'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-h-[64px]'} p-3
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 flex flex-col items-stretch justify-center gap-2 min-h-[84px] p-3
                              ${needsAction ? 'animate-pulse-glow z-10' : 'hover:border-[#4f7f68]'} 
                              ${isSelected ? '!bg-[#edf5f0] !border-l-[#4f7f68] shadow-md' : ''}"
                              style="border-left-color: ${isSelected ? 'var(--green)' : flagInfo.border}">
@@ -881,9 +881,9 @@
                                 ${flagInfo.lang !== 'es' ? `<img src="${flagInfo.url}" class="w-[22px] h-[15px] rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.05)] shrink-0 object-cover">` : ''}
                                 <strong class="text-[13px] sm:text-[14px] font-bold text-gray-800 peer-checked:text-[#4f7f68] leading-tight transition-colors">${subjectName}</strong>
                             </div>
-                            <div class="${isEspaModule ? 'w-full space-y-2' : 'w-full sm:w-auto flex flex-col sm:items-end gap-1'}">
-                                ${this.renderHourBlocks(subj, isEspaModule)}
-                                <span class="inline-flex items-center justify-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-black whitespace-nowrap ${actionClass}">
+                            <div class="w-full flex flex-col gap-2">
+                                ${this.renderHourBlocks(subj, hasMspHours)}
+                                <span class="inline-flex items-center justify-center self-end gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-black whitespace-nowrap ${actionClass}">
                                     <i data-lucide="${actionIcon}" class="w-3.5 h-3.5"></i>
                                     ${actionText}
                                 </span>
