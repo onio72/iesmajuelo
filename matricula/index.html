@@ -83,6 +83,20 @@
                 width: var(--pill-width, 100%);
             }
         }
+        .choice-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: stretch;
+        }
+        .choice-row > .choice-item {
+            width: 100%;
+        }
+        @media (min-width: 640px) {
+            .choice-row > .choice-item {
+                width: calc(var(--pill-width, 100%) - 1rem);
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -576,7 +590,7 @@
         // --- Anchos proporcionales ---
         function getPillWidth(hours) {
             if (!hours) return 100;
-            const w = {1: 25, 2: 50, 3: 75, 4: 100, 8: 100, 9: 100};
+            const w = {1: 25, 2: 33.333, 3: 50, 4: 66.666, 8: 100, 9: 100};
             return w[hours] || 100;
         }
 
@@ -881,18 +895,17 @@
                 const widthPercent = hasMspHours ? 100 : getPillWidth(subj.hours);
                 
                 return `
-                <div class="flex justify-start w-full">
+                <div class="choice-item flex justify-start" style="--pill-width: ${widthPercent}%;">
                     <label class="choice-pill-wrapper block transition-all duration-500 cursor-pointer
                         ${isDisabled ? '!pointer-events-none' : ''} 
-                        ${isFaded ? fadeClass : ''}"
-                        style="--pill-width: ${widthPercent}%;">
+                        ${isFaded ? fadeClass : ''}">
                         
                         <input type="${inputType}" name="${groupObj.id}" value="${subj.id}" 
                                data-action="${isFirstLang ? 'setLanguage' : 'choiceChange'}" 
                                data-group="${groupObj.id}" class="hidden peer" 
                                ${isSelected ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
                                
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 flex flex-col items-stretch justify-center gap-2 min-h-[64px] p-3 relative
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 ${isCompactChoice ? 'flex items-center justify-between gap-2 h-[58px]' : 'flex flex-col items-stretch justify-center gap-2 min-h-[64px]'} p-3 relative
                              ${needsAction ? 'animate-pulse-glow z-10' : 'hover:border-[#4f7f68]'} 
                              ${isSelected ? '!bg-[#edf5f0] !border-l-[#4f7f68] shadow-md' : ''}"
                              style="border-left-color: ${isSelected ? 'var(--green)' : flagInfo.border}">
@@ -904,9 +917,7 @@
                                     ${isEspaModule ? `<span class="block text-[11px] sm:text-[12px] font-bold text-gray-500 leading-tight mt-1">${moduleTerm} · ${scopeName}</span>` : ''}
                                 </span>
                             </div>
-                            <div class="w-full flex flex-col gap-2">
-                                ${this.renderHourBlocks(subj, hasMspHours)}
-                            </div>
+                            ${isCompactChoice ? this.renderHourBlocks(subj, false) : `<div class="w-full flex flex-col gap-2">${this.renderHourBlocks(subj, hasMspHours)}</div>`}
                         </div>
                     </label>
                 </div>
@@ -990,7 +1001,7 @@
                             <span>La primera Lengua Extranjera que se elija deberá mantenerse durante toda la ESO.</span>
                         </div>`;
                     }
-                    html += `<div class="grid ${langCols} gap-4 w-full items-stretch">`;
+                    html += `<div class="choice-row w-full">`;
                     langOptions.forEach(lang => { html += this.renderChoiceButton({ id: lang, name: lang + " (1ª Lengua)", hours: firstLangBase.hours }, firstLangGroup, true, 2); });
                     html += `</div>`;
                 }
@@ -1018,7 +1029,7 @@
                                 <div class="text-xs font-bold text-[#4f7f68] uppercase tracking-wider text-center bg-[#edf5f0] py-2 rounded-xl shadow-sm">Social</div>
                             </div>`;
                         }
-                        html += `<div class="grid ${cols} gap-4 w-full items-stretch">`;
+                        html += isEspaModules ? `<div class="grid ${cols} gap-4 w-full items-stretch">` : `<div class="choice-row w-full">`;
                         group.options.forEach(opt => { html += this.renderChoiceButton(this.displaySubject(opt), group, false, activeCount); });
                         html += `</div>`;
                     });
