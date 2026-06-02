@@ -593,6 +593,11 @@
             const w = {1: 25, 2: 33.333, 3: 50, 4: 66.666, 8: 100, 9: 100};
             return w[hours] || 100;
         }
+        function getSubjectWidth(hours) {
+            if (!hours) return 100;
+            const w = {1: 25, 2: 50, 3: 75, 4: 100, 8: 100, 9: 100};
+            return w[hours] || 100;
+        }
 
         const app = {
             step: 1,
@@ -833,7 +838,7 @@
 
             renderFixedRow(subj) {
                 const hasMspHours = Number.isFinite(subj.slp) && Number.isFinite(subj.st);
-                const widthPercent = hasMspHours ? 100 : getPillWidth(subj.hours);
+                const widthPercent = getSubjectWidth(subj.hours);
                 const flagInfo = getFlagInfo(subj.name, this.programaId, this.languages.first, this.cursoId);
                 return `
                 <div class="flex justify-start w-full mb-2.5">
