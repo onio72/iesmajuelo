@@ -784,6 +784,12 @@
                 if (!hasSemipresencialHours) {
                     return subj.hours ? `<span class="font-black text-gray-600 text-[13px] sm:text-[14px] shrink-0">${subj.hours}h</span>` : '';
                 }
+                if (compact) {
+                    return `<div class="grid grid-cols-1 gap-1 w-full min-w-0 text-[10px] sm:text-[11px] font-black">
+                        <span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-md whitespace-nowrap text-center">Presenciales ${subj.slp}h</span>
+                        <span class="bg-sky-100 text-sky-800 px-2 py-1 rounded-md whitespace-nowrap text-center">No presenciales ${subj.st}h</span>
+                    </div>`;
+                }
                 const wrapperClass = compact
                     ? 'grid gap-1 w-full min-w-0 text-[9px] sm:text-[10px] font-black'
                     : 'grid gap-1 w-full sm:w-[320px] sm:max-w-[56%] text-[10px] sm:text-[11px] font-black';
@@ -849,6 +855,8 @@
                 const isBtopaOptativa = this.cursoId === 'btopa' && groupObj.label === 'Materia Optativa';
                 const isEspaModule = this.cursoId === 'espa' && subj.module;
                 const subjectName = isEspaModule ? `Módulo ${subj.module}` : subj.name;
+                const moduleTerm = { I: "1.er trimestre", II: "2.º trimestre", III: "3.er trimestre", IV: "1.er trimestre", V: "2.º trimestre", VI: "3.er trimestre" }[subj.module] || "";
+                const scopeName = isEspaModule ? subj.name.split(" · ")[1] : "";
                 const actionClass = isSelected
                     ? 'bg-[#4f7f68] text-white'
                     : isFaded
@@ -879,7 +887,10 @@
                              style="border-left-color: ${isSelected ? 'var(--green)' : flagInfo.border}">
                             <div class="flex items-center gap-3 min-w-0 pr-1 flex-1 w-full">
                                 ${flagInfo.lang !== 'es' ? `<img src="${flagInfo.url}" class="w-[22px] h-[15px] rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.05)] shrink-0 object-cover">` : ''}
-                                <strong class="text-[13px] sm:text-[14px] font-bold text-gray-800 peer-checked:text-[#4f7f68] leading-tight transition-colors">${subjectName}</strong>
+                                <span class="min-w-0">
+                                    <strong class="block text-[13px] sm:text-[14px] font-bold text-gray-800 peer-checked:text-[#4f7f68] leading-tight transition-colors">${subjectName}</strong>
+                                    ${isEspaModule ? `<span class="block text-[11px] sm:text-[12px] font-bold text-gray-500 leading-tight mt-1">${moduleTerm} · ${scopeName}</span>` : ''}
+                                </span>
                             </div>
                             <div class="w-full flex flex-col gap-2">
                                 ${this.renderHourBlocks(subj, hasMspHours)}
