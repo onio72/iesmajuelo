@@ -843,8 +843,8 @@
                 let isFaded = false;
                 let fadeClass = '';
 
-                // Siempre atenuamos (faded) en vez de ocultar
-                if (isDisabled || (isComplete && !isSelected)) {
+                // Solo atenuamos las opciones realmente bloqueadas; las alternativas siguen siendo clicables.
+                if (isDisabled) {
                     isFaded = true;
                     fadeClass = 'opacity-40 grayscale hover:opacity-100 hover:grayscale-0'; 
                 }
@@ -857,13 +857,16 @@
                 const subjectName = isEspaModule ? `Módulo ${subj.module}` : subj.name;
                 const moduleTerm = { I: "1.er trimestre", II: "2.º trimestre", III: "3.er trimestre", IV: "1.er trimestre", V: "2.º trimestre", VI: "3.er trimestre" }[subj.module] || "";
                 const scopeName = isEspaModule ? subj.name.split(" · ")[1] : "";
+                const isAlternative = isComplete && !isSelected && !isDisabled;
                 const actionClass = isSelected
                     ? 'bg-[#4f7f68] text-white'
+                    : isAlternative
+                    ? 'bg-blue-100 text-blue-900 border border-blue-200'
                     : isFaded
                     ? 'bg-gray-100 text-gray-600 border border-gray-200'
                     : 'bg-amber-100 text-amber-900 border border-amber-200';
-                const actionIcon = isSelected ? 'check' : (isFaded ? 'replace' : 'mouse-pointer-click');
-                const actionText = isSelected ? 'Seleccionada' : (isFaded ? 'Cambiar selección' : 'Seleccionar');
+                const actionIcon = isSelected ? 'check' : ((isAlternative || isFaded) ? 'replace' : 'mouse-pointer-click');
+                const actionText = isSelected ? 'Seleccionada' : ((isAlternative || isFaded) ? 'Cambiar selección' : 'Seleccionar');
                 
                 // Siempre usamos checkbox para permitir deseleccionar
                 const inputType = 'checkbox';
