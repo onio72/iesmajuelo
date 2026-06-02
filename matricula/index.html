@@ -75,6 +75,14 @@
             border-radius: 3px;
             box-shadow: 0 0 0 1px rgba(0,0,0,0.08);
         }
+        .choice-pill-wrapper {
+            width: 100%;
+        }
+        @media (min-width: 640px) {
+            .choice-pill-wrapper {
+                width: var(--pill-width, 100%);
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -561,7 +569,7 @@
         // --- Anchos proporcionales ---
         function getPillWidth(hours) {
             if (!hours) return 100;
-            const w = {1: 45, 2: 60, 3: 75, 4: 90, 8: 100, 9: 100};
+            const w = {1: 25, 2: 50, 3: 75, 4: 100, 8: 100, 9: 100};
             return w[hours] || 100;
         }
 
@@ -858,35 +866,31 @@
                 const moduleTerm = { I: "1.er trimestre", II: "2.º trimestre", III: "3.er trimestre", IV: "1.er trimestre", V: "2.º trimestre", VI: "3.er trimestre" }[subj.module] || "";
                 const scopeName = isEspaModule ? subj.name.split(" · ")[1] : "";
                 const isAlternative = isComplete && !isSelected && !isDisabled;
-                const actionClass = isSelected
-                    ? 'bg-[#4f7f68] text-white'
-                    : isAlternative
-                    ? 'bg-blue-100 text-blue-900 border border-blue-200'
-                    : isFaded
-                    ? 'bg-gray-100 text-gray-600 border border-gray-200'
-                    : 'bg-amber-100 text-amber-900 border border-amber-200';
-                const actionIcon = isSelected ? 'check' : ((isAlternative || isFaded) ? 'replace' : 'mouse-pointer-click');
-                const actionText = isSelected ? 'Seleccionada' : ((isAlternative || isFaded) ? 'Cambiar selección' : 'Seleccionar');
+                const stateIcon = isSelected ? 'check-circle-2' : 'circle';
+                const stateClass = isSelected ? 'text-[#4f7f68]' : (isAlternative ? 'text-blue-500' : 'text-amber-500');
                 
                 // Siempre usamos checkbox para permitir deseleccionar
                 const inputType = 'checkbox';
+                const widthPercent = hasMspHours ? 100 : getPillWidth(subj.hours);
                 
                 return `
                 <div class="flex justify-start w-full">
-                    <label class="choice-pill-wrapper block transition-all duration-500 cursor-pointer w-full
+                    <label class="choice-pill-wrapper block transition-all duration-500 cursor-pointer
                         ${isDisabled ? '!pointer-events-none' : ''} 
-                        ${isFaded ? fadeClass : ''}">
+                        ${isFaded ? fadeClass : ''}"
+                        style="--pill-width: ${widthPercent}%;">
                         
                         <input type="${inputType}" name="${groupObj.id}" value="${subj.id}" 
                                data-action="${isFirstLang ? 'setLanguage' : 'choiceChange'}" 
                                data-group="${groupObj.id}" class="hidden peer" 
                                ${isSelected ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
                                
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 flex flex-col items-stretch justify-center gap-2 min-h-[84px] p-3
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 flex flex-col items-stretch justify-center gap-2 min-h-[64px] p-3 relative
                              ${needsAction ? 'animate-pulse-glow z-10' : 'hover:border-[#4f7f68]'} 
                              ${isSelected ? '!bg-[#edf5f0] !border-l-[#4f7f68] shadow-md' : ''}"
                              style="border-left-color: ${isSelected ? 'var(--green)' : flagInfo.border}">
-                            <div class="flex items-center gap-3 min-w-0 pr-1 flex-1 w-full">
+                            <i data-lucide="${stateIcon}" class="absolute right-3 top-3 w-5 h-5 ${stateClass}"></i>
+                            <div class="flex items-center gap-3 min-w-0 pr-8 flex-1 w-full">
                                 ${flagInfo.lang !== 'es' ? `<img src="${flagInfo.url}" class="w-[22px] h-[15px] rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.05)] shrink-0 object-cover">` : ''}
                                 <span class="min-w-0">
                                     <strong class="block text-[13px] sm:text-[14px] font-bold text-gray-800 peer-checked:text-[#4f7f68] leading-tight transition-colors">${subjectName}</strong>
@@ -895,10 +899,6 @@
                             </div>
                             <div class="w-full flex flex-col gap-2">
                                 ${this.renderHourBlocks(subj, hasMspHours)}
-                                <span class="inline-flex items-center justify-center self-end gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-black whitespace-nowrap ${actionClass}">
-                                    <i data-lucide="${actionIcon}" class="w-3.5 h-3.5"></i>
-                                    ${actionText}
-                                </span>
                             </div>
                         </div>
                     </label>
@@ -974,7 +974,7 @@
                 if (firstLangBase && this.programaId !== 'div' && this.cursoId !== 'btopa') {
                     let langOptions = ['Inglés', 'Francés'];
                     const firstLangGroup = { id: 'first_lang', mode: 'single', max: 1 };
-                    const langCols = 'grid-cols-1 sm:grid-cols-2';
+                    const langCols = 'grid-cols-1';
                     
                     html += `<div class="w-full mt-6 mb-3 border-t border-gray-100 pt-5"><h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest text-left mb-1">1ª LENGUA EXTRANJERA</h3></div>`;
                     if (this.etapa.id === 'eso') {
@@ -992,7 +992,7 @@
                 if (plan.choices) {
                     html += `<div class="w-full bg-blue-50 text-blue-900 p-4 rounded-xl text-sm font-bold mt-6 mb-2 shadow-sm border border-blue-100 flex items-start gap-2">
                         <i data-lucide="mouse-pointer-click" class="w-5 h-5 shrink-0 mt-0.5"></i>
-                        <span>Haz clic en las tarjetas para elegir materias. Las materias seleccionadas quedan marcadas en verde.</span>
+                        <span>Pulsa una tarjeta para seleccionarla. Las seleccionadas quedan marcadas en verde.</span>
                     </div>`;
                     plan.choices.forEach(group => {
                         const activeCount = group.options.length;
@@ -1001,7 +1001,7 @@
                         const isEso3DivOptativa = this.cursoId === 'eso3' && this.programaId === 'div' && group.label === 'Optativas';
                         const isEso4DivOptativa = this.cursoId === 'eso4' && this.programaId === 'div' && group.label === 'Optativas';
                         const isEso4DivOptativaPropia = this.cursoId === 'eso4' && this.programaId === 'div' && group.label === 'Optativas propias de la comunidad';
-                        const cols = isEspaModules ? 'grid-cols-1 md:grid-cols-3' : (activeCount === 1 || isBtopaOptativa ? 'grid-cols-1' : (activeCount === 2 || isEso3DivOptativa || isEso4DivOptativa || isEso4DivOptativaPropia ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'));
+                        const cols = isEspaModules ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1';
 
                         html += `<div class="w-full mt-6 mb-3 border-t border-gray-100 pt-5"><h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest text-left mb-1">${group.label}</h3></div>`;
                         if (isEspaModules) {
