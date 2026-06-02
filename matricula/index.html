@@ -965,6 +965,12 @@
                     const langCols = 'grid-cols-1 sm:grid-cols-2';
                     
                     html += `<div class="w-full mt-6 mb-3 border-t border-gray-100 pt-5"><h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest text-left mb-1">1ª LENGUA EXTRANJERA</h3></div>`;
+                    if (this.etapa.id === 'eso') {
+                        html += `<div class="w-full bg-amber-50 text-amber-900 p-4 rounded-xl text-sm font-bold mb-4 shadow-sm border border-amber-200/70 flex items-start gap-2">
+                            <i data-lucide="info" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                            <span>La primera Lengua Extranjera que se elija deberá mantenerse durante toda la ESO.</span>
+                        </div>`;
+                    }
                     html += `<div class="grid ${langCols} gap-4 w-full items-stretch">`;
                     langOptions.forEach(lang => { html += this.renderChoiceButton({ id: lang, name: lang + " (1ª Lengua)", hours: firstLangBase.hours }, firstLangGroup, true, 2); });
                     html += `</div>`;
