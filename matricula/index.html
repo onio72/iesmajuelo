@@ -960,9 +960,16 @@
                         const isEso3DivOptativa = this.cursoId === 'eso3' && this.programaId === 'div' && group.label === 'Optativas';
                         const isEso4DivOptativa = this.cursoId === 'eso4' && this.programaId === 'div' && group.label === 'Optativas';
                         const isEso4DivOptativaPropia = this.cursoId === 'eso4' && this.programaId === 'div' && group.label === 'Optativas propias de la comunidad';
-                        const cols = activeCount === 1 || isBtopaOptativa || isEspaModules ? 'grid-cols-1' : (activeCount === 2 || isEso3DivOptativa || isEso4DivOptativa || isEso4DivOptativaPropia ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3');
+                        const cols = isEspaModules ? 'grid-cols-1 md:grid-cols-3' : (activeCount === 1 || isBtopaOptativa ? 'grid-cols-1' : (activeCount === 2 || isEso3DivOptativa || isEso4DivOptativa || isEso4DivOptativaPropia ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'));
 
                         html += `<div class="w-full mt-6 mb-3 border-t border-gray-100 pt-5"><h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest text-left mb-1">${group.label}</h3></div>`;
+                        if (isEspaModules) {
+                            html += `<div class="hidden md:grid grid-cols-3 gap-4 w-full mb-3">
+                                <div class="text-xs font-bold text-[#4f7f68] uppercase tracking-wider text-center bg-[#edf5f0] py-2 rounded-xl shadow-sm">Comunicación</div>
+                                <div class="text-xs font-bold text-[#4f7f68] uppercase tracking-wider text-center bg-[#edf5f0] py-2 rounded-xl shadow-sm">Científico-tecnológico</div>
+                                <div class="text-xs font-bold text-[#4f7f68] uppercase tracking-wider text-center bg-[#edf5f0] py-2 rounded-xl shadow-sm">Social</div>
+                            </div>`;
+                        }
                         html += `<div class="grid ${cols} gap-4 w-full items-stretch">`;
                         group.options.forEach(opt => { html += this.renderChoiceButton(this.displaySubject(opt), group, false, activeCount); });
                         html += `</div>`;
