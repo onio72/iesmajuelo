@@ -867,14 +867,12 @@
                 
                 // Siempre usamos checkbox para permitir deseleccionar
                 const inputType = 'checkbox';
-                const widthStyle = activeCount === 1 ? `width: ${getPillWidth(subj.hours)}%;` : 'width: 100%;';
                 
                 return `
                 <div class="flex justify-start w-full">
                     <label class="choice-pill-wrapper block transition-all duration-500 cursor-pointer w-full
                         ${isDisabled ? '!pointer-events-none' : ''} 
-                        ${isFaded ? fadeClass : ''}"
-                        style="${widthStyle}">
+                        ${isFaded ? fadeClass : ''}">
                         
                         <input type="${inputType}" name="${groupObj.id}" value="${subj.id}" 
                                data-action="${isFirstLang ? 'setLanguage' : 'choiceChange'}" 
