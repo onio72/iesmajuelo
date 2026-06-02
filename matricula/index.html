@@ -78,14 +78,6 @@
         .choice-pill-wrapper {
             width: 100%;
         }
-        @media (min-width: 640px) {
-            .choice-pill-wrapper {
-                width: var(--pill-width, 100%);
-            }
-            .choice-row .choice-pill-wrapper {
-                width: 100%;
-            }
-        }
         .choice-row {
             display: flex;
             flex-wrap: wrap;
@@ -97,7 +89,8 @@
         }
         @media (min-width: 640px) {
             .choice-row > .choice-item {
-                width: calc(var(--pill-width, 100%) - 1rem);
+                flex: 0 0 calc(var(--pill-width, 100%) - 1rem);
+                min-width: 14rem;
             }
         }
     </style>
