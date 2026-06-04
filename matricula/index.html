@@ -155,8 +155,8 @@
                 <h2 id="step-3-title" class="text-3xl font-bold text-gray-900 mb-4">Programa</h2>
                 <p class="text-gray-600">Selecciona tu programa o curso.</p>
             </div>
+            <div id="program-notes" class="max-w-4xl mx-auto mb-6 hidden"></div>
             <div id="program-grid"></div>
-            <div id="program-notes" class="max-w-4xl mx-auto mt-8 hidden"></div>
         </div>
 
         <!-- PANTALLA 4: ITINERARIO -->
@@ -165,6 +165,7 @@
                 <h2 id="step-4-title" class="text-3xl font-bold text-gray-900 mb-4">Selecciona tu modalidad</h2>
                 <p class="text-gray-600">Elige el itinerario que mejor se adapte a tus futuros estudios.</p>
             </div>
+            <div id="path-notes" class="max-w-4xl mx-auto mb-6 hidden"></div>
             <div id="path-grid"></div>
         </div>
 
@@ -219,13 +220,6 @@
             <div class="text-gray-600 leading-relaxed mb-8 text-sm md:text-base space-y-3">
                 <p>Acabas de acceder a un <b>simulador</b> de matrícula del IES El Majuelo.</p>
                 <p>Esta web sirve para comprobar en qué materias te puedes matricular en cada curso y enseñanza.</p>
-                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-amber-900">
-                    <p class="font-bold mb-2">No olvides en la matrícula:</p>
-                    <ul class="list-disc pl-5 space-y-1">
-                        <li>Indicar teléfono móvil y correo electrónico actualizados de padre, madre o tutores.</li>
-                        <li>Subir una fotografía reciente válida para documentos oficiales.</li>
-                    </ul>
-                </div>
                 <p>Esta web <b>no sustituye</b> al proceso de matriculación que se debe hacer a través de la <a href="https://www.juntadeandalucia.es/educacion/secretariavirtual/" target="_blank" rel="noopener noreferrer" class="text-[#4f7f68] font-bold underline hover:text-[#3f6854] transition-colors">Secretaría Virtual</a> para todas las enseñanzas y en papel para la Secundaria para Personas Adultas(ESPA).</p>
             </div>
             <button data-action="closeModal" class="w-full py-3 px-4 bg-[#4f7f68] hover:bg-[#3f6854] text-white rounded-xl font-bold transition-colors">
@@ -250,6 +244,134 @@
             </div>
             <button data-action="closeDivInfo" class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors">
                 Cerrar
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Recordatorio Matrícula -->
+    <div id="enrollment-reminder-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm pointer-events-none opacity-0 transition-opacity duration-300 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 p-6 sm:p-8 transform scale-95 transition-transform duration-300 pointer-events-auto">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center shrink-0">
+                    <i data-lucide="bell-ring" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">Recuerda</h3>
+            </div>
+            <div class="text-gray-600 leading-relaxed mb-8 text-sm md:text-base space-y-3">
+                <p class="font-bold text-gray-900">Al matricularte en la Secretaría Virtual no olvides:</p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li id="enrollment-contact-reminder">Indicar teléfono móvil y correo electrónico actualizados de padre, madre o tutores.</li>
+                    <li>Subir una fotografía reciente válida para documentos oficiales.</li>
+                </ul>
+            </div>
+            <button data-action="closeEnrollmentReminder" class="w-full py-3 px-4 bg-[#4f7f68] hover:bg-[#3f6854] text-white rounded-xl font-bold transition-colors">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Aviso 2º ESO -->
+    <div id="eso2-language-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm pointer-events-none opacity-0 transition-opacity duration-300 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 p-6 sm:p-8 transform scale-95 transition-transform duration-300 pointer-events-auto">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+                    <i data-lucide="languages" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">Aviso para 2º ESO</h3>
+            </div>
+            <div class="text-gray-600 leading-relaxed mb-8 text-sm md:text-base space-y-3">
+                <p>Si cursaste 1º ESO en la opción bilingüe, debes continuar en el programa bilingüe.</p>
+                <p>Si no cursaste 1º ESO en la opción bilingüe, puedes solicitar incorporarte ahora siempre que tu Primera Lengua Extranjera en 1º ESO haya sido Inglés.</p>
+            </div>
+            <button data-action="closeEso2LanguageInfo" class="w-full py-3 px-4 bg-[#4f7f68] hover:bg-[#3f6854] text-white rounded-xl font-bold transition-colors">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Aviso ESO -->
+    <div id="eso3-info-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm pointer-events-none opacity-0 transition-opacity duration-300 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 p-6 sm:p-8 max-h-[90vh] overflow-y-auto transform scale-95 transition-transform duration-300 pointer-events-auto">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+                    <i data-lucide="info" class="w-6 h-6"></i>
+                </div>
+                <h3 id="eso-info-title" class="text-2xl font-bold text-gray-900">Información importante para 3º ESO</h3>
+            </div>
+            <div id="eso-info-content" class="text-gray-700 leading-relaxed mb-8 text-sm md:text-base space-y-5">
+                <section class="border-b border-blue-100 pb-4" data-eso3-only>
+                    <h4 class="text-lg font-bold text-orange-600 mb-1">Idiomas</h4>
+                    <p class="text-xs font-bold uppercase tracking-[0.25em] text-orange-500 mb-3">¿Inglés, Francés o Inglés bilingüe?</p>
+                    <p>Si cursaste 2º ESO en la opción bilingüe, debes continuar en el programa bilingüe.</p>
+                    <p>Si no cursaste 2º ESO en la opción bilingüe, puedes solicitar incorporarte ahora siempre que tu Primera Lengua Extranjera en 2º ESO haya sido Inglés.</p>
+                </section>
+                <section class="border-b border-blue-100 pb-4" data-eso3-only>
+                    <h4 class="text-lg font-bold text-orange-600 mb-1">Elección de materias</h4>
+                    <p class="text-xs font-bold uppercase tracking-[0.25em] text-orange-500 mb-3">Libre configuración autonómica</p>
+                    <p>En cuanto a la optativa, deberás indicar el orden de preferencia de todas las materias que se ofertan en este apartado. Si optas por 2ª Lengua Extranjera, deberá ser distinta de la elegida como 1ª Lengua Extranjera.</p>
+                    <p class="text-xs text-gray-600 mt-3">Si el número de solicitantes es superior al de plazas ofertadas se realizará un sorteo. Al alumnado que no obtenga plaza se le asignará la siguiente opción según el orden de preferencia indicado.</p>
+                </section>
+                <section class="border-b border-blue-100 pb-4">
+                    <h4 class="text-lg font-bold text-orange-600 mb-3">Seguro escolar obligatorio</h4>
+                    <p>Deben abonar este seguro todos los estudiantes menores de 28 años.</p>
+                </section>
+            </div>
+            <button data-action="closeEso3Info" class="w-full py-3 px-4 bg-[#4f7f68] hover:bg-[#3f6854] text-white rounded-xl font-bold transition-colors">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Aviso 1º Bachillerato -->
+    <div id="bach1-info-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm pointer-events-none opacity-0 transition-opacity duration-300 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 p-6 sm:p-8 max-h-[90vh] overflow-y-auto transform scale-95 transition-transform duration-300 pointer-events-auto">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-12 h-12 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center shrink-0">
+                    <i data-lucide="info" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">Información importante para 1º Bachillerato</h3>
+            </div>
+            <div class="text-gray-700 leading-relaxed mb-8 text-sm md:text-base space-y-5">
+                <section class="border-b border-blue-100 pb-4">
+                    <h4 class="text-lg font-bold text-orange-600 mb-1">Itinerarios y materias</h4>
+                    <p>Aunque en la Secretaría Virtual puedas hacer combinaciones de materias distintas a las que te ofrecemos en este simulador, evítalas. Al seleccionar optativas en la Secretaría Virtual ordénalas por orden de preferencia.</p>
+                </section>
+                <section class="border-b border-blue-100 pb-4">
+                    <h4 class="text-lg font-bold text-orange-600 mb-1">Convocatoria extraordinaria</h4>
+                    <p>Si tienes que presentarte a septiembre, te deberás matricular provisionalmente de 1º. Indícanos en la Secretaría Virtual qué materias escogerías en 2º en caso de promocionar tras la convocatoria extraordinaria.</p>
+                </section>
+                <section>
+                    <h4 class="text-lg font-bold text-orange-600 mb-3">Seguro escolar obligatorio</h4>
+                    <p>Deben abonar este seguro todos los estudiantes menores de 28 años.</p>
+                </section>
+            </div>
+            <button data-action="closeBach1Info" class="w-full py-3 px-4 bg-[#4f7f68] hover:bg-[#3f6854] text-white rounded-xl font-bold transition-colors">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Aviso 2º Bachillerato -->
+    <div id="bach2-info-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm pointer-events-none opacity-0 transition-opacity duration-300 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 p-6 sm:p-8 max-h-[90vh] overflow-y-auto transform scale-95 transition-transform duration-300 pointer-events-auto">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-12 h-12 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center shrink-0">
+                    <i data-lucide="info" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">Información importante para 2º Bachillerato</h3>
+            </div>
+            <div class="text-gray-700 leading-relaxed mb-8 text-sm md:text-base space-y-5">
+                <section class="border-b border-blue-100 pb-4">
+                    <h4 class="text-lg font-bold text-orange-600 mb-1">Itinerarios y materias</h4>
+                    <p>Aunque en la Secretaría Virtual puedas hacer combinaciones de materias distintas a las que te ofrecemos en este simulador, evítalas. Al seleccionar optativas en la Secretaría Virtual ordénalas por orden de preferencia.</p>
+                </section>
+                <section>
+                    <h4 class="text-lg font-bold text-orange-600 mb-3">Seguro escolar obligatorio</h4>
+                    <p>Deben abonar este seguro todos los estudiantes menores de 28 años.</p>
+                </section>
+            </div>
+            <button data-action="closeBach2Info" class="w-full py-3 px-4 bg-[#4f7f68] hover:bg-[#3f6854] text-white rounded-xl font-bold transition-colors">
+                Entendido
             </button>
         </div>
     </div>
@@ -542,6 +664,101 @@
             modal.classList.add('opacity-0');
             modal.children[0].classList.add('scale-95');
             modal.classList.add('pointer-events-none');
+            app.continuePendingProgramaSelection();
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function showEnrollmentReminderModal(etapaId) {
+            const modal = document.getElementById('enrollment-reminder-modal');
+            const contactReminder = document.getElementById('enrollment-contact-reminder');
+            contactReminder.textContent = etapaId === 'adultos'
+                ? 'Indicar tu teléfono móvil y correo electrónico.'
+                : 'Indicar teléfono móvil y correo electrónico actualizados de padre, madre o tutores.';
+            modal.classList.remove('hidden', 'pointer-events-none');
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0');
+            modal.children[0].classList.remove('scale-95');
+        }
+
+        function closeEnrollmentReminderModal() {
+            const modal = document.getElementById('enrollment-reminder-modal');
+            modal.classList.add('opacity-0');
+            modal.children[0].classList.add('scale-95');
+            modal.classList.add('pointer-events-none');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function showEso2LanguageInfoModal() {
+            const modal = document.getElementById('eso2-language-modal');
+            modal.classList.remove('hidden', 'pointer-events-none');
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0');
+            modal.children[0].classList.remove('scale-95');
+        }
+
+        function closeEso2LanguageInfoModal() {
+            const modal = document.getElementById('eso2-language-modal');
+            modal.classList.add('opacity-0');
+            modal.children[0].classList.add('scale-95');
+            modal.classList.add('pointer-events-none');
+            app.continuePendingCursoSelection();
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function showEsoInfoModal(cursoId) {
+            const modal = document.getElementById('eso3-info-modal');
+            document.getElementById('eso-info-title').textContent = cursoId === 'eso4'
+                ? 'Información importante para 4º ESO'
+                : 'Información importante para 3º ESO';
+            modal.querySelectorAll('[data-eso3-only]').forEach(section => {
+                section.classList.toggle('hidden', cursoId === 'eso4');
+            });
+            modal.classList.remove('hidden', 'pointer-events-none');
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0');
+            modal.children[0].classList.remove('scale-95');
+        }
+
+        function closeEso3InfoModal() {
+            const modal = document.getElementById('eso3-info-modal');
+            modal.classList.add('opacity-0');
+            modal.children[0].classList.add('scale-95');
+            modal.classList.add('pointer-events-none');
+            app.continuePendingCursoSelection();
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function showBach1InfoModal() {
+            const modal = document.getElementById('bach1-info-modal');
+            modal.classList.remove('hidden', 'pointer-events-none');
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0');
+            modal.children[0].classList.remove('scale-95');
+        }
+
+        function closeBach1InfoModal() {
+            const modal = document.getElementById('bach1-info-modal');
+            modal.classList.add('opacity-0');
+            modal.children[0].classList.add('scale-95');
+            modal.classList.add('pointer-events-none');
+            app.continuePendingCursoSelection();
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function showBach2InfoModal() {
+            const modal = document.getElementById('bach2-info-modal');
+            modal.classList.remove('hidden', 'pointer-events-none');
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0');
+            modal.children[0].classList.remove('scale-95');
+        }
+
+        function closeBach2InfoModal() {
+            const modal = document.getElementById('bach2-info-modal');
+            modal.classList.add('opacity-0');
+            modal.children[0].classList.add('scale-95');
+            modal.classList.add('pointer-events-none');
+            app.continuePendingCursoSelection();
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
@@ -588,6 +805,8 @@
             pathId: null,     
             languages: { first: "" },
             selections: {},
+            pendingCursoId: null,
+            pendingProgramaId: null,
 
             goToStep(stepNum) {
                 if (stepNum === 1) { this.etapa = null; this.cursoId = null; this.programaId = null; this.pathId = null; } 
@@ -598,8 +817,49 @@
                 this.render();
             },
 
-            selectEtapa(etapaId) { this.etapa = db[etapaId]; this.cursoId = null; this.programaId = null; this.step = 2; this.render(); },
+            selectEtapa(etapaId) {
+                this.etapa = { ...db[etapaId], id: etapaId };
+                this.cursoId = null;
+                this.programaId = null;
+                this.step = 2;
+                this.render();
+                showEnrollmentReminderModal(etapaId);
+            },
             selectCurso(cursoId) {
+                if (this.etapa.id === 'eso' && cursoId === 'eso2') {
+                    this.pendingCursoId = cursoId;
+                    showEso2LanguageInfoModal();
+                    return;
+                }
+                if (this.etapa.id === 'eso' && cursoId === 'eso3') {
+                    this.pendingCursoId = cursoId;
+                    showEsoInfoModal(cursoId);
+                    return;
+                }
+                if (this.etapa.id === 'eso' && cursoId === 'eso4') {
+                    this.pendingCursoId = cursoId;
+                    showEsoInfoModal(cursoId);
+                    return;
+                }
+                if (this.etapa.id === 'bach' && cursoId === 'bach1') {
+                    this.pendingCursoId = cursoId;
+                    showBach1InfoModal();
+                    return;
+                }
+                if (this.etapa.id === 'bach' && cursoId === 'bach2') {
+                    this.pendingCursoId = cursoId;
+                    showBach2InfoModal();
+                    return;
+                }
+                this.navigateToCurso(cursoId);
+            },
+            continuePendingCursoSelection() {
+                if (!this.pendingCursoId) return;
+                const cursoId = this.pendingCursoId;
+                this.pendingCursoId = null;
+                this.navigateToCurso(cursoId);
+            },
+            navigateToCurso(cursoId) {
                 const curso = this.etapa.courses.find(c => c.id === cursoId);
                 this.cursoId = curso.id; this.programaId = null; this.pathId = null; this.selections = {}; this.languages.first = "";
                 if (curso.programs) {
@@ -612,6 +872,20 @@
                 this.render();
             },
             selectPrograma(programaId) {
+                if ((this.cursoId === 'eso3' || this.cursoId === 'eso4') && programaId === 'div') {
+                    this.pendingProgramaId = programaId;
+                    showDivInfoModal();
+                    return;
+                }
+                this.navigateToPrograma(programaId);
+            },
+            continuePendingProgramaSelection() {
+                if (!this.pendingProgramaId) return;
+                const programaId = this.pendingProgramaId;
+                this.pendingProgramaId = null;
+                this.navigateToPrograma(programaId);
+            },
+            navigateToPrograma(programaId) {
                 this.programaId = programaId; this.pathId = null; this.selections = {}; this.languages.first = "";
                 const curso = this.etapa.courses.find(c => c.id === this.cursoId);
                 const programa = curso.programs.find(p => p.id === programaId);
@@ -750,6 +1024,15 @@
                 if (this.cursoId === 'eso1') {
                     notesEl.innerHTML = `<div class="bg-blue-50 text-blue-800 p-4 rounded-xl text-sm font-medium text-center shadow-sm"><i data-lucide="info" class="w-5 h-5 inline-block mr-1 -mt-0.5"></i> Si un alumno se incorpora al programa bilingüe, no saldrá de este programa hasta finalizar 4º de ESO.</div>`;
                     notesEl.classList.remove('hidden');
+                } else if (this.cursoId === 'eso2') {
+                    notesEl.innerHTML = `<div class="bg-blue-50 text-blue-800 p-4 rounded-xl text-sm font-medium shadow-sm"><i data-lucide="info" class="w-5 h-5 inline-block mr-1 -mt-0.5"></i> <span class="font-bold">Información importante:</span> si cursaste 1º ESO en la opción bilingüe, debes continuar en el programa bilingüe. Si no cursaste 1º ESO en la opción bilingüe, puedes solicitar incorporarte ahora siempre que tu Primera Lengua Extranjera en 1º ESO haya sido Inglés.</div>`;
+                    notesEl.classList.remove('hidden');
+                } else if (this.cursoId === 'btopa') {
+                    notesEl.innerHTML = `<div class="bg-blue-50 text-blue-800 p-4 rounded-xl text-sm font-medium shadow-sm flex items-start gap-2">
+                        <i data-lucide="clock" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                        <span>El estudiante adulto que cursa esta enseñanza debe acudir al centro <b>12 h a la semana</b>. La asistencia presencial en el centro es lunes, martes y jueves, de <b>17:00 a 21:30</b>.</span>
+                    </div>`;
+                    notesEl.classList.remove('hidden');
                 } else {
                     notesEl.classList.add('hidden');
                 }
@@ -759,6 +1042,17 @@
                 const curso = this.etapa.courses.find(c => c.id === this.cursoId);
                 let paths = this.programaId ? curso.programs.find(p => p.id === this.programaId).paths : curso.paths;
                 document.getElementById("step-4-title").textContent = curso.label === "Enseñanza Secundaria para Personas Adultas (ESPA)" ? "Selecciona el nivel" : "Selecciona tu modalidad";
+                const notesEl = document.getElementById("path-notes");
+                if (this.cursoId === 'espa') {
+                    notesEl.innerHTML = `<div class="bg-blue-50 text-blue-800 p-4 rounded-xl text-sm font-medium shadow-sm flex items-start gap-2">
+                        <i data-lucide="clock" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                        <span>El estudiante adulto que cursa esta enseñanza debe acudir al centro <b>8 h a la semana</b>. La asistencia presencial en el centro es lunes, martes y jueves, de <b>18:30 a 21:30</b>.</span>
+                    </div>`;
+                    notesEl.classList.remove('hidden');
+                } else {
+                    notesEl.classList.add('hidden');
+                    notesEl.innerHTML = '';
+                }
                 const grid = document.getElementById("path-grid");
                 grid.className = paths.length <= 2 ? "flex flex-col sm:flex-row justify-center gap-6 max-w-4xl mx-auto" : "grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto";
                 grid.innerHTML = paths.map(p => `<button data-action="selectItinerario" data-payload="${p.id}" class="selection-card bg-white p-6 rounded-2xl shadow-sm flex items-start gap-4 text-left w-full sm:w-80"><div class="w-12 h-12 bg-gray-50 text-[#4f7f68] rounded-xl flex items-center justify-center shrink-0 mt-1"><i data-lucide="${p.icon}" class="w-6 h-6"></i></div><div><h3 class="text-lg font-bold text-gray-900">${p.label}</h3>${p.subtitle ? `<p class="text-sm text-gray-500 mt-1 leading-relaxed">${p.subtitle}</p>` : ''}</div></button>`).join("");
@@ -822,9 +1116,9 @@
                 const widthPercent = hasMspHours ? 100 : getPillWidth(subj.hours);
                 const flagInfo = getFlagInfo(subj.name, this.programaId, this.languages.first, this.cursoId);
                 return `
-                <div class="flex justify-start w-full mb-2.5">
+                <div class="flex justify-start w-full mb-2">
                     <div class="transition-all duration-500" style="width: ${widthPercent}%;">
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 ${hasMspHours ? 'flex flex-col items-stretch gap-2' : 'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2'} p-3 min-h-[58px]"
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 ${hasMspHours ? 'flex flex-col items-stretch gap-2' : 'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2'} px-3 py-2.5 min-h-[52px]"
                              style="border-left-color: ${flagInfo.border}">
                             <div class="flex items-center gap-3 pr-1 min-w-0 flex-1 w-full">
                                 ${flagInfo.lang !== 'es' ? `<img src="${flagInfo.url}" class="w-[22px] h-[15px] rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.05)] shrink-0 object-cover">` : ''}
@@ -855,15 +1149,6 @@
                 const isForcedLang = isFirstLang && this.programaId === "bil";
                 const isDisabled = isForcedLang && !isSelected; 
 
-                let isFaded = false;
-                let fadeClass = '';
-
-                // Solo atenuamos las opciones realmente bloqueadas; las alternativas siguen siendo clicables.
-                if (isDisabled) {
-                    isFaded = true;
-                    fadeClass = 'opacity-40 grayscale hover:opacity-100 hover:grayscale-0'; 
-                }
-
                 const flagInfo = getFlagInfo(subj.name, this.programaId, this.languages.first, this.cursoId);
                 const needsAction = !isComplete && !isSelected && !isDisabled;
                 const hasMspHours = Number.isFinite(subj.slp) && Number.isFinite(subj.st);
@@ -874,17 +1159,23 @@
                 const scopeName = isEspaModule ? subj.name.split(" · ")[1] : "";
                 const isAlternative = isComplete && !isSelected && !isDisabled;
                 const stateIcon = isSelected ? 'check-circle-2' : 'circle';
-                const stateClass = isSelected ? 'text-[#4f7f68]' : (isAlternative ? 'text-blue-500' : 'text-amber-500');
+                const stateClass = isSelected ? 'text-[#2f6f50]' : (isAlternative ? 'text-gray-300' : 'text-amber-500');
+                const fadeClass = isDisabled
+                    ? 'opacity-35 grayscale hover:opacity-80 hover:grayscale-0'
+                    : (isAlternative ? 'opacity-45 saturate-50 hover:opacity-85 hover:saturate-100' : '');
                 
                 // Siempre usamos checkbox para permitir deseleccionar
                 const inputType = 'checkbox';
-                const widthPercent = hasMspHours ? 100 : getPillWidth(subj.hours);
+                const isBinaryOneHourGroup = Array.isArray(groupObj.options) && groupObj.options.length === 2 && groupObj.max === 1 && groupObj.hoursEach === 1;
+                const widthPercent = hasMspHours || isBinaryOneHourGroup ? 100 : getPillWidth(subj.hours);
+                const cardSizeClass = 'min-h-[56px] px-3 py-2.5';
+                const titleSizeClass = 'text-[13px] sm:text-[14px]';
                 
                 return `
                 <div class="flex justify-start w-full">
                     <label class="choice-pill-wrapper block transition-all duration-500 cursor-pointer
                         ${isDisabled ? '!pointer-events-none' : ''} 
-                        ${isFaded ? fadeClass : ''}"
+                        ${fadeClass}"
                         style="--pill-width: ${widthPercent}%;">
                         
                         <input type="${inputType}" name="${groupObj.id}" value="${subj.id}" 
@@ -892,15 +1183,15 @@
                                data-group="${groupObj.id}" class="hidden peer" 
                                ${isSelected ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
                                
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 flex flex-col items-stretch justify-center gap-2 min-h-[64px] p-3 relative
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 border-l-4 flex flex-col items-stretch justify-center gap-1.5 ${cardSizeClass} relative
                              ${needsAction ? 'animate-pulse-glow z-10' : 'hover:border-[#4f7f68]'} 
-                             ${isSelected ? '!bg-[#edf5f0] !border-l-[#4f7f68] shadow-md' : ''}"
+                             ${isSelected ? '!bg-[#dff1e7] !border-[#4f7f68] !border-l-[#2f6f50] ring-2 ring-[#4f7f68]/35 shadow-lg' : ''}"
                              style="border-left-color: ${isSelected ? 'var(--green)' : flagInfo.border}">
                             <i data-lucide="${stateIcon}" class="absolute right-3 top-3 w-5 h-5 ${stateClass}"></i>
                             <div class="flex items-center gap-3 min-w-0 pr-8 flex-1 w-full">
                                 ${flagInfo.lang !== 'es' ? `<img src="${flagInfo.url}" class="w-[22px] h-[15px] rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.05)] shrink-0 object-cover">` : ''}
                                 <span class="min-w-0">
-                                    <strong class="block text-[13px] sm:text-[14px] font-bold text-gray-800 peer-checked:text-[#4f7f68] leading-tight transition-colors">${subjectName}</strong>
+                                    <strong class="block ${titleSizeClass} font-bold text-gray-800 peer-checked:text-[#2f6f50] leading-tight transition-colors">${subjectName}</strong>
                                     ${isEspaModule ? `<span class="block text-[11px] sm:text-[12px] font-bold text-gray-500 leading-tight mt-1">${moduleTerm} · ${scopeName}</span>` : ''}
                                 </span>
                             </div>
@@ -951,7 +1242,7 @@
                 }
 
                 // MODO ESO/BACH/BTOPA
-                html += '<div class="w-full max-w-2xl mt-2 flex flex-col items-start">';
+                html += '<div class="w-full max-w-4xl mt-2 flex flex-col items-start">';
                 
                 if (this.programaId === "bil") {
                     html += `<div class="w-full bg-indigo-50 text-indigo-800 p-4 rounded-xl text-sm font-medium mb-6 shadow-sm flex items-start gap-2">
@@ -983,23 +1274,23 @@
                     const firstLangGroup = { id: 'first_lang', mode: 'single', max: 1 };
                     const langCols = 'grid-cols-1';
                     
-                    html += `<div class="w-full mt-6 mb-3 border-t border-gray-100 pt-5"><h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest text-left mb-1">1ª LENGUA EXTRANJERA</h3></div>`;
+                    html += `<div class="w-full mt-4 mb-2 border-t border-gray-100 pt-4"><h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest text-left mb-1">1ª LENGUA EXTRANJERA</h3></div>`;
                     if (this.etapa.id === 'eso') {
-                        html += `<div class="w-full bg-amber-50 text-amber-900 p-4 rounded-xl text-sm font-bold mb-4 shadow-sm border border-amber-200/70 flex items-start gap-2">
+                        html += `<div class="w-full bg-amber-50 text-amber-900 p-3 rounded-xl text-sm font-bold mb-3 shadow-sm border border-amber-200/70 flex items-start gap-2">
                             <i data-lucide="info" class="w-5 h-5 shrink-0 mt-0.5"></i>
                             <span>La primera Lengua Extranjera que se elija deberá mantenerse durante toda la ESO.</span>
                         </div>`;
                     }
-                    html += `<div class="grid ${langCols} gap-4 w-full items-stretch">`;
+                    html += `<div class="grid ${langCols} gap-3 w-full items-stretch">`;
                     langOptions.forEach(lang => { html += this.renderChoiceButton({ id: lang, name: lang + " (1ª Lengua)", hours: firstLangBase.hours }, firstLangGroup, true, 2); });
                     html += `</div>`;
                 }
 
                 // Píldoras elegibles: Optativas y Religión
                 if (plan.choices) {
-                    html += `<div class="w-full bg-blue-50 text-blue-900 p-4 rounded-xl text-sm font-bold mt-6 mb-2 shadow-sm border border-blue-100 flex items-start gap-2">
+                    html += `<div class="w-full bg-blue-50 text-blue-900 p-3 rounded-xl text-sm font-bold mt-4 mb-2 shadow-sm border border-blue-100 flex items-start gap-2">
                         <i data-lucide="mouse-pointer-click" class="w-5 h-5 shrink-0 mt-0.5"></i>
-                        <span>Pulsa una tarjeta para seleccionarla. Las seleccionadas quedan marcadas en verde.</span>
+                        <span>Pulsa una tarjeta para seleccionarla. Las seleccionadas quedan marcadas en verde. Puedes pulsarla de nuevo para deseleccionarla o elegir otra opción.</span>
                     </div>`;
                     plan.choices.forEach(group => {
                         const activeCount = group.options.length;
@@ -1008,9 +1299,40 @@
                         const isEso3DivOptativa = this.cursoId === 'eso3' && this.programaId === 'div' && group.label === 'Optativas';
                         const isEso4DivOptativa = this.cursoId === 'eso4' && this.programaId === 'div' && group.label === 'Optativas';
                         const isEso4DivOptativaPropia = this.cursoId === 'eso4' && this.programaId === 'div' && group.label === 'Optativas propias de la comunidad';
-                        const cols = isEspaModules ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1';
+                        const isBinaryChoiceGroup = group.options.length === 2 && group.max === 1;
+                        const isEsoOptativaGroup = this.etapa.id === 'eso' && group.label.includes('Optativas');
+                        const isBachOptativaGroup = this.etapa.id === 'bach' && group.label.toLowerCase().includes('optativa');
+                        const hasSecondForeignLanguage = group.options.some(opt => opt.name.toLowerCase().includes('segunda lengua extranjera'));
+                        const secondForeignLanguageWarning = hasSecondForeignLanguage ? ' Si optas por 2ª Lengua Extranjera, deberá ser distinta de la elegida como 1ª Lengua Extranjera.' : '';
+                        const cols = isEspaModules
+                            ? 'grid-cols-1 md:grid-cols-3'
+                            : (isBinaryChoiceGroup || isEsoOptativaGroup || isBachOptativaGroup ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1');
 
-                        html += `<div class="w-full mt-6 mb-3 border-t border-gray-100 pt-5"><h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest text-left mb-1">${group.label}</h3></div>`;
+                        html += `<div class="w-full mt-4 mb-2 border-t border-gray-100 pt-4"><h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest text-left mb-1">${group.label}</h3></div>`;
+                        if (this.cursoId === 'eso1' && group.label === 'Optativas') {
+                            html += `<div class="w-full bg-amber-50 text-amber-900 p-3 rounded-xl text-sm font-bold mb-3 shadow-sm border border-amber-200/70 flex items-start gap-2">
+                                <i data-lucide="list-ordered" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                                <span>En la Secretaría Virtual, las optativas se deben ordenar por orden de preferencia.</span>
+                            </div>`;
+                        }
+                        if (this.cursoId === 'eso2' && group.label === 'Optativas') {
+                            html += `<div class="w-full bg-amber-50 text-amber-900 p-3 rounded-xl text-sm font-bold mb-3 shadow-sm border border-amber-200/70 flex items-start gap-2">
+                                <i data-lucide="list-ordered" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                                <span>En la Secretaría Virtual deberás indicar el orden de preferencia de todas las materias optativas.${secondForeignLanguageWarning}</span>
+                            </div>`;
+                        }
+                        if ((this.cursoId === 'eso3' || this.cursoId === 'eso4') && group.label.includes('Optativas')) {
+                            html += `<div class="w-full bg-amber-50 text-amber-900 p-3 rounded-xl text-sm font-bold mb-3 shadow-sm border border-amber-200/70 flex items-start gap-2">
+                                <i data-lucide="list-ordered" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                                <span>En la Secretaría Virtual deberás indicar el orden de preferencia de todas las materias optativas.${secondForeignLanguageWarning}</span>
+                            </div>`;
+                        }
+                        if (isBachOptativaGroup) {
+                            html += `<div class="w-full bg-amber-50 text-amber-900 p-3 rounded-xl text-sm font-bold mb-3 shadow-sm border border-amber-200/70 flex items-start gap-2">
+                                <i data-lucide="list-ordered" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                                <span>En la Secretaría Virtual deberás indicar el orden de preferencia de todas las materias optativas.${secondForeignLanguageWarning}</span>
+                            </div>`;
+                        }
                         if (isEspaModules) {
                             html += `<div class="hidden md:grid grid-cols-3 gap-4 w-full mb-3">
                                 <div class="text-xs font-bold text-[#4f7f68] uppercase tracking-wider text-center bg-[#edf5f0] py-2 rounded-xl shadow-sm">Comunicación</div>
@@ -1018,7 +1340,7 @@
                                 <div class="text-xs font-bold text-[#4f7f68] uppercase tracking-wider text-center bg-[#edf5f0] py-2 rounded-xl shadow-sm">Social</div>
                             </div>`;
                         }
-                        html += `<div class="grid ${cols} gap-4 w-full items-stretch">`;
+                        html += `<div class="grid ${cols} gap-3 w-full items-stretch">`;
                         group.options.forEach(opt => { html += this.renderChoiceButton(this.displaySubject(opt), group, false, activeCount); });
                         html += `</div>`;
                     });
@@ -1182,8 +1504,18 @@
         document.addEventListener('click', (e) => {
             const welcomeModal = document.getElementById('welcome-modal');
             const divModal = document.getElementById('div-info-modal');
+            const enrollmentReminderModal = document.getElementById('enrollment-reminder-modal');
+            const eso2LanguageModal = document.getElementById('eso2-language-modal');
+            const eso3InfoModal = document.getElementById('eso3-info-modal');
+            const bach1InfoModal = document.getElementById('bach1-info-modal');
+            const bach2InfoModal = document.getElementById('bach2-info-modal');
             if (e.target === welcomeModal) { closeModal(); return; }
             if (e.target === divModal) { closeDivInfoModal(); return; }
+            if (e.target === enrollmentReminderModal) { closeEnrollmentReminderModal(); return; }
+            if (e.target === eso2LanguageModal) { closeEso2LanguageInfoModal(); return; }
+            if (e.target === eso3InfoModal) { closeEso3InfoModal(); return; }
+            if (e.target === bach1InfoModal) { closeBach1InfoModal(); return; }
+            if (e.target === bach2InfoModal) { closeBach2InfoModal(); return; }
 
             const btn = e.target.closest('[data-action]');
             if (!btn) return;
@@ -1198,6 +1530,11 @@
                 case 'closeModal': closeModal(); break;
                 case 'showDivInfo': showDivInfoModal(); break;
                 case 'closeDivInfo': closeDivInfoModal(); break;
+                case 'closeEnrollmentReminder': closeEnrollmentReminderModal(); break;
+                case 'closeEso2LanguageInfo': closeEso2LanguageInfoModal(); break;
+                case 'closeEso3Info': closeEso3InfoModal(); break;
+                case 'closeBach1Info': closeBach1InfoModal(); break;
+                case 'closeBach2Info': closeBach2InfoModal(); break;
             }
         });
 
