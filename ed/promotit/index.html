@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promoción, titulación e itinerarios</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2d3748',
+                        secondary: '#4a5568',
+                        accent: '#3182ce',
+                        background: '#f7fafc',
+                        card: '#ffffff'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-background text-primary antialiased selection:bg-accent selection:text-white pb-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
+        <nav class="mb-10 fade-in-up">
+            <div class="flex flex-wrap gap-2 justify-center">
+                <a href="index.html" class="px-4 py-2 rounded-full bg-accent text-white text-sm font-semibold shadow-sm">Índice</a>
+                <a href="eso.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción ESO</a>
+                <a href="bachillerato.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción Bachillerato</a>
+                <a href="pdc.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Acceso a PDC</a>
+                <a href="fpb.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Acceso a FPB</a>
+            </div>
+        </nav>
+
+        <header class="text-center mb-14 fade-in-up delay-100">
+            <div class="inline-flex items-center justify-center p-4 bg-accent/10 rounded-full mb-6">
+                <svg class="w-10 h-10 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.42A12.1 12.1 0 0 1 18.83 17 12 12 0 0 0 12 20.06 12 12 0 0 0 5.18 17a12.1 12.1 0 0 1 .66-6.42L12 14z"/></svg>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-6">Promoción, titulación e itinerarios</h1>
+            <p class="text-lg md:text-xl text-secondary max-w-2xl mx-auto leading-relaxed border-l-4 border-accent pl-4 text-left italic">
+                Resumen visual de los criterios de promoción y titulación, y de las vías de acceso a PDC y Formación Profesional Básica.
+            </p>
+        </header>
+
+        <main class="grid sm:grid-cols-2 gap-6">
+            <a href="eso.html" class="bg-card rounded-2xl shadow-sm border border-gray-100 p-7 hover:shadow-md hover:border-accent/30 transition-all fade-in-up delay-100">
+                <p class="text-sm font-semibold text-accent mb-2">ESO</p>
+                <h2 class="text-2xl font-semibold mb-3">Promoción ESO</h2>
+                <p class="text-secondary text-sm leading-relaxed">Criterios de promoción de curso y condiciones para la titulación en Educación Secundaria Obligatoria.</p>
+            </a>
+            <a href="bachillerato.html" class="bg-card rounded-2xl shadow-sm border border-gray-100 p-7 hover:shadow-md hover:border-accent/30 transition-all fade-in-up delay-200">
+                <p class="text-sm font-semibold text-accent mb-2">Bachillerato</p>
+                <h2 class="text-2xl font-semibold mb-3">Promoción Bachillerato</h2>
+                <p class="text-secondary text-sm leading-relaxed">Reglas de promoción de 1º a 2º y condiciones generales y excepcionales para titular.</p>
+            </a>
+            <a href="pdc.html" class="bg-card rounded-2xl shadow-sm border border-gray-100 p-7 hover:shadow-md hover:border-accent/30 transition-all fade-in-up delay-300">
+                <p class="text-sm font-semibold text-accent mb-2">Diversificación</p>
+                <h2 class="text-2xl font-semibold mb-3">Acceso a PDC</h2>
+                <p class="text-secondary text-sm leading-relaxed">Situaciones académicas, procedimiento y aclaración sobre criterios de edad para el Programa de Diversificación Curricular.</p>
+            </a>
+            <a href="fpb.html" class="bg-card rounded-2xl shadow-sm border border-gray-100 p-7 hover:shadow-md hover:border-accent/30 transition-all fade-in-up delay-400">
+                <p class="text-sm font-semibold text-accent mb-2">FP Básica</p>
+                <h2 class="text-2xl font-semibold mb-3">Acceso a FPB</h2>
+                <p class="text-secondary text-sm leading-relaxed">Requisitos ordinarios, formalización y vías excepcionales de acceso a ciclos formativos de grado básico.</p>
+            </a>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promoción y titulación en ESO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { primary: '#2d3748', secondary: '#4a5568', accent: '#3182ce', background: '#f7fafc', card: '#ffffff' }, fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } }
+    </script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-background text-primary antialiased selection:bg-accent selection:text-white pb-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
+        <nav class="mb-10 fade-in-up">
+            <div class="flex flex-wrap gap-2 justify-center">
+                <a href="index.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Índice</a>
+                <a href="eso.html" class="px-4 py-2 rounded-full bg-accent text-white text-sm font-semibold shadow-sm">Promoción ESO</a>
+                <a href="bachillerato.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción Bachillerato</a>
+                <a href="pdc.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Acceso a PDC</a>
+                <a href="fpb.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Acceso a FPB</a>
+            </div>
+        </nav>
+
+        <header class="text-center mb-14 fade-in-up delay-100">
+            <div class="inline-flex items-center justify-center p-4 bg-accent/10 rounded-full mb-6">
+                <svg class="w-10 h-10 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-6">Promoción y titulación en ESO</h1>
+            <p class="text-lg md:text-xl text-secondary max-w-2xl mx-auto leading-relaxed border-l-4 border-accent pl-4 text-left italic">
+                Criterios básicos para promocionar de curso y obtener el título de Graduado en Educación Secundaria Obligatoria.
+            </p>
+        </header>
+
+        <main class="space-y-8">
+            <section class="bg-card rounded-2xl shadow-sm border border-gray-100 p-8 fade-in-up delay-100">
+                <div class="flex items-center mb-6">
+                    <div class="bg-blue-50 p-3 rounded-lg mr-4">
+                        <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5-5 5M6 12h12"/></svg>
+                    </div>
+                    <h2 class="text-2xl font-semibold">Promoción de curso</h2>
+                </div>
+                <div class="grid md:grid-cols-3 gap-5">
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-5">
+                        <h3 class="font-semibold mb-2 text-gray-900">Todas las materias superadas</h3>
+                        <p class="text-secondary text-sm leading-relaxed">El alumnado promociona al curso siguiente.</p>
+                    </article>
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-5">
+                        <h3 class="font-semibold mb-2 text-gray-900">1 o 2 materias suspensas</h3>
+                        <p class="text-secondary text-sm leading-relaxed">El alumnado promociona, con seguimiento de las materias pendientes.</p>
+                    </article>
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-5">
+                        <h3 class="font-semibold mb-2 text-gray-900">3 o más materias suspensas</h3>
+                        <p class="text-secondary text-sm leading-relaxed">La decisión requiere acuerdo de dos tercios del equipo docente y valoración de la continuidad del aprendizaje.</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="bg-slate-50 text-gray-800 rounded-2xl p-8 md:p-10 shadow-sm border border-slate-200 fade-in-up delay-200">
+                <div class="flex items-center mb-6">
+                    <svg class="w-8 h-8 text-accent mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Cuando hay 3 o más suspensas</h2>
+                </div>
+                <ul class="space-y-4">
+                    <li class="flex items-start"><span class="mt-2 mr-3 h-2 w-2 rounded-full bg-accent flex-shrink-0"></span><p class="text-secondary text-sm leading-relaxed">Si las materias no impiden seguir con éxito el curso siguiente, puede promocionar.</p></li>
+                    <li class="flex items-start"><span class="mt-2 mr-3 h-2 w-2 rounded-full bg-accent flex-shrink-0"></span><p class="text-secondary text-sm leading-relaxed">Si ya repitió ese curso, promociona.</p></li>
+                    <li class="flex items-start"><span class="mt-2 mr-3 h-2 w-2 rounded-full bg-accent flex-shrink-0"></span><p class="text-secondary text-sm leading-relaxed">Si ya repitió dos veces entre Primaria y Secundaria, promociona.</p></li>
+                    <li class="flex items-start"><span class="mt-2 mr-3 h-2 w-2 rounded-full bg-rose-500 flex-shrink-0"></span><p class="text-secondary text-sm leading-relaxed">Si no se cumple ninguno de los supuestos anteriores, repite.</p></li>
+                </ul>
+            </section>
+
+            <section class="grid md:grid-cols-3 gap-6 fade-in-up delay-300">
+                <article class="bg-card rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-xl font-semibold mb-3">Graduado en ESO</h2>
+                    <p class="text-secondary text-sm leading-relaxed">A juicio del profesorado, el alumno ha adquirido las competencias clave y alcanzado los objetivos de la etapa.</p>
+                </article>
+                <article class="bg-card rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-xl font-semibold mb-3">Vía alternativa</h2>
+                    <p class="text-secondary text-sm leading-relaxed">Superación de los ámbitos y el proyecto de un Ciclo Formativo de Grado Básico.</p>
+                </article>
+                <article class="bg-card rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-xl font-semibold mb-3">Sin titulación</h2>
+                    <p class="text-secondary text-sm leading-relaxed">Certificación oficial con los años cursados y el nivel de adquisición de competencias.</p>
+                </article>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
