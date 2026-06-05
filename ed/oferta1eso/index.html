@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador Educativo 1º ESO - V2.0</title>
+    <!-- Librería de iconos Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --accent-color: #1e293b;
+            --text-color: #334155;
+            --border-color: #e2e8f0;
+            --bar-bg: #ffffff;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --icon-size: 26px;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+            height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Zona Izquierda: Selectores (1/3) */
+        .sidebar {
+            width: 20%;
+            background-color: var(--sidebar-bg);
+            padding: 2.5rem;
+            box-sizing: border-box;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            z-index: 10;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: #f1f5f9;
+            color: #64748b;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            align-self: flex-start;
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin: 0;
+            color: var(--accent-color);
+            line-height: 1.2;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05rem;
+            color: #94a3b8;
+        }
+
+        select {
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1.5px solid var(--border-color);
+            background-color: #fff;
+            font-size: 1rem;
+            color: #1e293b;
+            outline: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        select:disabled {
+            background-color: #f8fafc;
+            cursor: not-allowed;
+            color: #94a3b8;
+        }
+
+        /* Zona Derecha: Visualización (2/3) */
+        .main-content {
+            width: 80%;
+            padding: 2.5rem;
+            box-sizing: border-box;
+            overflow-y: auto;
+            background-color: var(--bg-color);
+        }
+
+        .subjects-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-width: 900px;
+            margin: 0 auto;
+            margin-top: 0.8rem;
+        }
+
+        .subject-row {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            animation: fadeInRight 0.5s ease-out forwards;
+        }
+
+        .subject-label {
+            width: 280px;
+            font-size: 1.16rem;
+            text-align: right;
+            font-weight: 500;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .subject-label span {
+            white-space: nowrap;
+        }
+
+        .subject-icon {
+            color: #64748b;
+            flex-shrink: 0;
+            width: var(--icon-size);
+            height: var(--icon-size);
+        }
+
+        .bar-wrapper {
+            flex-grow: 1;
+            height: 50px;
+            display: flex;
+            align-items: center;
+        }
+
+        .bar {
+            height: 100%;
+            background-color: var(--bar-bg);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            box-sizing: border-box;
+            transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-left: 6px solid #3b82f6;
+            min-width: fit-content;
+        }
+
+        .flag-icon {
+            width: 30px;
+            height: auto;
+            margin-right: 10px;
+            border-radius: 2px;
+            filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
+            flex-shrink: 0;
+        }
+
+        .hours-tag {
+            margin-left: auto;
+            font-size: 1.08rem;
+            color: #64748b;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .info-footer {
+            margin-top: auto;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .action-btn {
+            border: 1px solid #1e293b;
+            background: #1e293b;
+            color: #fff;
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: 0.02rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .action-btn:hover {
+            background: #334155;
+            border-color: #334155;
+            transform: translateY(-1px);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            z-index: 200;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .schedule-modal {
+            width: min(1100px, 96vw);
+            max-height: 92vh;
+            overflow: auto;
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 25px 45px rgba(15, 23, 42, 0.25);
+            border: 1px solid #dbe3ef;
+            padding: 1.5rem;
+            box-sizing: border-box;
+        }
+
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .schedule-title {
+            margin: 0;
+            font-size: 1.3rem;
+            color: #0f172a;
+        }
+
+        .close-btn {
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            color: #1e293b;
+            border-radius: 8px;
+            padding: 0.55rem 0.8rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .schedule-days {
+            margin-left: 74px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.55rem;
+            margin-bottom: 0.55rem;
+        }
+
+        .day-chip {
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .schedule-body {
+            display: grid;
+            grid-template-columns: 64px repeat(5, 1fr);
+            gap: 0.55rem;
+            align-items: stretch;
+        }
+
+        .period-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: #334155;
+            background: #f1f5f9;
+            border: 1px solid #dbe3ef;
+            border-radius: 8px;
+        }
+
+        .schedule-cell {
+            min-height: 72px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 16px rgba(15, 23, 42, 0.12);
+            color: #fff;
+            position: relative;
+        }
+
+        .schedule-cell .subject-icon {
+            color: inherit;
+            width: 28px;
+            height: 28px;
+        }
+
+        .schedule-flag {
+            position: absolute;
+            right: 6px;
+            bottom: 6px;
+            width: 16px;
+            height: 11px;
+            border-radius: 2px;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.3);
+            object-fit: cover;
+        }
+
+        .recess-row {
+            grid-column: 1 / -1;
+            text-align: center;
+            font-weight: 800;
+            font-size: 0.92rem;
+            color: #1e293b;
+            background: #fde68a;
+            border: 1px solid #f5d25e;
+            border-radius: 8px;
+            padding: 0.4rem 0;
+            letter-spacing: 0.03rem;
+            margin: 0.15rem 0;
+        }
+
+        .schedule-legend {
+            margin-top: 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            border: 1px solid #dbe3ef;
+            border-radius: 8px;
+            background: #f8fafc;
+            padding: 0.45rem 0.6rem;
+            font-size: 0.86rem;
+            color: #334155;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 28%;
+                padding: 1.5rem;
+            }
+
+            .main-content {
+                width: 72%;
+                padding: 1.5rem;
+            }
+
+            .subject-label {
+                width: 240px;
+                font-size: 1.02rem;
+            }
+        }
+
+        @media (max-width: 860px) {
+            body, html {
+                overflow: auto;
+            }
+
+            .container {
+                flex-direction: column;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .sidebar, .main-content {
+                width: 100%;
+            }
+
+            .subject-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+
+            .subject-label {
+                width: auto;
+                justify-content: flex-start;
+                text-align: left;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Panel de Control -->
+        <aside class="sidebar">
+            <h1>Reparto materias 1º ESO</h1>
+            
+            <div class="control-group">
+                <label for="bilingue">Modalidad del centro</label>
+                <select id="bilingue">
+                    <option value="no">No Bilingüe</option>
+                    <option value="si">Bilingüe (Inglés)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="idioma1">Primer Idioma Extranjero</label>
+                <select id="idioma1">
+                    <option value="ingles">Inglés</option>
+                    <option value="frances">Francés</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Segundo Idioma Extranjero</label>
+                <select id="idioma2" disabled>
+                    <option value="frances">Francés</option>
+                    <option value="ingles">Inglés</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="religion">Religión / Atención Educativa</label>
+                <select id="religion">
+                    <option value="religion">Religión</option>
+                    <option value="atencion">Atención Educativa</option>
+                </select>
+            </div>
+
+            <button id="open-schedule" class="action-btn" type="button">Ver horario semanal</button>
+
+            <div class="info-footer">
+                <div class="version-badge">VERSIÓN 2.0</div>
+            </div>
+        </aside>
+
+        <!-- Área de Visualización -->
+        <main class="main-content">
+            <div id="subjects-list" class="subjects-container">
+                <!-- Generado dinámicamente -->
+            </div>
+        </main>
+    </div>
+
+    <div id="schedule-modal-overlay" class="modal-overlay" aria-hidden="true">
+        <div class="schedule-modal" role="dialog" aria-modal="true" aria-labelledby="schedule-title">
+            <div class="schedule-header">
+                <h2 id="schedule-title" class="schedule-title">Horario semanal (Lunes a Viernes)</h2>
+                <button id="close-schedule" class="close-btn" type="button">Cerrar</button>
+            </div>
+
+            <div class="schedule-days">
+                <div class="day-chip">Lunes</div>
+                <div class="day-chip">Martes</div>
+                <div class="day-chip">Miércoles</div>
+                <div class="day-chip">Jueves</div>
+                <div class="day-chip">Viernes</div>
+            </div>
+
+            <div id="schedule-body" class="schedule-body"></div>
+            <div id="schedule-legend" class="schedule-legend"></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de asignaturas fijas con sus respectivos iconos de Lucide
+        const baseSubjects = [
+            { id: 'mates', name: 'Matemáticas', icon: 'calculator', hours: 4, bilinguable: false },
+            { id: 'lengua', name: 'Lengua Castellana y Literatura', icon: 'book-open', hours: 4, bilinguable: false },
+            { id: 'geohist', name: 'Geografía e Historia', icon: 'globe', hours: 3, bilinguable: false },
+            { id: 'biogeo', name: 'Biología y Geología', icon: 'microscope', hours: 3, bilinguable: true },
+            { id: 'edfisica', name: 'Educación Física', icon: 'dumbbell', hours: 3, bilinguable: true },
+            { id: 'musica', name: 'Música', icon: 'music', hours: 2, bilinguable: false },
+            { id: 'plastica', name: 'Educación Plástica y Visual', icon: 'palette', hours: 1, bilinguable: false }
+        ];
+
+        // CDN de banderas robusto (FlagCDN)
+        const flags = {
+            es: 'https://flagcdn.com/es.svg',
+            uk: 'https://flagcdn.com/gb.svg',
+            fr: 'https://flagcdn.com/fr.svg'
+        };
+
+        const selectBilingue = document.getElementById('bilingue');
+        const selectIdioma1 = document.getElementById('idioma1');
+        const selectIdioma2 = document.getElementById('idioma2');
+        const selectReligion = document.getElementById('religion');
+        const container = document.getElementById('subjects-list');
+        const openScheduleBtn = document.getElementById('open-schedule');
+        const closeScheduleBtn = document.getElementById('close-schedule');
+        const scheduleOverlay = document.getElementById('schedule-modal-overlay');
+        const scheduleBody = document.getElementById('schedule-body');
+        const scheduleLegend = document.getElementById('schedule-legend');
+
+        const schedulePalette = [
+            '#2563eb', '#dc2626', '#16a34a', '#9333ea', '#d97706', '#0891b2',
+            '#475569', '#be123c', '#0f766e', '#7c3aed', '#c2410c', '#4d7c0f'
+        ];
+
+        let currentSubjects = [];
+
+        function getSubjectFlag(sub, isBilingue) {
+            if (sub.isLanguage) {
+                return sub.langType === 'ingles' ? flags.uk : flags.fr;
+            }
+            if (isBilingue && sub.bilinguable) {
+                return flags.uk;
+            }
+            return flags.es;
+        }
+
+        function shapeOptions(hours) {
+            if (hours === 4) return [[2, 2], [1, 4], [4, 1]];
+            if (hours === 3) return [[1, 3], [3, 1]];
+            if (hours === 2) return [[1, 2], [2, 1]];
+            if (hours === 1) return [[1, 1]];
+            return [[1, hours], [hours, 1]];
+        }
+
+        function canPlaceShape(grid, startRow, startCol, height, width) {
+            for (let row = startRow; row < startRow + height; row++) {
+                for (let col = startCol; col < startCol + width; col++) {
+                    if (row >= 6 || col >= 5 || grid[row][col] !== null) return false;
+                }
+            }
+            return true;
+        }
+
+        function paintShape(grid, startRow, startCol, height, width, subjectId) {
+            const placed = [];
+            for (let row = startRow; row < startRow + height; row++) {
+                for (let col = startCol; col < startCol + width; col++) {
+                    grid[row][col] = subjectId;
+                    placed.push([row, col]);
+                }
+            }
+            return placed;
+        }
+
+        function clearPlaced(grid, placed) {
+            placed.forEach(([row, col]) => {
+                grid[row][col] = null;
+            });
+        }
+
+        function buildScheduleGrid(subjects) {
+            const grid = Array.from({ length: 6 }, () => Array(5).fill(null));
+
+            function placeSubject(index) {
+                if (index === subjects.length) return true;
+                const subject = subjects[index];
+                const options = shapeOptions(subject.hours);
+
+                for (let row = 0; row < 6; row++) {
+                    for (let col = 0; col < 5; col++) {
+                        if (grid[row][col] !== null) continue;
+
+                        for (const [height, width] of options) {
+                            if (!canPlaceShape(grid, row, col, height, width)) continue;
+                            const placed = paintShape(grid, row, col, height, width, subject.id);
+                            if (placeSubject(index + 1)) return true;
+                            clearPlaced(grid, placed);
+                        }
+                    }
+                }
+                return false;
+            }
+
+            if (!placeSubject(0)) {
+                const flat = subjects.flatMap(sub => Array(sub.hours).fill(sub.id));
+                flat.forEach((subjectId, idx) => {
+                    const row = Math.floor(idx / 5);
+                    const col = idx % 5;
+                    grid[row][col] = subjectId;
+                });
+            }
+
+            return grid;
+        }
+
+        function renderSchedule(isBilingue) {
+            const coloredSubjects = currentSubjects.map((sub, index) => ({
+                ...sub,
+                color: schedulePalette[index % schedulePalette.length]
+            }));
+
+            const byId = new Map(coloredSubjects.map(sub => [sub.id, sub]));
+            const grid = buildScheduleGrid(coloredSubjects);
+
+            scheduleBody.innerHTML = '';
+            for (let row = 0; row < 6; row++) {
+                const periodLabel = document.createElement('div');
+                periodLabel.className = 'period-label';
+                periodLabel.textContent = `${row + 1}ª`;
+                scheduleBody.appendChild(periodLabel);
+
+                for (let col = 0; col < 5; col++) {
+                    const subjectId = grid[row][col];
+                    const subject = byId.get(subjectId);
+                    const cell = document.createElement('div');
+                    cell.className = 'schedule-cell';
+                    cell.style.background = subject ? subject.color : '#94a3b8';
+                    cell.title = subject ? `${subject.name} (${subject.hours}h)` : '';
+                    if (subject) {
+                        const flag = getSubjectFlag(subject, isBilingue);
+                        cell.innerHTML = `
+                            <i data-lucide="${subject.icon}" class="subject-icon"></i>
+                            <img src="${flag}" class="schedule-flag" alt="Idioma de impartición">
+                        `;
+                    } else {
+                        cell.innerHTML = '';
+                    }
+                    scheduleBody.appendChild(cell);
+                }
+
+                if (row === 2) {
+                    const recess = document.createElement('div');
+                    recess.className = 'recess-row';
+                    recess.textContent = 'RECREO';
+                    scheduleBody.appendChild(recess);
+                }
+            }
+
+            scheduleLegend.innerHTML = '';
+            coloredSubjects.forEach(subject => {
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                item.innerHTML = `
+                    <span class="legend-color" style="background:${subject.color}"></span>
+                    <span>${subject.name} (${subject.hours}h)</span>
+                `;
+                scheduleLegend.appendChild(item);
+            });
+
+            lucide.createIcons();
+        }
+
+        function openScheduleModal() {
+            const isBilingue = selectBilingue.value === 'si';
+            renderSchedule(isBilingue);
+            scheduleOverlay.classList.add('open');
+            scheduleOverlay.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeScheduleModal() {
+            scheduleOverlay.classList.remove('open');
+            scheduleOverlay.setAttribute('aria-hidden', 'true');
+        }
+
+        function render() {
+            const isBilingue = selectBilingue.value === 'si';
+            
+            // En modalidad bilingüe, el primer idioma extranjero debe ser Inglés
+            if (isBilingue) {
+                selectIdioma1.value = 'ingles';
+                selectIdioma1.disabled = true;
+            } else {
+                selectIdioma1.disabled = false;
+            }
+
+            const lang1 = selectIdioma1.value;
+            const lang2 = (lang1 === 'ingles') ? 'frances' : 'ingles';
+            const optionRel = selectReligion.value;
+
+            // Sincronizar select de segundo idioma
+            selectIdioma2.value = lang2;
+
+            // Crear lista completa
+            let list = [...baseSubjects];
+
+            // Idiomas
+            list.push({
+                id: 'idioma1',
+                name: lang1 === 'ingles' ? 'Inglés (1ª Lengua)' : 'Francés (1ª Lengua)',
+                icon: 'languages',
+                hours: 4,
+                isLanguage: true,
+                langType: lang1
+            });
+
+            list.push({
+                id: 'idioma2',
+                name: lang2 === 'ingles' ? 'Inglés (2ª Lengua)' : 'Francés (2ª Lengua)',
+                icon: 'languages',
+                hours: 2,
+                isLanguage: true,
+                langType: lang2
+            });
+
+            // Optativa (solo una elección)
+            list.push({ id: 'optativa', name: 'Optativa', icon: 'puzzle', hours: 2, bilinguable: false });
+
+            // Valores / Religión
+            list.push({
+                id: 'rel_ate',
+                name: optionRel === 'religion' ? 'Religión' : 'Atención Educativa',
+                icon: 'heart',
+                hours: 1,
+                bilinguable: false
+            });
+
+            // Tutoría siempre al final
+            list.push({ id: 'tutoria', name: 'Tutoría', icon: 'users', hours: 1, bilinguable: false });
+
+            // Ordenar de mayor a menor carga horaria y, en empate, por orden alfabético
+            list.sort((a, b) => {
+                if (b.hours !== a.hours) return b.hours - a.hours;
+                return a.name.localeCompare(b.name, 'es', { sensitivity: 'base' });
+            });
+
+            currentSubjects = list.map(sub => ({ ...sub }));
+
+            // Renderizado en el DOM
+            container.innerHTML = '';
+
+            list.forEach((sub, index) => {
+                const row = document.createElement('div');
+                row.className = 'subject-row';
+                row.style.animationDelay = `${index * 0.04}s`;
+
+                // Etiqueta con Icono y Nombre
+                const label = document.createElement('div');
+                label.className = 'subject-label';
+                label.innerHTML = `
+                    <i data-lucide="${sub.icon}" class="subject-icon"></i>
+                    <span>${sub.name}</span>
+                `;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'bar-wrapper';
+
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                
+                /** * AJUSTE DE PROPORCIONALIDAD V1.7:
+                 * Para que sea proporcional (1h = 1/4 de 4h):
+                 * Usamos un factor multiplicador directo sin base fija.
+                 * Si 4h = 92% del contenedor, entonces 1h = 23%.
+                 * 23% es suficiente para albergar la bandera y el texto sin atosigar.
+                 */
+                const targetWidth = sub.hours * 23;
+                bar.style.width = '0%';
+
+                // Lógica de asignación de banderas
+                const currentFlag = getSubjectFlag(sub, isBilingue);
+
+                bar.innerHTML = `
+                    <img src="${currentFlag}" class="flag-icon" alt="flag">
+                    <span class="hours-tag">${sub.hours}h</span>
+                `;
+
+                wrapper.appendChild(bar);
+                row.appendChild(label);
+                row.appendChild(wrapper);
+                container.appendChild(row);
+
+                // Disparar animación de crecimiento
+                setTimeout(() => {
+                    bar.style.width = `${targetWidth}%`;
+                }, 50);
+            });
+
+            // Procesar los nuevos iconos insertados
+            lucide.createIcons();
+
+            if (scheduleOverlay.classList.contains('open')) {
+                renderSchedule(isBilingue);
+            }
+        }
+
+        // Eventos de escucha
+        [selectBilingue, selectIdioma1, selectReligion].forEach(el => {
+            el.addEventListener('change', render);
+        });
+
+        openScheduleBtn.addEventListener('click', openScheduleModal);
+        closeScheduleBtn.addEventListener('click', closeScheduleModal);
+
+        scheduleOverlay.addEventListener('click', (event) => {
+            if (event.target === scheduleOverlay) closeScheduleModal();
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && scheduleOverlay.classList.contains('open')) {
+                closeScheduleModal();
+            }
+        });
+
+        // Carga inicial
+        window.onload = render;
+    </script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Calendario Escolar - IES El Majuelo (Gines)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body{font-family:'Inter',sans-serif;background:#f3f4f6}
+  .calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+  .day{position:relative;transition:.2s;border-radius:9999px;height:2.5rem;display:flex;align-items:center;justify-content:center}
+  .day-header{font-weight:600;font-size:.875rem}
+  .day-number{font-size:.875rem;position:relative;z-index:5}
+  .day.has-event:hover .tooltip{visibility:visible;opacity:1}
+  .tooltip{visibility:hidden;opacity:0;position:absolute;bottom:110%;left:50%;transform:translateX(-50%);width:max-content;max-width:220px;background:#1f2937;color:#fff;border-radius:6px;padding:8px;z-index:10;font-size:.75rem;transition:opacity .2s}
+  .tooltip::after{content:"";position:absolute;top:100%;left:50%;margin-left:-5px;border-width:5px;border-style:solid;border-color:#1f2937 transparent transparent transparent}
+  .filter-btn{transition:.2s;border:2px solid transparent}
+  .filter-btn.active{box-shadow:0 0 0 2px white,0 0 0 4px #4f46e5;transform:translateY(-2px)}
+  .view-btn{transition:.15s}
+  .view-btn.active{background:#111827;color:#fff}
+  .nav-btn:disabled{opacity:.4;cursor:not-allowed}
+  @media print{
+    header,footer,#filter-buttons,.actions,#view-switch,#nav-bar{display:none!important}
+    main{padding:0;margin:0}
+    .grid{grid-template-columns:1fr!important}
+    body{background:#fff}
+    .bg-white{box-shadow:none!important}
+  }
+</style>
+</head>
+<body class="antialiased text-gray-800">
+<header class="bg-white shadow-md">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight text-gray-900">Calendario escolar IES El Majuelo</h1>
+      <p id="courseTitle" class="mt-1 text-lg text-gray-600">Gines (Sevilla)</p>
+    </div>
+    <div class="flex items-center gap-2 actions">
+      <button id="todayBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg shadow-sm">Hoy</button>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+  <!-- Conmutador de vista -->
+  <div id="view-switch" class="px-4 sm:px-0 mb-3">
+    <div class="inline-flex rounded-lg overflow-hidden shadow-sm border border-gray-200">
+      <button id="view-month" class="view-btn px-4 py-2 bg-white hover:bg-gray-50 text-gray-800 font-medium">Mes</button>
+      <button id="view-term"  class="view-btn px-4 py-2 bg-white hover:bg-gray-50 text-gray-800 font-medium border-l border-gray-200">Trimestre</button>
+      <button id="view-year"  class="view-btn px-4 py-2 bg-white hover:bg-gray-50 text-gray-800 font-medium border-l border-gray-200">Curso completo</button>
+    </div>
+  </div>
+
+  <!-- Barra de navegación Mes/Trimestre/Curso -->
+  <div id="nav-bar" class="px-4 sm:px-0 mb-6 flex items-center justify-between gap-3">
+    <button id="prevBtn" class="nav-btn bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 font-medium px-3 py-2 rounded-lg shadow-sm">◀ Anterior</button>
+    <div id="view-label" class="text-lg font-semibold text-gray-900 text-center flex-1"></div>
+    <button id="nextBtn" class="nav-btn bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 font-medium px-3 py-2 rounded-lg shadow-sm">Siguiente ▶</button>
+  </div>
+
+  <div class="px-4 sm:px-0 mb-8">
+    <h3 class="text-lg font-semibold mb-3">Filtrar por categoría</h3>
+    <div id="filter-buttons" class="flex flex-wrap gap-2"></div>
+    <div class="mt-3 actions flex flex-wrap gap-2 items-center">
+      <button id="exportJson" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">📥 Exportar JSON</button>
+      <button id="exportIcsBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg">🗓️ Exportar iCal (.ics)</button>
+    </div>
+  </div>
+
+  <div id="calendars-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+</main>
+
+<footer class="bg-white mt-12">
+  <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
+    <p>Información referencial. Comprueba siempre en el documento oficial de la Delegación.</p>
+  </div>
+</footer>
+
+<script id="eventsData" type="application/json"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  // ---- Tipos y colores ----
+  const eventTypes = {
+    'festivo':              { name: 'Festivo Nacional/Autonómico', color: '#fecaca' },
+    'festivo-local':        { name: 'Festivo Local',                color: '#fed7aa' },
+    'no-lectivo':           { name: 'Día no lectivo',               color: '#93c5fd' },
+    'libre-designacion':    { name: 'Día de libre designación',     color: '#67e8f9' },
+    'vacaciones':           { name: 'Vacaciones',                   color: '#86efac' },
+    'inicio-fin':           { name: 'Inicio / Fin de clases',       color: '#fcd34d' },
+    'evaluacion':           { name: 'Evaluaciones',                 color: '#c4b5fd' },
+    'claustro':             { name: 'Claustro',                     color: '#f9a8d4' },
+    'asuntos-propios':      { name: 'Asuntos propios',              color: '#cbd5e1' },
+    'reuniones-familias':   { name: 'Reuniones familias',           color: '#a5b4fc' },
+    'consejo-escolar':      { name: 'Consejo Escolar',              color: '#6ee7b7' },
+    'evaluaciones-iniciales': { name: 'Evaluaciones iniciales',     color: '#f0abfc' }
+  };
+  const PALETTE = [
+    '#fecaca','#fed7aa','#fde68a','#bef264','#86efac','#6ee7b7','#5eead4','#67e8f9',
+    '#93c5fd','#a5b4fc','#c4b5fd','#d8b4fe','#f0abfc','#f9a8d4','#fda4af','#fca5a5',
+    '#fcd34d','#60a5fa','#34d399','#22d3ee','#eab308','#bbf7d0','#99f6e4','#bae6fd'
+  ];
+  const labelFor = (type)=> type.replace(/[-_]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+  const hashCode = (s)=>{let h=0;for(let i=0;i<s.length;i++)h=(h<<5)-h+s.charCodeAt(i)|0;return Math.abs(h);};
+  const colorFor = (type)=> PALETTE[ hashCode(type) % PALETTE.length ];
+
+  // ---- Refs UI ----
+  const calendarsContainer = document.getElementById('calendars-container');
+  const filterContainer = document.getElementById('filter-buttons');
+  const viewMonthBtn = document.getElementById('view-month');
+  const viewTermBtn  = document.getElementById('view-term');
+  const viewYearBtn  = document.getElementById('view-year');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const viewLabel = document.getElementById('view-label');
+  const courseTitle = document.getElementById('courseTitle');
+
+  // ---- Estado ----
+  const filtersKey = 'activeFiltersV4';
+  const viewKey    = 'calendarViewV2';      // 'month' | 'term' | 'year'
+  const anchorKey  = 'calendarAnchorV2';    // fecha ancla o índice de trimestre
+  const courseKey  = 'courseStartYearV1';   // año de inicio del curso (Sep YYYY)
+
+  let events = {};
+  let activeFilters = null;
+  let viewMode = 'month'; // default
+  let courseStartYear = new Date().getMonth() >= 8 ? new Date().getFullYear() : new Date().getFullYear()-1; // si hoy >= Sep, curso empieza este año, si no, el anterior
+  let anchorDate = null;  // para vista 'month'
+  let termIndex = 0;      // 0:T1, 1:T2, 2:T3
+
+  // ---- Curso y trimestres dinámicos ----
+  function courseStartDate(){ return new Date(courseStartYear, 8, 1); }             // 1 Sep YYYY
+  function courseEndDate(){   return new Date(courseStartYear+1, 7, 31, 23,59,59);} // 31 Ago YYYY+1
+  function terms(){
+    return [
+      { name:'Trimestre 1', months:[{y:courseStartYear,m:8},{y:courseStartYear,m:9},{y:courseStartYear,m:10},{y:courseStartYear,m:11}], label:`Sep–Dic ${courseStartYear}` },
+      { name:'Trimestre 2', months:[{y:courseStartYear+1,m:0},{y:courseStartYear+1,m:1},{y:courseStartYear+1,m:2}], label:`Ene–Mar ${courseStartYear+1}` },
+      { name:'Trimestre 3', months:[{y:courseStartYear+1,m:3},{y:courseStartYear+1,m:4},{y:courseStartYear+1,m:5}], label:`Abr–Jun ${courseStartYear+1}` }
+    ];
+  }
+
+  const monthNames = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  const dayNames   = ["L","M","X","J","V","S","D"];
+
+  // ---- Utilidades de fecha ----
+  function clampToCourse(d){
+    const s = courseStartDate(), e = courseEndDate();
+    if (d < s) return new Date(s);
+    if (d > e) return new Date(e);
+    return d;
+  }
+  function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+  function addMonths(d, n){ return new Date(d.getFullYear(), d.getMonth()+n, 1); }
+  function sameYM(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth(); }
+  function currentCourseDate(){
+    const now = new Date();
+    // si hoy está fuera del curso activo, devolvemos inicio de curso
+    if (now < courseStartDate() || now > courseEndDate()) return new Date(courseStartDate());
+    return now;
+  }
+  function getCurrentTermIndex(){
+    const d = currentCourseDate();
+    const y = d.getFullYear(), m = d.getMonth();
+    if (y===courseStartYear && m>=8 && m<=

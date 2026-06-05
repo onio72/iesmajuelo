@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JefaturaFlow v1.12 "Timestamp Backup"</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        /* Selector de fecha nativo oculto */
+        .date-input-container { position: relative; overflow: hidden; }
+        .native-date-input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
+        .native-date-input::-webkit-calendar-picker-indicator { position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; padding: 0; cursor: pointer; transform: scale(25); }
+
+
+        /* Efectos de Arrastre */
+        .dragging { opacity: 0.25; transform: scale(0.96); filter: blur(1px); }
+
+
+        /* Borde discontinuo para Procesos (reordenación) */
+        .drag-over-proc { border: 4px dashed #6366f1 !important; background-color: #f8faff !important; transform: scale(1.02); z-index: 40; }
+
+
+        /* Borde discontinuo para Tareas (movimiento) */
+        .drag-over-task-item { border: 2px dashed #4f46e5 !important; background-color: #f5f3ff !important; transform: translateY(2px); }
+
+
+        /* AISLAMIENTO DE CAPAS: Bloquea interferencia de tareas al mover paneles */
+        body.is-dragging-process .task-card { pointer-events: none !important; }
+
+
+        /* Scrollbars */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+
+        [contenteditable]:focus { outline: none; background: rgba(255,255,255,0.7); border-radius: 6px; }
+
+
+        .process-card { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease; }
+        .task-card { transition: transform 0.15s ease, border-color 0.1s ease, background-color 0.2s ease; }
+
+
+        .grab-handle { cursor: grab; user-select: none; }
+        .grab-handle:active { cursor: grabbing; }
+
+
+        /* Estilo para el Tooltip del Calendario */
+        #calendarTooltip {
+            pointer-events: none;
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            max-width: 250px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans h-screen flex flex-col overflow-hidden">
+
+
+    <!-- Tooltip Flotante para el Calendario -->
+    <div id="calendarTooltip" class="bg-slate-800 text-white p-3 rounded-xl shadow-2xl border border-slate-700 text-xs transition-opacity duration-200">
+        <div id="tooltipTitle" class="font-black mb-1 text-indigo-300 uppercase tracking-tighter"></div>
+        <div class="flex items-center gap-2 text-slate-300 mb-1">
+            <i class="ph ph-user-circle"></i>
+            <span id="tooltipResp"></span>
+        </div>
+        <div class="flex items-center gap-2 text-slate-400">
+            <i class="ph ph-calendar-blank"></i>
+            <span id="tooltipDate"></span>
+        </div>
+    </div>
+
+
+    <!-- Header con indicador de versión -->
+    <header class="bg-white border-b border-slate-200 p-4 shadow-sm z-30">
+        <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 p-2 rounded-lg shadow-indigo-200 shadow-lg">
+                    <i class="ph-bold ph-stack text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-slate-800 leading-none">Jefatura<span class="text-indigo-600">Flow</span></h1>
+                    <span class="text-[9px] font-black text-white bg-indigo-500 px-2 py-0.5 rounded mt-1 inline-block uppercase tracking-widest">v1.12 Timestamp Backup</span>
+                </div>
+            </div>
+
+
+            <!-- Controles -->
+            <div class="flex items-center gap-4 flex-1 justify-center">
+                <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 shadow-inner">
+                    <input id="newProcessTitle" type="text" placeholder="Nuevo Proceso..." class="bg-transparent px-3 py-1 text-sm outline-none w-40 font-medium">
+                    <input id="newProcessColor" type="color" value="#6366f1" onchange="this.blur()" class="w-8 h-8 rounded-lg border-none cursor-pointer bg-transparent p-0">
+                    <button onclick="addProcess()" class="ml-1 bg-white hover:bg-indigo-50 text-indigo-600 p-2 rounded-lg transition-colors border border-slate-200 shadow-sm">
+                        <i class="ph-bold ph-plus"></i>
+                    </button>
+                </div>
+
+
+                <div class="flex items-center bg-indigo-50 p-1 rounded-xl border border-indigo-100 shadow-inner">
+                    <input id="newTaskTitle" type="text" placeholder="Tarea rápida..." class="bg-transparent px-3 py-1 text-sm outline-none w-48 font-medium">
+                    <button onclick="addTaskToInbox()" class="ml-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1 rounded-lg text-sm font-bold shadow-md transition-all active:scale-95">
+                        Añadir
+                    </button>
+                </div>
+            </div>
+
+
+            <div class="flex items-center gap-2">
+                <div class="flex bg-slate-100 p-1 rounded-xl mr-4 border border-slate-200">
+                    <button id="btnTablero" onclick="setView('board')" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all bg-white shadow-sm text-indigo-600">Tablero</button>
+                    <button id="btnCalendario" onclick="setView('calendar')" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all text-slate-500 hover:text-indigo-600">Calendario</button>
+                </div>
+                <!-- Botón EXPORTAR / BACKUP (Corregido para enviar mail) -->
+                <button onclick="exportData()" title="Exportar y Enviar por Correo" class="p-2 hover:bg-white hover:text-indigo-600 rounded-lg text-slate-500 transition-all">
+                    <i class="ph-bold ph-export"></i>
+                </button>
+                <label title="Importar" class="p-2 hover:bg-white hover:text-indigo-600 rounded-lg text-slate-500 transition-all cursor-pointer">
+                    <i class="ph-bold ph-export inline-block rotate-180"></i>
+                    <input type="file" accept=".json" onchange="importData(event)" class="hidden">
+                </label>
+            </div>
+        </div>
+    </header>
+
+
+    <div class="flex flex-1 overflow-hidden">
+
+
+        <!-- Bandeja de Entrada -->
+        <aside id="inbox" class="w-72 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col z-20">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <h2 class="font-bold text-slate-700 flex items-center gap-2 text-xs uppercase tracking-widest">
+                    <i class="ph-fill ph-tray text-indigo-500"></i> Bandeja
+                </h2>
+                <span id="inboxCount" class="bg-indigo-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">0</span>
+            </div>
+            <div id="inboxTasks" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar" ondragover="handleDragOverGeneric(event)" ondrop="handleDropTask(event, 'inbox')">
+            </div>
+        </aside>
+
+
+        <!-- Main Workspace -->
+        <main class="flex-1 overflow-hidden flex flex-col">
+            <div id="viewBoard" class="flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-50">
+                <div id="processContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
+                </div>
+            </div>
+
+
+            <div id="viewCalendar" class="hidden flex-1 flex flex-col p-6 overflow-hidden">
+                <!-- Header Calendario -->
+                <div class="flex items-center justify-between mb-4 bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <button onclick="prevPeriod()" class="p-2 hover:bg-slate-100 text-indigo-600 transition-colors"><i class="ph-bold ph-caret-left"></i></button>
+                        <h2 id="calendarTitle" class="text-lg font-bold min-w-[200px] text-center text-slate-800 tracking-tight">-</h2>
+                        <button onclick="nextPeriod()" class="p-2 hover:bg-slate-100 text-indigo-600 transition-colors"><i class="ph-bold ph-caret-right"></i></button>
+                    </div>
+                    <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                        <button onclick="setCalMode('month')" id="calMonth" class="px-4 py-1 rounded-lg text-xs font-bold bg-white shadow-sm text-indigo-600">Mes</button>
+                        <button onclick="setCalMode('quarter')" id="calQuarter" class="px-4 py-1 rounded-lg text-xs font-bold text-slate-500">Trimestre</button>
+                        <button onclick="setCalMode('year')" id="calYear" class="px-4 py-1 rounded-lg text-xs font-bold text-slate-500">Año</button>
+                    </div>
+                    <button onclick="goToToday()" class="text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-1.5 rounded-lg shadow-md">HOY</button>
+                </div>
+                <div id="calendarGrid" class="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-auto custom-scrollbar"></div>
+            </div>
+        </main>
+    </div>
+
+
+    <!-- Feedback UI -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-800 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 transform translate-y-20 transition-all duration-300 opacity-0 z-[110]">
+        <i id="toastIcon" class="ph-bold ph-info"></i>
+        <span id="toastMsg" class="text-sm font-medium"></span>
+    </div>
+
+
+    <!-- Confirm Dialog -->
+    <div id="modalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 border border-slate-100">
+            <div class="text-center">
+                <div class="bg-red-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-red-100 text-red-600">
+                    <i class="ph-bold ph-trash text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-black text-slate-800 mb-2">¿Confirmar?</h3>
+                <p id="modalMessage" class="text-slate-500 text-sm mb-8"></p>
+                <div class="flex gap-4">
+                    <button onclick="closeModal()" class="flex-1 px-4 py-3 bg-slate-100 text-slate-600 rounded-xl text-sm font-bold">Cancelar</button>
+                    <button id="modalConfirmBtn" class="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-red-200">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- ESTADO ---
+        let appState = {
+            view: 'board', 
+            calMode: 'month', 
+            currentDate: new Date(),
+            processes: [],
+            inbox: []
+        };
+
+
+        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        let draggingTaskId = null;
+        let draggingProcId = null;
+
+
+        // --- RENDER ---
+        function renderAll() {
+            renderSidebar();
+            if (appState.view === 'board') renderBoard();
+            else renderCalendar();
+            saveToLocalStorage();
+        }
+
+
+        function renderSidebar() {
+            const container = document.getElementById('inboxTasks');
+            if (!container) return;
+            document.getElementById('inboxCount').innerText = appState.inbox.length;
+            container.innerHTML = '';
+            // Color por defecto para inbox: gris suave
+            appState.inbox.forEach(task => container.appendChild(createTaskElement(task, 'inbox', '#e2e8f0')));
+        }
+
+
+        function renderBoard() {
+            const container = document.getElementById('processContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+
+            appState.processes.forEach(proc => {
+                const procEl = document.createElement('div');
+                procEl.draggable = true;
+                procEl.id = `proc-${proc.id}`;
+                procEl.className = `process-card bg-white rounded-2xl border-2 border-slate-200 flex flex-col h-auto min-h-[150px] shadow-sm relative overflow-hidden`;
+                procEl.style.borderColor = proc.color;
+
+
+                // EVENTO: INICIO ARRASTRE PANEL
+                procEl.addEventListener('dragstart', (e) => {
+                    if (draggingTaskId) { e.preventDefault(); return; }
+                    draggingProcId = proc.id;
+                    procEl.classList.add('dragging');
+                    document.body.classList.add('is-dragging-process'); 
+                    e.dataTransfer.setData('type', 'process');
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+
+
+                procEl.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    if (draggingProcId && draggingProcId !== proc.id) {
+                        procEl.classList.add('drag-over-proc');
+                    }
+                });
+
+
+                procEl.addEventListener('dragleave', () => procEl.classList.remove('drag-over-proc'));
+
+
+                procEl.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    if (draggingProcId && draggingProcId !== proc.id) {
+                        handleProcDrop(draggingProcId, proc.id);
+                    } else if (draggingTaskId) {
+                        handleDropTask(null, proc.id);
+                    }
+                    procEl.classList.remove('drag-over-proc');
+                });
+
+
+                procEl.innerHTML = `
+                    <div class="p-4 flex items-center justify-between border-b border-slate-100 bg-slate-50/50 grab-handle">
+                        <div class="flex items-center gap-3 flex-1 min-w-0 pointer-events-none">
+                            <div class="w-4 h-4 rounded-md shadow-sm flex-shrink-0" style="background-color: ${proc.color}"></div>
+                            <h3 class="font-black text-slate-800 truncate block uppercase text-[10px] tracking-widest leading-none pointer-events-auto"
+                                contenteditable="true" 
+                                onmousedown="event.stopPropagation()"
+                                onkeydown="if(event.key === 'Enter') { event.preventDefault(); this.blur(); }"
+                                onblur="updateProcessTitle('${proc.id}', this.innerText)">${proc.title}</h3>
+                        </div>
+                        <div class="flex items-center gap-1 pointer-events-auto">
+                           <button onclick="confirmDeleteProcess('${proc.id}')" class="text-slate-300 hover:text-red-500 transition-colors p-1">
+                                <i class="ph-bold ph-trash-simple text-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex-1 p-4 flex flex-col gap-4">
+                        ${proc.tasks.map(task => `<div id="task-container-${task.id}"></div>`).join('')}
+                    </div>
+                `;
+
+
+                container.appendChild(procEl);
+                proc.tasks.forEach(task => {
+                    const taskPlaceholder = procEl.querySelector(`#task-container-${task.id}`);
+                    if(taskPlaceholder) taskPlaceholder.replaceWith(createTaskElement(task, proc.id, proc.color));
+                });
+            });
+        }
+
+
+        function createTaskElement(task, locationId, procColor) {
+            const el = document.createElement('div');
+            el.draggable = true;
+            el.id = `task-${task.id}`;
+
+
+            // Lógica de fecha pasada
+            const isOverdue = !task.done && task.date && new Date(task.date) < new Date().setHours(0,0,0,0);
+
+
+            // CAMBIO v1.10: Aplicar fondo: color del proceso + 30% transparencia (hex 4d)
+            const bgColor = procColor ? procColor + '4d' : '#ffffff';
+
+
+            el.className = `task-card p-4 rounded-xl border shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition-all ${task.done ? 'opacity-40' : ''}`;
+
+
+            // Estilo de borde: Rojo si está fuera de plazo, si no gris estándar
+            el.style.backgroundColor = bgColor;
+            if (isOverdue) {
+                el.classList.add('border-red-600', 'border-2');
+            } else {
+                el.classList.add('border-slate-200');
+            }
+
+
+            el.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <div class="flex items-center h-5">
+                        <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTaskDone('${task.id}', '${locationId}')" class="w-4 h-4 rounded text-indigo-600 pointer-events-auto cursor-pointer">
+                    </div>
+                    <div class="flex-1 min-w-0 pointer-events-auto">
+                        <div contenteditable="true" 
+                             onmousedown="event.stopPropagation()" 
+                             onkeydown="if(event.key === 'Enter') { event.preventDefault(); this.blur(); }" 
+                             onblur="updateTaskTitle('${task.id}', '${locationId}', this.innerText)" 
+                             class="text-[13px] font-bold text-slate-800 outline-none leading-tight ${task.done ? 'line-through text-slate-400' : ''}">${task.title}</div>
+
+
+                        <div class="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-tight">
+                            <i class="ph ph-user-circle"></i>
+                            <span contenteditable="true" 
+                                  draggable="false" 
+                                  onmousedown="event.stopPropagation()" 
+                                  onkeydown="if(event.key === 'Enter') { event.preventDefault(); this.blur(); }" 
+                                  onfocus="this.innerText = '';" 
+                                  onblur="updateTaskResp('${task.id}', '${locationId}', this.innerText)" 
+                                  class="flex-1 block truncate cursor-text hover:text-indigo-600 transition-colors">
+                                ${task.responsible || 'Responsable...'}
+                            </span>
+                        </div>
+                    </div>
+                    <button onclick="confirmDeleteTask('${task.id}', '${locationId}')" class="text-slate-400 hover:text-red-500 ml-1 pointer-events-auto">
+                        <i class="ph-bold ph-x-circle text-lg"></i>
+                    </button>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                    <div class="date-input-container">
+                        <button class="flex items-center gap-1.5 text-[9px] font-black ${isOverdue ? 'text-red-700' : 'text-slate-600'} bg-white/60 px-2 py-1 rounded border border-black/5 uppercase">
+                            <i class="ph-bold ph-calendar-blank"></i><span>${task.date ? formatDate(task.date) : 'SIN FECHA'}</span>
+                        </button>
+                        <input type="date" value="${task.date}" class="native-date-input" onchange="updateTaskDate('${task.id}', '${locationId}', this.value)">
+                    </div>
+                </div>
+            `;
+
+
+            el.addEventListener('dragstart', (e) => {
+                clearDragStates();
+                if (document.activeElement.getAttribute('contenteditable') === 'true') { 
+                    e.preventDefault(); return; 
+                }
+                draggingTaskId = task.id;
+                draggingProcId = null;
+                el.classList.add('dragging');
+                e.dataTransfer.setData('type', 'task');
+                e.dataTransfer.effectAllowed = 'move';
+                e.stopPropagation(); 
+            });
+
+
+            el.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                if (draggingTaskId && draggingTaskId !== task.id) {
+                    el.classList.add('drag-over-task-item');
+                }
+            });
+
+
+            el.addEventListener('dragleave', () => el.classList.remove('drag-over-task-item'));
+
+
+            el.addEventListener('drop', (e) => {
+                e.preventDefault();
+                el.classList.remove('drag-over-task-item');
+                if (draggingTaskId) handleDropTask(null, locationId);
+            });
+
+
+            return el;
+        }
+
+
+        // --- CALENDARIO ---
+        function setCalMode(mode) { appState.calMode = mode; renderCalendar(); }
+
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const title = document.getElementById('calendarTitle');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+
+            ['calMonth', 'calQuarter', 'calYear'].forEach(id => {
+                const btn = document.getElementById(id);
+                btn.className = (id === 'cal' + appState.calMode.charAt(0).toUpperCase() + appState.calMode.slice(1)) 
+                    ? "px-4 py-1 rounded-lg text-xs font-bold bg-white shadow-sm text-indigo-600" 
+                    : "px-4 py-1 rounded-lg text-xs font-bold text-slate-500 hover:text-indigo-600";
+            });
+
+
+            const year = appState.currentDate.getFullYear();
+            const month = appState.currentDate.getMonth();
+
+
+            if (appState.calMode === 'month') {
+                title.innerText = `${monthNames[month]} ${year}`;
+                grid.appendChild(createMonthGrid(year, month));
+            } else if (appState.calMode === 'quarter') {
+                const startMonth = Math.floor(month / 3) * 3;
+                title.innerText = `TRIMESTRE ${Math.floor(month/3)+1} · ${year}`;
+                const qContainer = document.createElement('div');
+                qContainer.className = "grid grid-cols-1 lg:grid-cols-3 gap-6 p-6";
+                for (let m = startMonth; m <= startMonth + 2; m++) qContainer.appendChild(createMonthWrapper(year, m));
+                grid.appendChild(qContainer);
+            } else {
+                title.innerText = `ANUAL · ${year}`;
+                const yContainer = document.createElement('div');
+                yContainer.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-8";
+                for (let m = 0; m < 12; m++) yContainer.appendChild(createMonthWrapper(year, m));
+                grid.appendChild(yContainer);
+            }
+        }
+
+
+        function createMonthWrapper(year, m) {
+            const wrap = document.createElement('div');
+            wrap.className = "flex flex-col h-full bg-slate-50/50 rounded-2xl border border-slate-100 p-3 shadow-sm";
+            wrap.innerHTML = `<h3 class="font-black text-slate-400 border-b border-slate-200 pb-2 mb-3 text-center text-[10px] uppercase tracking-widest">${monthNames[m]}</h3>`;
+            wrap.appendChild(createMonthGrid(year, m, true)); 
+            return wrap;
+        }
+
+
+        function createMonthGrid(year, month, isCompact = false) {
+            const container = document.createElement('div');
+            container.className = "w-full";
+            const weekdays = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do"];
+            const headerRow = document.createElement('div');
+            headerRow.className = "grid grid-cols-7 border-b border-slate-100 bg-white/50 mb-1";
+            weekdays.forEach(d => headerRow.innerHTML += `<div class="p-2 text-center text-[8px] font-black text-slate-400 uppercase">${d}</div>`);
+            container.appendChild(headerRow);
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            let startOffset = (firstDay.getDay() + 6) % 7;
+            const daysContainer = document.createElement('div');
+            daysContainer.className = `grid grid-cols-7 ${isCompact ? 'auto-rows-fr' : 'auto-rows-[minmax(80px,auto)]'}`;
+            for (let i = 0; i < startOffset; i++) daysContainer.innerHTML += `<div class="p-1 border-r border-b border-slate-50 bg-slate-50/20 opacity-50"></div>`;
+            const todayStr = new Date().toISOString().split('T')[0];
+
+
+            const allTasks = getAllTasksWithColors();
+
+
+            for (let d = 1; d <= lastDay.getDate(); d++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const isToday = dateStr === todayStr;
+                const dayTasks = allTasks.filter(t => t.date === dateStr);
+                const dayEl = document.createElement('div');
+                dayEl.className = `p-1 border-r border-b border-slate-100 flex flex-col gap-1 min-h-[45px] ${isToday ? 'bg-indigo-50/50' : 'bg-white'}`;
+                dayEl.innerHTML = `<div class="text-right"><span class="text-[9px] font-black ${isToday ? 'bg-indigo-600 text-white px-1.5 rounded shadow-sm' : 'text-slate-400'}">${d}</span></div>`;
+                dayTasks.forEach(task => {
+                    const tEl = document.createElement('div');
+                    const overdue = !task.done && task.date < todayStr;
+                    tEl.className = `text-[8px] px-1.5 py-0.5 rounded border truncate cursor-help ${task.done ? 'opacity-50 line-through' : 'font-bold'}`;
+
+
+                    // CAMBIO v1.10: Aplicar color heredado del proceso + 30% opacidad
+                    tEl.style.backgroundColor = task.color + '4d'; 
+                    tEl.style.borderColor = task.color;
+                    tEl.style.color = (task.color === '#e2e8f0' || task.color === '#ffffff') ? '#64748b' : task.color; 
+
+
+                    if (overdue) {
+                        tEl.style.borderWidth = '2px';
+                        tEl.style.borderColor = '#dc2626'; 
+                    }
+
+
+                    // Eventos para el Tooltip Flotante
+                    tEl.onmouseenter = (e) => showTaskTooltip(e, task);
+                    tEl.onmouseleave = hideTaskTooltip;
+                    tEl.onmousemove = moveTaskTooltip;
+
+
+                    tEl.innerText = task.title;
+                    dayEl.appendChild(tEl);
+                });
+                daysContainer.appendChild(dayEl);
+            }
+            container.appendChild(daysContainer); return container;
+        }
+
+
+        // --- LÓGICA DE TOOLTIP ---
+        function showTaskTooltip(e, task) {
+            const tooltip = document.getElementById('calendarTooltip');
+            document.getElementById('tooltipTitle').innerText = task.title;
+            document.getElementById('tooltipResp').innerText = task.responsible || 'Sin responsable';
+            document.getElementById('tooltipDate').innerText = task.date ? formatDate(task.date) : 'Sin fecha';
+
+
+            tooltip.style.display = 'block';
+            moveTaskTooltip(e);
+        }
+
+
+        function moveTaskTooltip(e) {
+            const tooltip = document.getElementById('calendarTooltip');
+            // Desplazamiento para que no quede justo bajo el puntero
+            const x = e.clientX + 15;
+            const y = e.clientY + 15;
+
+
+            // Evitar que el tooltip se salga por la derecha
+            const rightEdge = window.innerWidth - tooltip.offsetWidth - 20;
+            const bottomEdge = window.innerHeight - tooltip.offsetHeight - 20;
+
+
+            tooltip.style.left = (x > rightEdge ? x - tooltip.offsetWidth - 25 : x) + 'px';
+            tooltip.style.top = (y > bottomEdge ? y - tooltip.offsetHeight - 25 : y) + 'px';
+        }
+
+
+        function hideTaskTooltip() {
+            document.getElementById('calendarTooltip').style.display = 'none';
+        }
+
+
+        // --- HANDLERS DE DATOS ---
+        function setView(view) {
+            appState.view = view;
+            const sidebar = document.getElementById('inbox');
+            const viewBoard = document.getElementById('viewBoard');
+            const viewCalendar = document.getElementById('viewCalendar');
+            const btnTablero = document.getElementById('btnTablero');
+            const btnCalendario = document.getElementById('btnCalendario');
+
+
+            if (view === 'board') {
+                sidebar.style.display = 'flex';
+                viewBoard.classList.remove('hidden');
+                viewCalendar.classList.add('hidden');
+                btnTablero.className = "px-4 py-1.5 rounded-lg text-sm font-bold transition-all bg-white shadow-sm text-indigo-600";
+                btnCalendario.className = "px-4 py-1.5 rounded-lg text-sm font-bold transition-all text-slate-500 hover:text-indigo-600";
+            } else {
+                sidebar.style.display = 'none';
+                viewBoard.classList.add('hidden');
+                viewCalendar.classList.remove('hidden');
+                btnCalendario.className = "px-4 py-1.5 rounded-lg text-sm font-bold transition-all bg-white shadow-sm text-indigo-600";
+                btnTablero.className = "px-4 py-1.5 rounded-lg text-sm font-bold transition-all text-slate-500 hover:text-indigo-600";
+            }
+            renderAll();
+        }
+
+
+        function handleProcDrop(s, t) {
+            if (!s || !t || s === t) return;
+            const from = appState.processes.findIndex(p => p.id === s);
+            const to = appState.processes.findIndex(p => p.id === t);
+            if (from!==-1 && to!==-1) { 
+                const [moved] = appState.processes.splice(from, 1); 
+                appState.processes.splice(to, 0, moved); 
+                renderAll(); 
+            }
+        }
+
+
+        function handleDropTask(e, target) {
+            if (e) e.preventDefault();
+            const id = draggingTaskId; if (!id) return;
+            let task = null;
+            const inIdx = appState.inbox.findIndex(x => x.id === id);
+            if (inIdx!==-1) task = appState.inbox.splice(inIdx, 1)[0];
+            else appState.processes.forEach(p => { const idx = p.tasks.findIndex(x => x.id === id); if (idx!==-1) task = p.tasks.splice(idx, 1)[0]; });
+            if (!task) return;
+            if (target === 'inbox') appState.inbox.push(task);
+            else { const p = appState.processes.find(x => x.id === target); if(p) p.tasks.push(task); }
+            renderAll();
+        }
+
+
+        function handleDragOverGeneric(e) { e.preventDefault(); }
+
+
+        function addProcess() {
+            const input = document.getElementById('newProcessTitle');
+            if (!input.value) return showToast('Escribe un título');
+            appState.processes.push({ id: 'p-' + Date.now(), title: input.value, color: document.getElementById('newProcessColor').value, tasks: [] });
+            input.value = ''; renderAll(); showToast('Proceso añadido');
+        }
+
+
+        function addTaskToInbox() {
+            const input = document.getElementById('newTaskTitle');
+            if (!input.value) return showToast('Escribe un título');
+            appState.inbox.unshift({ id: 't-' + Date.now(), title: input.value, responsible: '', date: new Date().toISOString().split('T')[0], done: false });
+            input.value = ''; renderAll(); showToast('Tarea en Bandeja');
+        }
+
+
+        function updateProcessTitle(id, val) { const p = appState.processes.find(x => x.id === id); if(p) p.title = val; saveToLocalStorage(); }
+        function updateTaskTitle(id, loc, val) { const t = findTask(id, loc); if(t && t.task) t.task.title = val; saveToLocalStorage(); }
+        function updateTaskResp(id, loc, val) { const t = findTask(id, loc); if(t && t.task) { t.task.responsible = (val.trim()===''||val.trim()==='Responsable...') ? '' : val.trim(); } renderAll(); }
+        function updateTaskDate(id, loc, val) { const t = findTask(id, loc); if(t && t.task) t.task.date = val; renderAll(); }
+        function toggleTaskDone(id, loc) { const t = findTask(id, loc); if(t && t.task) t.task.done = !t.task.done; renderAll(); }
+
+
+        function findTask(id, loc) {
+            if (loc === 'inbox') return { list: appState.inbox, task: appState.inbox.find(x => x.id === id) };
+            const p = appState.processes.find(x => x.id === loc);
+            return p ? { list: p.tasks, task: p.tasks.find(x => x.id === id) } : null;
+        }
+
+
+        function getAllTasksWithColors() {
+            let t = appState.inbox.map(task => ({ ...task, color: '#94a3b8' })); 
+            appState.processes.forEach(p => {
+                p.tasks.forEach(task => {
+                    t.push({ ...task, color: p.color });
+                });
+            });
+            return t;
+        }
+
+
+        function confirmDeleteProcess(id) { 
+            const p = appState.processes.find(x => x.id === id);
+            openModal(`¿Borrar panel "${p.title}" y sus tareas?`, () => { appState.processes = appState.processes.filter(x => x.id !== id); renderAll(); closeModal(); showToast('Proceso borrado'); }); 
+        }
+        function confirmDeleteTask(id, loc) { 
+            openModal('¿Eliminar esta tarea?', () => { if(loc==='inbox') appState.inbox=appState.inbox.filter(x=>x.id!==id); else { const p=appState.processes.find(x=>x.id===loc); if(p) p.tasks=p.tasks.filter(x=>x.id!==id); } renderAll(); closeModal(); showToast('Tarea eliminada'); }); 
+        }
+
+
+        function formatDate(s) { if(!s) return "SIN FECHA"; const [y,m,d] = s.split('-'); return `${d}/${m}/${y}`; }
+
+
+        function showToast(m) { 
+            const t = document.getElementById('toast'); 
+            const msg = document.getElementById('toastMsg');
+            if (!t || !msg) return;
+            msg.innerText = m; 
+            t.classList.replace('translate-y-20', 'translate-y-0'); 
+            t.classList.replace('opacity-0', 'opacity-100'); 
+            setTimeout(() => { 
+                t.classList.replace('translate-y-0', 'translate-y-20'); 
+                t.classList.replace('opacity-100', 'opacity-0'); 
+            }, 3000); 
+        }
+
+
+        function openModal(m, f) { document.getElementById('modalMessage').innerText = m; document.getElementById('modalConfirmBtn').onclick = f; document.getElementById('modalOverlay').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('modalOverlay').classList.add('hidden'); }
+
+
+        function saveToLocalStorage() { localStorage.setItem('jefaturaFlowData_v1.7', JSON.stringify(appState)); }
+        function loadFromLocalStorage() { 
+            const s = localStorage.getItem('jefaturaFlowData_v1.7'); 
+            if (s) { 
+                try { 
+                    appState = JSON.parse(s); 
+                    appState.currentDate = appState.currentDate ? new Date(appState.currentDate) : new Date();
+                } catch(e) { appState.currentDate = new Date(); } 
+            }
+            if (appState.processes.length === 0) {
+                appState.processes = [
+                    { id: 'p1', title: 'ORGANIZACIÓN CENTRO', color: '#6366f1', tasks: [] },
+                    { id: 'p2', title: 'SECRETARÍA Y ACTAS', color: '#10b981', tasks: [] },
+                    { id: 'p3', title: 'CONVIVENCIA', color: '#f59e0b', tasks: [] }
+                ];
+            }
+        }
+
+
+        // --- NUEVA FUNCIÓN DE EXPORTACIÓN CON EMAIL Y HORA ---
+        function exportData() { 
+            // 1. Preparar archivo y nombre con fecha y hora
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('es-ES').replace(/\//g, '-');
+            const timeStr = now.toLocaleTimeString('es-ES').replace(/:/g, '.');
+            // AÑADIDO: Se incluye timeStr en el nombre del archivo
+            const fileName = `JefaturaFlow_Backup_${dateStr}_${timeStr}.json`;
+            
+            const b = new Blob([JSON.stringify(appState, null, 2)], { type: 'application/json' }); 
+            const a = document.createElement('a'); 
+            a.href = URL.createObjectURL(b); 
+            a.download = fileName; 
+            a.click(); 
+
+
+            // 2. Preparar datos para el correo
+            const recipient = "antoniogg@gmail.com";
+            const subject = encodeURIComponent(`Copia seguridad ${dateStr} ${timeStr}`);
+            const body = encodeURIComponent(`Hola,\n\nSe ha generado la copia de seguridad de JefaturaFlow con fecha ${dateStr} a las ${timeStr}.\n\nIMPORTANTE:\nEl archivo "${fileName}" se ha descargado en tu ordenador.\nPor favor, arrástralo o adjúntalo a este correo para guardarlo.\n\nSaludos.`);
+
+
+            // 3. Abrir cliente de correo
+            setTimeout(() => {
+                window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
+                showToast('Archivo descargado y correo abierto');
+            }, 500);
+        }
+
+
+        function importData(e) { 
+            const f = e.target.files[0]; if (!f) return; 
+            const r = new FileReader(); 
+            r.onload = (ev) => { try { appState = JSON.parse(ev.target.result); appState.currentDate = appState.currentDate ? new Date(appState.currentDate) : new Date(); renderAll(); showToast('Backup restaurado'); } catch (err) { showToast('Error al importar'); } }; 
+            r.readAsText(f); 
+        }
+
+
+        function nextPeriod() { if (appState.calMode === 'month') appState.currentDate.setMonth(appState.currentDate.getMonth() + 1); else if (appState.calMode === 'quarter') appState.currentDate.setMonth(appState.currentDate.getMonth() + 3); else appState.currentDate.setFullYear(appState.currentDate.getFullYear() + 1); renderCalendar(); }
+        function prevPeriod() { if (appState.calMode === 'month') appState.currentDate.setMonth(appState.currentDate.getMonth() - 1); else if (appState.calMode === 'quarter') appState.currentDate.setMonth(appState.currentDate.getMonth() - 3); else appState.currentDate.setFullYear(appState.currentDate.getFullYear() - 1); renderCalendar(); }
+        function goToToday() { appState.currentDate = new Date(); renderCalendar(); }
+
+
+        function clearDragStates() {
+            document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+            document.querySelectorAll('.drag-over-proc, .drag-over-task-item').forEach(el => el.classList.remove('drag-over-proc', 'drag-over-task-item'));
+            document.body.classList.remove('is-dragging-process');
+            draggingTaskId = null;
+            draggingProcId = null;
+        }
+
+
+        document.addEventListener('dragend', () => { clearDragStates(); });
+        document.addEventListener('drop', (e) => { if (draggingProcId || draggingTaskId) { setTimeout(clearDragStates, 50); } });
+
+
+        window.onload = () => { loadFromLocalStorage(); renderAll(); };
+    </script>
+</body>
+</html>

@@ -1,0 +1,2727 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Planificador Evaluaciones</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --panel: #ffffff;
+      --ink: #111111;
+      --muted: #555555;
+      --accent: #333333;
+      --accent-2: #777777;
+      --ok: #1f7a3a;
+      --ko: #b02a2a;
+      --grid: #d6d6d6;
+      --chip: #efefef;
+      --shadow: none;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Figtree", "Avenir Next", "Trebuchet MS", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    header {
+      padding: 24px 24px 10px;
+      border-bottom: 1px solid var(--grid);
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      backdrop-filter: none;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      letter-spacing: 0.3px;
+    }
+
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    main {
+      padding: 18px 24px 60px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--grid);
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+
+    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
+    select, input[type="file"], input[type="time"] {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--grid);
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .muted { color: var(--muted); font-size: 12px; }
+
+    .filters {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      margin-top: 8px;
+    }
+
+    .checklist {
+      border: 1px dashed var(--grid);
+      padding: 8px;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .checklist label { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--ink); break-inside: avoid; }
+
+    #nonLectiveList {
+      columns: 3;
+      column-gap: 16px;
+    }
+
+    .grid-wrap { overflow-x: auto; }
+
+    table.schedule {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 520px;
+      background: #fff;
+      border: 1px solid var(--grid);
+      table-layout: fixed;
+    }
+
+    table.schedule th, table.schedule td {
+      border: 1px solid var(--grid);
+      padding: 4px;
+      vertical-align: top;
+      position: relative;
+      min-height: 54px;
+      font-size: 11px;
+    }
+
+    table.schedule th { background: #f5f5f5; font-size: 12px; text-align: left; }
+
+    .time-col { width: 100px; font-size: 11px; color: var(--muted); background: #fafafa; }
+
+    .schedule-60 table.schedule {
+      width: 60%;
+    }
+
+    .activity {
+      margin: 4px 0;
+      padding: 4px 6px;
+      border-radius: 8px;
+      background: var(--chip);
+      border: 1px solid #d0d0d0;
+      font-size: 12px;
+    }
+
+    .activity.lectiva {
+      background: #e5e5e5;
+    }
+
+    .activity.lectiva-many {
+      background: #d2d2d2;
+    }
+
+    .activity.non-lectiva {
+      background: #f0f0f0;
+    }
+
+    .activity.hidden { display: none; }
+
+    .compare {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 12px;
+    }
+
+    .legend { font-size: 12px; display: flex; gap: 12px; flex-wrap: wrap; color: var(--muted); }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .legend i { width: 12px; height: 12px; display: inline-block; border-radius: 3px; background: #e5e5e5; border: 1px solid #d0d0d0; }
+    .legend .lectiva i { background: #e5e5e5; }
+    .legend .nonlectiva i { background: #f0f0f0; }
+
+    .planner-grid td { height: 70px; cursor: pointer; }
+
+    .recess-row td {
+      height: 35px !important;
+      min-height: 35px !important;
+    }
+
+    .conflict-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #111;
+      opacity: 0.6;
+      cursor: row-resize;
+      z-index: 6;
+    }
+
+    .meeting {
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      background: rgba(15,107,107,0.15);
+      border: 1px solid rgba(15,107,107,0.5);
+      border-radius: 6px;
+      padding: 2px 4px;
+      font-size: 11px;
+      overflow: hidden;
+      cursor: grab;
+    }
+
+    .day-overlay {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      pointer-events: none;
+    }
+
+    .day-overlay .meeting {
+      pointer-events: auto;
+    }
+
+    .meeting strong { font-size: 10px; display: block; }
+
+    .meeting .del {
+      position: absolute;
+      top: 2px;
+      right: 4px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 12px;
+      color: #5a4b3e;
+    }
+
+    .meeting-panel {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .status-panel {
+      max-width: 100%;
+    }
+
+    .status-list {
+      border: 1px dashed var(--grid);
+      border-radius: 10px;
+      padding: 8px;
+      background: #fff;
+      display: grid;
+      grid-template-columns: repeat(var(--status-cols, 2), minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .status-block {
+      border: 1px solid #f0e6d8;
+      border-radius: 10px;
+      padding: 8px;
+      background: #fffaf2;
+    }
+
+    .status-block h5 {
+      margin: 0 0 6px;
+      font-size: 12px;
+    }
+
+    .classroom-layout {
+      display: grid;
+      grid-template-columns: minmax(520px, 1fr) 320px;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .classroom-side {
+      min-width: 220px;
+    }
+
+    .simple-list {
+      border: 1px dashed var(--grid);
+      border-radius: 10px;
+      padding: 8px;
+      background: #fff;
+      display: grid;
+      gap: 6px;
+    }
+
+    .split-schedules {
+      display: grid;
+      gap: 14px;
+    }
+
+    .split-title {
+      margin: 0 0 6px;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .shift-divider {
+      border-top: 2px solid #bdbdbd;
+      margin-top: 8px;
+      padding-top: 8px;
+    }
+
+    .dir-block {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 20px;
+      padding: 0 6px;
+      margin: 3px 3px 0 0;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #111;
+      background: #dcdcdc;
+      border: 1px solid #c6c6c6;
+    }
+
+    .dir-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .dir-selector {
+      display: grid;
+      grid-template-columns: minmax(240px, 320px) 1fr;
+      gap: 12px;
+      margin: 8px 0 12px;
+      align-items: start;
+    }
+
+    .dir-list {
+      border: 1px dashed var(--grid);
+      border-radius: 10px;
+      padding: 8px;
+      background: #fff;
+      max-height: 260px;
+      overflow: auto;
+      display: grid;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .dir-list label {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .dir-zoom {
+      border: 2px solid #444;
+      border-radius: 12px;
+      padding: 16px;
+      min-height: 120px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .dir-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin: 8px 0 12px;
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 6px 8px;
+      border: 1px solid #f0e6d8;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 12px;
+      align-items: center;
+    }
+
+    .status-item.shared {
+      border-color: #d7c5ef;
+      background: #f6f0ff;
+    }
+
+    .status-item.lective {
+      border-color: #f1b5b5;
+      background: #fff1f1;
+    }
+
+    .status-item.shared.lective {
+      border-color: #d9a8d9;
+      background: linear-gradient(90deg, #fff1f1 0%, #f6f0ff 100%);
+    }
+
+    .status-item-main {
+      min-width: 0;
+    }
+
+    .status-item-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pill {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .pill.ok { background: var(--ok); }
+    .pill.ko { background: var(--ko); }
+    .pill.dual { background: #6a2ca6; }
+    .pill.lective { background: #b02a2a; }
+
+    .inline-form {
+      margin-top: 8px;
+      padding: 8px;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid var(--grid);
+    }
+
+    .btn {
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .btn.secondary { background: #8a7a6b; }
+
+    .hidden { display: none; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+
+    .modal {
+      background: #fff;
+      border: 1px solid var(--grid);
+      border-radius: 14px;
+      padding: 14px;
+      width: min(900px, 92vw);
+      box-shadow: var(--shadow);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--grid);
+      background: #fff;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    @media (max-width: 900px) {
+      #nonLectiveList { columns: 2; }
+      .schedule-60 table.schedule { width: 100%; }
+    }
+
+    @media (max-width: 600px) {
+      #nonLectiveList { columns: 1; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Planificador Evaluaciones</h1>
+    <p class="sub">Carga el XML de horarios para visualizar profesorado, comparar y planificar reuniones.</p>
+  </header>
+  <main>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="horario">Horario</button>
+      <button class="tab-btn" data-tab="grupos">Grupos</button>
+      <button class="tab-btn" data-tab="aulas">Aulas</button>
+      <button class="tab-btn" data-tab="equipo">Equipo Directivo</button>
+      <button class="tab-btn" data-tab="comparador">Comparador</button>
+      <button class="tab-btn" data-tab="planificador">Planificador Evaluaciones</button>
+      <button class="tab-btn" data-tab="gestion">Gestión</button>
+    </div>
+
+    <div class="tab-panel active" data-panel="horario">
+      <section class="panel">
+        <div class="row">
+          <div>
+            <label for="profSelect">Horario de un profesor</label>
+            <select id="profSelect" disabled>
+              <option value="">Cargue el XML...</option>
+            </select>
+          </div>
+          <div>
+            <label>Filtros</label>
+            <div class="legend">
+              <span class="lectiva"><i></i>Lectiva (1-2 grupos)</span>
+              <span class="nonlectiva"><i></i>No lectiva</span>
+            </div>
+          </div>
+        </div>
+        <div class="filters">
+          <label><input type="checkbox" id="toggleLective" checked /> Mostrar horas lectivas con 1-2 grupos</label>
+        </div>
+        <div class="filters">
+          <label><input type="checkbox" id="toggleAllNonLective" checked /> Seleccionar / deseleccionar todas las no lectivas</label>
+        </div>
+        <div class="checklist" id="nonLectiveList"></div>
+        <div class="grid-wrap schedule-60" id="profScheduleWrap"></div>
+      </section>
+    </div>
+
+    <div class="tab-panel" data-panel="grupos">
+      <section class="panel">
+        <div class="row">
+          <div>
+            <label for="groupTeachSelect">Enseñanza</label>
+            <select id="groupTeachSelect" disabled>
+              <option value="">Cargue el XML...</option>
+            </select>
+          </div>
+          <div>
+            <label for="groupGroupSelect">Grupo</label>
+            <select id="groupGroupSelect" disabled>
+              <option value="">Todos</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-wrap schedule-60" id="groupScheduleWrap"></div>
+      </section>
+    </div>
+
+    <div class="tab-panel" data-panel="aulas">
+      <section class="panel">
+        <div class="row">
+          <div>
+            <label for="classroomSelect">Horario de un aula</label>
+            <select id="classroomSelect" disabled>
+              <option value="">Cargue el XML...</option>
+            </select>
+          </div>
+        </div>
+        <div class="filters">
+          <label><input type="checkbox" id="toggleClassroomGroupsOnly" /> Mostrar solo grupos (ocultar materias y profesorado)</label>
+        </div>
+        <div class="classroom-layout">
+          <div class="grid-wrap" id="classroomScheduleWrap"></div>
+          <div class="classroom-side">
+            <h4 style="margin:0 0 6px;">Grupos en el aula</h4>
+            <div class="simple-list" id="classroomGroupList"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-panel" data-panel="equipo">
+      <section class="panel">
+        <h3>Equipo Directivo</h3>
+        <p class="muted">Selecciona 8 miembros del claustro para mostrar Labores directivas, Coordinación y funcionamiento, y Mayores 55 años.</p>
+        <div class="dir-controls">
+          <div>
+            <label for="dirDaySelect">Día</label>
+            <select id="dirDaySelect"></select>
+          </div>
+          <div>
+            <label for="dirTurnSelect">Turno</label>
+            <select id="dirTurnSelect">
+              <option value="ambos">Ambos</option>
+              <option value="manana">Mañana</option>
+              <option value="tarde">Tarde</option>
+            </select>
+          </div>
+          <div>
+            <label for="dirSlotSelect">Tramo</label>
+            <select id="dirSlotSelect"></select>
+          </div>
+        </div>
+        <div class="dir-selector">
+          <div>
+            <div class="muted" id="dirCount">0 / 8 seleccionados</div>
+            <div class="dir-list" id="dirList"></div>
+          </div>
+          <div>
+            <div class="dir-legend" id="dirLegend"></div>
+            <div class="grid-wrap" id="equipoScheduleWrap"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-panel" data-panel="comparador">
+      <section class="panel">
+        <div class="row">
+          <div>
+            <label for="compareA">Comparar horarios: Profesor A</label>
+            <select id="compareA" disabled>
+              <option value="">Cargue el XML...</option>
+            </select>
+          </div>
+          <div>
+            <label for="compareB">Profesor B</label>
+            <select id="compareB" disabled>
+              <option value="">Cargue el XML...</option>
+            </select>
+          </div>
+        </div>
+        <div class="filters">
+          <label><input type="checkbox" id="toggleLectiveCompare" checked /> Mostrar horas lectivas con 1-2 grupos</label>
+        </div>
+        <div class="compare">
+          <div class="grid-wrap" id="compareAWrap"></div>
+          <div class="grid-wrap" id="compareBWrap"></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-panel" data-panel="gestion">
+      <section class="panel">
+        <div class="row">
+          <div>
+            <label for="xmlFile">Archivo XML de horarios</label>
+            <input type="file" id="xmlFile" accept=".xml" />
+            <p class="muted" id="fileStatus">Sin archivo cargado. Si existe <code>horario.xml</code> en esta carpeta se cargará automáticamente.</p>
+          </div>
+          <div>
+            <label>Centro</label>
+            <div id="centroName" class="muted">-</div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-panel" data-panel="planificador">
+      <section class="panel">
+        <h3>Planificar reuniones de evaluación</h3>
+        <p class="muted">Haz clic en un tramo para crear una reunión. En incompatibilidades, <strong>COINCIDE</strong> marca profesorado que aparece en varias reuniones y <strong>LECTIVA</strong> marca quienes tienen clase en ese momento.</p>
+        <div class="row">
+          <div>
+            <label for="conflictDaySelect">Día para incompatibilidades</label>
+            <select id="conflictDaySelect"></select>
+          </div>
+          <div>
+            <label for="conflictTime">Hora (cada 5 minutos)</label>
+            <input type="time" id="conflictTime" step="300" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="evalStartDate">Inicio ciclo de evaluaciones</label>
+            <input type="date" id="evalStartDate" />
+          </div>
+          <div>
+            <label for="evalEndDate">Fin ciclo de evaluaciones</label>
+            <input type="date" id="evalEndDate" />
+          </div>
+          <div style="display:flex; gap:8px; align-items:end;">
+            <button class="btn secondary" id="exportMeetings">Exportar JSON</button>
+            <label class="btn secondary" style="cursor:pointer;">
+              Importar JSON
+              <input type="file" id="importMeetings" accept="application/json" style="display:none;" />
+            </label>
+          </div>
+        </div>
+        <div class="meeting-panel">
+          <div class="status-panel">
+            <h4 style="margin:0 0 6px;">Profesores del grupo</h4>
+            <div class="status-list" id="statusList"></div>
+          </div>
+        </div>
+        <div class="grid-wrap" id="plannerWrap"></div>
+      </section>
+    </div>
+  </main>
+
+  <div class="modal-backdrop" id="meetingModal">
+    <div class="modal">
+      <div class="inline-form" id="meetingForm">
+        <div class="row">
+          <div>
+            <label>Enseñanza</label>
+            <select id="teachSelect"></select>
+          </div>
+          <div>
+            <label>Grupo</label>
+            <select id="groupSelect"></select>
+          </div>
+          <div>
+            <label>Aula</label>
+            <input type="text" id="meetingRoom" list="aulaList" placeholder="Escriba o seleccione..." />
+            <datalist id="aulaList"></datalist>
+          </div>
+          <div>
+            <label>Inicio</label>
+            <input type="time" id="meetStart" step="900" />
+          </div>
+          <div>
+            <label>Fin</label>
+            <input type="time" id="meetEnd" step="900" />
+          </div>
+        </div>
+        <div style="margin-top:8px; display:flex; gap:8px;">
+          <button class="btn" id="saveMeeting">Guardar reunión</button>
+          <button class="btn secondary" id="cancelMeeting">Cancelar</button>
+          <span class="muted" id="meetingHint"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      centro: null,
+      profesores: [],
+      profesorMap: {},
+      asignaturas: {},
+      grupos: [],
+      grupoMap: {},
+      tramos: [],
+      tramoMap: {},
+      days: [],
+      hourSlots: [],
+      horariosProf: {},
+      nonLectiveNames: [],
+      groupToProfSubjects: {},
+      horariosGrupo: {},
+      horariosAula: {},
+      aulas: [],
+      aulasDatos: [],
+      aulaMap: {},
+      dirSelectedIds: [],
+      dirPalette: {},
+      profToTramos: {},
+      meetings: [],
+      editingMeetingId: null,
+      activeMeetingCell: null,
+      activeTramoId: null,
+      activeConflict: { day: null, timeMin: null },
+      adultGroupMap: {},
+      combinedGroupMap: {},
+      combinedGroupById: {},
+      combinedGroupLabels: {}
+    };
+
+    const el = (id) => document.getElementById(id);
+
+    const AUTO_XML = 'horario.xml';
+
+    el('xmlFile').addEventListener('change', handleFile);
+    el('profSelect').addEventListener('change', () => renderProfessor());
+    el('groupTeachSelect').addEventListener('change', () => {
+      resetGroupFilters('teach');
+      renderGroupSchedule();
+    });
+    el('groupGroupSelect').addEventListener('change', renderGroupSchedule);
+    el('dirDaySelect').addEventListener('change', renderEquipoDirectivo);
+    el('dirTurnSelect').addEventListener('change', () => {
+      populateDirSlots();
+      renderEquipoDirectivo();
+    });
+    el('dirSlotSelect').addEventListener('change', renderEquipoDirectivo);
+    el('classroomSelect').addEventListener('change', renderClassroomSchedule);
+    el('toggleClassroomGroupsOnly').addEventListener('change', renderClassroomSchedule);
+    el('compareA').addEventListener('change', renderCompare);
+    el('compareB').addEventListener('change', renderCompare);
+    el('toggleLective').addEventListener('change', () => {
+      syncLectiveToggles('main');
+      renderProfessor();
+      renderCompare();
+    });
+    el('toggleLectiveCompare').addEventListener('change', () => {
+      syncLectiveToggles('compare');
+      renderProfessor();
+      renderCompare();
+    });
+    el('toggleAllNonLective').addEventListener('change', toggleAllNonLective);
+    el('saveMeeting').addEventListener('click', saveMeeting);
+    el('cancelMeeting').addEventListener('click', closeMeetingModal);
+    el('evalStartDate').addEventListener('change', buildPlanner);
+    el('evalEndDate').addEventListener('change', buildPlanner);
+    el('conflictDaySelect').addEventListener('change', () => {
+      ensureConflictLine();
+    });
+    el('conflictTime').addEventListener('change', () => {
+      ensureConflictLine();
+    });
+    el('exportMeetings').addEventListener('click', exportMeetings);
+    el('importMeetings').addEventListener('change', importMeetings);
+    el('meetingModal').addEventListener('click', (e) => {
+      if (e.target.id === 'meetingModal') closeMeetingModal();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initTabs();
+      tryAutoLoad();
+    });
+    window.addEventListener('resize', () => {
+      renderMeetings();
+    });
+
+    function handleFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = decodeXmlFromBuffer(reader.result);
+        parseXml(text);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    async function tryAutoLoad() {
+      try {
+        const res = await fetch(AUTO_XML, { cache: 'no-store' });
+        if (!res.ok) return;
+        const buffer = await res.arrayBuffer();
+        const text = decodeXmlFromBuffer(buffer);
+        parseXml(text);
+        el('fileStatus').textContent = `Cargado automáticamente desde ${AUTO_XML}.`;
+      } catch (_) {
+        // Silencio si no existe
+      }
+    }
+
+    function decodeXmlFromBuffer(buffer) {
+      const utf8 = new TextDecoder('utf-8', { fatal: false }).decode(buffer);
+      const encMatch = utf8.match(/encoding\s*=\s*['"]([^'"]+)['"]/i);
+      const enc = encMatch ? encMatch[1].toLowerCase() : 'utf-8';
+      if (enc && enc !== 'utf-8') {
+        try {
+          return new TextDecoder(enc, { fatal: false }).decode(buffer).replace(/\u00A0/g, ' ');
+        } catch (_) {}
+      }
+      try {
+        return new TextDecoder('windows-1252', { fatal: false }).decode(buffer).replace(/\u00A0/g, ' ');
+      } catch (_) {}
+      return new TextDecoder('utf-8', { fatal: false }).decode(buffer).replace(/\u00A0/g, ' ');
+    }
+
+    function repairMojibake(text) {
+      return text;
+    }
+
+    function cleanProfName(name) {
+      if (!name) return '';
+      let n = name.replace(/\s+/g, ' ').trim();
+      n = n.replace(/^(D\.|Dª\.|Dª|D)\s+/i, '');
+      n = n.replace(/^(DON|DOÑA)\s+/i, '');
+      n = n.replace(/,+$/, '').trim();
+      return n;
+    }
+
+    function compareProfNames(a, b) {
+      const ka = profSortKey(a);
+      const kb = profSortKey(b);
+      for (let i = 0; i < ka.length; i++) {
+        if (ka[i] < kb[i]) return -1;
+        if (ka[i] > kb[i]) return 1;
+      }
+      return 0;
+    }
+
+    function profSortKey(name) {
+      const cleaned = cleanProfName(name);
+      let ap1 = '', ap2 = '', noms = '';
+      if (cleaned.includes(',')) {
+        const [apPart, nomPart] = cleaned.split(',').map(s => s.trim());
+        const apTokens = apPart.split(' ').filter(Boolean);
+        ap1 = apTokens[0] || '';
+        ap2 = apTokens[1] || '';
+        noms = nomPart || '';
+      } else {
+        const tokens = cleaned.split(' ').filter(Boolean);
+        if (tokens.length >= 2) {
+          ap1 = tokens[tokens.length - 2] || '';
+          ap2 = tokens[tokens.length - 1] || '';
+          noms = tokens.slice(0, -2).join(' ');
+        } else {
+          ap1 = tokens[0] || '';
+          ap2 = '';
+          noms = '';
+        }
+      }
+      return [ap1.toUpperCase(), ap2.toUpperCase(), noms.toUpperCase(), cleaned.toUpperCase()];
+    }
+
+    function parseGroupMeta(g) {
+      const src = `${g.nombre} ${g.abreviatura} ${g.nivel}`.toUpperCase();
+      let teach = '';
+      if (src.includes('ESPA')) teach = 'ESPA';
+      else if (src.includes('BTOPA')) teach = 'BTOPA';
+      else if (src.includes('INFANTIL') || src.includes('EINF') || src.includes('SEIN')) teach = 'FP';
+      else if (src.includes('ESO')) teach = 'ESO';
+      else if (src.includes('BACH')) teach = 'Bachillerato';
+      else if (/(\\bFP\\b|CICLO|CF|GRADO|LOMCE)/.test(src)) teach = 'FP';
+
+      let course = '';
+      if (teach === 'ESO') {
+        const m = src.match(/\b([1-4])[ºO]?\s*ESO/);
+        if (m) course = `${m[1]}º`;
+      } else if (teach === 'Bachillerato') {
+        const m = src.match(/\b([1-2])[ºO]?\s*BACH/);
+        if (m) course = `${m[1]}º`;
+      } else if (teach === 'FP') {
+        const m = src.match(/\b([1-2])[ºO]?\s*(CF|FP|CICLO|GRADO|LOMCE)/);
+        if (m) course = `${m[1]}º`;
+        if (!course) {
+          const n = src.match(/\b([1-2])[ºO]?\b/);
+          if (n) course = `${n[1]}º`;
+        }
+      } else if (teach === 'ESPA') {
+        const m = src.match(/\b([1-2])[ºO]?\s*ESPA/);
+        if (m) course = `${m[1]}`;
+      } else if (teach === 'BTOPA') {
+        const m = src.match(/\b([1-2])[ºO]?\s*BTOPA/);
+        if (m) course = `${m[1]}`;
+      }
+
+      let fpType = '';
+      if (teach === 'FP') {
+        if (src.includes('BASICO') || src.includes('BÁSICO')) fpType = 'Grado Básico';
+        else if (src.includes('MEDIO')) fpType = 'Grado Medio';
+        else if (src.includes('SUPERIOR') || src.includes('INFANTIL') || src.includes('EINF') || src.includes('SEIN')) fpType = 'Grado Superior';
+      }
+
+      let modalidad = '';
+      if (src.includes('CIEN')) modalidad = 'Ciencias';
+      else if (src.includes('CCSS') || src.includes('SOC')) modalidad = 'CCSS';
+      else if (src.includes('HUM')) modalidad = 'Humanidades';
+      else if (src.includes('ART')) modalidad = 'Artes';
+
+      let letter = '';
+      const ab = (g.abreviatura || '').trim();
+      const nm = (g.nombre || '').trim();
+      let m = ab.match(/([A-Z])$/i);
+      if (m) letter = m[1].toUpperCase();
+      if (!letter) {
+        m = nm.match(/\\b([A-Z])\\b$/i);
+        if (m) letter = m[1].toUpperCase();
+      }
+
+      const ciclo = teach === 'FP' ? (g.nombre || g.abreviatura || '') : '';
+
+      return { teach, course, fpType, modalidad, letter, ciclo };
+    }
+
+    function groupLabel(g) {
+      const letter = g.meta?.letter;
+      if (letter) return letter;
+      if (g.abreviatura) return g.abreviatura;
+      return g.nombre || g.id;
+    }
+
+    function normalizeText(value) {
+      return String(value || '')
+        .toUpperCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^A-Z0-9 ]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function isTotalLike(value) {
+      const s = String(value || '').toLowerCase().trim();
+      return s === 'total' || s === 'totales' || s.includes('total');
+    }
+
+    function aulaSort(a, b) {
+      const ka = aulaSortKey(a);
+      const kb = aulaSortKey(b);
+      if (ka < kb) return -1;
+      if (ka > kb) return 1;
+      return a.localeCompare(b, 'es', { numeric: true });
+    }
+
+    function aulaSortKey(aula) {
+      const s = String(aula || '').trim().toUpperCase();
+      const m = s.match(/^([A-Z]+)?\\s*(\\d+)/);
+      if (m) {
+        const prefix = (m[1] || '').padEnd(2, '_');
+        const num = m[2].padStart(2, '0');
+        return `${prefix}${num}`;
+      }
+      return `ZZ${s}`;
+    }
+
+    function initTabs() {
+      const btns = Array.from(document.querySelectorAll('.tab-btn'));
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tab = btn.dataset.tab;
+          btns.forEach(b => b.classList.toggle('active', b === btn));
+          document.querySelectorAll('.tab-panel').forEach(p => {
+            p.classList.toggle('active', p.dataset.panel === tab);
+          });
+        });
+      });
+    }
+
+    function parseXml(text) {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(text, 'application/xml');
+      const err = xml.querySelector('parsererror');
+      if (err) {
+        el('fileStatus').textContent = 'Error al parsear XML.';
+        return;
+      }
+
+      const centro = xml.querySelector('CENTRO');
+      state.centro = centro ? centro.getAttribute('nombre_centro') : 'Centro';
+      el('centroName').textContent = state.centro || '-';
+      el('fileStatus').textContent = 'Archivo cargado correctamente.';
+
+      parseDatos(xml);
+      parseHorarios(xml);
+      // Se construye al seleccionar profesor
+      populateProfessors();
+      populateGroups();
+      populateClassrooms();
+      buildEquipoDirectivoSelector();
+      populateDirControls();
+      renderEquipoDirectivo();
+      buildPlanner();
+    }
+
+    function populateConflictDaySelect() {
+      const sel = el('conflictDaySelect');
+      const timeInput = el('conflictTime');
+      if (!sel) return;
+      const prev = sel.value;
+      sel.innerHTML = '';
+      state.days.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = String(d);
+        opt.textContent = getPlannerDayLabel(d);
+        sel.appendChild(opt);
+      });
+      if (prev && state.days.includes(Number(prev))) sel.value = prev;
+      else if (state.days.length) sel.value = String(state.days[0]);
+      if (timeInput && !timeInput.value) {
+        const first = state.hourSlots.find(s => s.inicio)?.inicio;
+        if (first) timeInput.value = first;
+      }
+    }
+
+    function parseDatos(xml) {
+      state.asignaturas = {};
+      state.grupos = [];
+      state.grupoMap = {};
+      state.tramos = [];
+      state.tramoMap = {};
+      state.profesores = [];
+      state.profesorMap = {};
+      state.aulasDatos = [];
+      state.aulaMap = {};
+
+      xml.querySelectorAll('DATOS > ASIGNATURAS > ASIGNATURA').forEach(n => {
+        state.asignaturas[n.getAttribute('num_int_as')] = {
+          id: n.getAttribute('num_int_as'),
+          nombre: n.getAttribute('nombre') || n.getAttribute('abreviatura') || 'Sin asignatura',
+          abreviatura: n.getAttribute('abreviatura') || ''
+        };
+      });
+
+      xml.querySelectorAll('DATOS > GRUPOS > GRUPO').forEach(n => {
+        const g = {
+          id: n.getAttribute('num_int_gr'),
+          nombre: n.getAttribute('nombre') || n.getAttribute('abreviatura') || 'Grupo',
+          nivel: n.getAttribute('nivel') || '',
+          abreviatura: n.getAttribute('abreviatura') || ''
+        };
+        g.meta = parseGroupMeta(g);
+        state.grupos.push(g);
+        state.grupoMap[g.id] = g;
+      });
+
+      state.adultGroupMap = {};
+      state.combinedGroupMap = {};
+      state.combinedGroupById = {};
+      state.combinedGroupLabels = {};
+      state.grupos.forEach(g => {
+        const ab = (g.abreviatura || '').toUpperCase();
+        const nm = (g.nombre || '').toUpperCase();
+        if (ab.includes('ESPA') || nm.includes('ESPA')) {
+          if (ab.startsWith('1') || nm.includes('1')) state.adultGroupMap['ESPA|I'] = g.id;
+          if (ab.startsWith('2') || nm.includes('2')) state.adultGroupMap['ESPA|II'] = g.id;
+        }
+        if (ab.includes('BTOPA') || nm.includes('BTOPA')) {
+          if (ab.startsWith('1') || nm.includes('1')) state.adultGroupMap['BTOPA|1'] = g.id;
+          if (ab.startsWith('2') || nm.includes('2')) state.adultGroupMap['BTOPA|2'] = g.id;
+        }
+      });
+      const addCombinedGroup = (key, label, ids) => {
+        if (!ids || ids.length < 2) return;
+        state.combinedGroupMap[key] = ids;
+        ids.forEach(id => { state.combinedGroupById[id] = key; });
+        state.combinedGroupLabels[key] = label;
+      };
+
+      const divB = state.grupos.find(g => (g.abreviatura || '').toUpperCase() === '4BDIV');
+      const divC = state.grupos.find(g => (g.abreviatura || '').toUpperCase() === '4CDIV');
+      if (divB && divC) {
+        addCombinedGroup('DIVBC', '4º ESO DIV BC', [divB.id, divC.id]);
+      }
+      const div3c = state.grupos.find(g => (g.abreviatura || '').toUpperCase() === '3CDIV');
+      const div3d = state.grupos.find(g => (g.abreviatura || '').toUpperCase() === '3DDIV');
+      if (div3c && div3d) {
+        addCombinedGroup('DIVCD', '3º ESO DIV CD', [div3c.id, div3d.id]);
+      }
+
+      const b1c = state.grupos.find(g => (g.abreviatura || '').toUpperCase() === '1BPAC');
+      const b1h = state.grupos.find(g => (g.abreviatura || '').toUpperCase() === '1BPAH');
+      if (b1c && b1h) {
+        addCombinedGroup('BTO1PACAH', 'BTOPA 1BPAC / 1BPAH', [b1c.id, b1h.id]);
+      }
+      const b2c = state.grupos.find(g => (g.abreviatura || '').toUpperCase() === '2BPAC');
+      const b2h = state.grupos.find(g => (g.abreviatura || '').toUpperCase() === '2BPAH');
+      if (b2c && b2h) {
+        addCombinedGroup('BTO2PACAH', 'BTOPA 2BPAC / 2BPAH', [b2c.id, b2h.id]);
+      }
+
+      // Combinar grupos tipo 3A + 3ABi (bilingüe) como evaluación única
+      const byAb = new Map();
+      state.grupos.forEach(g => {
+        const ab = String(g.abreviatura || '').toUpperCase();
+        if (ab) byAb.set(ab, g);
+      });
+      state.grupos.forEach(g => {
+        const ab = String(g.abreviatura || '').toUpperCase();
+        if (!ab.endsWith('BI')) return;
+        const base = ab.slice(0, -2);
+        const baseGroup = byAb.get(base);
+        if (!baseGroup) return;
+        const key = `COMB_${base}`;
+        addCombinedGroup(key, `${base} / ${ab}`, [baseGroup.id, g.id]);
+      });
+
+      xml.querySelectorAll('DATOS > PROFESORES > PROFESOR').forEach(n => {
+        const p = {
+          id: n.getAttribute('num_int_pr'),
+          nombre: cleanProfName(n.getAttribute('nombre') || n.getAttribute('abreviatura') || 'Profesor')
+        };
+        state.profesores.push(p);
+        state.profesorMap[p.id] = p;
+      });
+
+      xml.querySelectorAll('DATOS > AULAS > AULA').forEach(n => {
+        const id = n.getAttribute('num_int_au') || '';
+        const label = n.getAttribute('abreviatura') || n.getAttribute('nombre') || id || '';
+        if (!id && !label) return;
+        state.aulasDatos.push({ id: id || label, label });
+        if (id) state.aulaMap[id] = label;
+      });
+
+      xml.querySelectorAll('DATOS > TRAMOS_HORARIOS > TRAMO').forEach(n => {
+        const t = {
+          id: n.getAttribute('num_tr'),
+          dia: Number(n.getAttribute('numero_dia')),
+          hora: Number(n.getAttribute('numero_hora')),
+          inicio: (n.getAttribute('hora_inicio') || '').trim(),
+          fin: (n.getAttribute('hora_final') || '').trim()
+        };
+        state.tramos.push(t);
+        state.tramoMap[t.id] = t;
+      });
+
+      state.days = Array.from(new Set(state.tramos.map(t => t.dia))).sort((a,b) => a-b);
+      const slotMap = new Map();
+      state.tramos.forEach(t => {
+        const key = `${t.hora}|${t.inicio}|${t.fin}`;
+        if (!slotMap.has(key)) slotMap.set(key, { hora: t.hora, inicio: t.inicio, fin: t.fin });
+      });
+      state.hourSlots = Array.from(slotMap.values()).sort((a,b) => {
+        const da = timeToMin(a.inicio) - timeToMin(b.inicio);
+        if (da !== 0) return da;
+        return a.hora - b.hora;
+      });
+    }
+
+    function parseHorarios(xml) {
+      state.horariosProf = {};
+      state.groupToProfSubjects = {};
+      state.horariosGrupo = {};
+      state.horariosAula = {};
+      state.aulas = [];
+      state.profToTramos = {};
+
+      xml.querySelectorAll('HORARIOS > HORARIOS_PROFESORES > HORARIO_PROF').forEach(h => {
+        const profId = h.getAttribute('hor_num_int_pr');
+        const acts = [];
+        h.querySelectorAll('ACTIVIDAD').forEach(a => {
+          const tramoId = a.getAttribute('tramo');
+          const asignaturaId = a.getAttribute('asignatura');
+          const aula = a.getAttribute('aula');
+          const gruposNode = a.querySelector('GRUPOS_ACTIVIDAD');
+          const tot = gruposNode ? Number(gruposNode.getAttribute('tot_gr_act') || 0) : 0;
+          const grupos = [];
+          if (gruposNode) {
+            Array.from(gruposNode.attributes).forEach(attr => {
+              if (attr.name.startsWith('grupo_')) grupos.push(attr.value);
+            });
+          }
+          acts.push({ profId, tramoId, asignaturaId, aula, grupos, tot });
+
+          if (aula) {
+            if (!state.horariosAula[aula]) state.horariosAula[aula] = [];
+            state.horariosAula[aula].push({ profId, tramoId, asignaturaId, aula, grupos, tot });
+          }
+
+          if (!state.profToTramos[profId]) state.profToTramos[profId] = [];
+          state.profToTramos[profId].push(tramoId);
+
+          grupos.forEach(grId => {
+            if (!state.groupToProfSubjects[grId]) state.groupToProfSubjects[grId] = {};
+            if (!state.groupToProfSubjects[grId][profId]) state.groupToProfSubjects[grId][profId] = new Set();
+            state.groupToProfSubjects[grId][profId].add(asignaturaId);
+
+            if (!state.horariosGrupo[grId]) state.horariosGrupo[grId] = [];
+            state.horariosGrupo[grId].push({ profId, tramoId, asignaturaId, aula, grupos: [grId], tot });
+          });
+        });
+        state.horariosProf[profId] = acts;
+      });
+
+      state.aulas = Object.keys(state.horariosAula).sort((a,b) => a.localeCompare(b, 'es'));
+    }
+
+    function populateProfessors() {
+      const profSelects = [el('profSelect'), el('compareA'), el('compareB')];
+      profSelects.forEach(sel => {
+        sel.innerHTML = '<option value="">Seleccione...</option>';
+      state.profesores
+        .filter(p => p.nombre && p.nombre !== 'Sin profesor')
+        .sort((a,b) => compareProfNames(a.nombre, b.nombre))
+        .forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          opt.textContent = p.nombre;
+          sel.appendChild(opt);
+          });
+        sel.disabled = false;
+      });
+    }
+
+    function populateGroups() {
+      populateGroupTeach();
+      resetGroupFilters('teach');
+    }
+
+    function groupDisplay(g) {
+      return g.abreviatura || g.nombre || g.id;
+    }
+    function populateGroupTeach() {
+      const teachSel = el('groupTeachSelect');
+      teachSel.innerHTML = '<option value="">Todas</option>';
+      const teaches = Array.from(new Set(state.grupos.map(g => g.meta?.teach).filter(Boolean)));
+      ['ESO', 'Bachillerato', 'ESPA', 'BTOPA', 'FP'].forEach(t => {
+        if (!teaches.includes(t)) return;
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t;
+        teachSel.appendChild(opt);
+      });
+      teachSel.disabled = false;
+    }
+
+    function resetGroupFilters(changed) {
+      const teach = el('groupTeachSelect').value;
+      const groupSel = el('groupGroupSelect');
+
+      if (changed === 'teach') {
+        groupSel.value = '';
+      } else if (changed === 'group') {
+        groupSel.value = '';
+      }
+
+      populateGroupGroups();
+    }
+
+
+    function populateGroupGroups() {
+      const teach = el('groupTeachSelect').value;
+      const groupSel = el('groupGroupSelect');
+      groupSel.innerHTML = '<option value="">Todos</option>';
+      if (!teach) { groupSel.disabled = true; return; }
+      const groups = new Set();
+      state.grupos.forEach(g => {
+        const m = g.meta || {};
+        if (m.teach !== teach) return;
+        const label = groupDisplay(g);
+        if (!label) return;
+        if (isTotalLike(label)) return;
+        groups.add(label);
+      });
+      Array.from(groups).sort((a,b) => a.localeCompare(b,'es')).forEach(gr => {
+        const opt = document.createElement('option');
+        opt.value = gr;
+        opt.textContent = gr;
+        groupSel.appendChild(opt);
+      });
+      groupSel.disabled = false;
+      groupSel.removeAttribute('disabled');
+    }
+
+    function populateClassrooms() {
+      const sel = el('classroomSelect');
+      sel.innerHTML = '<option value="">Seleccione...</option>';
+      const aulas = Array.from(state.aulasDatos)
+        .reduce((acc, a) => {
+          acc.set(a.id, a);
+          return acc;
+        }, new Map());
+      Array.from(aulas.values()).sort((a,b) => aulaSort(a.label, b.label)).forEach(aula => {
+        const opt = document.createElement('option');
+        opt.value = aula.id;
+        opt.textContent = aula.label;
+        sel.appendChild(opt);
+      });
+      sel.disabled = false;
+      populateAulaDatalist();
+    }
+
+    function populateAulaDatalist() {
+      const list = el('aulaList');
+      if (!list) return;
+      list.innerHTML = '';
+      const aulas = Array.from(state.aulasDatos)
+        .reduce((acc, a) => {
+          acc.set(a.id, a);
+          return acc;
+        }, new Map());
+      Array.from(aulas.values()).sort((a,b) => aulaSort(a.label, b.label)).forEach(aula => {
+        const opt = document.createElement('option');
+        opt.value = aula.label;
+        list.appendChild(opt);
+      });
+    }
+
+    function buildNonLectiveListForProf(acts) {
+      const nonLectiveSet = new Set();
+      acts.forEach(a => {
+        if (a.tot === 0) nonLectiveSet.add(state.asignaturas[a.asignaturaId]?.nombre || '');
+      });
+      state.nonLectiveNames = Array.from(nonLectiveSet).filter(Boolean).sort((a,b) => a.localeCompare(b, 'es'));
+
+      const list = el('nonLectiveList');
+      list.innerHTML = '';
+      if (!state.nonLectiveNames.length) {
+        list.innerHTML = '<div class="muted">No hay actividades no lectivas para este profesor.</div>';
+        return;
+      }
+      state.nonLectiveNames.forEach(name => {
+        const id = 'nl_' + name.replace(/\W+/g,'_');
+        const wrap = document.createElement('label');
+        wrap.innerHTML = `<input type="checkbox" id="${id}" data-name="${name}" checked /> ${name}`;
+        list.appendChild(wrap);
+        wrap.querySelector('input').addEventListener('change', () => {
+          applyFilters(el('profScheduleWrap'));
+          applyFilters(el('compareAWrap'));
+          applyFilters(el('compareBWrap'));
+        });
+      });
+      el('toggleAllNonLective').checked = true;
+    }
+
+    function syncLectiveToggles(source) {
+      const main = el('toggleLective');
+      const comp = el('toggleLectiveCompare');
+      if (source === 'main') comp.checked = main.checked;
+      else main.checked = comp.checked;
+    }
+
+    function getNonLectiveFilter() {
+      const active = new Set();
+      el('nonLectiveList').querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        if (cb.checked) active.add(cb.dataset.name);
+      });
+      return active;
+    }
+
+    function toggleAllNonLective() {
+      const checked = el('toggleAllNonLective').checked;
+      el('nonLectiveList').querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.checked = checked;
+      });
+      applyFilters(el('profScheduleWrap'));
+      applyFilters(el('compareAWrap'));
+      applyFilters(el('compareBWrap'));
+    }
+
+    function renderProfessor() {
+      const profId = el('profSelect').value;
+      const wrap = el('profScheduleWrap');
+      if (!profId) { wrap.innerHTML = ''; el('nonLectiveList').innerHTML = ''; return; }
+      const acts = state.horariosProf[profId] || [];
+      buildNonLectiveListForProf(acts);
+      wrap.innerHTML = buildScheduleTable(acts, { title: state.profesorMap[profId]?.nombre || '' });
+      applyFilters(wrap);
+    }
+
+    function renderCompare() {
+      const a = el('compareA').value;
+      const b = el('compareB').value;
+      const wrapA = el('compareAWrap');
+      const wrapB = el('compareBWrap');
+      wrapA.innerHTML = a ? buildScheduleTable(state.horariosProf[a] || [], { title: state.profesorMap[a]?.nombre || '' }) : '';
+      wrapB.innerHTML = b ? buildScheduleTable(state.horariosProf[b] || [], { title: state.profesorMap[b]?.nombre || '' }) : '';
+      applyFilters(wrapA);
+      applyFilters(wrapB);
+    }
+
+    function renderGroupSchedule() {
+      const teach = el('groupTeachSelect').value;
+      const group = el('groupGroupSelect').value;
+      const wrap = el('groupScheduleWrap');
+
+      if (!teach) { wrap.innerHTML = ''; return; }
+
+      const matches = state.grupos.filter(g => {
+        const m = g.meta || {};
+        if (m.teach !== teach) return false;
+        if (group && groupDisplay(g) !== group) return false;
+        return true;
+      });
+
+      if (!matches.length) { wrap.innerHTML = ''; return; }
+
+      const acts = [];
+      matches.forEach(g => {
+        const list = state.horariosGrupo[g.id] || [];
+        acts.push(...list);
+      });
+
+      const title = [teach, group].filter(Boolean).join(' ');
+      wrap.innerHTML = buildGroupScheduleTable(acts, { title });
+    }
+
+    function renderClassroomSchedule() {
+      const aula = el('classroomSelect').value;
+      const wrap = el('classroomScheduleWrap');
+      const side = el('classroomGroupList');
+      if (!aula) { wrap.innerHTML = ''; if (side) side.innerHTML = ''; return; }
+      const acts = state.horariosAula[aula] || [];
+      const label = state.aulaMap[aula] || aula;
+      wrap.innerHTML = buildClassroomScheduleTable(acts, { title: label });
+      renderClassroomGroupList(acts);
+    }
+
+    function splitSlots() {
+      const cutoff = 14 * 60;
+      const morningSlots = [];
+      const afternoonSlots = [];
+      state.hourSlots.forEach(slot => {
+        const startMin = slot.inicio ? timeToMin(slot.inicio) : 0;
+        if (startMin >= cutoff) afternoonSlots.push(slot);
+        else morningSlots.push(slot);
+      });
+      return { morningSlots, afternoonSlots };
+    }
+
+    function buildScheduleSection(slots, title, renderCell) {
+      let html = '';
+      html += `<div class="split-section">`;
+      html += `<div class="split-title">${title}</div>`;
+      html += '<table class="schedule"><thead><tr><th class="time-col">Hora</th>';
+      state.days.forEach(d => { html += `<th>Día ${d}</th>`; });
+      html += '</tr></thead><tbody>';
+
+      slots.forEach(slot => {
+        const label = slot.inicio ? `${slot.inicio} - ${slot.fin}` : `Hora ${slot.hora}`;
+        const rowClass = isRecessSlot(slot) ? ' class="recess-row"' : '';
+        html += `<tr${rowClass}><td class="time-col">${label}</td>`;
+        state.days.forEach(d => {
+          const cell = renderCell(slot, d);
+          html += `<td>${cell || ''}</td>`;
+        });
+        html += '</tr>';
+      });
+
+      html += '</tbody></table></div>';
+      return html;
+    }
+
+    function buildScheduleTable(acts, { title }) {
+      const nonLectiveAllowed = getNonLectiveFilter();
+      const showLective12 = el('toggleLective').checked;
+
+      const mapByTramo = {};
+      acts.forEach(a => {
+        if (!mapByTramo[a.tramoId]) mapByTramo[a.tramoId] = [];
+        mapByTramo[a.tramoId].push(a);
+      });
+
+      let html = '';
+      html += `<h4 style="margin:0 0 8px;">${title}</h4>`;
+      html += '<div class="split-schedules">';
+      const { morningSlots, afternoonSlots } = splitSlots();
+      const renderCell = (slot, d) => {
+        const tramo = state.tramos.find(t => t.dia === d && t.hora === slot.hora && t.inicio === slot.inicio && t.fin === slot.fin);
+        if (!tramo) return '';
+        const actividades = mapByTramo[tramo.id] || [];
+        let cell = '';
+        actividades.forEach(act => {
+          const asigName = state.asignaturas[act.asignaturaId]?.nombre || 'Sin asignatura';
+          const isNonLective = act.tot === 0;
+          const isLective12 = act.tot >=1 && act.tot <=2;
+          const isLectiveMany = act.tot > 2;
+          const hideNonLective = isNonLective && !nonLectiveAllowed.has(asigName);
+          const hideLective12 = isLective12 && !showLective12;
+          const hidden = hideNonLective || hideLective12;
+          const grupos = act.grupos.map(id => state.grupoMap[id]?.abreviatura || state.grupoMap[id]?.nombre || id).join(', ');
+          const cls = isNonLective ? 'non-lectiva' : (isLectiveMany ? 'lectiva-many' : 'lectiva');
+          const aula = act.aula ? ` | Aula ${state.aulaMap[act.aula] || act.aula}` : '';
+          cell += `<div class="activity ${cls} ${hidden ? 'hidden' : ''}" data-asig="${asigName}" data-tot="${act.tot}">
+            <strong>${asigName}</strong>${grupos ? ` | ${grupos}` : ''}${aula}
+          </div>`;
+        });
+        return cell;
+      };
+      html += buildScheduleSection(morningSlots, 'Mañana', renderCell);
+      html += buildScheduleSection(afternoonSlots, 'Tarde', renderCell);
+      html += '</div>';
+      return html;
+    }
+
+    function buildClassroomScheduleTable(acts, { title }) {
+      const onlyGroups = el('toggleClassroomGroupsOnly')?.checked;
+      const mapByTramo = {};
+      acts.forEach(a => {
+        if (!mapByTramo[a.tramoId]) mapByTramo[a.tramoId] = [];
+        mapByTramo[a.tramoId].push(a);
+      });
+
+      let html = '';
+      html += `<h4 style="margin:0 0 8px;">Aula ${title}</h4>`;
+      html += '<div class="split-schedules">';
+      const { morningSlots, afternoonSlots } = splitSlots();
+      const renderCell = (slot, d) => {
+        const tramo = state.tramos.find(t => t.dia === d && t.hora === slot.hora && t.inicio === slot.inicio && t.fin === slot.fin);
+        if (!tramo) return '';
+        const actividades = mapByTramo[tramo.id] || [];
+        let cell = '';
+        actividades.forEach(act => {
+          const asigName = state.asignaturas[act.asignaturaId]?.nombre || 'Sin asignatura';
+          const profName = state.profesorMap[act.profId]?.nombre || act.profId;
+          const grupos = act.grupos
+            .map(id => state.grupoMap[id]?.abreviatura || state.grupoMap[id]?.nombre || id)
+            .join(', ');
+          const cls = act.tot > 2 ? 'lectiva-many' : 'lectiva';
+          const main = onlyGroups ? (grupos || '—') : asigName;
+          const tail = onlyGroups ? '' : `${grupos ? ` | ${grupos}` : ''}${profName ? ` | ${profName}` : ''}`;
+          cell += `<div class="activity ${cls}">
+            <strong>${main}</strong>${tail}
+          </div>`;
+        });
+        return cell;
+      };
+      html += buildScheduleSection(morningSlots, 'Mañana', renderCell);
+      html += buildScheduleSection(afternoonSlots, 'Tarde', renderCell);
+      html += '</div>';
+      return html;
+    }
+
+    function renderClassroomGroupList(acts) {
+      const side = el('classroomGroupList');
+      if (!side) return;
+      const morning = new Set();
+      const afternoon = new Set();
+      const cutoff = 14 * 60;
+
+      acts.forEach(act => {
+        const tramo = state.tramoMap[act.tramoId];
+        const startMin = tramo ? timeToMin(tramo.inicio) : 0;
+        const target = startMin >= cutoff ? afternoon : morning;
+        (act.grupos || []).forEach(id => target.add(id));
+      });
+
+      const formatGroups = (set) => Array.from(set)
+        .map(id => state.grupoMap[id] || { id })
+        .map(g => groupDisplay(g))
+        .filter(Boolean)
+        .sort((a,b) => a.localeCompare(b, 'es'));
+
+      const morningGroups = formatGroups(morning);
+      const afternoonGroups = formatGroups(afternoon);
+
+      if (!morningGroups.length && !afternoonGroups.length) {
+        side.innerHTML = '<div class="muted">No hay grupos asociados a este aula.</div>';
+        return;
+      }
+
+      side.innerHTML = '';
+      const renderSection = (title, groups, extraClass = '') => {
+        const block = document.createElement('div');
+        block.className = `status-block${extraClass ? ` ${extraClass}` : ''}`;
+        block.innerHTML = `<h5>${title}</h5>`;
+        if (!groups.length) {
+          const empty = document.createElement('div');
+          empty.className = 'muted';
+          empty.textContent = 'Sin grupos.';
+          block.appendChild(empty);
+          side.appendChild(block);
+          return;
+        }
+        groups.forEach(name => {
+          const item = document.createElement('div');
+          item.className = 'status-item';
+          item.innerHTML = `<div><strong>${name}</strong></div>`;
+          block.appendChild(item);
+        });
+        side.appendChild(block);
+      };
+
+      renderSection('Mañana', morningGroups);
+      renderSection('Tarde', afternoonGroups, 'shift-divider');
+    }
+
+    function buildGroupScheduleTable(acts, { title }) {
+      const mapByTramo = {};
+      acts.forEach(a => {
+        if (!mapByTramo[a.tramoId]) mapByTramo[a.tramoId] = [];
+        mapByTramo[a.tramoId].push(a);
+      });
+
+      let html = '';
+      html += `<h4 style="margin:0 0 8px;">${title}</h4>`;
+      html += '<div class="split-schedules">';
+      const { morningSlots, afternoonSlots } = splitSlots();
+      const renderCell = (slot, d) => {
+        const tramo = state.tramos.find(t => t.dia === d && t.hora === slot.hora && t.inicio === slot.inicio && t.fin === slot.fin);
+        if (!tramo) return '';
+        const actividades = mapByTramo[tramo.id] || [];
+        let cell = '';
+        actividades.forEach(act => {
+          const asigName = state.asignaturas[act.asignaturaId]?.nombre || 'Sin asignatura';
+          const profName = state.profesorMap[act.profId]?.nombre || act.profId;
+          const cls = act.tot > 2 ? 'lectiva-many' : 'lectiva';
+          const aula = act.aula ? ` | Aula ${act.aula}` : '';
+          const grupos = (act.grupos || []).map(id => state.grupoMap[id]?.abreviatura || state.grupoMap[id]?.nombre || id).join(', ');
+          cell += `<div class="activity ${cls}">
+            <strong>${asigName}</strong>${grupos ? ` | ${grupos}` : ''}${profName ? ` | ${profName}` : ''}${aula}
+          </div>`;
+        });
+        return cell;
+      };
+      html += buildScheduleSection(morningSlots, 'Mañana', renderCell);
+      html += buildScheduleSection(afternoonSlots, 'Tarde', renderCell);
+      html += '</div>';
+      return html;
+    }
+
+    function buildEquipoDirectivoSelector() {
+      const list = el('dirList');
+      const count = el('dirCount');
+      if (!list || !count) return;
+      list.innerHTML = '';
+      state.dirSelectedIds = [];
+      const preselectSpecs = [
+        ['JOSE', 'LUIS', 'NAVARRO'],
+        ['DOMINGO', 'GARCIA'],
+        ['ANTONIO', 'GONZALEZ'],
+        ['MARIA', 'JESUS', 'GOMEZ', 'SOLDADO'],
+        ['GOMEZ', 'SOLDADO'],
+        ['DOLORES', 'CORVILLO'],
+        ['JOSE', 'MANUEL', 'PAYAN'],
+        ['PEDRO', 'DOMINGUEZ'],
+        ['JOSE', 'MOISES', 'ROMERO'],
+        ['MOISES', 'ROMERO']
+      ].map(arr => arr.map(normalizeText));
+      const maxDir = 10;
+      const profs = state.profesores
+        .filter(p => p.nombre && p.nombre !== 'Sin profesor')
+        .sort((a,b) => compareProfNames(a.nombre, b.nombre));
+
+      const preselected = new Set();
+      profs.forEach(p => {
+        const n = normalizeText(cleanProfName(p.nombre));
+        if (preselectSpecs.some(tokens => tokens.every(tok => n.includes(tok)))) {
+          preselected.add(p.id);
+        }
+      });
+
+      profs.forEach(p => {
+        const id = p.id;
+        const label = document.createElement('label');
+        label.innerHTML = `<input type="checkbox" data-prof="${id}" /> ${p.nombre}`;
+        const cb = label.querySelector('input');
+        if (preselected.has(id) && state.dirSelectedIds.length < maxDir) {
+          cb.checked = true;
+          state.dirSelectedIds.push(id);
+        }
+        cb.addEventListener('change', () => {
+          const selected = new Set(state.dirSelectedIds);
+          if (cb.checked) {
+            if (selected.size >= maxDir) {
+              cb.checked = false;
+              return;
+            }
+            selected.add(id);
+          }
+          else selected.delete(id);
+          state.dirSelectedIds = Array.from(selected);
+          updateDirCount();
+          renderEquipoDirectivo();
+        });
+        list.appendChild(label);
+      });
+
+      function updateDirCount() {
+        count.textContent = `${state.dirSelectedIds.length} / ${maxDir} seleccionados`;
+      }
+      updateDirCount();
+    }
+
+    function renderEquipoDirectivo() {
+      const wrap = el('equipoScheduleWrap');
+      const legend = el('dirLegend');
+      if (!wrap || !legend) return;
+      const dirIds = state.dirSelectedIds || [];
+      const palette = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#e377c2','#17becf'];
+      state.dirPalette = {};
+      dirIds.forEach((id, i) => {
+        state.dirPalette[id] = palette[i % palette.length];
+      });
+
+      const initialsMap = {
+        [normalizeText('Mª DOLORES CORVILLO HERNÁNDEZ')]: ['LOLA'],
+        [normalizeText('D. PEDRO J. DOMÍNGUEZ MELLADO')]: ['PEDRO', 'PEDRO2'],
+        [normalizeText('D.DOMINGO GARCIA GALLARDO')]: ['DOMINGO'],
+        [normalizeText('ANTONIO GONZÁLEZ GARCÍA')]: ['ANTONIO', 'ANTONIO2'],
+        [normalizeText('Mª JESÚS GÓMEZ SOLDADO')]: ['MJESUS'],
+        [normalizeText('JOSÉ LUIS NAVARRO REINA')]: ['JOSELUIS'],
+        [normalizeText('JOSÉ MANUEL PAYAN JIMÉNEZ')]: ['PAYAB'],
+        [normalizeText('JOSÉ MOISES ROMERO MARTÍNEZ')]: ['MOISES']
+      };
+      const baseInitials = (name) => {
+        const norm = normalizeText(name);
+        const list = initialsMap[norm];
+        if (list && list.length) return list[0];
+        return profInitials(name);
+      };
+      const getInitials = (name, counts) => {
+        const norm = normalizeText(name);
+        const list = initialsMap[norm];
+        if (!list || !list.length) return profInitials(name);
+        const idx = counts[norm] || 0;
+        counts[norm] = idx + 1;
+        return list[Math.min(idx, list.length - 1)];
+      };
+
+      const mapByTramo = {};
+      dirIds.forEach(pid => {
+        const acts = state.horariosProf[pid] || [];
+        acts.forEach(act => {
+          const asigName = normalizeText(state.asignaturas[act.asignaturaId]?.nombre || '');
+          const isDirectiva = asigName.includes('DIRECTIV');
+          const isCoord = asigName.includes('COORDIN') && asigName.includes('FUNCIONAM');
+          const isMayor55 = asigName.includes('MAYOR') && asigName.includes('55');
+          if (!isDirectiva && !isCoord && !isMayor55) return;
+          if (!mapByTramo[act.tramoId]) mapByTramo[act.tramoId] = [];
+          mapByTramo[act.tramoId].push(act);
+        });
+      });
+
+      legend.innerHTML = '';
+      if (!dirIds.length) {
+        wrap.innerHTML = '<div class="muted">Selecciona miembros del claustro para mostrar el horario del equipo directivo.</div>';
+        return;
+      }
+      dirIds.forEach(pid => {
+        const name = state.profesorMap[pid]?.nombre || pid;
+        const initials = baseInitials(name);
+        const chip = document.createElement('span');
+        chip.className = 'dir-block';
+        chip.style.background = state.dirPalette[pid];
+        chip.textContent = initials;
+        chip.title = name;
+        legend.appendChild(chip);
+        const label = document.createElement('span');
+        label.textContent = name;
+        label.style.marginRight = '10px';
+        legend.appendChild(label);
+      });
+
+      const daySel = el('dirDaySelect')?.value || '';
+      const turnSel = el('dirTurnSelect')?.value || 'ambos';
+      const slotSel = el('dirSlotSelect')?.value || '';
+
+      const renderCell = (slot, d) => {
+        const tramo = state.tramos.find(t => t.dia === d && t.hora === slot.hora && t.inicio === slot.inicio && t.fin === slot.fin);
+        if (!tramo) return '';
+        const acts = mapByTramo[tramo.id] || [];
+        if (!acts.length) return '';
+        let cell = '';
+        const counts = {};
+        acts.forEach(act => {
+          const pid = act.profId;
+          const name = state.profesorMap[pid]?.nombre || pid;
+          const initials = getInitials(name, counts);
+          const color = state.dirPalette[pid] || '#d0d0d0';
+          cell += `<span class="dir-block" style="background:${color}">${initials}</span>`;
+        });
+        return cell;
+      };
+
+      if (daySel && slotSel) {
+        const [h, ini, fin] = slotSel.split('|');
+        const slot = { hora: Number(h), inicio: ini, fin };
+        const dayNum = Number(daySel);
+        const label = `${getDayName(dayNum)} ${ini}-${fin}`;
+        const content = renderCell(slot, dayNum);
+        wrap.innerHTML = `<div class="dir-zoom"><strong style="margin-right:8px;">${label}</strong>${content || '<span class="muted">Sin coincidencias.</span>'}</div>`;
+        return;
+      }
+
+      let html = '';
+      html += '<div class="split-schedules">';
+      const { morningSlots, afternoonSlots } = splitSlots();
+      const slots =
+        turnSel === 'manana' ? { morningSlots, afternoonSlots: [] } :
+        turnSel === 'tarde' ? { morningSlots: [], afternoonSlots } :
+        { morningSlots, afternoonSlots };
+
+      if (slots.morningSlots.length) html += buildScheduleSection(slots.morningSlots, 'Mañana', renderCell);
+      if (slots.afternoonSlots.length) html += buildScheduleSection(slots.afternoonSlots, 'Tarde', renderCell);
+      html += '</div>';
+      wrap.innerHTML = html;
+    }
+
+    function populateDirControls() {
+      const daySel = el('dirDaySelect');
+      const turnSel = el('dirTurnSelect');
+      if (!daySel || !turnSel) return;
+      daySel.innerHTML = '<option value="">Semana completa</option>';
+      [1,2,3,4,5].forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = String(d);
+        opt.textContent = getDayName(d);
+        daySel.appendChild(opt);
+      });
+      if (!turnSel.value) turnSel.value = 'ambos';
+      populateDirSlots();
+    }
+
+    function populateDirSlots() {
+      const turnSel = el('dirTurnSelect');
+      const slotSel = el('dirSlotSelect');
+      if (!turnSel || !slotSel) return;
+      slotSel.innerHTML = '<option value="">Todos los tramos</option>';
+      const { morningSlots, afternoonSlots } = splitSlots();
+      const slots =
+        turnSel.value === 'manana' ? morningSlots :
+        turnSel.value === 'tarde' ? afternoonSlots :
+        [...morningSlots, ...afternoonSlots];
+      slots.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = `${s.hora}|${s.inicio}|${s.fin}`;
+        opt.textContent = s.inicio ? `${s.inicio} - ${s.fin}` : `Hora ${s.hora}`;
+        slotSel.appendChild(opt);
+      });
+    }
+
+    function profInitials(name) {
+      const cleaned = cleanProfName(name).replace(/,/g, ' ');
+      const parts = cleaned.split(/\s+/).filter(Boolean);
+      if (!parts.length) return '';
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+
+    function applyFilters(container) {
+      if (!container) return;
+      const nonLectiveAllowed = getNonLectiveFilter();
+      const showLective12 = el('toggleLective').checked;
+      container.querySelectorAll('.activity').forEach(act => {
+        const isNonLective = act.classList.contains('non-lectiva');
+        const tot = Number(act.getAttribute('data-tot') || 0);
+        const isLective12 = tot >= 1 && tot <= 2;
+        const asigName = act.getAttribute('data-asig');
+        const hideNonLective = isNonLective && !nonLectiveAllowed.has(asigName);
+        const hideLective12 = isLective12 && !showLective12;
+        act.classList.toggle('hidden', hideNonLective || hideLective12);
+      });
+    }
+
+    function buildPlanner() {
+      const wrap = el('plannerWrap');
+      let html = '';
+      html += '<div class="split-schedules">';
+      const { morningSlots, afternoonSlots } = splitSlots();
+      const buildPlannerSection = (slots, title) => {
+        let out = '';
+        out += `<div class="split-section">`;
+        out += `<div class="split-title">${title}</div>`;
+        out += '<table class="schedule planner-grid"><thead><tr><th class="time-col">Hora</th>';
+        state.days.forEach(d => { out += `<th>${getPlannerDayLabel(d)}</th>`; });
+        out += '</tr></thead><tbody>';
+        slots.forEach(slot => {
+          const label = slot.inicio ? `${slot.inicio} - ${slot.fin}` : `Hora ${slot.hora}`;
+          const rowClass = isRecessSlot(slot) ? ' class="recess-row"' : '';
+          out += `<tr${rowClass}><td class="time-col">${label}</td>`;
+          state.days.forEach(d => {
+            const tramo = state.tramos.find(t => t.dia === d && t.hora === slot.hora && t.inicio === slot.inicio && t.fin === slot.fin);
+            if (!tramo) { out += '<td></td>'; return; }
+            out += `<td data-tramo="${tramo.id}" data-day="${d}"></td>`;
+          });
+          out += '</tr>';
+        });
+        out += '</tbody></table></div>';
+        return out;
+      };
+      html += buildPlannerSection(morningSlots, 'Mañana');
+      html += buildPlannerSection(afternoonSlots, 'Tarde');
+      html += '</div>';
+      wrap.innerHTML = html;
+      wrap.style.position = 'relative';
+
+      wrap.querySelectorAll('td[data-tramo]').forEach(td => {
+        td.addEventListener('click', () => openMeetingForm(td));
+        td.addEventListener('dragover', e => e.preventDefault());
+        td.addEventListener('drop', e => handleDrop(e, td));
+      });
+
+      populateConflictDaySelect();
+      ensureConflictLine();
+      populateTeachSelectors();
+      renderMeetings();
+    }
+
+    function ensureConflictLine() {
+      const wrap = el('plannerWrap');
+      const sel = el('conflictDaySelect');
+      const timeInput = el('conflictTime');
+      if (!wrap || !sel) return;
+      let line = wrap.querySelector('.conflict-line');
+      if (!line) {
+        line = document.createElement('div');
+        line.className = 'conflict-line';
+        wrap.appendChild(line);
+      }
+      const day = sel.value;
+      const timeMin = timeInput?.value ? timeToMin(timeInput.value) : null;
+      if (day && timeMin !== null) {
+        const y = getTimeYInDay(wrap, day, timeMin);
+        if (y !== null) line.style.top = `${y}px`;
+        setActiveConflict(day, timeMin);
+      } else {
+        line.style.top = '40px';
+        renderStatusListForPoint(null, null);
+      }
+      line.onmousedown = (e) => {
+        e.preventDefault();
+        const onMove = (ev) => {
+          const rect = wrap.getBoundingClientRect();
+          const y = Math.min(Math.max(ev.clientY - rect.top, 0), rect.height);
+          line.style.top = `${y}px`;
+          updateConflictFromPoint(ev.clientX, ev.clientY);
+        };
+        const onUp = () => {
+          window.removeEventListener('mousemove', onMove);
+          window.removeEventListener('mouseup', onUp);
+        };
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
+      };
+    }
+
+    function updateConflictFromPoint(x, y) {
+      const sel = el('conflictDaySelect');
+      const timeInput = el('conflictTime');
+      const day = sel ? sel.value : '';
+      if (!day) return;
+      const tds = Array.from(document.querySelectorAll(`td[data-tramo][data-day="${day}"]`));
+      if (!tds.length) return;
+      let target = null;
+      for (const td of tds) {
+        const r = td.getBoundingClientRect();
+        if (y >= r.top && y <= r.bottom) {
+          target = td;
+          break;
+        }
+      }
+      if (!target) return;
+      const tramoId = target.getAttribute('data-tramo');
+      if (!tramoId) return;
+      const tramo = state.tramoMap[tramoId];
+      if (!tramo) return;
+      const r = target.getBoundingClientRect();
+      const frac = (y - r.top) / Math.max(1, r.height);
+      const tStart = timeToMin(tramo.inicio);
+      const tEnd = timeToMin(tramo.fin);
+      const rawMin = Math.round(tStart + (tEnd - tStart) * frac);
+      const snapped = Math.round(rawMin / 5) * 5;
+      if (timeInput) timeInput.value = minToTimeStr(snapped);
+      setActiveConflict(day, snapped);
+    }
+
+    function openMeetingForm(td) {
+      state.activeMeetingCell = td;
+      state.editingMeetingId = null;
+      const tramoId = td.getAttribute('data-tramo');
+      state.activeTramoId = tramoId;
+      openMeetingModal();
+      const tramo = state.tramoMap[tramoId];
+      el('meetingHint').textContent = `Tramo día ${tramo.dia} (${tramo.inicio}-${tramo.fin})`;
+      el('meetStart').value = tramo.inicio;
+      el('meetEnd').value = tramo.fin;
+      const daySel = el('conflictDaySelect');
+      if (daySel) daySel.value = String(tramo.dia);
+      const timeInput = el('conflictTime');
+      if (timeInput) timeInput.value = tramo.inicio;
+      if (el('meetingRoom')) el('meetingRoom').value = '';
+      setActiveConflict(String(tramo.dia), timeToMin(tramo.inicio));
+    }
+
+    function openMeetingEditor(meetingId) {
+      const meeting = state.meetings.find(m => m.id === meetingId);
+      if (!meeting) return;
+      state.editingMeetingId = meetingId;
+      state.activeMeetingCell = null;
+      state.activeTramoId = null;
+      openMeetingModal();
+
+      const daySel = el('conflictDaySelect');
+      if (daySel) daySel.value = String(meeting.day);
+      const timeInput = el('conflictTime');
+      if (timeInput) timeInput.value = meeting.start;
+      setActiveConflict(String(meeting.day), timeToMin(meeting.start));
+
+      const teachSel = el('teachSelect');
+      const groupSel = el('groupSelect');
+      if (teachSel) {
+        teachSel.value = meeting.teach || teachSel.value;
+        populateGroup();
+      }
+      if (groupSel && meeting.groupId) {
+        const exists = Array.from(groupSel.options).some(o => o.value === meeting.groupId);
+        if (exists) {
+          groupSel.value = meeting.groupId;
+        } else if (meeting.groupNameOverride) {
+          const opt = document.createElement('option');
+          opt.value = meeting.groupId;
+          opt.textContent = meeting.groupNameOverride;
+          groupSel.appendChild(opt);
+          groupSel.value = meeting.groupId;
+        }
+      }
+      if (el('meetingRoom')) el('meetingRoom').value = meeting.room || '';
+      el('meetStart').value = meeting.start;
+      el('meetEnd').value = meeting.end;
+      el('meetingHint').textContent = `Editando reunión ${meeting.start}-${meeting.end}`;
+    }
+
+    function openMeetingModal() {
+      el('meetingModal').style.display = 'flex';
+    }
+
+    function closeMeetingModal() {
+      state.activeMeetingCell = null;
+      state.editingMeetingId = null;
+      el('meetingModal').style.display = 'none';
+    }
+
+    function populateTeachSelectors() {
+      const teachSel = el('teachSelect');
+      teachSel.innerHTML = '';
+      ['ESO', 'Bachillerato', 'ESPA', 'BTOPA', 'FP'].forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t;
+        teachSel.appendChild(opt);
+      });
+
+      teachSel.addEventListener('change', () => populateGroup());
+
+      populateGroup();
+    }
+
+    function populateGroup() {
+      const teach = el('teachSelect').value;
+      const groupSel = el('groupSelect');
+      groupSel.innerHTML = '';
+      state.grupos
+        .filter(g => {
+          const m = g.meta || {};
+          if (m.teach !== teach) return false;
+          if (state.combinedGroupById[g.id]) return false;
+          return true;
+        })
+        .sort((a,b) => groupDisplay(a).localeCompare(groupDisplay(b), 'es'))
+        .forEach(g => {
+          const opt = document.createElement('option');
+          opt.value = g.id;
+          opt.textContent = groupDisplay(g);
+          groupSel.appendChild(opt);
+        });
+      if (teach === 'ESO' && state.combinedGroupMap['DIVBC']) {
+        const opt = document.createElement('option');
+        opt.value = 'DIVBC';
+        opt.textContent = '4º ESO DIV BC';
+        groupSel.appendChild(opt);
+      }
+      if (teach === 'ESO' && state.combinedGroupMap['DIVCD']) {
+        const opt = document.createElement('option');
+        opt.value = 'DIVCD';
+        opt.textContent = '3º ESO DIV CD';
+        groupSel.appendChild(opt);
+      }
+    }
+
+    function saveMeeting() {
+      const editing = state.editingMeetingId ? state.meetings.find(m => m.id === state.editingMeetingId) : null;
+      if (!editing && !state.activeMeetingCell) return;
+      const tramoId = state.activeMeetingCell?.getAttribute('data-tramo');
+      const tramo = tramoId ? state.tramoMap[tramoId] : null;
+      let groupId = el('groupSelect').value;
+      const teach = el('teachSelect').value;
+      const room = (el('meetingRoom')?.value || '').trim();
+      const start = el('meetStart').value;
+      const end = el('meetEnd').value;
+      if (!groupId || !start || !end) return;
+
+      let groupNameOverride = '';
+      if (groupId === 'DIVBC') {
+        groupNameOverride = '4º ESO DIV BC';
+      }
+      const combinedKey = state.combinedGroupById[groupId];
+      if (combinedKey) {
+        groupId = combinedKey;
+        groupNameOverride = state.combinedGroupLabels[combinedKey] || groupNameOverride;
+      }
+
+      if (editing) {
+        editing.groupId = groupId;
+        editing.teach = teach;
+        editing.room = room;
+        editing.start = start;
+        editing.end = end;
+        editing.groupNameOverride = groupNameOverride;
+      } else {
+        const meeting = {
+          id: 'm' + Date.now(),
+          day: tramo.dia,
+          start,
+          end,
+          groupId,
+          teach,
+          level: '',
+          fpType: '',
+          room,
+          groupNameOverride
+        };
+        state.meetings.push(meeting);
+      }
+      state.activeMeetingCell = null;
+      state.editingMeetingId = null;
+      closeMeetingModal();
+      renderMeetings();
+      if (state.activeConflict.day && state.activeConflict.timeMin !== null) {
+        renderStatusListForPoint(state.activeConflict.day, state.activeConflict.timeMin);
+      }
+    }
+
+    function exportMeetings() {
+      const payload = {
+        centro: state.centro,
+        fecha_inicio: el('evalStartDate')?.value || '',
+        fecha_fin: el('evalEndDate')?.value || '',
+        meetings: state.meetings
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'evaluaciones.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function importMeetings(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (Array.isArray(data.meetings)) {
+            state.meetings = data.meetings;
+          }
+          if (data.fecha_inicio) el('evalStartDate').value = data.fecha_inicio;
+          if (data.fecha_fin) el('evalEndDate').value = data.fecha_fin;
+          buildPlanner();
+          renderMeetings();
+        } catch (_) {
+          // ignore invalid JSON
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    }
+
+    function renderMeetings() {
+      const wrap = el('plannerWrap');
+      wrap.querySelectorAll('.meeting, .day-overlay').forEach(m => m.remove());
+
+      const dayCols = getDayColumnRects(wrap);
+      const meetingsByDay = new Map();
+      state.meetings.forEach(m => {
+        if (!meetingsByDay.has(m.day)) meetingsByDay.set(m.day, []);
+        meetingsByDay.get(m.day).push(m);
+      });
+
+      meetingsByDay.forEach((list, day) => {
+        const col = dayCols.get(String(day));
+        if (!col) return;
+        const overlay = document.createElement('div');
+        overlay.className = 'day-overlay';
+        overlay.style.left = `${col.left}px`;
+        overlay.style.width = `${col.width}px`;
+        overlay.style.top = `${col.top}px`;
+        overlay.style.height = `${col.height}px`;
+        wrap.appendChild(overlay);
+
+        const intervals = list.map(m => ({
+          meeting: m,
+          start: timeToMin(m.start),
+          end: timeToMin(m.end)
+        })).sort((a,b) => a.start - b.start || a.end - b.end);
+
+        const lanes = [];
+        intervals.forEach(it => {
+          let laneIdx = -1;
+          for (let i = 0; i < lanes.length; i++) {
+            if (it.start >= lanes[i]) { laneIdx = i; break; }
+          }
+          if (laneIdx === -1) {
+            laneIdx = lanes.length;
+            lanes.push(it.end);
+          } else {
+            lanes[laneIdx] = it.end;
+          }
+          it.lane = laneIdx;
+        });
+        intervals.forEach(it => {
+          let concurrent = 0;
+          intervals.forEach(o => {
+            if (o.start < it.end && o.end > it.start) concurrent += 1;
+          });
+          it.concurrent = Math.max(1, concurrent);
+        });
+
+        intervals.forEach(it => {
+          const pos = getMeetingPositionInDay(wrap, day, it.start, it.end);
+          if (!pos) return;
+          const div = document.createElement('div');
+          div.className = 'meeting';
+          div.style.top = `${pos.top - col.top}px`;
+          div.style.height = `${pos.height}px`;
+          const w = 100 / it.concurrent;
+          div.style.width = `${w}%`;
+          div.style.left = `${it.lane * w}%`;
+          div.style.right = 'auto';
+          const groupName = it.meeting.groupNameOverride || getGroupLabelById(it.meeting.groupId);
+          const teach = it.meeting.teach || '';
+          const room = it.meeting.room || '';
+          const head = [teach, groupName, room ? `Aula ${room}` : ''].filter(Boolean).join(' ');
+          div.setAttribute('draggable', 'true');
+          div.dataset.meetingId = it.meeting.id;
+          div.innerHTML = `<button class="del" title="Eliminar">×</button><strong>${head}</strong>${it.meeting.start} - ${it.meeting.end}`;
+          overlay.appendChild(div);
+        });
+      });
+
+      wrap.querySelectorAll('.meeting').forEach(div => {
+        div.addEventListener('click', e => {
+          if (e.target.classList.contains('del')) return;
+          openMeetingEditor(div.dataset.meetingId);
+        });
+        div.addEventListener('dragstart', e => {
+          e.dataTransfer.setData('text/plain', div.dataset.meetingId);
+        });
+        const del = div.querySelector('.del');
+        if (del) {
+          del.addEventListener('click', e => {
+            e.stopPropagation();
+            deleteMeeting(div.dataset.meetingId);
+          });
+        }
+      });
+    }
+
+    function handleDrop(e, td) {
+      e.preventDefault();
+      const id = e.dataTransfer.getData('text/plain');
+      if (!id) return;
+      const meeting = state.meetings.find(m => m.id === id);
+      if (!meeting) return;
+      const tramoId = td.getAttribute('data-tramo');
+      const tramo = state.tramoMap[tramoId];
+      if (!tramo) return;
+      meeting.day = tramo.dia;
+      meeting.start = tramo.inicio;
+      meeting.end = tramo.fin;
+      state.activeTramoId = tramoId;
+      renderMeetings();
+      if (state.activeConflict.day && state.activeConflict.timeMin !== null) {
+        renderStatusListForPoint(state.activeConflict.day, state.activeConflict.timeMin);
+      }
+    }
+
+    function getDayColumnRects(wrap) {
+      const rect = wrap.getBoundingClientRect();
+      const map = new Map();
+      const tds = Array.from(wrap.querySelectorAll('td[data-day]'));
+      tds.forEach(td => {
+        const day = td.getAttribute('data-day');
+        const r = td.getBoundingClientRect();
+        const entry = map.get(day) || { left: r.left - rect.left, right: r.right - rect.left, top: r.top - rect.top, bottom: r.bottom - rect.top };
+        entry.left = Math.min(entry.left, r.left - rect.left);
+        entry.right = Math.max(entry.right, r.right - rect.left);
+        entry.top = Math.min(entry.top, r.top - rect.top);
+        entry.bottom = Math.max(entry.bottom, r.bottom - rect.top);
+        map.set(day, entry);
+      });
+      map.forEach((v, k) => {
+        v.width = v.right - v.left;
+        v.height = v.bottom - v.top;
+      });
+      return map;
+    }
+
+    function getMeetingPositionInDay(wrap, day, startMin, endMin) {
+      const cells = Array.from(wrap.querySelectorAll(`td[data-day="${day}"][data-tramo]`));
+      if (!cells.length) return null;
+      const rectWrap = wrap.getBoundingClientRect();
+      let top = null;
+      let bottom = null;
+      cells.forEach(td => {
+        const tramoId = td.getAttribute('data-tramo');
+        const t = state.tramoMap[tramoId];
+        if (!t) return;
+        const tStart = timeToMin(t.inicio);
+        const tEnd = timeToMin(t.fin);
+        const r = td.getBoundingClientRect();
+        const cellTop = r.top - rectWrap.top;
+        const cellHeight = r.height;
+        if (startMin >= tStart && startMin < tEnd) {
+          const frac = (startMin - tStart) / (tEnd - tStart);
+          top = cellTop + frac * cellHeight;
+        }
+        if (endMin > tStart && endMin <= tEnd) {
+          const frac = (endMin - tStart) / (tEnd - tStart);
+          bottom = cellTop + frac * cellHeight;
+        }
+      });
+      if (top === null || bottom === null) return null;
+      return { top, height: Math.max(2, bottom - top) };
+    }
+
+    function deleteMeeting(id) {
+      state.meetings = state.meetings.filter(m => m.id !== id);
+      renderMeetings();
+      if (state.activeConflict.day && state.activeConflict.timeMin !== null) {
+        renderStatusListForPoint(state.activeConflict.day, state.activeConflict.timeMin);
+      } else {
+        renderStatusListForPoint(null, null);
+      }
+    }
+
+    function setActiveConflict(day, timeMin) {
+      state.activeConflict = { day: String(day || ''), timeMin };
+      renderStatusListForPoint(state.activeConflict.day, state.activeConflict.timeMin);
+    }
+
+    function renderStatusListForPoint(day, timeMin) {
+      const list = el('statusList');
+      list.innerHTML = '';
+      if (!day || timeMin === null || Number.isNaN(timeMin)) {
+        list.innerHTML = '<div class="muted">Seleccione día y hora para ver incompatibilidades.</div>';
+        return;
+      }
+
+      const meetings = getMeetingsForPoint(day, timeMin);
+      list.style.setProperty('--status-cols', Math.max(1, meetings.length));
+      if (!meetings.length) {
+        list.innerHTML = '<div class="muted">No hay reuniones en esa hora.</div>';
+        return;
+      }
+
+      const profSets = meetings.map(m => ({
+        meeting: m,
+        profs: new Set(Object.keys(getGroupProfSubjects(m.groupId) || {}))
+      }));
+
+      const dualCounts = {};
+      profSets.forEach(p => {
+        p.profs.forEach(pid => {
+          dualCounts[pid] = (dualCounts[pid] || 0) + 1;
+        });
+      });
+
+      meetings.forEach(meeting => {
+        const block = document.createElement('div');
+        block.className = 'status-block';
+        const groupName = meeting.groupNameOverride || getGroupLabelById(meeting.groupId);
+        const dayName = getPlannerDayLabel(meeting.day);
+        const title = [meeting.teach, groupName].filter(Boolean).join(' ');
+        block.innerHTML = `<h5>${title}</h5><div class="muted">${dayName} ${minToTimeStr(timeMin)} (reunión ${meeting.start}-${meeting.end})</div>`;
+        list.appendChild(block);
+
+        const profs = getGroupProfSubjects(meeting.groupId);
+        const entries = Object.entries(profs).sort((a,b) => {
+          const na = state.profesorMap[a[0]]?.nombre || a[0];
+          const nb = state.profesorMap[b[0]]?.nombre || b[0];
+          return compareProfNames(na, nb);
+        });
+
+        if (!entries.length) {
+          const empty = document.createElement('div');
+          empty.className = 'muted';
+          empty.textContent = 'No hay profesores asociados a este grupo.';
+          block.appendChild(empty);
+          return;
+        }
+
+        entries.forEach(([profId, subjects]) => {
+          const profName = state.profesorMap[profId]?.nombre || profId;
+          const subjectNames = Array.from(subjects).map(id => state.asignaturas[id]?.nombre || id).join(', ');
+          const isDual = (dualCounts[profId] || 0) > 1;
+          const hasLectiveClass = isProfLectiveInMeeting(profId, meeting.day, meeting.start, meeting.end);
+          const lectiveDetails = hasLectiveClass ? getProfLectiveDetailsInMeeting(profId, meeting.day, meeting.start, meeting.end) : [];
+          const item = document.createElement('div');
+          item.className = `status-item${isDual ? ' shared' : ''}${hasLectiveClass ? ' lective' : ''}`;
+          const badges = [];
+          if (isDual) badges.push('<span class="pill dual">COINCIDE</span>');
+          if (hasLectiveClass) badges.push('<span class="pill lective">LECTIVA</span>');
+          const lectiveInfo = lectiveDetails.length
+            ? `<br/><span class="muted">Lectiva ahora: ${lectiveDetails.join(' · ')}</span>`
+            : '';
+          item.innerHTML =
+            `<div class="status-item-main"><strong>${profName}</strong><br/><span class="muted">${subjectNames}</span>${lectiveInfo}</div>` +
+            `<div class="status-item-badges">${badges.join('')}</div>`;
+          block.appendChild(item);
+        });
+      });
+    }
+
+    function getMeetingsForPoint(day, timeMin) {
+      const raw = state.meetings.filter(m => {
+        if (String(m.day) !== String(day)) return false;
+        const mStart = timeToMin(m.start);
+        const mEnd = timeToMin(m.end);
+        return timeMin >= mStart && timeMin < mEnd;
+      });
+      const merged = new Map();
+      raw.forEach(m => {
+        const groupKey = state.combinedGroupById[m.groupId] || m.groupId;
+        const key = `${m.day}|${m.start}|${m.end}|${groupKey}`;
+        if (!merged.has(key)) {
+          const copy = { ...m, groupId: groupKey };
+          if (!copy.groupNameOverride) {
+            copy.groupNameOverride = state.combinedGroupLabels[groupKey] || '';
+          }
+          merged.set(key, copy);
+        }
+      });
+      return Array.from(merged.values());
+    }
+
+    function getGroupProfSubjects(groupId) {
+      const normalized = state.combinedGroupById[groupId] || groupId;
+      const base = state.groupToProfSubjects[normalized] || {};
+      const combined = state.combinedGroupMap[normalized];
+      if (!combined) return base;
+      const merged = {};
+      combined.forEach(id => {
+        const profs = state.groupToProfSubjects[id] || {};
+        Object.entries(profs).forEach(([pid, set]) => {
+          if (!merged[pid]) merged[pid] = new Set();
+          set.forEach(s => merged[pid].add(s));
+        });
+      });
+      return merged;
+    }
+
+    function getGroupLabelById(groupId) {
+      const key = state.combinedGroupById[groupId] || groupId;
+      if (state.combinedGroupLabels[key]) return state.combinedGroupLabels[key];
+      const g = state.grupoMap[key];
+      if (g) return groupDisplay(g);
+      return groupId;
+    }
+
+    function meetingsOverlap(a, b) {
+      if (a.day !== b.day) return false;
+      const aStart = timeToMin(a.start);
+      const aEnd = timeToMin(a.end);
+      const bStart = timeToMin(b.start);
+      const bEnd = timeToMin(b.end);
+      return Math.max(aStart, bStart) < Math.min(aEnd, bEnd);
+    }
+
+    function timeToMin(t) {
+      if (!t || !t.includes(':')) return 0;
+      const [h, m] = t.split(':').map(Number);
+      if (Number.isNaN(h) || Number.isNaN(m)) return 0;
+      return h * 60 + m;
+    }
+
+    function minToTimeStr(mins) {
+      const m = Math.max(0, Math.round(mins));
+      const h = Math.floor(m / 60);
+      const mm = m % 60;
+      return `${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+    }
+
+    function isRecessSlot(slot) {
+      if (!slot || !slot.inicio || !slot.fin) return false;
+      return (slot.inicio === '11:00' && slot.fin === '11:30') ||
+             (slot.inicio === '18:00' && slot.fin === '18:30');
+    }
+
+    function isTelematicActivity(profId, tramoId) {
+      const acts = state.horariosProf[profId] || [];
+      return acts.some(a => a.tramoId === tramoId && isTelematicSubject(a.asignaturaId));
+    }
+
+    function isTelematicSubject(asignaturaId) {
+      const asig = state.asignaturas[asignaturaId] || {};
+      const nameRaw = (asig.nombre || '').toUpperCase();
+      const abRaw = (asig.abreviatura || '').toUpperCase();
+      const norm = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const name = norm(nameRaw);
+      const ab = norm(abRaw);
+      const compatible =
+        name.includes('GUART') || ab.includes('GUART') ||
+        name.includes('TADU') || ab.includes('TADU') ||
+        name.includes('TADM') || ab.includes('TADM') ||
+        name.includes('TUTORIA ADMINISTRATIVA') ||
+        name.includes('GUARDIA') || ab === 'G' ||
+        name.includes('DIRECTIV') ||
+        (name.includes('DIRECCION') && !name.includes('ENTIDADES')) ||
+        name.includes('JEFAT') ||
+        name.includes('COORDIN') ||
+        name.includes('FUNCIONAM') ||
+        name.includes('ATENCION TELEM') ||
+        name.includes('PAE') || ab.includes('PAE') ||
+        name.includes('PROGRAMACION DE ACTIVIDADES') ||
+        (name.includes('MAYOR') && name.includes('55'));
+      return compatible || name.includes('TELEM') || ab.includes('TELEM');
+    }
+
+    function getPlannerDayLabel(dayNum) {
+      const start = el('evalStartDate')?.value;
+      if (!start) return `Día ${dayNum}`;
+      const startDate = new Date(start + 'T00:00:00');
+      if (Number.isNaN(startDate.getTime())) return `Día ${dayNum}`;
+      const target = new Date(startDate);
+      target.setDate(startDate.getDate() + (dayNum - 1));
+      const dayName = getDayName(((target.getDay() + 6) % 7) + 1);
+      return `${dayName} ${target.getDate()}`;
+    }
+
+    function getDayName(dayNum) {
+      const map = {
+        1: 'Lunes',
+        2: 'Martes',
+        3: 'Miércoles',
+        4: 'Jueves',
+        5: 'Viernes',
+        6: 'Sábado',
+        7: 'Domingo'
+      };
+      return map[dayNum] || `Día ${dayNum}`;
+    }
+
+    function getWeekdayForPlannerDay(day) {
+      const dNum = Number(day);
+      const start = el('evalStartDate')?.value;
+      if (!start) return dNum;
+      const startDate = new Date(start + 'T00:00:00');
+      if (Number.isNaN(startDate.getTime())) return dNum;
+      const target = new Date(startDate);
+      target.setDate(startDate.getDate() + (dNum - 1));
+      return ((target.getDay() + 6) % 7) + 1;
+    }
+
+    function overlapIntervals(aStart, aEnd, bStart, bEnd) {
+      return Math.max(aStart, bStart) < Math.min(aEnd, bEnd);
+    }
+
+    function isProfLectiveInMeeting(profId, plannerDay, meetingStart, meetingEnd) {
+      const realWeekDay = getWeekdayForPlannerDay(plannerDay);
+      const mStart = timeToMin(meetingStart);
+      const mEnd = timeToMin(meetingEnd);
+      if (mEnd <= mStart) return false;
+      const acts = state.horariosProf[profId] || [];
+      return acts.some(act => {
+        const t = state.tramoMap[act.tramoId];
+        if (!t || Number(t.dia) !== Number(realWeekDay)) return false;
+        const tStart = timeToMin(t.inicio);
+        const tEnd = timeToMin(t.fin);
+        if (!overlapIntervals(tStart, tEnd, mStart, mEnd)) return false;
+        return isLectiveWithStudents(act);
+      });
+    }
+
+    function getProfLectiveDetailsInMeeting(profId, plannerDay, meetingStart, meetingEnd) {
+      const realWeekDay = getWeekdayForPlannerDay(plannerDay);
+      const mStart = timeToMin(meetingStart);
+      const mEnd = timeToMin(meetingEnd);
+      if (mEnd <= mStart) return [];
+      const acts = state.horariosProf[profId] || [];
+      const details = [];
+      const seen = new Set();
+      acts.forEach(act => {
+        const t = state.tramoMap[act.tramoId];
+        if (!t || Number(t.dia) !== Number(realWeekDay)) return;
+        const tStart = timeToMin(t.inicio);
+        const tEnd = timeToMin(t.fin);
+        if (!overlapIntervals(tStart, tEnd, mStart, mEnd)) return;
+        if (!isLectiveWithStudents(act)) return;
+        const asigName = state.asignaturas[act.asignaturaId]?.nombre || act.asignaturaId || 'Sin asignatura';
+        const groups = (act.grupos || [])
+          .map(id => state.grupoMap[id] || { id })
+          .map(g => groupDisplay(g))
+          .filter(Boolean)
+          .join(', ');
+        const label = groups ? `${asigName} | ${groups}` : asigName;
+        if (seen.has(label)) return;
+        seen.add(label);
+        details.push(label);
+      });
+      return details;
+    }
+
+    function isLectiveWithStudents(act) {
+      if (!act || isCompatibleActivity(act)) return false;
+      const groups = act.grupos || [];
+      if (!groups.length) return false;
+      return groups.some(id => {
+        const g = state.grupoMap[id];
+        if (!g) return true;
+        const nivel = String(g.nivel || '').toUpperCase();
+        const ab = String(g.abreviatura || '').toUpperCase();
+        const nm = String(g.nombre || '').toUpperCase();
+        if (nivel === 'GUA') return false;
+        return !ab.includes('GUAR') && !nm.includes('GUARDIA');
+      });
+    }
+
+    function isProfBusyAtTime(profId, day, timeMin) {
+      const acts = state.horariosProf[profId] || [];
+      let hasBlocking = false;
+      acts.forEach(act => {
+        const t = state.tramoMap[act.tramoId];
+        if (!t || String(t.dia) !== String(day)) return;
+        const tStart = timeToMin(t.inicio);
+        const tEnd = timeToMin(t.fin);
+        if (!(timeMin >= tStart && timeMin < tEnd)) return;
+        if (isCompatibleActivity(act)) return;
+        hasBlocking = true;
+      });
+      return hasBlocking;
+    }
+
+    function isCompatibleActivity(act) {
+      if (!act) return false;
+      if (isTelematicSubject(act.asignaturaId)) return true;
+      const groups = act.grupos || [];
+      return groups.some(id => {
+        const g = state.grupoMap[id];
+        if (!g) return false;
+        const nivel = String(g.nivel || '').toUpperCase();
+        const ab = String(g.abreviatura || '').toUpperCase();
+        const nm = String(g.nombre || '').toUpperCase();
+        if (nivel === 'GUA') return true;
+        return ab.includes('GUAR') || nm.includes('GUARDIA');
+      });
+    }
+
+    function getTimeYInDay(wrap, day, timeMin) {
+      const cells = Array.from(wrap.querySelectorAll(`td[data-day="${day}"][data-tramo]`));
+      if (!cells.length) return null;
+      const rectWrap = wrap.getBoundingClientRect();
+      for (const td of cells) {
+        const tramoId = td.getAttribute('data-tramo');
+        const t = state.tramoMap[tramoId];
+        if (!t) continue;
+        const tStart = timeToMin(t.inicio);
+        const tEnd = timeToMin(t.fin);
+        if (timeMin < tStart || timeMin > tEnd) continue;
+        const r = td.getBoundingClientRect();
+        const cellTop = r.top - rectWrap.top;
+        const cellHeight = r.height;
+        const frac = (timeMin - tStart) / Math.max(1, (tEnd - tStart));
+        return cellTop + frac * cellHeight;
+      }
+      return null;
+    }
+  </script>
+</body>
+</html>

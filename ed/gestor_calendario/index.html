@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Calendario Escolar - Jefatura</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-main: #f8fafc;
+            --text-main: #1e293b;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background-color: #e2e8f0;
+            border: 1px solid #e2e8f0;
+        }
+
+        .calendar-day {
+            background-color: white;
+            min-height: 85px;
+            padding: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background-color: #f1f5f9;
+        }
+
+        .calendar-day.selected {
+            background-color: #dbeafe;
+            box-shadow: inset 0 0 0 2px var(--primary);
+        }
+
+        .calendar-day.today {
+            background-color: #fefce8;
+        }
+
+        .calendar-day.today .date-num {
+            background-color: #facc15;
+            color: #854d0e;
+            padding: 2px 6px;
+            border-radius: 99px;
+        }
+
+        .event-tag {
+            font-size: 0.65rem;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+            color: white;
+            font-weight: 500;
+        }
+
+        .mini-calendar {
+            font-size: 0.75rem;
+        }
+
+        .mini-calendar .calendar-day {
+            min-height: 40px;
+            padding: 2px;
+            text-align: center;
+        }
+
+        .editing-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 0.6rem;
+            z-index: 50;
+            font-weight: 600;
+            display: none;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        /* Color selection grid */
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+        }
+        
+        .color-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: 2px solid white;
+            box-shadow: 0 0 0 1px #e2e8f0;
+            transition: transform 0.1s;
+        }
+        
+        .color-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .color-btn.active {
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div id="editingBanner" class="editing-banner">
+        MODO SELECCIÓN DE FECHAS ACTIVO: Haz clic en los días del calendario y pulsa "Guardar"
+    </div>
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900">Jefatura de Estudios</h1>
+                <p class="text-slate-500 text-sm">Planificación de Calendario Escolar</p>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3">
+                <select id="courseSelector" class="bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    <!-- Generado por JS -->
+                </select>
+
+                <div class="flex items-center bg-white border border-slate-300 rounded-lg p-1">
+                    <button onclick="navigate(-1)" class="p-1.5 hover:bg-slate-100 rounded-md transition-colors text-slate-600" title="Anterior">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <button onclick="goToToday()" class="px-3 py-1 text-xs font-medium hover:bg-slate-100 rounded-md transition-colors border-x border-slate-200 text-slate-600">Hoy</button>
+                    <button onclick="navigate(1)" class="p-1.5 hover:bg-slate-100 rounded-md transition-colors text-slate-600" title="Siguiente">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+
+                <div class="inline-flex bg-slate-200 p-1 rounded-lg">
+                    <button onclick="setView('month')" id="btnViewMonth" class="px-4 py-1.5 rounded-md text-sm font-medium transition-all">Mes</button>
+                    <button onclick="setView('quarter')" id="btnViewQuarter" class="px-4 py-1.5 rounded-md text-sm font-medium transition-all">Trimestre</button>
+                    <button onclick="setView('year')" id="btnViewYear" class="px-4 py-1.5 rounded-md text-sm font-medium transition-all">Anual</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            
+            <!-- Sidebar -->
+            <aside class="lg:col-span-1 space-y-6">
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h2 class="font-semibold mb-4 flex items-center gap-2 text-slate-800">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Gestión de Evento
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1 tracking-wider">Nombre del Evento</label>
+                            <input type="text" id="eventName" placeholder="Ej: Claustro General" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-shadow">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1 tracking-wider">Etiqueta de Color</label>
+                            <div class="color-palette" id="colorPalette">
+                                <!-- Generado por JS -->
+                            </div>
+                        </div>
+                        <div id="formActions" class="pt-2">
+                            <button onclick="startEventCreation()" id="btnCreate" class="w-full bg-slate-900 text-white font-medium py-2.5 rounded-lg text-sm hover:bg-slate-800 transition-all active:scale-95">
+                                Definir Fechas
+                            </button>
+                            <div id="saveGroup" class="hidden flex flex-col gap-2">
+                                <button onclick="saveEvent()" class="w-full bg-blue-600 text-white font-medium py-2.5 rounded-lg text-sm hover:bg-blue-700 transition-all shadow-md active:scale-95">
+                                    Guardar Cambios
+                                </button>
+                                <button onclick="resetForm()" class="text-xs text-slate-500 hover:text-red-500 transition-colors py-1">Descartar / Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h2 class="font-semibold mb-4 text-sm text-slate-800 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        Eventos del Curso
+                    </h2>
+                    <div id="eventList" class="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                        <p class="text-xs text-slate-400 italic">No hay eventos registrados</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-100 p-5 rounded-xl border border-slate-200">
+                    <h2 class="font-bold mb-3 text-[10px] uppercase text-slate-400 tracking-widest">Herramientas</h2>
+                    <div class="flex flex-col gap-2">
+                        <button onclick="exportData()" class="text-xs flex items-center justify-center gap-2 bg-white border border-slate-300 py-2 rounded-lg hover:border-slate-400 transition-all shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Exportar Backup
+                        </button>
+                        <label class="text-xs flex items-center justify-center gap-2 bg-white border border-slate-300 py-2 rounded-lg cursor-pointer hover:border-slate-400 transition-all shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            Importar Datos
+                            <input type="file" id="importInput" class="hidden" accept=".json" onchange="importData(event)">
+                        </label>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="lg:col-span-3">
+                <div id="calendarContainer" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden min-h-[650px]">
+                </div>
+            </main>
+
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN DE COLORES ---
+        const palette = [
+            '#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed', '#db2777',
+            '#0891b2', '#4d7c0f', '#c026d3', '#475569', '#ea580c', '#6366f1'
+        ];
+
+        // --- CONSTANTES Y ESTADO ---
+        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        const dayNames = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+        
+        let currentView = 'month';
+        let currentMonth; 
+        let currentYear; 
+        let currentCourse;
+        let events = JSON.parse(localStorage.getItem('jefatura_events') || '[]');
+        let selectedDates = [];
+        let isEditing = false;
+        let editingEventId = null;
+        let selectedColor = palette[0];
+
+        // --- INICIALIZACIÓN ---
+        window.onload = () => {
+            const now = new Date();
+            currentMonth = now.getMonth();
+            currentYear = now.getFullYear();
+            
+            initColorPalette();
+            setupCourseSelector();
+            setView('month');
+            renderEventList();
+        };
+
+        function initColorPalette() {
+            const container = document.getElementById('colorPalette');
+            container.innerHTML = '';
+            palette.forEach((color, index) => {
+                const btn = document.createElement('button');
+                btn.className = `color-btn ${color === selectedColor ? 'active' : ''}`;
+                btn.style.backgroundColor = color;
+                btn.onclick = () => {
+                    selectedColor = color;
+                    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function setupCourseSelector() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const currentStartYear = (month >= 7) ? year : year - 1;
+            
+            const selector = document.getElementById('courseSelector');
+            selector.innerHTML = '';
+
+            for (let i = -2; i <= 2; i++) {
+                const sYear = currentStartYear + i;
+                const eYear = sYear + 1;
+                const val = `${sYear}-${eYear}`;
+                const option = document.createElement('option');
+                option.value = val;
+                option.text = `Curso ${sYear}/${eYear}`;
+                if (i === 0) {
+                    option.selected = true;
+                    currentCourse = val;
+                }
+                selector.appendChild(option);
+            }
+
+            selector.onchange = (e) => {
+                currentCourse = e.target.value;
+                const [startYear] = currentCourse.split('-').map(Number);
+                currentYear = startYear;
+                currentMonth = 8; // Septiembre
+                renderCalendar();
+                renderEventList();
+            };
+        }
+
+        // --- NAVEGACIÓN ---
+        function navigate(direction) {
+            if (currentView === 'month') {
+                currentMonth += direction;
+                if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+                else if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+            } else if (currentView === 'quarter') {
+                currentMonth += (direction * 3);
+                if (currentMonth > 11) { currentMonth -= 12; currentYear++; }
+                else if (currentMonth < 0) { currentMonth += 12; currentYear--; }
+            } else if (currentView === 'year') {
+                currentYear += direction;
+            }
+            renderCalendar();
+        }
+
+        function goToToday() {
+            const now = new Date();
+            currentMonth = now.getMonth();
+            currentYear = now.getFullYear();
+            
+            const courseYear = (currentMonth >= 7) ? currentYear : currentYear - 1;
+            const courseVal = `${courseYear}-${courseYear + 1}`;
+            const selector = document.getElementById('courseSelector');
+            if ([...selector.options].some(o => o.value === courseVal)) {
+                selector.value = courseVal;
+                currentCourse = courseVal;
+            }
+            renderCalendar();
+        }
+
+        function setView(view) {
+            currentView = view;
+            ['btnViewMonth', 'btnViewQuarter', 'btnViewYear'].forEach(id => {
+                const btn = document.getElementById(id);
+                const isActive = id === 'btnView' + view.charAt(0).toUpperCase() + view.slice(1);
+                btn.className = `px-4 py-1.5 rounded-md text-sm font-medium transition-all ${isActive ? 'bg-white shadow-sm text-blue-600' : 'hover:bg-white/50 text-slate-600'}`;
+            });
+            renderCalendar();
+        }
+
+        // --- GESTIÓN DE EVENTOS ---
+        function startEventCreation() {
+            const name = document.getElementById('eventName').value.trim();
+            if (!name) return alert("Por favor, introduce un nombre para el evento.");
+            
+            isEditing = true;
+            if (!editingEventId) selectedDates = [];
+            document.getElementById('btnCreate').classList.add('hidden');
+            document.getElementById('saveGroup').classList.remove('hidden');
+            document.getElementById('editingBanner').style.display = 'block';
+            renderCalendar();
+        }
+
+        function toggleDate(dateStr) {
+            if (!isEditing) return;
+            const idx = selectedDates.indexOf(dateStr);
+            if (idx > -1) selectedDates.splice(idx, 1);
+            else selectedDates.push(dateStr);
+            renderCalendar();
+        }
+
+        function saveEvent() {
+            const name = document.getElementById('eventName').value.trim();
+            if (!name) return alert("Nombre obligatorio.");
+            if (selectedDates.length === 0) return alert("Selecciona al menos un día.");
+            
+            const eventData = {
+                id: editingEventId || Date.now(),
+                name: name,
+                color: selectedColor,
+                dates: [...selectedDates],
+                course: currentCourse
+            };
+
+            if (editingEventId) {
+                const idx = events.findIndex(e => e.id === editingEventId);
+                events[idx] = eventData;
+            } else {
+                events.push(eventData);
+            }
+
+            localStorage.setItem('jefatura_events', JSON.stringify(events));
+            resetForm();
+            renderCalendar();
+            renderEventList();
+        }
+
+        function resetForm() {
+            isEditing = false;
+            editingEventId = null;
+            selectedDates = [];
+            document.getElementById('eventName').value = '';
+            document.getElementById('btnCreate').classList.remove('hidden');
+            document.getElementById('saveGroup').classList.add('hidden');
+            document.getElementById('editingBanner').style.display = 'none';
+            
+            // Reset color to first item
+            selectedColor = palette[0];
+            initColorPalette();
+            renderCalendar();
+        }
+
+        function editEvent(id) {
+            const ev = events.find(e => e.id === id);
+            if (!ev) return;
+            editingEventId = ev.id;
+            document.getElementById('eventName').value = ev.name;
+            selectedColor = ev.color;
+            selectedDates = [...ev.dates];
+            initColorPalette();
+            startEventCreation();
+        }
+
+        function deleteEvent(id) {
+            if (!confirm("¿Deseas eliminar este evento definitivamente?")) return;
+            events = events.filter(e => e.id !== id);
+            localStorage.setItem('jefatura_events', JSON.stringify(events));
+            renderCalendar();
+            renderEventList();
+        }
+
+        // --- RENDERIZADO ---
+        function renderCalendar() {
+            const container = document.getElementById('calendarContainer');
+            container.innerHTML = '';
+
+            if (currentView === 'month') {
+                renderMonth(container, currentMonth, currentYear);
+            } 
+            else if (currentView === 'quarter') {
+                const qGrid = document.createElement('div');
+                qGrid.className = 'grid grid-cols-1 md:grid-cols-3 gap-6 p-6 overflow-y-auto h-full';
+                for(let i=0; i<3; i++) {
+                    let m = currentMonth + i;
+                    let y = currentYear;
+                    if (m > 11) { m -= 12; y++; }
+                    const mDiv = document.createElement('div');
+                    mDiv.className = 'mini-calendar';
+                    renderMonth(mDiv, m, y, true);
+                    qGrid.appendChild(mDiv);
+                }
+                container.appendChild(qGrid);
+            } 
+            else if (currentView === 'year') {
+                const yGrid = document.createElement('div');
+                yGrid.className = 'grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 p-6 overflow-y-auto h-full';
+                for(let i=0; i<12; i++) {
+                    const mDiv = document.createElement('div');
+                    mDiv.className = 'mini-calendar bg-slate-50 p-2 rounded-lg';
+                    renderMonth(mDiv, i, currentYear, true);
+                    yGrid.appendChild(mDiv);
+                }
+                container.appendChild(yGrid);
+            }
+        }
+
+        function renderMonth(parent, month, year, isMini = false) {
+            const today = new Date();
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+
+            const monthWrapper = document.createElement('div');
+            monthWrapper.innerHTML = `<h3 class="font-bold ${isMini ? 'text-xs mb-2' : 'text-xl mb-4'} text-slate-800">${monthNames[month]} ${year}</h3>`;
+            
+            const grid = document.createElement('div');
+            grid.className = "calendar-grid rounded-lg overflow-hidden border border-slate-200";
+            
+            dayNames.forEach(d => {
+                const dDiv = document.createElement('div');
+                dDiv.className = `bg-slate-50 p-2 text-center text-[10px] font-bold text-slate-400`;
+                dDiv.innerText = d;
+                grid.appendChild(dDiv);
+            });
+
+            for(let i=0; i<startOffset; i++) {
+                const empty = document.createElement('div');
+                empty.className = "bg-slate-50/30";
+                grid.appendChild(empty);
+            }
+
+            for(let d=1; d<=daysInMonth; d++) {
+                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
+                
+                const dayDiv = document.createElement('div');
+                dayDiv.className = `calendar-day ${isToday ? 'today' : ''} ${selectedDates.includes(dateStr) ? 'selected' : ''}`;
+                dayDiv.innerHTML = `<span class="date-num font-semibold text-xs">${d}</span>`;
+                
+                const dayEvents = events.filter(e => e.dates.includes(dateStr));
+                const eventContainer = document.createElement('div');
+                eventContainer.className = "mt-1 space-y-0.5 overflow-hidden";
+                
+                dayEvents.forEach(ev => {
+                    if (!isMini) {
+                        const tag = document.createElement('div');
+                        tag.className = "event-tag";
+                        tag.style.backgroundColor = ev.color;
+                        tag.innerText = ev.name;
+                        eventContainer.appendChild(tag);
+                    } else {
+                        const dot = document.createElement('div');
+                        dot.className = "w-1.5 h-1.5 rounded-full inline-block mr-0.5";
+                        dot.style.backgroundColor = ev.color;
+                        eventContainer.appendChild(dot);
+                    }
+                });
+                dayDiv.appendChild(eventContainer);
+
+                dayDiv.onclick = () => toggleDate(dateStr);
+                grid.appendChild(dayDiv);
+            }
+
+            monthWrapper.appendChild(grid);
+            parent.appendChild(monthWrapper);
+        }
+
+        function renderEventList() {
+            const list = document.getElementById('eventList');
+            const courseEvents = events.filter(e => e.course === currentCourse);
+            
+            if (courseEvents.length === 0) {
+                list.innerHTML = '<p class="text-xs text-slate-400 italic py-4 text-center">No hay eventos definidos</p>';
+                return;
+            }
+
+            list.innerHTML = courseEvents.map(e => `
+                <div class="group flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200 hover:bg-white hover:shadow-sm transition-all">
+                    <div class="flex items-center gap-2.5 overflow-hidden">
+                        <div class="w-3 h-3 rounded-full shrink-0 shadow-sm" style="background-color: ${e.color}"></div>
+                        <div class="flex flex-col overflow-hidden">
+                            <span class="text-xs font-bold truncate text-slate-700 leading-none mb-1">${e.name}</span>
+                            <span class="text-[10px] text-slate-400 font-medium">${e.dates.length} día(s)</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="editEvent(${e.id})" class="p-1 hover:text-blue-600 transition-colors" title="Editar">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        </button>
+                        <button onclick="deleteEvent(${e.id})" class="p-1 hover:text-red-600 transition-colors" title="Eliminar">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- ADMIN ---
+        function exportData() {
+            const now = new Date();
+            const timestamp = now.getFullYear() + "-" + 
+                              String(now.getMonth() + 1).padStart(2, '0') + "-" + 
+                              String(now.getDate()).padStart(2, '0') + "_" + 
+                              String(now.getHours()).padStart(2, '0') + "-" + 
+                              String(now.getMinutes()).padStart(2, '0');
+            
+            const dataStr = JSON.stringify(events, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `calendario_jefatura_${timestamp}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        events = imported;
+                        localStorage.setItem('jefatura_events', JSON.stringify(events));
+                        renderCalendar();
+                        renderEventList();
+                        alert("Datos importados correctamente.");
+                    } else {
+                        throw new Error("Formato incorrecto");
+                    }
+                } catch (err) { alert("Error al importar: El archivo no es un backup válido."); }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset input
+        }
+    </script>
+</body>
+</html>

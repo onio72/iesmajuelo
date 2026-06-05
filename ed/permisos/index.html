@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Permisos - Instituto</title>
+    
+    <!-- Librerías Externas (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Configuración de Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        education: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            600: '#0284c7',
+                            800: '#075985',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Estilos específicos */
+        @media print {
+            .no-print { display: none !important; }
+            body { font-size: 10pt; -webkit-print-color-adjust: exact; }
+            .tab-content { display: block !important; }
+            /* Ocultamos todo excepto el informe si estamos en esa pestaña */
+            #tab-gestion, #tab-calendario, #tab-admin, #tab-estadistica { display: none !important; }
+            #tab-informe { display: block !important; }
+            /* Ocultar modal al imprimir */
+            #modalDetalles { display: none !important; }
+        }
+        .drag-active { border-color: #0284c7; background-color: #f0f9ff; }
+        
+        /* Grid del Calendario */
+        .calendar-grid { 
+            display: grid; 
+            grid-template-columns: repeat(7, 1fr); 
+            gap: 4px; 
+        }
+        .calendar-day { min-height: 80px; }
+        .calendar-day-header { font-size: 0.75rem; font-weight: 600; text-align: center; color: #6b7280; padding: 4px; }
+        
+        /* Ocultar scrollbar en tablas grandes pero permitir scroll */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
+
+    <!-- ENCABEZADO Y NAVEGACIÓN -->
+    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="graduation-cap" class="text-education-600 h-8 w-8"></i>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900">Gestión de Permisos</h1>
+                        <p class="text-xs text-gray-500 flex items-center gap-2">
+                            Sistema Local de Concurrencia 
+                            <span class="px-1.5 py-0.5 bg-gray-100 border border-gray-200 text-gray-600 rounded text-[10px] font-mono font-bold">v2.0</span>
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Stats Resumen (Mini Dashboard) -->
+                <div class="hidden md:flex gap-4 text-xs font-medium text-gray-500" id="miniStats">
+                    <!-- Se llena con JS -->
+                </div>
+            </div>
+
+            <!-- PESTAÑAS -->
+            <nav class="flex space-x-8 -mb-px overflow-x-auto no-print px-2">
+                <button onclick="app.cambiarPestana('gestion')" id="nav-gestion" class="tab-btn whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm border-education-600 text-education-600">
+                    <i data-lucide="list" class="inline w-4 h-4 mr-1"></i> Gestión
+                </button>
+                <button onclick="app.cambiarPestana('estadistica')" id="nav-estadistica" class="tab-btn whitespace-nowrap pb-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <i data-lucide="bar-chart-2" class="inline w-4 h-4 mr-1"></i> Estadística
+                </button>
+                <button onclick="app.cambiarPestana('informe')" id="nav-informe" class="tab-btn whitespace-nowrap pb-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <i data-lucide="file-text" class="inline w-4 h-4 mr-1"></i> Informe JE
+                </button>
+                <button onclick="app.cambiarPestana('calendario')" id="nav-calendario" class="tab-btn whitespace-nowrap pb-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <i data-lucide="calendar" class="inline w-4 h-4 mr-1"></i> Calendario
+                </button>
+                <button onclick="app.cambiarPestana('admin')" id="nav-admin" class="tab-btn whitespace-nowrap pb-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <i data-lucide="settings" class="inline w-4 h-4 mr-1"></i> Administración
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 py-6 w-full relative">
+
+        <!-- ================= PESTAÑA 1: GESTIÓN (TABLA) ================= -->
+        <div id="tab-gestion" class="tab-content space-y-4">
+            <!-- Barra de Herramientas -->
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-3 rounded-lg border border-gray-200 shadow-sm no-print">
+                <div class="relative w-full sm:w-64">
+                    <i data-lucide="search" class="absolute left-2 top-2.5 h-4 w-4 text-gray-400"></i>
+                    <input type="text" id="searchInput" onkeyup="app.renderizarTabla()" placeholder="Buscar profesor..." 
+                           class="pl-8 pr-4 py-2 w-full text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-education-600">
+                </div>
+                <div class="flex gap-2">
+                    <span class="text-xs text-gray-500 self-center">Clic en cabeceras para ordenar</span>
+                </div>
+            </div>
+
+            <!-- Tabla -->
+            <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-gray-100 text-gray-600 uppercase text-xs font-semibold select-none">
+                            <tr>
+                                <th class="px-4 py-3 text-center cursor-pointer hover:bg-gray-200 w-24" onclick="app.ordenar('rangoOrdenDiario')" title="Orden de prelación específico para este día">
+                                    Orden Día <i data-lucide="arrow-up-down" class="inline w-3 h-3 ml-1"></i>
+                                </th>
+                                <th class="px-4 py-3 cursor-pointer hover:bg-gray-200" onclick="app.ordenar('estadoManual')">Estado <i data-lucide="arrow-up-down" class="inline w-3 h-3 ml-1"></i></th>
+                                <th class="px-4 py-3 cursor-pointer hover:bg-gray-200" onclick="app.ordenar('nombre')">Solicitante <i data-lucide="arrow-up-down" class="inline w-3 h-3 ml-1"></i></th>
+                                <th class="px-4 py-3 text-center cursor-pointer hover:bg-gray-200" onclick="app.ordenar('fSolicitud')">F. Solicitud <i data-lucide="arrow-up-down" class="inline w-3 h-3 ml-1"></i></th>
+                                <th class="px-4 py-3 text-center cursor-pointer hover:bg-gray-200" onclick="app.ordenar('fInicio')">F. Permiso <i data-lucide="arrow-up-down" class="inline w-3 h-3 ml-1"></i></th>
+                                <th class="px-4 py-3 text-center" title="Siempre será 1 día (desglosado)">Nº Días</th>
+                                <th class="px-4 py-3 text-center cursor-pointer hover:bg-gray-200" onclick="app.ordenar('diasTranscurridos')" title="Días transcurridos desde la solicitud hasta hoy (Solo si está Pendiente)">
+                                    Plazo <i data-lucide="arrow-up-down" class="inline w-3 h-3 ml-1"></i>
+                                </th>
+                                <th class="px-4 py-3 w-1/4" title="Registra incidencias de Plazo, Cupo y Límite Anual">Análisis Automático</th>
+                                <th class="px-4 py-3 text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaCuerpo" class="divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PESTAÑA 2: ESTADÍSTICA ================= -->
+        <div id="tab-estadistica" class="tab-content hidden space-y-4">
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-4">
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i data-lucide="pie-chart" class="text-education-600"></i> Resumen de Días por Profesor
+                </h2>
+                <p class="text-sm text-gray-500">Muestra el cómputo total de días consumidos (Aprobados) frente al límite anual de 2 días.</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-gray-100 text-gray-600 uppercase text-xs font-semibold">
+                            <tr>
+                                <th class="px-6 py-3">Profesor</th>
+                                <th class="px-6 py-3 text-center">Días Aprobados (Consumidos)</th>
+                                <th class="px-6 py-3 text-center">Días Pendientes</th>
+                                <th class="px-6 py-3 text-center">Días Denegados</th>
+                                <th class="px-6 py-3 text-center">Total Solicitados</th>
+                                <th class="px-6 py-3 text-center">Estado Límite</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaEstadistica" class="divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PESTAÑA 3: INFORME JE ================= -->
+        <div id="tab-informe" class="tab-content hidden space-y-4">
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-4 no-print flex flex-col md:flex-row gap-4 items-end">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">Fecha Inicio</label>
+                    <input type="date" id="infDateStart" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-education-600 focus:border-education-600 block w-full p-2" onchange="app.renderizarInformeJE()">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">Fecha Fin</label>
+                    <input type="date" id="infDateEnd" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-education-600 focus:border-education-600 block w-full p-2" onchange="app.renderizarInformeJE()">
+                </div>
+                <div class="flex-grow"></div>
+                <button onclick="app.enviarCorreoJE()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-800 shadow-sm transition-colors">
+                    <i data-lucide="mail" class="w-4 h-4"></i> Enviar Email
+                </button>
+                <button onclick="window.print()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-education-600 rounded-lg hover:bg-education-800 shadow-sm transition-colors">
+                    <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Informe
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
+                <div class="p-4 bg-gray-50 border-b border-gray-200">
+                    <h3 class="font-bold text-gray-800">Informe de Permisos Aprobados</h3>
+                    <p class="text-xs text-gray-500" id="infRangoTexto">Rango seleccionado</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-gray-100 text-gray-600 uppercase text-xs font-semibold">
+                            <tr>
+                                <th class="px-6 py-3 w-40">Fecha</th>
+                                <th class="px-6 py-3">Profesor</th>
+                                <th class="px-6 py-3 text-center">Días Disfrutados (Acumulado)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaInforme" class="divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PESTAÑA 4: CALENDARIO ================= -->
+        <div id="tab-calendario" class="tab-content hidden space-y-4">
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <button onclick="app.calNavegar(-1)" class="p-1 hover:bg-gray-100 rounded"><i data-lucide="chevron-left"></i></button>
+                    <h2 id="calTitulo" class="text-lg font-bold w-48 text-center">Enero 2026</h2>
+                    <button onclick="app.calNavegar(1)" class="p-1 hover:bg-gray-100 rounded"><i data-lucide="chevron-right"></i></button>
+                </div>
+                <div class="flex bg-gray-100 rounded p-1 text-xs font-medium">
+                    <button onclick="app.calCambiarVista('mes')" id="view-mes" class="px-3 py-1 bg-white shadow rounded text-gray-800">Mes</button>
+                    <button onclick="app.calCambiarVista('trimestre')" id="view-trimestre" class="px-3 py-1 text-gray-500 hover:text-gray-900">Trimestre</button>
+                    <button onclick="app.calCambiarVista('anio')" id="view-anio" class="px-3 py-1 text-gray-500 hover:text-gray-900">Año</button>
+                </div>
+                <div class="flex gap-4 text-xs">
+                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-green-100 border border-green-300 rounded"></div> Aprobadas</div>
+                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-gray-100 border border-gray-300 rounded"></div> Pendientes</div>
+                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-red-100 border border-red-300 rounded"></div> >5 Solicitantes</div>
+                </div>
+            </div>
+            <div id="calContainer" class="space-y-6"></div>
+        </div>
+
+        <!-- ================= PESTAÑA 5: ADMINISTRACIÓN ================= -->
+        <div id="tab-admin" class="tab-content hidden space-y-6">
+            <!-- Configuración -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-900 border-b pb-2">Configuración Anual</h3>
+                <div class="flex items-center gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Letra del Sorteo (Desempate)</label>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="letraSorteoInput" maxlength="1" 
+                                class="w-12 h-12 text-center text-xl bg-gray-50 border border-gray-300 rounded-lg uppercase font-bold text-education-600 focus:ring-2 focus:ring-education-600 focus:outline-none"
+                                value="H" onchange="app.actualizarConfiguracion()">
+                            <span class="text-sm text-gray-500 max-w-md">Esta letra determina el orden de prioridad cuando hay más de 5 solicitudes en un mismo día.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Carga de Datos -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-900 border-b pb-2 flex items-center gap-2">
+                    <i data-lucide="upload-cloud"></i> Carga de Datos
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-colors hover:bg-gray-50">
+                        <i data-lucide="file-spreadsheet" class="h-10 w-10 text-green-600 mb-3"></i>
+                        <p class="text-sm font-medium text-gray-700">Arrastra tu Excel (.xlsx) aquí</p>
+                        <button class="mt-2 text-xs bg-white border border-gray-300 px-3 py-1 rounded shadow-sm hover:bg-gray-100">Seleccionar Archivo</button>
+                        <input type="file" id="fileInput" class="hidden" accept=".xlsx, .xls" onchange="app.procesarExcel(this.files[0])">
+                    </div>
+                    <div class="flex flex-col h-full">
+                        <textarea id="pasteArea" class="flex-grow w-full p-3 text-xs font-mono border border-gray-300 rounded-lg focus:ring-2 focus:ring-education-600 mb-2" 
+                            placeholder="Opción B: Copia las celdas en tu Excel (Ctrl+C) y pégalas aquí (Ctrl+V)..."></textarea>
+                        <button onclick="app.procesarPegado()" class="self-end bg-education-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-education-800 transition-colors">
+                            Procesar Datos Pegados
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- Backup -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-900 border-b pb-2 flex items-center gap-2">
+                    <i data-lucide="save"></i> Copia de Seguridad
+                </h3>
+                <div class="flex flex-wrap gap-4">
+                    <button onclick="app.descargarJSON()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 shadow-sm">
+                        <i data-lucide="download"></i> Descargar (JSON)
+                    </button>
+                    <button onclick="app.enviarBackupEmail()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-800 shadow-sm transition-colors">
+                        <i data-lucide="mail"></i> Enviar Backup por Email
+                    </button>
+                    <button onclick="document.getElementById('jsonInput').click()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 shadow-sm">
+                        <i data-lucide="upload"></i> Restaurar Copia
+                        <input type="file" id="jsonInput" class="hidden" accept=".json" onchange="app.cargarJSON(this)">
+                    </button>
+                    <div class="flex-grow"></div>
+                    <button onclick="app.borrarTodo()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100">
+                        <i data-lucide="trash-2"></i> Borrar Todo (Reset)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL DETALLES (NUEVO) -->
+    <div id="modalDetalles" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all scale-100">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                <h3 id="modalTitulo" class="font-bold text-gray-800 capitalize">Detalles</h3>
+                <button onclick="$('modalDetalles').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-200">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="modalContenido" class="p-0 max-h-[60vh] overflow-y-auto divide-y divide-gray-100">
+                <!-- Lista inyectada dinámicamente -->
+            </div>
+            <div class="bg-gray-50 px-4 py-3 text-right border-t border-gray-200">
+                <button onclick="$('modalDetalles').classList.add('hidden')" class="px-3 py-1 bg-white border border-gray-300 text-gray-600 rounded text-sm font-medium hover:bg-gray-50">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LÓGICA DE LA APLICACIÓN -->
+    <script>
+        const $ = id => document.getElementById(id);
+        
+        class AppGestor {
+            constructor() {
+                this.datos = [];
+                this.config = { letraSorteo: 'H', maxDiasPersona: 2, maxCupoDia: 5 };
+                this.estadoVista = { 
+                    tab: 'gestion', 
+                    calVista: 'mes', 
+                    calFecha: new Date(), 
+                    sortCol: 'fSolicitud', 
+                    sortAsc: true,
+                    infStart: '', // Inicializado en init
+                    infEnd: '' 
+                };
+                this.init();
+            }
+
+            init() {
+                const today = new Date();
+                const nextWeek = new Date();
+                nextWeek.setDate(today.getDate() + 7);
+                this.estadoVista.infStart = today.toISOString().split('T')[0];
+                this.estadoVista.infEnd = nextWeek.toISOString().split('T')[0];
+                
+                if($('infDateStart')) $('infDateStart').value = this.estadoVista.infStart;
+                if($('infDateEnd')) $('infDateEnd').value = this.estadoVista.infEnd;
+
+                this.cargarDeLocalStorage();
+                this.setupDragAndDrop();
+                this.cambiarPestana('gestion');
+                lucide.createIcons();
+            }
+
+            // --- NAVEGACIÓN ---
+            cambiarPestana(tabName) {
+                this.estadoVista.tab = tabName;
+                
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.tab-btn').forEach(el => {
+                    el.classList.remove('border-education-600', 'text-education-600');
+                    el.classList.add('border-transparent', 'text-gray-500');
+                });
+
+                $(`tab-${tabName}`).classList.remove('hidden');
+                const btn = $(`nav-${tabName}`);
+                btn.classList.remove('border-transparent', 'text-gray-500');
+                btn.classList.add('border-education-600', 'text-education-600');
+
+                if (tabName === 'calendario') this.renderizarCalendario();
+                if (tabName === 'gestion') this.renderizarTabla();
+                if (tabName === 'estadistica') this.renderizarEstadisticas();
+                if (tabName === 'informe') this.renderizarInformeJE();
+                lucide.createIcons();
+            }
+
+            // --- PERSISTENCIA ---
+            guardar() {
+                localStorage.setItem('gestorPermisosData', JSON.stringify({ datos: this.datos, config: this.config }));
+                this.renderizarUI();
+            }
+
+            cargarDeLocalStorage() {
+                const guardado = localStorage.getItem('gestorPermisosData');
+                if (guardado) {
+                    const parsed = JSON.parse(guardado);
+                    this.datos = parsed.datos || [];
+                    this.config = parsed.config || this.config;
+                    $('letraSorteoInput').value = this.config.letraSorteo;
+                }
+            }
+
+            actualizarConfiguracion() {
+                const letra = $('letraSorteoInput').value.toUpperCase();
+                if (letra.match(/[A-ZÑ]/)) {
+                    this.config.letraSorteo = letra;
+                    this.guardar();
+                }
+            }
+
+            borrarTodo() {
+                if(confirm("¿Seguro que quieres borrar TODOS los datos? Esta acción es irreversible.")) {
+                    this.datos = [];
+                    localStorage.removeItem('gestorPermisosData');
+                    location.reload();
+                }
+            }
+
+            descargarJSON() {
+                const blob = new Blob([JSON.stringify({datos:this.datos, config:this.config}, null, 2)], {type: "application/json"});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `backup_permisos_${new Date().toISOString().slice(0,10)}.json`;
+                a.click();
+            }
+
+            enviarBackupEmail() {
+                this.descargarJSON();
+                alert("⚠️ ATENCIÓN: Por seguridad, el navegador no permite adjuntar archivos automáticamente.\n\n1. El archivo de copia de seguridad se ha descargado en tu carpeta de 'Descargas'.\n2. Se abrirá tu correo electrónico.\n3. Debes ARRASTRAR O ADJUNTAR el archivo manualmente al correo.");
+                const now = new Date();
+                const fechaHora = now.toLocaleString('es-ES');
+                const subject = `Copia de seguridad ${fechaHora}`;
+                const body = `Copia de seguridad del Gestor de Permisos generada el ${fechaHora}.\n\nIMPORTANTE: Adjuntar aquí el archivo .json que se acaba de descargar.`;
+                window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            }
+
+            cargarJSON(input) {
+                const f = input.files[0];
+                if (!f) return;
+                const r = new FileReader();
+                r.onload = e => {
+                    try {
+                        const j = JSON.parse(e.target.result);
+                        if (j.datos) {
+                            this.datos = j.datos;
+                            this.config = j.config || this.config;
+                            $('letraSorteoInput').value = this.config.letraSorteo;
+                            this.guardar();
+                            alert("Backup restaurado con éxito.");
+                        }
+                    } catch(e) { alert("Error al leer JSON"); }
+                };
+                r.readAsText(f);
+            }
+
+            // --- PROCESAMIENTO DE DATOS ---
+            setupDragAndDrop() {
+                const dz = $('dropZone');
+                const fi = $('fileInput');
+                dz.onclick = () => fi.click();
+                dz.ondragover = e => { e.preventDefault(); dz.classList.add('drag-active'); };
+                dz.ondragleave = () => dz.classList.remove('drag-active');
+                dz.ondrop = e => {
+                    e.preventDefault();
+                    dz.classList.remove('drag-active');
+                    this.procesarExcel(e.dataTransfer.files[0]);
+                };
+            }
+
+            procesarExcel(file) {
+                if(!file) return;
+                const r = new FileReader();
+                r.onload = e => {
+                    const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array', cellDates:true});
+                    const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
+                    this.importarDatos(json);
+                };
+                r.readAsArrayBuffer(file);
+            }
+
+            procesarPegado() {
+                const txt = $('pasteArea').value;
+                if(!txt.trim()) return;
+                const filas = txt.split('\n').map(f => f.split('\t'));
+                const headers = filas[0].map(h => h.trim().toLowerCase());
+                const tieneCabecera = headers.some(h => h.includes('nombre') || h.includes('solicitud'));
+                
+                let datos = [];
+                for(let i = (tieneCabecera ? 1 : 0); i < filas.length; i++) {
+                    const row = filas[i];
+                    if(row.length < 2) continue;
+                    let obj = {};
+                    if(tieneCabecera) {
+                        headers.forEach((h, idx) => {
+                            if(h.includes('nombre')) obj['Nombre'] = row[idx];
+                            if(h.includes('solici')) obj['Solicitud'] = row[idx];
+                            if(h.includes('inicio')) obj['Inicio'] = row[idx];
+                            if(h.includes('fin')) obj['Fin'] = row[idx];
+                            if(h.includes('estado')) obj['Estado'] = row[idx];
+                        });
+                    } else {
+                        obj['Estado'] = row[0];
+                        obj['Solicitud'] = row[2];
+                        obj['Nombre'] = row[4];
+                        obj['Inicio'] = row[6];
+                        obj['Fin'] = row[7];
+                    }
+                    datos.push(obj);
+                }
+                this.importarDatos(datos);
+                $('pasteArea').value = '';
+            }
+
+            importarDatos(raw) {
+                const getCol = (row, kws) => {
+                    const k = Object.keys(row).find(key => kws.some(w => key.toLowerCase().includes(w)));
+                    return k ? row[k] : null;
+                };
+
+                const usoActual = {};
+                this.datos.forEach(d => {
+                    if (d.estadoManual !== 'Denegada') {
+                        const k = d.nombre.toLowerCase();
+                        usoActual[k] = (usoActual[k] || 0) + 1; 
+                    }
+                });
+
+                let insertedCount = 0;
+                let ignoredCount = 0;
+                let alertasLimite = new Set(); 
+
+                raw.forEach(row => {
+                    const nom = getCol(row, ['nombre', 'solicitante']);
+                    if(!nom) return;
+                    const fSol = this.parseDate(getCol(row, ['solicitud', 'registro']));
+                    let fIni = this.parseDate(getCol(row, ['inicio', 'desde']));
+                    let fFin = this.parseDate(getCol(row, ['fin', 'hasta']));
+                    const est = getCol(row, ['estado']) || 'Pendiente';
+                    
+                    if (!fIni) return;
+                    if (!fFin) fFin = fIni; 
+
+                    let current = new Date(fIni);
+                    const end = new Date(fFin);
+                    
+                    if (current > end) { 
+                        const diaISO = current.toISOString();
+                        this.intentarInsertar(nom, fSol, diaISO, est, usoActual, alertasLimite) ? insertedCount++ : ignoredCount++;
+                        return;
+                    }
+
+                    while (current <= end) {
+                        const diaISO = current.toISOString();
+                        this.intentarInsertar(nom, fSol, diaISO, est, usoActual, alertasLimite) ? insertedCount++ : ignoredCount++;
+                        current.setDate(current.getDate() + 1);
+                    }
+                });
+
+                let msg = `Proceso finalizado:\n- Nuevas solicitudes importadas: ${insertedCount}\n- Ignoradas por duplicado: ${ignoredCount}`;
+                if (alertasLimite.size > 0) {
+                    msg += `\n\n⚠️ ADVERTENCIA: Los siguientes profesores exceden el límite de 2 días:\n- ` + Array.from(alertasLimite).join('\n- ');
+                }
+                alert(msg);
+                this.guardar();
+            }
+
+            intentarInsertar(nom, fSol, diaISO, est, usoActual, alertasLimite) {
+                const existe = this.datos.some(d => d.nombre === nom && d.fInicio === diaISO);
+                if (!existe) {
+                    const k = nom.toLowerCase();
+                    const newId = 'id_' + Date.now().toString(36) + Math.random().toString(36).substr(2);
+                    this.datos.push({
+                        id: newId, 
+                        nombre: nom,
+                        fSolicitud: fSol,
+                        fInicio: diaISO,
+                        fFin: diaISO,
+                        estadoManual: est === 'Aprobada' ? 'Aprobada' : (est === 'Denegada' ? 'Denegada' : 'Pendiente')
+                    });
+                    usoActual[k] = (usoActual[k] || 0) + 1;
+                    if (usoActual[k] > this.config.maxDiasPersona) alertasLimite.add(nom);
+                    return true; 
+                }
+                return false;
+            }
+
+            parseDate(val) {
+                if(!val) return null;
+                if(val instanceof Date) return val.toISOString();
+                if(typeof val === 'string') {
+                    const p = val.trim().split('/');
+                    if(p.length === 3) return new Date(`${p[2]}-${p[1]}-${p[0]}`).toISOString();
+                    if(p.length === 2) return new Date(`${new Date().getFullYear()}-${p[1]}-${p[0]}`).toISOString();
+                }
+                return null;
+            }
+
+            // --- LÓGICA DE NEGOCIO ---
+            analizar() {
+                const diasPersona = {}; 
+                const nombresUnicos = [...new Set(this.datos.map(d => d.nombre))];
+                nombresUnicos.sort((a,b) => this.compararNombres(a, b));
+                const mapaOrdenPrioridad = {};
+                nombresUnicos.forEach((nom, idx) => mapaOrdenPrioridad[nom] = idx + 1);
+
+                let items = this.datos.map(d => {
+                    const dias = [];
+                    if(d.fInicio) dias.push(d.fInicio.split('T')[0]);
+                    return { ...d, diasExpandidos: dias, alertas: [], prioridadGlobal: mapaOrdenPrioridad[d.nombre], ordenDiarioPorDia: {} };
+                });
+
+                const allDates = new Set();
+                items.forEach(i => i.diasExpandidos.forEach(date => allDates.add(date)));
+
+                Array.from(allDates).sort().forEach(date => {
+                    let solicitantes = items.filter(i => i.diasExpandidos.includes(date) && i.estadoManual !== 'Denegada');
+                    solicitantes.sort((a,b) => a.prioridadGlobal - b.prioridadGlobal);
+                    solicitantes.forEach((sol, idx) => {
+                        const rank = idx + 1;
+                        sol.ordenDiarioPorDia[date] = rank;
+                        if(rank > this.config.maxCupoDia) {
+                            sol.alertas.push(`Cupo excedido (${date})`);
+                            sol.excedeCupo = true;
+                        }
+                    });
+                });
+
+                items.forEach(i => {
+                    const ranks = Object.values(i.ordenDiarioPorDia);
+                    if (ranks.length > 0) {
+                        const min = Math.min(...ranks);
+                        const max = Math.max(...ranks);
+                        i.rangoOrdenDiario = (min === max) ? `${min}º` : `${min}º - ${max}º`;
+                        i.peorOrden = max; 
+                    } else {
+                        i.rangoOrdenDiario = '-';
+                        i.peorOrden = 0;
+                    }
+                });
+
+                const hoy = new Date();
+                items.forEach(i => {
+                    if(i.fSolicitud) {
+                        const diff = Math.ceil((hoy - new Date(i.fSolicitud)) / (86400000));
+                        if(i.estadoManual === 'Pendiente') {
+                            i.diasTranscurridos = diff;
+                            if(diff > 9) i.alertas.push("Fuera de plazo (>9d)");
+                            else if(diff >= 6) i.alertas.push("Riesgo plazo");
+                        } else {
+                            i.diasTranscurridos = null; 
+                        }
+                    }
+                    if(i.estadoManual !== 'Denegada') {
+                        const k = i.nombre.toLowerCase();
+                        const usados = diasPersona[k] || 0;
+                        const nuevos = 1; 
+                        if((usados + nuevos) > this.config.maxDiasPersona) {
+                            i.alertas.push(`Excede anuales (${usados + nuevos}/${this.config.maxDiasPersona})`);
+                        }
+                        diasPersona[k] = usados + nuevos;
+                    }
+                });
+                return items;
+            }
+
+            compararNombres(nA, nB) {
+                const parse = (n) => {
+                    const p = n.split(',');
+                    const ap = p[0] ? p[0].trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : '';
+                    const nom = p[1] ? p[1].trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : '';
+                    const letra = ap.charAt(0);
+                    const corte = this.config.letraSorteo;
+                    const peso = (letra >= corte) ? 1 : 2; 
+                    return `${peso}-${ap}-${nom}`;
+                };
+                return parse(nA).localeCompare(parse(nB));
+            }
+
+            // --- GESTIÓN TABLA ---
+            ordenar(columna) {
+                if(this.estadoVista.sortCol === columna) {
+                    this.estadoVista.sortAsc = !this.estadoVista.sortAsc;
+                } else {
+                    this.estadoVista.sortCol = columna;
+                    this.estadoVista.sortAsc = true;
+                }
+                this.renderizarTabla();
+            }
+
+            toggleEstado(idString) {
+                const item = this.datos.find(d => String(d.id) === String(idString));
+                if(item) {
+                    const ciclo = { 'Pendiente': 'Aprobada', 'Aprobada': 'Denegada', 'Denegada': 'Pendiente' };
+                    item.estadoManual = ciclo[item.estadoManual] || 'Pendiente';
+                    this.guardar();
+                }
+            }
+            
+            eliminarFila(idString) {
+                if(confirm("¿Eliminar esta solicitud?")) {
+                    this.datos = this.datos.filter(d => String(d.id) !== String(idString));
+                    this.guardar();
+                }
+            }
+
+            renderizarUI() {
+                if(this.estadoVista.tab === 'gestion') this.renderizarTabla();
+                if(this.estadoVista.tab === 'calendario') this.renderizarCalendario();
+                if(this.estadoVista.tab === 'estadistica') this.renderizarEstadisticas();
+                if(this.estadoVista.tab === 'informe') this.renderizarInformeJE();
+            }
+
+            renderizarTabla() {
+                let items = this.analizar();
+                const search = $('searchInput').value.toLowerCase();
+                if(search) items = items.filter(i => i.nombre.toLowerCase().includes(search));
+                const col = this.estadoVista.sortCol;
+                const asc = this.estadoVista.sortAsc ? 1 : -1;
+                items.sort((a,b) => {
+                    let vA = a[col] || ''; let vB = b[col] || '';
+                    if(col === 'rangoOrdenDiario') { vA = a.peorOrden || 0; vB = b.peorOrden || 0; }
+                    else if (col === 'diasTranscurridos') {
+                        vA = (a[col] === null || a[col] === undefined) ? -999 : a[col];
+                        vB = (b[col] === null || b[col] === undefined) ? -999 : b[col];
+                    }
+                    else if(col === 'fSolicitud' || col === 'fInicio') {
+                        vA = vA ? new Date(vA).getTime() : 0;
+                        vB = vB ? new Date(vB).getTime() : 0;
+                    }
+                    if (vA < vB) return -1 * asc; if (vA > vB) return 1 * asc; return 0;
+                });
+
+                const tbody = $('tablaCuerpo');
+                tbody.innerHTML = '';
+                items.forEach(item => {
+                    const tr = document.createElement('tr');
+                    let bg = 'bg-white hover:bg-gray-50';
+                    let border = 'border-l-4 border-l-gray-300'; 
+                    let textClass = 'text-gray-900';
+                    if (item.estadoManual === 'Aprobada') { bg = 'bg-green-50 hover:bg-green-100'; border = 'border-l-4 border-l-green-500'; }
+                    if (item.estadoManual === 'Denegada') { bg = 'bg-red-50 hover:bg-red-100'; border = 'border-l-4 border-l-red-500'; textClass = 'text-gray-500 italic'; }
+                    if (item.estadoManual === 'Pendiente' && item.alertas.length > 0) { bg = 'bg-yellow-50 hover:bg-yellow-100'; border = 'border-l-4 border-l-orange-400'; }
+                    tr.className = `transition-colors border-b border-gray-100 ${bg} ${border}`;
+                    let btnColor = 'gray'; let btnIcon = 'clock';
+                    if(item.estadoManual === 'Aprobada') { btnColor = 'green'; btnIcon = 'check-circle'; }
+                    if(item.estadoManual === 'Denegada') { btnColor = 'red'; btnIcon = 'x-circle'; }
+                    const fmt = (d) => d ? new Date(d).toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit', year:'2-digit'}) : '-';
+                    const alertasHtml = item.alertas.map(a => `<span class="inline-block px-1.5 py-0.5 text-xs rounded bg-orange-100 text-orange-800 mr-1 mb-1">${a}</span>`).join('');
+                    let ordenStyle = "font-bold text-gray-700 bg-gray-100 rounded px-2 py-1";
+                    if(item.peorOrden > 5) ordenStyle = "font-bold text-red-700 bg-red-100 rounded px-2 py-1";
+                    tr.innerHTML = `
+                        <td class="px-4 py-3 text-center"><span class="${ordenStyle} text-xs">${item.rangoOrdenDiario}</span></td>
+                        <td class="px-4 py-3"><button onclick="app.toggleEstado('${item.id}')" class="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-${btnColor}-100 text-${btnColor}-700 hover:bg-${btnColor}-200 transition"><i data-lucide="${btnIcon}" class="w-3 h-3"></i> ${item.estadoManual}</button></td>
+                        <td class="px-4 py-3 font-medium ${textClass}">${item.nombre}</td>
+                        <td class="px-4 py-3 text-center text-xs text-gray-500">${fmt(item.fSolicitud)}</td>
+                        <td class="px-4 py-3 text-center font-bold text-gray-700">${fmt(item.fInicio)}</td>
+                        <td class="px-4 py-3 text-center">1</td>
+                        <td class="px-4 py-3 text-center"><span class="${item.diasTranscurridos>9?'text-red-600 font-bold':''}">${item.diasTranscurridos||'-'}</span></td>
+                        <td class="px-4 py-3 text-xs">${alertasHtml}</td>
+                        <td class="px-4 py-3 text-right"><button onclick="app.eliminarFila('${item.id}')" class="text-gray-400 hover:text-red-500 bg-transparent p-1 rounded hover:bg-red-50 cursor-pointer z-10 relative"><i data-lucide="trash" class="w-4 h-4 pointer-events-none"></i></button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                lucide.createIcons();
+            }
+
+            renderizarEstadisticas() {
+                const tbody = $('tablaEstadistica');
+                tbody.innerHTML = '';
+                const stats = {};
+                this.datos.forEach(d => {
+                    if (!stats[d.nombre]) stats[d.nombre] = { nombre: d.nombre, aprobadas: 0, denegadas: 0, pendientes: 0, total: 0 };
+                    stats[d.nombre].total++;
+                    if (d.estadoManual === 'Aprobada') stats[d.nombre].aprobadas++;
+                    else if (d.estadoManual === 'Denegada') stats[d.nombre].denegadas++;
+                    else stats[d.nombre].pendientes++;
+                });
+                const lista = Object.values(stats).sort((a,b) => a.nombre.localeCompare(b.nombre));
+                lista.forEach(s => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-gray-50 border-b border-gray-100";
+                    const consumidos = s.aprobadas;
+                    let badgeColor = "bg-green-100 text-green-800";
+                    let estadoLimite = "OK";
+                    if (consumidos === 2) { badgeColor = "bg-yellow-100 text-yellow-800"; estadoLimite = "Límite Alcanzado"; }
+                    else if (consumidos > 2) { badgeColor = "bg-red-100 text-red-800"; estadoLimite = "EXCEDIDO"; }
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 font-medium text-gray-900">${s.nombre}</td>
+                        <td class="px-6 py-4 text-center"><span class="px-2 py-1 rounded-full text-xs font-bold ${badgeColor}">${consumidos} / 2</span></td>
+                        <td class="px-6 py-4 text-center text-gray-500">${s.pendientes}</td>
+                        <td class="px-6 py-4 text-center text-gray-400">${s.denegadas}</td>
+                        <td class="px-6 py-4 text-center font-medium">${s.total}</td>
+                        <td class="px-6 py-4 text-center text-xs font-bold ${consumidos>2 ? 'text-red-600' : 'text-gray-500'}">${estadoLimite}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            renderizarInformeJE() {
+                const startStr = $('infDateStart').value; const endStr = $('infDateEnd').value;
+                if (!startStr || !endStr) return;
+                this.estadoVista.infStart = startStr; this.estadoVista.infEnd = endStr;
+                const start = new Date(startStr); start.setHours(0,0,0,0);
+                const end = new Date(endStr); end.setHours(0,0,0,0);
+                $('infRangoTexto').innerText = `Periodo: ${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+                
+                const historiaProfesor = {}; 
+                const aprobadas = this.datos.filter(d => d.estadoManual === 'Aprobada');
+                aprobadas.sort((a,b) => new Date(a.fInicio) - new Date(b.fInicio));
+                aprobadas.forEach(item => {
+                    if (!historiaProfesor[item.nombre]) historiaProfesor[item.nombre] = 0;
+                    historiaProfesor[item.nombre]++;
+                    item._acumuladoTemp = historiaProfesor[item.nombre];
+                });
+                const itemsEnRango = aprobadas.filter(item => {
+                    const d = new Date(item.fInicio); d.setHours(0,0,0,0);
+                    return d >= start && d <= end;
+                });
+                itemsEnRango.sort((a,b) => {
+                    const da = new Date(a.fInicio); const db = new Date(b.fInicio);
+                    if (da - db !== 0) return da - db;
+                    return a.nombre.localeCompare(b.nombre);
+                });
+                const tbody = $('tablaInforme');
+                tbody.innerHTML = '';
+                if (itemsEnRango.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">No hay permisos aprobados en este periodo.</td></tr>'; return; }
+                itemsEnRango.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-gray-50 border-b border-gray-100";
+                    const fmt = d => new Date(d).toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit', year:'2-digit'});
+                    tr.innerHTML = `<td class="px-6 py-4 font-mono text-gray-600">${fmt(item.fInicio)}</td><td class="px-6 py-4 font-medium text-gray-900">${item.nombre}</td><td class="px-6 py-4 text-center"><span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-bold text-sm">${item._acumuladoTemp}º</span></td>`;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            enviarCorreoJE() {
+                const startStr = $('infDateStart').value; const endStr = $('infDateEnd').value;
+                if(!startStr || !endStr) return;
+                const start = new Date(startStr).toLocaleDateString('es-ES');
+                const end = new Date(endStr).toLocaleDateString('es-ES');
+                const subject = `Días de permiso concedidos entre ${start} y ${end}`;
+                let body = `INFORME DE PERMISOS APROBADOS\nPeriodo: ${start} - ${end}\n\n`;
+                const rows = document.querySelectorAll('#tablaInforme tr');
+                if (rows.length === 0 || (rows.length === 1 && rows[0].innerText.includes('No hay permisos'))) { body += "No hay permisos aprobados en este periodo."; } else {
+                    rows.forEach(row => { const cells = row.querySelectorAll('td'); if (cells.length === 3) { body += `- ${cells[0].innerText.trim()}: ${cells[1].innerText.trim()} (Día acumulado: ${cells[2].innerText.trim()})\n`; } });
+                }
+                window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            }
+
+            // --- CALENDARIO ---
+            calNavegar(dir) {
+                const vista = this.estadoVista.calVista;
+                const date = this.estadoVista.calFecha;
+                if(vista === 'mes') date.setMonth(date.getMonth() + dir);
+                if(vista === 'trimestre') date.setMonth(date.getMonth() + (dir * 3));
+                if(vista === 'anio') date.setFullYear(date.getFullYear() + dir);
+                this.renderizarCalendario();
+            }
+
+            calCambiarVista(v) {
+                this.estadoVista.calVista = v;
+                ['mes','trimestre','anio'].forEach(tipo => {
+                    const btn = $(`view-${tipo}`);
+                    btn.className = (tipo === v) ? "px-3 py-1 bg-white shadow rounded text-gray-800 font-bold" : "px-3 py-1 text-gray-500 hover:text-gray-900";
+                });
+                this.renderizarCalendario();
+            }
+
+            // --- MODAL DETALLES ---
+            verDetallesDia(fechaStr) {
+                const sols = this.datos.filter(d => d.fInicio && d.fInicio.startsWith(fechaStr));
+                if (sols.length === 0) return;
+
+                const fechaFmt = new Date(fechaStr).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                $('modalTitulo').innerText = fechaFmt.charAt(0).toUpperCase() + fechaFmt.slice(1);
+                
+                let html = '';
+                // Ordenar por prioridad (aprobadas primero, luego pendientes por orden lista)
+                sols.sort((a,b) => {
+                    if (a.estadoManual === 'Aprobada' && b.estadoManual !== 'Aprobada') return -1;
+                    if (a.estadoManual !== 'Aprobada' && b.estadoManual === 'Aprobada') return 1;
+                    return a.nombre.localeCompare(b.nombre);
+                });
+
+                sols.forEach(s => {
+                    let color = 'text-gray-600';
+                    let bg = 'bg-gray-50';
+                    let icon = 'circle';
+                    let estado = s.estadoManual;
+
+                    if(s.estadoManual === 'Aprobada') { 
+                        color = 'text-green-700'; 
+                        bg = 'bg-green-50 border-green-200';
+                        icon = 'check-circle'; 
+                    }
+                    if(s.estadoManual === 'Denegada') { 
+                        color = 'text-red-700'; 
+                        bg = 'bg-red-50 border-red-200';
+                        icon = 'x-circle'; 
+                    }
+                    if(s.estadoManual === 'Pendiente') { 
+                        color = 'text-yellow-700'; 
+                        bg = 'bg-yellow-50 border-yellow-200';
+                        icon = 'clock'; 
+                    }
+
+                    html += `
+                        <div class="flex items-center justify-between p-3 border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                            <span class="font-medium text-gray-800">${s.nombre}</span>
+                            <div class="flex items-center gap-2 px-2 py-1 rounded-full border ${bg}">
+                                <span class="text-xs font-bold ${color}">${estado}</span>
+                                <i data-lucide="${icon}" class="w-3 h-3 ${color}"></i>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                $('modalContenido').innerHTML = html;
+                $('modalDetalles').classList.remove('hidden');
+                lucide.createIcons();
+            }
+
+            renderizarCalendario() {
+                const container = $('calContainer');
+                container.innerHTML = '';
+                const items = this.analizar();
+                const vista = this.estadoVista.calVista;
+                let start = new Date(this.estadoVista.calFecha);
+                
+                let mesesAMostrar = 1;
+                if(vista === 'trimestre') mesesAMostrar = 3;
+                if(vista === 'anio') mesesAMostrar = 12;
+
+                const opcionesFecha = { month: 'long', year: 'numeric' };
+                $('calTitulo').innerText = start.toLocaleDateString('es-ES', opcionesFecha).toUpperCase();
+                if(vista !== 'mes') {
+                    const end = new Date(start);
+                    end.setMonth(end.getMonth() + mesesAMostrar - 1);
+                    $('calTitulo').innerText = `${start.getFullYear()} | ${start.toLocaleDateString('es-ES',{month:'short'})} - ${end.toLocaleDateString('es-ES',{month:'short'})}`;
+                }
+
+                let gridClass = 'grid-cols-1';
+                if(vista === 'trimestre') gridClass = 'md:grid-cols-3';
+                if(vista === 'anio') gridClass = 'md:grid-cols-3 lg:grid-cols-4';
+
+                const wrapper = document.createElement('div');
+                wrapper.className = `grid ${gridClass} gap-6`;
+
+                for(let i=0; i<mesesAMostrar; i++) {
+                    const mesDate = new Date(start.getFullYear(), start.getMonth() + i, 1);
+                    const card = this.crearMesHTML(mesDate, items);
+                    wrapper.appendChild(card);
+                }
+                container.appendChild(wrapper);
+            }
+
+            crearMesHTML(fecha, items) {
+                const year = fecha.getFullYear();
+                const month = fecha.getMonth();
+                const diasEnMes = new Date(year, month + 1, 0).getDate();
+                const primerDiaSemana = new Date(year, month, 1).getDay();
+                let offset = primerDiaSemana === 0 ? 6 : primerDiaSemana - 1;
+
+                const mapaDias = {};
+                for(let d=1; d<=diasEnMes; d++) {
+                    const key = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    // Buscar solicitudes para este dia (usando la key YYYY-MM-DD)
+                    // Como items.fInicio ya viene parseado en ISO (pero completo), 
+                    // filtramos los que empiecen por esa fecha (o sea ese dia exacto)
+                    const sols = items.filter(i => i.fInicio && i.fInicio.startsWith(key));
+                    
+                    mapaDias[d] = {
+                        key: key,
+                        total: sols.length,
+                        aprobadas: sols.filter(s => s.estadoManual === 'Aprobada').length,
+                        denegadas: sols.filter(s => s.estadoManual === 'Denegada').length,
+                        pendientes: sols.filter(s => s.estadoManual === 'Pendiente').length
+                    };
+                }
+
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-lg shadow border border-gray-200";
+                
+                let html = `<h4 class="font-bold text-center mb-2 text-education-800 capitalize">${fecha.toLocaleDateString('es-ES', {month:'long'})}</h4>`;
+                html += `<div class="grid grid-cols-7 text-xs text-gray-400 text-center mb-1">
+                    <span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span>
+                </div>`;
+                html += `<div class="grid grid-cols-7 gap-1 text-sm">`;
+
+                for(let j=0; j<offset; j++) html += `<div></div>`;
+
+                for(let d=1; d<=diasEnMes; d++) {
+                    const data = mapaDias[d];
+                    let styles = "h-14 flex flex-col items-center justify-start pt-1 rounded border border-gray-100 relative transition-colors";
+                    let clickAction = "";
+                    
+                    const activeRequests = data.total - data.denegadas;
+                    if(activeRequests > 5) {
+                        styles += " border-2 border-red-500 shadow-sm bg-red-50";
+                    }
+
+                    // Si hay datos, hacemos la celda interactiva
+                    if (data.total > 0) {
+                        styles += " cursor-pointer hover:bg-blue-50 hover:border-blue-300";
+                        clickAction = `onclick="app.verDetallesDia('${data.key}')"`;
+                    }
+
+                    let dots = '';
+                    if(data.aprobadas > 0) dots += `<div class="w-1.5 h-1.5 rounded-full bg-green-500"></div>`;
+                    if(data.pendientes > 0) dots += `<div class="w-1.5 h-1.5 rounded-full bg-gray-400"></div>`;
+                    if(data.denegadas > 0 && data.aprobadas === 0 && data.pendientes === 0) dots += `<div class="w-1.5 h-1.5 rounded-full bg-red-200"></div>`; // Solo mostrar rojo si no hay nada más
+                    
+                    html += `<div class="${styles}" ${clickAction}>
+                        <span class="text-xs font-semibold text-gray-700">${d}</span>
+                        <div class="flex gap-0.5 mt-1">${dots}</div>
+                        ${data.total > 0 ? `<span class="text-[10px] text-gray-500 mt-auto mb-1">${activeRequests}/5</span>` : ''}
+                    </div>`;
+                }
+
+                html += `</div>`;
+                card.innerHTML = html;
+                return card;
+            }
+        }
+
+        const app = new AppGestor();
+    </script>
+</body>
+</html>

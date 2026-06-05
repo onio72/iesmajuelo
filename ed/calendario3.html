@@ -1,0 +1,504 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Calendario Escolar - IES El Majuelo (Gines)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body{font-family:'Inter',sans-serif;background:#f3f4f6}
+  .calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+  .day{position:relative;transition:.2s;border-radius:9999px;height:2.5rem;display:flex;align-items:center;justify-content:center}
+  .day-header{font-weight:600;font-size:.875rem}
+  .day-number{font-size:.875rem;position:relative;z-index:5}
+  .day.has-event:hover .tooltip{visibility:visible;opacity:1}
+  .tooltip{visibility:hidden;opacity:0;position:absolute;bottom:110%;left:50%;transform:translateX(-50%);width:max-content;max-width:220px;background:#1f2937;color:#fff;border-radius:6px;padding:8px;z-index:10;font-size:.75rem;transition:opacity .2s}
+  .tooltip::after{content:"";position:absolute;top:100%;left:50%;margin-left:-5px;border-width:5px;border-style:solid;border-color:#1f2937 transparent transparent transparent}
+  .filter-btn{transition:.2s;border:2px solid transparent}
+  .filter-btn.active{box-shadow:0 0 0 2px white,0 0 0 4px #4f46e5;transform:translateY(-2px)}
+  .view-btn{transition:.15s}
+  .view-btn.active{background:#111827;color:#fff}
+  .nav-btn:disabled{opacity:.4;cursor:not-allowed}
+  @media print{
+    header,footer,#filter-buttons,.actions,#view-switch,#nav-bar{display:none!important}
+    main{padding:0;margin:0}
+    .grid{grid-template-columns:1fr!important}
+    body{background:#fff}
+    .bg-white{box-shadow:none!important}
+  }
+</style>
+</head>
+<body class="antialiased text-gray-800">
+<header class="bg-white shadow-md">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight text-gray-900">Calendario escolar IES El Majuelo</h1>
+      <p class="mt-1 text-lg text-gray-600">Gines (Sevilla)</p>
+    </div>
+    <div class="flex items-center gap-2 actions">
+      <button id="todayBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg shadow-sm">Hoy</button>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+  <!-- Conmutador de vista -->
+  <div id="view-switch" class="px-4 sm:px-0 mb-3">
+    <div class="inline-flex rounded-lg overflow-hidden shadow-sm border border-gray-200">
+      <button id="view-month" class="view-btn px-4 py-2 bg-white hover:bg-gray-50 text-gray-800 font-medium">Mes</button>
+      <button id="view-term"  class="view-btn px-4 py-2 bg-white hover:bg-gray-50 text-gray-800 font-medium border-l border-gray-200">Trimestre</button>
+      <button id="view-year"  class="view-btn px-4 py-2 bg-white hover:bg-gray-50 text-gray-800 font-medium border-l border-gray-200">Curso completo</button>
+    </div>
+  </div>
+
+  <!-- Barra de navegación -->
+  <div id="nav-bar" class="px-4 sm:px-0 mb-6 flex items-center justify-between gap-3">
+    <button id="prevBtn" class="nav-btn bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 font-medium px-3 py-2 rounded-lg shadow-sm">◀ Anterior</button>
+    <div id="view-label" class="text-lg font-semibold text-gray-900 text-center flex-1"></div>
+    <button id="nextBtn" class="nav-btn bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 font-medium px-3 py-2 rounded-lg shadow-sm">Siguiente ▶</button>
+  </div>
+
+  <div class="px-4 sm:px-0 mb-8">
+    <h3 class="text-lg font-semibold mb-3">Filtrar por categoría</h3>
+    <div id="filter-buttons" class="flex flex-wrap gap-2"></div>
+    <div class="mt-3 actions flex flex-wrap gap-2 items-center">
+      <button id="exportJson" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">📥 Exportar JSON</button>
+      <button id="exportIcsBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg">🗓️ Exportar iCal (.ics)</button>
+    </div>
+  </div>
+
+  <div id="calendars-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+</main>
+
+<footer class="bg-white mt-12">
+  <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
+    <p>Información referencial. Comprueba siempre en el documento oficial de la Delegación.</p>
+  </div>
+</footer>
+
+<script id="eventsData" type="application/json"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  // --- Config base del curso (editable): 2025-26 como referencia ---
+  const BASE_START_YEAR = 2025; // curso BASE_START_YEAR-09 a (BASE_START_YEAR+1)-08
+  const monthNames = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  const dayNames   = ["L","M","X","J","V","S","D"];
+
+  // ---- Tipos y colores ----
+  const eventTypes = {
+    'festivo':              { name: 'Festivo Nacional/Autonómico', color: '#fecaca' },
+    'festivo-local':        { name: 'Festivo Local',                color: '#fed7aa' },
+    'no-lectivo':           { name: 'Día no lectivo',               color: '#93c5fd' },
+    'libre-designacion':    { name: 'Día de libre designación',     color: '#67e8f9' },
+    'vacaciones':           { name: 'Vacaciones',                   color: '#86efac' },
+    'inicio-fin':           { name: 'Inicio / Fin de clases',       color: '#fcd34d' },
+    'evaluacion':           { name: 'Evaluaciones',                 color: '#c4b5fd' },
+    'claustro':             { name: 'Claustro',                     color: '#f9a8d4' },
+    'asuntos-propios':      { name: 'Asuntos propios',              color: '#cbd5e1' },
+    'reuniones-familias':   { name: 'Reuniones familias',           color: '#a5b4fc' },
+    'consejo-escolar':      { name: 'Consejo Escolar',              color: '#6ee7b7' },
+    'evaluaciones-iniciales': { name: 'Evaluaciones iniciales',     color: '#f0abfc' }
+  };
+  const PALETTE = [
+    '#fecaca','#fed7aa','#fde68a','#bef264','#86efac','#6ee7b7','#5eead4','#67e8f9',
+    '#93c5fd','#a5b4fc','#c4b5fd','#d8b4fe','#f0abfc','#f9a8d4','#fda4af','#fca5a5',
+    '#fcd34d','#60a5fa','#34d399','#22d3ee','#eab308','#bbf7d0','#99f6e4','#bae6fd'
+  ];
+  const labelFor = (type)=> type.replace(/[-_]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+  const hashCode = (s)=>{let h=0;for(let i=0;i<s.length;i++)h=(h<<5)-h+s.charCodeAt(i)|0;return Math.abs(h);};
+  const colorFor = (type)=> PALETTE[ hashCode(type) % PALETTE.length ];
+
+  // ---- Refs UI ----
+  const calendarsContainer = document.getElementById('calendars-container');
+  const filterContainer = document.getElementById('filter-buttons');
+  const viewMonthBtn = document.getElementById('view-month');
+  const viewTermBtn  = document.getElementById('view-term');
+  const viewYearBtn  = document.getElementById('view-year');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const viewLabel = document.getElementById('view-label');
+
+  // ---- Estado persistente ----
+  const filtersKey = 'activeFiltersV5';
+  const viewKey    = 'calendarViewV2'; // 'month' | 'term' | 'year'
+  const stateKey   = 'calendarStateV2'; // {anchorISO, termIndex, courseOffset}
+  let events = {};
+  let activeFilters = null;
+  let viewMode = 'month';
+  let anchorDate = null;   // fecha mes ancla
+  let termIndex = 0;       // 0..2
+  let courseOffset = 0;    // 0 => BASE_START_YEAR, -1 => curso anterior, +1 => siguiente
+
+  // ---- Fechas de curso dinámicas (dep. de courseOffset) ----
+  const courseStart = ()=> new Date(BASE_START_YEAR+courseOffset, 8, 1);       // 1 Sep Y
+  const courseEnd   = ()=> new Date(BASE_START_YEAR+1+courseOffset, 7, 31);    // 31 Ago Y+1
+  const inCourse    = (d)=> d>=courseStart() && d<=courseEnd();
+  const clampToCourse = (d)=> d<courseStart()? courseStart(): d>courseEnd()? courseEnd(): d;
+
+  // Trimestres dinámicos
+  const getTerms = ()=>{
+    const y0 = (BASE_START_YEAR+courseOffset);
+    return [
+      { name:'Trimestre 1', months:[{y:y0,m:8},{y:y0,m:9},{y:y0,m:10},{y:y0,m:11}], label:`Sep–Dic ${y0}` },
+      { name:'Trimestre 2', months:[{y:y0+1,m:0},{y:y0+1,m:1},{y:y0+1,m:2}],       label:`Ene–Mar ${y0+1}` },
+      { name:'Trimestre 3', months:[{y:y0+1,m:3},{y:y0+1,m:4},{y:y0+1,m:5}],       label:`Abr–Jun ${y0+1}` }
+    ];
+  };
+
+  // ---- Utilidades ----
+  function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+  function addMonths(d, n){ return new Date(d.getFullYear(), d.getMonth()+n, 1); }
+  function sameYM(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth(); }
+  function formatCourseShort(){
+    const y0 = BASE_START_YEAR+courseOffset, y1 = y0+1;
+    return `Curso ${y0}–${String(y1).slice(-2)}`;
+  }
+
+  // ---- Carga events ----
+  async function loadEvents() {
+    try {
+      const res = await fetch('events.json?_=' + Date.now());
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return await res.json();
+    } catch (e) {
+      const tag = document.getElementById('eventsData');
+      if (tag?.textContent?.trim()) { try { return JSON.parse(tag.textContent); } catch{} }
+      const ls = localStorage.getItem('cal_events_json');
+      if (ls) { try { return JSON.parse(ls); } catch{} }
+      console.warn('No se pudo cargar events.json.');
+      return {};
+    }
+  }
+
+  // ---- Tipos dinámicos ----
+  function registerDynamicTypesFromEvents() {
+    const existing = new Set(Object.keys(eventTypes));
+    const typesInData = new Set();
+    Object.values(events).forEach(arr => (arr||[]).forEach(ev => typesInData.add(ev.type)));
+    let added = false;
+    typesInData.forEach(t=>{
+      if (!existing.has(t) && t) {
+        eventTypes[t] = { name: labelFor(t), color: colorFor(t) };
+        if (activeFilters) activeFilters.add(t);
+        added = true;
+      }
+    });
+    if (added && activeFilters) saveFilters();
+    return added;
+  }
+
+  // ---- Filtros ----
+  function generateFilterButtons() {
+    filterContainer.innerHTML = '';
+    const controls = document.createElement('div');
+    controls.className = 'flex flex-wrap gap-2 mb-4 w-full';
+
+    const showAll = document.createElement('button');
+    showAll.textContent = 'Mostrar Todo';
+    showAll.className = 'filter-btn font-semibold py-2 px-4 rounded-full bg-indigo-500 text-white shadow-md';
+    showAll.addEventListener('click', () => {
+      Object.keys(eventTypes).forEach(k => activeFilters.add(k));
+      updateButtonStates(); renderByView(); saveFilters();
+    });
+    controls.appendChild(showAll);
+
+    const clear = document.createElement('button');
+    clear.textContent = 'Limpiar';
+    clear.className = 'filter-btn font-semibold py-2 px-4 rounded-full bg-gray-500 text-white shadow-md';
+    clear.addEventListener('click', () => {
+      activeFilters.clear(); updateButtonStates(); renderByView(); saveFilters();
+    });
+    controls.appendChild(clear);
+
+    filterContainer.appendChild(controls);
+
+    const cats = document.createElement('div');
+    cats.className = 'flex flex-wrap gap-2';
+    for (const type in eventTypes) {
+      const btn = document.createElement('button');
+      btn.textContent = eventTypes[type].name;
+      btn.className = 'filter-btn font-semibold py-2 px-4 rounded-full text-gray-800 shadow-md';
+      btn.dataset.filter = type;
+      btn.style.backgroundColor = eventTypes[type].color;
+      btn.addEventListener('click', () => {
+        if (activeFilters.has(type)) activeFilters.delete(type); else activeFilters.add(type);
+        updateButtonStates(); renderByView(); saveFilters();
+      });
+      cats.appendChild(btn);
+    }
+    filterContainer.appendChild(cats);
+    updateButtonStates();
+  }
+  function updateButtonStates(){ filterContainer.querySelectorAll('[data-filter]').forEach(btn=>btn.classList.toggle('active', activeFilters.has(btn.dataset.filter))); }
+  function saveFilters(){ localStorage.setItem(filtersKey, JSON.stringify([...activeFilters])); }
+
+  // ---- Meses a mostrar según vista ----
+  function monthsForCurrentView(){
+    // Seguridad: si no hay etiqueta, no rompemos
+    const setLabel = (txt)=>{ if(viewLabel) viewLabel.textContent = txt; };
+
+    if (viewMode==='year'){
+      const arr=[];
+      const y0 = BASE_START_YEAR+courseOffset;
+      // Sep (8) .. Dic (11) del año de inicio
+      for (let m=8; m<=11; m++) arr.push({year:y0, month:m});
+      // Ene (0) .. Ago (7) del año siguiente
+      for (let m=0; m<=7; m++) arr.push({year:y0+1, month:m});
+      setLabel(`${formatCourseShort()} · Sep ${y0} – Ago ${y0+1}`);
+      prevBtn.disabled = false; nextBtn.disabled = false; // navegación de cursos
+      return arr;
+    }
+
+    if (viewMode==='term'){
+      const TERMS = getTerms();
+      const t = TERMS[termIndex] || TERMS[0];
+      setLabel(`${t.name} · ${t.label}`);
+      prevBtn.disabled = (termIndex===0);
+      nextBtn.disabled = (termIndex===TERMS.length-1);
+      return t.months.map(({y,m})=>({year:y, month:m}));
+    }
+
+    // viewMode==='month'
+    const d = anchorDate || startOfMonth(clampToCourse(new Date()));
+    const y = d.getFullYear(), m = d.getMonth();
+    setLabel(`${monthNames[m]} ${y}`);
+    prevBtn.disabled = sameYM(startOfMonth(d), startOfMonth(courseStart()));
+    nextBtn.disabled = sameYM(startOfMonth(d), startOfMonth(new Date(courseEnd().getFullYear(), courseEnd().getMonth(), 1)));
+    return [{year:y, month:m}];
+  }
+
+  // ---- Render ----
+  function renderByView(){
+    try{
+      document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));
+      if (viewMode==='month') viewMonthBtn?.classList.add('active');
+      if (viewMode==='term')  viewTermBtn?.classList.add('active');
+      if (viewMode==='year')  viewYearBtn?.classList.add('active');
+
+      calendarsContainer.innerHTML = '';
+      const months = monthsForCurrentView();
+      // si por algún motivo meses está vacío, forzamos mes actual
+      if (!months || months.length===0){
+        viewMode='month';
+        anchorDate = startOfMonth(clampToCourse(new Date()));
+        calendarsContainer.className = 'grid grid-cols-1 gap-8';
+        calendarsContainer.appendChild(generateCalendar(anchorDate.getFullYear(), anchorDate.getMonth()));
+        highlightToday();
+        return;
+      }
+
+      calendarsContainer.className = 'grid gap-8 ' + (viewMode==='month' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3');
+
+      months.forEach(({year, month})=>{
+        calendarsContainer.appendChild(generateCalendar(year, month));
+      });
+      highlightToday();
+      if (viewMode==='month'){
+        const firstCard = calendarsContainer.querySelector('.bg-white');
+        if (firstCard) firstCard.scrollIntoView({behavior:'smooth', block:'start'});
+      }
+    }catch(err){
+      console.error('Render error:', err);
+      calendarsContainer.innerHTML = '<div class="text-red-700 bg-red-50 border border-red-200 p-4 rounded-lg">Se produjo un error al dibujar el calendario.</div>';
+    }
+  }
+
+  function generateCalendar(year, month) {
+    const monthDiv = document.createElement('div');
+    monthDiv.className = 'bg-white p-4 rounded-lg shadow-md';
+
+    const header = `<h3 class="text-xl font-semibold mb-4 text-center">${monthNames[month]} ${year}</h3>`;
+    const dayHeaders = `<div class="calendar-grid mb-2">${dayNames.map(d => `<div class="text-center day-header text-gray-500">${d}</div>`).join('')}</div>`;
+    monthDiv.innerHTML = header + dayHeaders;
+
+    const grid = document.createElement('div'); grid.className = 'calendar-grid';
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    let startingDay = firstDay.getDay(); if (startingDay === 0) startingDay = 7;
+
+    for (let i = 1; i < startingDay; i++) grid.appendChild(document.createElement('div'));
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const cell = document.createElement('div'); cell.className = 'day';
+      const date = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const dayEvents = events[date] || [];
+      const filtered = dayEvents.filter(e => activeFilters.has(e.type));
+
+      if (filtered.length > 0) {
+        cell.classList.add('has-event','cursor-pointer');
+        const colors = filtered.map(e => eventTypes[e.type]?.color || '#ddd');
+        if (colors.length === 1) {
+          cell.style.backgroundColor = colors[0];
+        } else {
+          const part = 100 / colors.length;
+          cell.style.background = `linear-gradient(135deg, ${colors.map((c,i)=>`${c} ${i*part}%, ${c} ${(i+1)*part}%`).join(', ')})`;
+        }
+        const tooltipContent = filtered.map(e => `• ${e.description}`).join('<br>');
+        cell.innerHTML = `<span class="day-number">${day}</span><div class="tooltip">${tooltipContent}</div>`;
+      } else {
+        cell.innerHTML = `<span class="day-number">${day}</span>`;
+      }
+
+      cell.setAttribute('tabindex','0'); cell.setAttribute('role','button');
+      cell.addEventListener('click', ()=> {
+        const tip = cell.querySelector('.tooltip'); if(!tip) return;
+        const visible = getComputedStyle(tip).visibility === 'visible';
+        tip.style.visibility = visible ? 'hidden' : 'visible';
+        tip.style.opacity = visible ? '0' : '1';
+      });
+      cell.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' ') cell.click(); });
+
+      grid.appendChild(cell);
+      setContrast(cell);
+    }
+    monthDiv.appendChild(grid);
+    return monthDiv;
+  }
+
+  function setContrast(cell){
+    const num = cell.querySelector('.day-number'); if(!num) return;
+    const bg = getComputedStyle(cell).backgroundColor; const m = bg && bg.match(/\d+/g);
+    if (!m) { num.classList.remove('text-white'); return; }
+    const [r,g,b]=m.map(Number); const lum=0.299*r+0.587*g+0.114*b;
+    num.classList.toggle('text-white', lum<140);
+  }
+
+  function highlightToday(){
+    const now = new Date(); const y=now.getFullYear(), m=now.getMonth()+1, d=now.getDate();
+    calendarsContainer.querySelectorAll('.bg-white').forEach(card=>{
+      if(card.textContent.includes(String(y)) && card.textContent.includes(monthNames[m-1])){
+        card.querySelectorAll('.day').forEach(cell=>{
+          const num=cell.querySelector('.day-number'); if(!num) return;
+          if (num.textContent===String(d)){ cell.style.outline='2px solid #4f46e5'; cell.style.outlineOffset='2px'; }
+        });
+      }
+    });
+  }
+
+  // ---- Exportaciones ----
+  document.getElementById('exportJson').addEventListener('click', ()=>{
+    const blob=new Blob([JSON.stringify(events,null,2)],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download=`calendario_eventos_${new Date().toISOString().split('T')[0]}.json`; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),500);
+  });
+
+  document.getElementById('exportIcsBtn').addEventListener('click', ()=>{
+    const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//IES El Majuelo//Calendario Escolar//ES','CALSCALE:GREGORIAN','METHOD:PUBLISH'];
+    const entries=Object.entries(events).sort(([a],[b])=>a.localeCompare(b));
+    const stamp=new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+    for (const [date, arr] of entries){
+      for (const ev of arr){
+        const dt=date.replace(/-/g,'');
+        const uid=`${dt}-${(ev.description||'').slice(0,20).replace(/\s+/g,'_')}@ies-majuelo`;
+        const summary=(ev.description||'Evento').replace(/\r?\n/g,' ');
+        lines.push('BEGIN:VEVENT',`UID:${uid}`,`DTSTAMP:${stamp}`,`DTSTART;VALUE=DATE:${dt}`,`SUMMARY:${summary}`,`CATEGORIES:${ev.type||'evento'}`,'END:VEVENT');
+      }
+    }
+    lines.push('END:VCALENDAR');
+    const blob=new Blob([lines.join('\r\n')],{type:'text/calendar'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='calendario_escolar.ics'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),500);
+  });
+
+  // ---- Botones y navegación ----
+  document.getElementById('todayBtn').addEventListener('click', ()=>{
+    setView('month');
+    anchorDate = startOfMonth(clampToCourse(new Date()));
+    persistState(); renderByView(); window.scrollTo({top:0,behavior:'smooth'});
+  });
+
+  function persistState(){
+    const payload = {
+      anchorISO: anchorDate ? anchorDate.toISOString() : null,
+      termIndex, courseOffset
+    };
+    localStorage.setItem(stateKey, JSON.stringify(payload));
+  }
+
+  prevBtn.addEventListener('click', ()=>{
+    if (viewMode==='month'){
+      anchorDate = startOfMonth(clampToCourse(addMonths(anchorDate, -1)));
+    } else if (viewMode==='term'){
+      if (termIndex>0) termIndex -= 1;
+    } else if (viewMode==='year'){
+      courseOffset -= 1; // curso anterior
+      // ajustar anclas a nuevo curso
+      anchorDate = startOfMonth(clampToCourse(anchorDate || new Date()));
+      termIndex = 0;
+    }
+    persistState(); renderByView();
+  });
+
+  nextBtn.addEventListener('click', ()=>{
+    if (viewMode==='month'){
+      anchorDate = startOfMonth(clampToCourse(addMonths(anchorDate, 1)));
+    } else if (viewMode==='term'){
+      if (termIndex<2) termIndex += 1;
+    } else if (viewMode==='year'){
+      courseOffset += 1; // curso siguiente
+      anchorDate = startOfMonth(clampToCourse(anchorDate || new Date()));
+      termIndex = 0;
+    }
+    persistState(); renderByView();
+  });
+
+  window.addEventListener('keydown', (e)=>{
+    if (e.target && ['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+    if (e.key==='ArrowLeft' && !prevBtn.disabled) prevBtn.click();
+    if (e.key==='ArrowRight' && !nextBtn.disabled) nextBtn.click();
+  });
+
+  function setView(mode){
+    viewMode = mode;
+    localStorage.setItem(viewKey, mode);
+    if (mode==='month'){
+      anchorDate = startOfMonth(clampToCourse(anchorDate || new Date()));
+    } else if (mode==='term'){
+      // term actual según fecha ancla (si está dentro) o fecha actual
+      const ref = inCourse(new Date()) ? new Date() : courseStart();
+      const y = ref.getFullYear(), m = ref.getMonth();
+      if (m>=8 && m<=11 && y===courseStart().getFullYear()) termIndex = 0;
+      else if (m>=0 && m<=2 && y===courseEnd().getFullYear()) termIndex = 1;
+      else termIndex = 2;
+    }
+    persistState(); renderByView();
+  }
+  viewMonthBtn.addEventListener('click', ()=> setView('month'));
+  viewTermBtn .addEventListener('click', ()=> setView('term'));
+  viewYearBtn .addEventListener('click', ()=> setView('year'));
+
+  // ---- INIT ----
+  events = await loadEvents();
+
+  // Filtros
+  const saved = localStorage.getItem(filtersKey);
+  activeFilters = saved ? new Set(JSON.parse(saved)) : new Set(Object.keys(eventTypes));
+  registerDynamicTypesFromEvents();
+  generateFilterButtons();
+
+  // Estado guardado
+  const savedView = localStorage.getItem(viewKey);
+  if (savedView) viewMode = savedView;
+  try{
+    const savedState = JSON.parse(localStorage.getItem(stateKey) || '{}');
+    if (typeof savedState.courseOffset === 'number') courseOffset = savedState.courseOffset;
+    if (typeof savedState.termIndex === 'number') termIndex = Math.max(0, Math.min(2, savedState.termIndex|0));
+    if (savedState.anchorISO) anchorDate = startOfMonth(clampToCourse(new Date(savedState.anchorISO)));
+  }catch{}
+
+  // Defaults seguros
+  if (!anchorDate) anchorDate = startOfMonth(clampToCourse(new Date()));
+
+  // Render inicial
+  renderByView();
+});
+</script>
+</body>
+</html>

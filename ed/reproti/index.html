@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Itinerarios Educativos Andalucía - Simulador</title>
+    <style>
+        :root {
+            --primary: #00722a; /* Verde Andalucía */
+            --secondary: #2c3e50;
+            --accent: #2980b9;
+            --bg-canvas: #f4f7f6;
+            --panel-width: 320px;
+            --header-height: 60px;
+            --node-bg: #ffffff;
+            --text-color: #333;
+            --border-radius: 8px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-color);
+            background: var(--bg-canvas);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- LAYOUT --- */
+        header {
+            height: var(--header-height);
+            background: white;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        h1 { font-size: 1.2rem; margin: 0; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        
+        .tabs { display: flex; gap: 5px; }
+        .tab-btn {
+            background: none; border: none; padding: 10px 20px;
+            cursor: pointer; font-weight: 600; color: #666;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: var(--panel-width);
+            background: white;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            z-index: 5;
+            padding-bottom: 20px;
+        }
+
+        .sidebar-section { padding: 15px; border-bottom: 1px solid #eee; }
+        .sidebar-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 10px; font-weight: 700; }
+
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; font-size: 0.9rem; margin-bottom: 4px; }
+        
+        input[type="text"], input[type="number"], select {
+            width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;
+        }
+        
+        .checkbox-group { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .checkbox-group label { margin: 0; font-size: 0.9rem; cursor: pointer; }
+
+        button.btn-primary {
+            width: 100%; background: var(--primary); color: white; border: none;
+            padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer;
+            transition: background 0.2s;
+        }
+        button.btn-primary:hover { background: #005c20; }
+
+        button.btn-secondary {
+            background: #eee; color: #333; border: 1px solid #ccc;
+            padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;
+        }
+        button.btn-secondary:hover { background: #e0e0e0; }
+        
+        button.btn-outline {
+            background: white; color: var(--primary); border: 1px solid var(--primary);
+            padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-top: 5px; width: 100%;
+        }
+        button.btn-outline:hover { background: #f0fdf4; }
+
+        #simulation-results {
+            background: #f9f9f9; padding: 10px; border-radius: 4px; font-size: 0.85rem; margin-top: 10px;
+            border-left: 3px solid var(--accent);
+        }
+
+        /* --- CANVAS AREA --- */
+        #content-area { flex: 1; position: relative; background: var(--bg-canvas); overflow: hidden; }
+        
+        /* El contenedor transformable (Zoom/Pan) */
+        #graph-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            transform-origin: 0 0;
+            transition: transform 0.3s ease-out; 
+        }
+
+        /* --- NODES --- */
+        .node {
+            position: absolute;
+            min-width: 120px;
+            padding: 10px 15px;
+            background: var(--node-bg);
+            border: 2px solid #ccc;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            user-select: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 2;
+        }
+
+        .node:hover { border-color: var(--accent); z-index: 10; }
+        .node.active-source { border-color: var(--primary); background: #e8f5e9; transform: scale(1.05); z-index: 5; }
+        
+        /* Tipos de nodos */
+        .node[data-type="course"] { border-left: 5px solid #3498db; }
+        .node[data-type="program"] { border-left: 5px solid #e67e22; }
+        .node[data-type="outcome"] { border-left: 5px solid #9b59b6; background: #fdfdfd; }
+        .node[data-type="bach"] { border-left: 5px solid #e74c3c; }
+
+        /* --- EDGES (SVG) --- */
+        #edges-svg { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            pointer-events: none; 
+            overflow: visible; 
+        }
+        
+        path.edge {
+            fill: none;
+            stroke: #bbb;
+            stroke-width: 2px;
+            transition: stroke 0.3s, opacity 0.3s;
+            pointer-events: visibleStroke;
+            cursor: pointer;
+        }
+
+        path.edge:hover { stroke: #666; stroke-width: 3px; }
+        
+        /* Estados de simulación */
+        path.edge.allowed { stroke: var(--primary); stroke-width: 3px; opacity: 1; marker-end: url(#arrowhead-allowed); }
+        path.edge.blocked { stroke: #e0e0e0; opacity: 0.3; marker-end: url(#arrowhead-blocked); stroke-dasharray: 5,5; }
+        
+        /* Etiquetas de flechas */
+        .edge-label {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ccc;
+            padding: 3px 8px;
+            font-size: 0.75rem;
+            border-radius: 12px;
+            color: #555;
+            pointer-events: auto;
+            white-space: nowrap;
+            z-index: 3;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .edge-label.allowed { 
+            color: var(--primary); 
+            border-color: var(--primary); 
+            background: #f0fdf4; 
+            font-weight: bold; 
+            z-index: 20; 
+        }
+        .edge-label.blocked { color: #ccc; border-color: #eee; opacity: 0.5; }
+
+        /* --- NORMATIVA TAB --- */
+        #normativa-view {
+            display: none;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            overflow-y: auto;
+            height: 100%;
+            background: white;
+            line-height: 1.6;
+        }
+        #normativa-view.active { display: block; }
+        #normativa-view h2 { color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        #normativa-view a { color: var(--accent); text-decoration: none; }
+        #normativa-view a:hover { text-decoration: underline; }
+
+        /* --- CONTROLS OVERLAY --- */
+        .map-controls {
+            position: absolute; bottom: 20px; right: 20px;
+            display: flex; gap: 5px; z-index: 10;
+        }
+        .map-controls button {
+            width: 36px; height: 36px; border-radius: 50%; border: 1px solid #ccc;
+            background: white; font-size: 1.2rem; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .mode-toggle {
+            position: absolute; top: 20px; right: 20px; z-index: 10;
+            background: white; padding: 5px 10px; border-radius: 20px;
+            border: 1px solid #ccc; font-size: 0.8rem; display: flex; align-items: center; gap: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .mode-toggle input { margin: 0; }
+
+        .modal-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5);
+            display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal { background: white; padding: 20px; border-radius: 8px; width: 500px; max-width: 90%; max-height: 80vh; overflow-y: auto; }
+        textarea.json-io { width: 100%; height: 200px; font-family: monospace; font-size: 0.8rem; border: 1px solid #ccc; margin-bottom: 10px; }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+        Itinerarios ESO y Bachillerato
+    </h1>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('map')">Mapa Interactivo</button>
+        <button class="tab-btn" onclick="switchTab('normativa')">Normativa</button>
+    </div>
+</header>
+
+<div class="main-container">
+    <aside class="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-title">Perfil del Alumno</div>
+            
+            <div class="form-group">
+                <label>Curso Actual</label>
+                <select id="sim_cursoActualId">
+                    <option value="ESO1">1º ESO</option>
+                    <option value="ESO2">2º ESO</option>
+                    <option value="ESO3">3º ESO</option>
+                    <option value="ESO4">4º ESO</option>
+                    <option value="DIVER3">Diversificación 3º</option>
+                    <option value="DIVER4">Diversificación 4º</option>
+                    <option value="FPB">FP Básica</option>
+                    <option value="BACH1">1º Bachillerato</option>
+                    <option value="BACH2">2º Bachillerato</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="display:flex; gap:10px;">
+                <div style="flex:1">
+                    <label>Edad (auto)</label>
+                    <input type="number" id="sim_edad" value="12" min="11" max="21">
+                </div>
+                <div style="flex:1">
+                    <label>Suspensos</label>
+                    <input type="number" id="sim_suspensos" value="0" min="0" max="12">
+                </div>
+            </div>
+
+            <div class="sidebar-title" style="margin-top:10px;">Historial</div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="sim_repitioCursoActual">
+                <label for="sim_repitioCursoActual">¿Repitió curso actual?</label>
+            </div>
+            <div class="form-group">
+                <label>Total repeticiones (inc. Primaria)</label>
+                <input type="number" id="sim_repeticionesObligatoriaTotales" value="0" min="0" max="4">
+            </div>
+
+            <div class="sidebar-title" style="margin-top:10px;">Equipo Docente</div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="sim_propuestaDocente">
+                <label for="sim_propuestaDocente">Propuesta/Consejo favorable</label>
+            </div>
+             <div class="checkbox-group">
+                <input type="checkbox" id="sim_consejoOrientador" checked>
+                <label for="sim_consejoOrientador">Consejo Orientador Recibido</label>
+            </div>
+             <div class="checkbox-group">
+                <input type="checkbox" id="sim_conformidadFamilia" checked>
+                <label for="sim_conformidadFamilia">Conformidad Familia</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="sim_repetirNoBeneficia">
+                <label for="sim_repetirNoBeneficia">Repetir NO beneficia</label>
+            </div>
+            
+            <div style="margin-top:15px;">
+                <button class="btn-primary" onclick="runSimulation()">Calcular Recorridos</button>
+                <button class="btn-outline" onclick="showFullMap()">Ver Mapa Completo</button>
+            </div>
+
+            <div id="simulation-results" style="display:none;">
+                <strong>Opciones desde el nodo actual:</strong>
+                <ul id="options-list" style="padding-left:15px; margin:5px 0;"></ul>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-title">Gestión de Grafo</div>
+            <div style="display:flex; gap:5px;">
+                <button class="btn-secondary" onclick="exportJSON()">Exportar JSON</button>
+                <button class="btn-secondary" onclick="showImportModal()">Importar</button>
+            </div>
+            <div style="margin-top:10px;">
+                <button class="btn-secondary" onclick="resetLayout()">Reset Layout</button>
+            </div>
+        </div>
+    </aside>
+
+    <div id="content-area">
+        <div id="map-view" style="width:100%; height:100%; position: relative;">
+            <div class="mode-toggle">
+                <input type="checkbox" id="editModeToggle" onchange="toggleEditMode()">
+                <label for="editModeToggle">Modo Edición</label>
+            </div>
+            <div id="graph-layer">
+                <svg id="edges-svg">
+                    <defs>
+                        <marker id="arrowhead-default" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#bbb" />
+                        </marker>
+                        <marker id="arrowhead-allowed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#00722a" />
+                        </marker>
+                        <marker id="arrowhead-blocked" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#e0e0e0" />
+                        </marker>
+                    </defs>
+                    <g id="edges-group"></g>
+                </svg>
+                <div id="nodes-container"></div>
+                <div id="edge-labels-container"></div>
+            </div>
+
+            <div class="map-controls">
+                <button onclick="zoomMap(1.2)">+</button>
+                <button onclick="zoomMap(0.8)">-</button>
+                <button onclick="resetZoom()">⟲</button>
+            </div>
+        </div>
+
+        <div id="normativa-view">
+            <h1>Normativa de Promoción y Titulación (Andalucía)</h1>
+            <p>Resumen operativo basado en el <a href="https://www.boe.es/buscar/doc.php?id=BOE-A-2022-4975" target="_blank">RD 217/2022</a>.</p>
+            <h2>ESO</h2>
+            <ul>
+                <li><strong>Promoción:</strong> Máximo 2 suspensos.</li>
+                <li><strong>Repetición:</strong> Con 3 o más suspensos. Límite: 1 vez el mismo curso, 2 veces en la etapa.</li>
+                <li><strong>Imperativo Legal (PIL):</strong> Promoción automática si se agotan las posibilidades de repetición.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div id="json-modal" class="modal-overlay">
+    <div class="modal">
+        <h3>Importar / Exportar JSON</h3>
+        <textarea id="json-input" class="json-io"></textarea>
+        <div style="text-align:right; gap:10px; display:flex; justify-content:flex-end;">
+            <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+            <button class="btn-primary" onclick="loadJSONFromTextarea()">Cargar JSON</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const DEFAULT_GRAPH = {
+      "meta": { "version": "3.1", "notes": "Fix logic flickering" },
+      "studentStateSchema": {
+        "cursoActualId": "string", "edad": "number", "suspensos": "number",
+        "repitioCursoActual": "boolean", "repeticionesObligatoriaTotales": "number", "propuestaDocente": "boolean"
+      },
+      "nodes": [
+        {"id":"ESO1","label":"1º ESO","type":"course", "x": 100, "y": 100},
+        {"id":"ESO2","label":"2º ESO","type":"course", "x": 300, "y": 100},
+        {"id":"ESO3","label":"3º ESO","type":"course", "x": 500, "y": 100},
+        {"id":"ESO4","label":"4º ESO","type":"course", "x": 700, "y": 100},
+        {"id":"DIVER3","label":"Diversificación 3º","type":"program", "x": 500, "y": 300},
+        {"id":"DIVER4","label":"Diversificación 4º","type":"program", "x": 700, "y": 300},
+        {"id":"FPB","label":"FP Básica","type":"program", "x": 500, "y": 500},
+        {"id":"TIT_ESO","label":"Título ESO","type":"outcome", "x": 950, "y": 100},
+        {"id":"NO_TIT","label":"Sin Título ESO","type":"outcome", "x": 950, "y": 400},
+        {"id":"BACH1","label":"1º Bachillerato","type":"bach", "x": 1150, "y": 100},
+        {"id":"BACH2","label":"2º Bachillerato","type":"bach", "x": 1350, "y": 100},
+        {"id":"TIT_BACH","label":"Título Bachiller","type":"outcome", "x": 1600, "y": 100}
+      ],
+      "edges":[
+        { "id":"1_2","from":"ESO1","to":"ESO2","label":"Promociona","rule":{"all":[{"eq":["cursoActualId","ESO1"]},{"lte":["suspensos",2]}]} },
+        { "id":"1_2_PIL","from":"ESO1","to":"ESO2","label":"Promoción (PIL)","rule":{
+            "all":[{"eq":["cursoActualId","ESO1"]},{"gt":["suspensos",2]}],
+            "any":[{"eq":["repitioCursoActual",true]}, {"gte":["repeticionesObligatoriaTotales",2]}]
+        }},
+        { "id":"1_1","from":"ESO1","to":"ESO1","label":"Repite","rule":{"all":[{"eq":["cursoActualId","ESO1"]},{"gt":["suspensos",2]}, {"eq":["repitioCursoActual",false]}, {"lt":["repeticionesObligatoriaTotales",2]}]} },
+
+        { "id":"2_3","from":"ESO2","to":"ESO3","label":"Promociona","rule":{"all":[{"eq":["cursoActualId","ESO2"]},{"lte":["suspensos",2]}]} },
+        { "id":"2_3_PIL","from":"ESO2","to":"ESO3","label":"Promoción (PIL)","rule":{
+            "all":[{"eq":["cursoActualId","ESO2"]},{"gt":["suspensos",2]}],
+            "any":[{"eq":["repitioCursoActual",true]}, {"gte":["repeticionesObligatoriaTotales",2]}]
+        }},
+        { "id":"2_2","from":"ESO2","to":"ESO2","label":"Repite","rule":{"all":[{"eq":["cursoActualId","ESO2"]},{"gt":["suspensos",2]}, {"eq":["repitioCursoActual",false]}, {"lt":["repeticionesObligatoriaTotales",2]}]} },
+        { "id":"2ESO_A_DIVER3", "from":"ESO2", "to":"DIVER3", "type":"diversificacion", "label":"Propuesta a Diversificación", "rule":{ "all":[ {"eq":["cursoActualId","ESO2"]}, {"eq":["propuestaDocente",true]} ] } },
+        
+        { "id":"3_4","from":"ESO3","to":"ESO4","label":"Promociona","rule":{"all":[{"eq":["cursoActualId","ESO3"]},{"lte":["suspensos",2]}]} },
+        { "id":"3_4_PIL","from":"ESO3","to":"ESO4","label":"Promoción (PIL)","rule":{
+            "all":[{"eq":["cursoActualId","ESO3"]},{"gt":["suspensos",2]}],
+            "any":[{"eq":["repitioCursoActual",true]}, {"gte":["repeticionesObligatoriaTotales",2]}]
+        }},
+        { "id":"3_3","from":"ESO3","to":"ESO3","label":"Repite","rule":{"all":[{"eq":["cursoActualId","ESO3"]},{"gt":["suspensos",2]}, {"eq":["repitioCursoActual",false]}, {"lt":["repeticionesObligatoriaTotales",2]}]} },
+        { "id":"3ESO_A_DIVER4", "from":"ESO3", "to":"DIVER4", "type":"diversificacion", "label":"Accede a DIVER 4º", "rule":{ "all":[ {"eq":["cursoActualId","ESO3"]}, {"eq":["propuestaDocente",true]} ] } },
+        { "id":"3ESO_A_FPB", "from":"ESO3", "to":"FPB", "type":"fpb", "label":"Acceso FP Básica", "rule":{ "all":[ {"gte":["edad",15]}, {"eq":["propuestaDocente",true]} ] } },
+        
+        { "id":"DIVER3_DIVER4","from":"DIVER3","to":"DIVER4","label":"Pasa a 2º ámbito","rule":{"all":[{"eq":["cursoActualId","DIVER3"]}]} },
+        { "id":"DIVER3_REP","from":"DIVER3","to":"DIVER3","label":"Repite","rule":{"all":[{"eq":["cursoActualId","DIVER3"]},{"gt":["suspensos",0]}]} },
+
+        { "id":"4_TIT","from":"ESO4","to":"TIT_ESO","label":"Titula","rule":{"all":[{"eq":["cursoActualId","ESO4"]},{"eq":["propuestaDocente",true]}]} },
+        { "id":"4_REP","from":"ESO4","to":"ESO4","label":"Repite","rule":{"all":[{"eq":["cursoActualId","ESO4"]},{"eq":["propuestaDocente",false]}]} },
+        { "id":"DIVER4_TIT","from":"DIVER4","to":"TIT_ESO","label":"Titula","rule":{"all":[{"eq":["cursoActualId","DIVER4"]}]} },
+        
+        { "id":"4ESO_A_FPB", "from":"ESO4", "to":"FPB", "type":"fpb", "label":"Acceso FP Básica", "rule":{ "all":[ {"gte":["edad",15]}, {"eq":["propuestaDocente",true]} ] } },
+        { "id":"4ESO_A_DIVER4", "from":"ESO4", "to":"DIVER4", "type":"diversificacion", "label":"Última opción DIVER", "rule":{ "all":[ {"eq":["cursoActualId","ESO4"]}, {"eq":["propuestaDocente",true]} ] } },
+
+        { "id":"TIT_BACH1","from":"TIT_ESO","to":"BACH1","label":"Accede a Bachillerato","rule":{"all":[{"eq":["cursoActualId","TIT_ESO"]}]} },
+        
+        { "id":"B1_B2","from":"BACH1","to":"BACH2","label":"Promociona","rule":{"all":[{"eq":["cursoActualId","BACH1"]},{"lte":["suspensos",2]}]} },
+        { "id":"B1_B1","from":"BACH1","to":"BACH1","label":"Repite 1º","rule":{"all":[{"eq":["cursoActualId","BACH1"]},{"gt":["suspensos",2]}]} },
+        
+        { "id":"B2_TIT","from":"BACH2","to":"TIT_BACH","label":"Titula","rule":{"all":[{"eq":["cursoActualId","BACH2"]},{"eq":["suspensos",0]}]} },
+        { "id":"B2_TIT_EXC","from":"BACH2","to":"TIT_BACH","label":"Titula (Exc. 1 susp)","rule":{"all":[{"eq":["cursoActualId","BACH2"]},{"eq":["suspensos",1]}, {"eq":["propuestaDocente",true]}]} },
+        { "id":"B2_B2","from":"BACH2","to":"BACH2","label":"Repite 2º","rule":{"all":[{"eq":["cursoActualId","BACH2"]},{"gt":["suspensos",0]}]} }
+      ]
+    };
+
+    let GRAPH = JSON.parse(JSON.stringify(DEFAULT_GRAPH));
+    let state = { transform: { x: 0, y: 0, scale: 1 }, isDraggingNode: false, draggedNodeId: null, isPanning: false, startX: 0, startY: 0, editMode: false, activeFilter: 'ESO1' };
+
+    const graphLayer = document.getElementById('graph-layer');
+    const nodesContainer = document.getElementById('nodes-container');
+    const edgesGroup = document.getElementById('edges-group');
+    const labelsContainer = document.getElementById('edge-labels-container');
+    const contentView = document.getElementById('content-area');
+    
+    document.getElementById('sim_cursoActualId').addEventListener('change', updateEstimatedAge);
+    document.getElementById('sim_repeticionesObligatoriaTotales').addEventListener('change', updateEstimatedAge);
+    
+    const listeners = ['sim_repitioCursoActual', 'sim_edad', 'sim_suspensos', 'sim_propuestaDocente', 'sim_consejoOrientador', 'sim_conformidadFamilia', 'sim_repetirNoBeneficia'];
+    listeners.forEach(id => document.getElementById(id).addEventListener('change', runSimulation));
+
+    const COURSE_BASE_AGES = { 'ESO1': 12, 'ESO2': 13, 'ESO3': 14, 'ESO4': 15, 'DIVER3': 14, 'DIVER4': 15, 'FPB': 15, 'BACH1': 16, 'BACH2': 17, 'TIT_ESO': 16, 'NO_TIT': 16 };
+
+    function updateEstimatedAge() {
+        const course = document.getElementById('sim_cursoActualId').value;
+        const totalReps = parseInt(document.getElementById('sim_repeticionesObligatoriaTotales').value) || 0;
+        let baseAge = COURSE_BASE_AGES[course] || 12;
+        document.getElementById('sim_edad').value = baseAge + totalReps;
+        runSimulation();
+    }
+
+    function init() { updateEstimatedAge(); setupInteractions(); }
+
+    function renderGraph() {
+        nodesContainer.innerHTML = '';
+        edgesGroup.innerHTML = '';
+        labelsContainer.innerHTML = '';
+
+        let visibleNodes = GRAPH.nodes;
+        let visibleEdges = GRAPH.edges;
+
+        if (state.activeFilter) {
+            const centerId = state.activeFilter;
+            const outgoingEdges = GRAPH.edges.filter(e => e.from === centerId);
+            const targetIds = outgoingEdges.map(e => e.to);
+            const nodesToShow = new Set([centerId, ...targetIds]);
+            visibleNodes = GRAPH.nodes.filter(n => nodesToShow.has(n.id));
+            visibleEdges = outgoingEdges; 
+        }
+
+        visibleNodes.forEach(node => {
+            const el = document.createElement('div');
+            el.className = 'node';
+            if (node.id === state.activeFilter) el.classList.add('active-source');
+            el.dataset.id = node.id;
+            el.dataset.type = node.type;
+            el.textContent = node.label;
+            el.style.left = node.x + 'px';
+            el.style.top = node.y + 'px';
+            el.addEventListener('mousedown', (e) => startDragNode(e, node.id));
+            nodesContainer.appendChild(el);
+        });
+
+        visibleEdges.forEach(edge => {
+            const fromNode = visibleNodes.find(n => n.id === edge.from);
+            const toNode = visibleNodes.find(n => n.id === edge.to);
+            if(!fromNode || !toNode) return;
+
+            const pathD = calculateImprovedPath(fromNode, toNode, edge, visibleEdges);
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", pathD);
+            path.setAttribute("class", "edge");
+            path.setAttribute("id", `edge-${edge.id}`);
+            path.setAttribute("marker-end", "url(#arrowhead-default)");
+            path.dataset.id = edge.id;
+            path.addEventListener('click', () => editEdgeLabel(edge));
+            edgesGroup.appendChild(path);
+
+            const center = getPathCenterImproved(fromNode, toNode, edge, visibleEdges);
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'edge-label';
+            labelDiv.textContent = edge.label;
+            labelDiv.style.left = center.x + 'px';
+            labelDiv.style.top = center.y + 'px';
+            labelDiv.dataset.edgeId = edge.id;
+            labelDiv.onclick = (e) => { e.stopPropagation(); editEdgeLabel(edge); };
+            labelsContainer.appendChild(labelDiv);
+        });
+    }
+
+    function calculateImprovedPath(n1, n2, edge, allVisibleEdges) {
+        const w = 150, h = 50; 
+        const x1 = n1.x + w/2 - 15;
+        const y1 = n1.y + h/2;
+        const x2 = n2.x + w/2 - 15;
+        const y2 = n2.y + h/2;
+
+        if (n1.id === n2.id) {
+            return `M ${x1} ${y1-25} C ${x1+80} ${y1-120}, ${x1+140} ${y1+50}, ${x1+25} ${y1+25}`;
+        }
+
+        const parallelEdges = allVisibleEdges.filter(e => e.from === n1.id && e.to === n2.id);
+        const index = parallelEdges.indexOf(edge);
+        const total = parallelEdges.length;
+        
+        let offset = 0;
+        if (total > 1) {
+            // Aumentar offset para mayor claridad (de 50 a 60)
+            offset = (index - (total - 1) / 2) * 60; 
+        }
+
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        let curvature = dy > 100 ? 0.1 : 0.3; 
+        let c1x, c1y, c2x, c2y;
+
+        if (x2 > x1 + 50) { 
+            c1x = x1 + dist * curvature;
+            c1y = y1 + offset; 
+            c2x = x2 - dist * curvature;
+            c2y = y2 + offset;
+        } else { 
+             c1x = x1 + 100 + offset;
+             c1y = y1 + (dy > 0 ? 50 : -50);
+             c2x = x2 - 100 + offset;
+             c2y = y2 + (dy > 0 ? -50 : 50);
+        }
+        return `M ${x1} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`;
+    }
+
+    function getPathCenterImproved(n1, n2, edge, allVisibleEdges) {
+        const w = 150, h = 50;
+        const x1 = n1.x + w/2 - 15;
+        const y1 = n1.y + h/2;
+        const x2 = n2.x + w/2 - 15;
+        const y2 = n2.y + h/2;
+        if (n1.id === n2.id) return { x: x1 + 90, y: y1 - 40 };
+        const parallelEdges = allVisibleEdges.filter(e => e.from === n1.id && e.to === n2.id);
+        const index = parallelEdges.indexOf(edge);
+        const total = parallelEdges.length;
+        let offset = 0;
+        if (total > 1) offset = (index - (total - 1) / 2) * 60;
+        return { x: (x1+x2)/2, y: ((y1+y2)/2) + (offset * 0.7) }; 
+    }
+
+    function setupInteractions() {
+        contentView.addEventListener('mousedown', startPan);
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', endInteraction);
+        contentView.addEventListener('wheel', handleZoom);
+    }
+
+    function updateTransform() {
+        graphLayer.style.transform = `translate(${state.transform.x}px, ${state.transform.y}px) scale(${state.transform.scale})`;
+    }
+
+    function startPan(e) {
+        if (e.target.id === 'content-area' || e.target.nodeName === 'svg') {
+            state.isPanning = true;
+            state.startX = e.clientX - state.transform.x;
+            state.startY = e.clientY - state.transform.y;
+            contentView.style.cursor = 'grabbing';
+            graphLayer.style.transition = 'none';
+        }
+    }
+
+    function startDragNode(e, nodeId) {
+        if (!state.editMode) return;
+        e.stopPropagation();
+        state.isDraggingNode = true;
+        state.draggedNodeId = nodeId;
+        const node = GRAPH.nodes.find(n => n.id === nodeId);
+        state.dragStartX = e.clientX;
+        state.dragStartY = e.clientY;
+        state.initialNodeX = node.x;
+        state.initialNodeY = node.y;
+        graphLayer.style.transition = 'none';
+    }
+
+    function handleMouseMove(e) {
+        if (state.isPanning) {
+            state.transform.x = e.clientX - state.startX;
+            state.transform.y = e.clientY - state.startY;
+            updateTransform();
+        } else if (state.isDraggingNode && state.editMode) {
+            const dx = (e.clientX - state.dragStartX) / state.transform.scale;
+            const dy = (e.clientY - state.dragStartY) / state.transform.scale;
+            const node = GRAPH.nodes.find(n => n.id === state.draggedNodeId);
+            node.x = state.initialNodeX + dx;
+            node.y = state.initialNodeY + dy;
+            renderGraph();
+            applySimulationStyles(null, true); 
+        }
+    }
+
+    function endInteraction() {
+        state.isPanning = false; state.isDraggingNode = false; state.draggedNodeId = null;
+        contentView.style.cursor = 'default';
+        graphLayer.style.transition = 'transform 0.3s ease-out';
+    }
+
+    function handleZoom(e) {
+        e.preventDefault();
+        const scaleAmount = -e.deltaY * 0.001;
+        state.transform.scale = Math.min(Math.max(0.5, state.transform.scale + scaleAmount), 3);
+        updateTransform();
+    }
+    function zoomMap(factor) { state.transform.scale *= factor; updateTransform(); }
+    function resetZoom() { state.transform = { x: 0, y: 0, scale: 1 }; updateTransform(); }
+    function toggleEditMode() { state.editMode = document.getElementById('editModeToggle').checked; document.body.classList.toggle('edit-mode', state.editMode); }
+    function editEdgeLabel(edge) {
+        if (!state.editMode) return;
+        const newText = prompt("Nuevo texto:", edge.label);
+        if (newText !== null) { edge.label = newText; renderGraph(); }
+    }
+    function resetLayout() { if(confirm("¿Restaurar posiciones?")) { GRAPH = JSON.parse(JSON.stringify(DEFAULT_GRAPH)); renderGraph(); } }
+
+    function showFullMap() {
+        state.activeFilter = null; 
+        renderGraph();
+        applySimulationStyles();
+        state.transform = {x:0, y:0, scale:0.7}; 
+        updateTransform();
+    }
+
+    function evaluateCondition(operator, args, inputs) {
+        const varName = args[0];
+        const targetVal = args[1];
+        let actualVal = inputs[varName];
+
+        // Normalización estricta de tipos
+        if (typeof targetVal === 'boolean') {
+             actualVal = Boolean(actualVal);
+        } else if (typeof targetVal === 'number') {
+             actualVal = Number(actualVal);
+        }
+
+        switch (operator) {
+            case 'eq': return actualVal === targetVal;
+            case 'gte': return actualVal >= targetVal;
+            case 'lte': return actualVal <= targetVal;
+            case 'gt': return actualVal > targetVal;
+            case 'lt': return actualVal < targetVal;
+            case 'neq': return actualVal !== targetVal;
+            default: return false;
+        }
+    }
+
+    function evaluateRule(ruleObj, inputs) {
+        if (!ruleObj) return true;
+        let allPassed = true;
+        if (ruleObj.all?.length > 0) {
+            allPassed = ruleObj.all.every(conditionObj => {
+                const operator = Object.keys(conditionObj)[0];
+                const args = conditionObj[operator];
+                return evaluateCondition(operator, args, inputs);
+            });
+        }
+        let anyPassed = true;
+        if (ruleObj.any?.length > 0) {
+            anyPassed = ruleObj.any.some(conditionObj => {
+                const operator = Object.keys(conditionObj)[0];
+                const args = conditionObj[operator];
+                return evaluateCondition(operator, args, inputs);
+            });
+        }
+        return allPassed && anyPassed;
+    }
+
+    function runSimulation() {
+        const inputs = {
+            cursoActualId: document.getElementById('sim_cursoActualId').value,
+            edad: parseInt(document.getElementById('sim_edad').value),
+            suspensos: parseInt(document.getElementById('sim_suspensos').value),
+            repitioCursoActual: document.getElementById('sim_repitioCursoActual').checked,
+            repeticionesObligatoriaTotales: parseInt(document.getElementById('sim_repeticionesObligatoriaTotales').value),
+            propuestaDocente: document.getElementById('sim_propuestaDocente').checked,
+            consejoOrientador: document.getElementById('sim_consejoOrientador').checked,
+            conformidadFamilia: document.getElementById('sim_conformidadFamilia').checked,
+            repetirNoBeneficia: document.getElementById('sim_repetirNoBeneficia').checked
+        };
+
+        state.activeFilter = inputs.cursoActualId;
+        renderGraph();
+
+        const currentNode = GRAPH.nodes.find(n => n.id === inputs.cursoActualId);
+        if(currentNode) {
+            const viewW = contentView.offsetWidth;
+            const viewH = contentView.offsetHeight;
+            state.transform.x = (viewW/2) - (currentNode.x + 60);
+            state.transform.y = (viewH/2) - (currentNode.y + 30);
+            state.transform.scale = 1;
+            updateTransform();
+        }
+
+        applySimulationStyles(inputs);
+    }
+
+    function applySimulationStyles(inputs, skipAnimation) {
+        if(!inputs) {
+             inputs = {
+                cursoActualId: document.getElementById('sim_cursoActualId').value,
+                edad: parseInt(document.getElementById('sim_edad').value),
+                suspensos: parseInt(document.getElementById('sim_suspensos').value),
+                repitioCursoActual: document.getElementById('sim_repitioCursoActual').checked,
+                repeticionesObligatoriaTotales: parseInt(document.getElementById('sim_repeticionesObligatoriaTotales').value),
+                propuestaDocente: document.getElementById('sim_propuestaDocente').checked,
+                consejoOrientador: document.getElementById('sim_consejoOrientador').checked,
+                conformidadFamilia: document.getElementById('sim_conformidadFamilia').checked,
+                repetirNoBeneficia: document.getElementById('sim_repetirNoBeneficia').checked
+            };
+        }
+
+        const logicFn = () => {
+            const resultsList = document.getElementById('options-list');
+            resultsList.innerHTML = '';
+            let hasOptions = false;
+
+            document.querySelectorAll('.edge').forEach(domEdge => {
+                const edgeId = domEdge.dataset.id;
+                const edgeData = GRAPH.edges.find(e => e.id === edgeId);
+                const domLabel = document.querySelector(`.edge-label[data-edge-id="${edgeId}"]`);
+                
+                if(!edgeData) return;
+
+                domEdge.classList.remove('allowed', 'blocked');
+                if(domLabel) domLabel.classList.remove('allowed', 'blocked');
+
+                const isAllowed = evaluateRule(edgeData.rule, inputs);
+
+                if (isAllowed) {
+                    domEdge.classList.add('allowed');
+                    if(domLabel) domLabel.classList.add('allowed');
+                    
+                    const li = document.createElement('li');
+                    const targetNode = GRAPH.nodes.find(n=>n.id===edgeData.to);
+                    li.innerHTML = `<strong>${edgeData.label}</strong> &rarr; ${targetNode ? targetNode.label : '?'}`;
+                    li.style.color = "var(--primary)";
+                    li.style.marginBottom = "4px";
+                    resultsList.appendChild(li);
+                    hasOptions = true;
+                } else {
+                    domEdge.classList.add('blocked');
+                    if(domLabel) domLabel.classList.add('blocked');
+                }
+            });
+
+            if (!hasOptions) {
+                resultsList.innerHTML = '<li style="color:#e74c3c">No hay opciones válidas con estos criterios.</li>';
+            }
+            document.getElementById('simulation-results').style.display = 'block';
+        };
+
+        if(skipAnimation) logicFn();
+        else requestAnimationFrame(logicFn);
+    }
+
+    function exportJSON() {
+        const jsonStr = JSON.stringify(GRAPH, null, 2);
+        document.getElementById('json-input').value = jsonStr;
+        document.getElementById('json-modal').style.display = 'flex';
+    }
+    function showImportModal() { document.getElementById('json-input').value = ''; document.getElementById('json-modal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('json-modal').style.display = 'none'; }
+    function loadJSONFromTextarea() {
+        try {
+            const txt = document.getElementById('json-input').value;
+            const newGraph = JSON.parse(txt);
+            if(!newGraph.nodes || !newGraph.edges) throw new Error("Formato JSON inválido");
+            GRAPH = newGraph;
+            showFullMap();
+            closeModal();
+        } catch (e) { alert("Error: " + e.message); }
+    }
+
+    window.switchTab = function(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        if(tabName === 'map') {
+            document.getElementById('map-view').style.display = 'block';
+            document.getElementById('normativa-view').classList.remove('active');
+        } else {
+            document.getElementById('map-view').style.display = 'none';
+            document.getElementById('normativa-view').classList.add('active');
+        }
+    }
+
+    init();
+
+</script>
+</body>
+</html>

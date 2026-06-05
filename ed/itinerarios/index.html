@@ -1,0 +1,687 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Itinerarios Educativos - IES El Majuelo (Versión Completa)</title>
+    
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+    <style>
+        /* ESTILOS GENERALES */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffffff;
+            overflow: hidden; 
+        }
+
+        /* CABECERA */
+        #header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid #e0e0e0;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            flex-wrap: wrap;
+        }
+
+        .titles { max-width: 55%; }
+
+        h1 { margin: 0; font-size: 24px; color: #2c3e50; }
+        h2 { margin: 5px 0 0 0; font-size: 14px; color: #7f8c8d; font-weight: normal; }
+        .version-tag { 
+            display: inline-block; background: #e0f2f1; color: #00695c; 
+            padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-left: 10px;
+        }
+
+        /* LEYENDA */
+        .legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; }
+        .legend-item { display: flex; align-items: center; }
+        .dot { width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; border: 1px solid rgba(0,0,0,0.1); }
+
+        .dot.eso { background-color: #E3F2FD; border-color: #2196F3; }
+        .dot.bach { background-color: #E8F5E9; border-color: #4CAF50; }
+        .dot.fp { background-color: #FFF3E0; border-color: #FF9800; }
+        .dot.adultos { background-color: #F3E5F5; border-color: #9C27B0; }
+        .dot.prueba { background-color: #F5F5F5; border-color: #9E9E9E; }
+        .dot.pau { background-color: #FFEBEE; border-color: #EF5350; }
+        .dot.salida { background-color: #ECEFF1; border-color: #607D8B; }
+        .dot.externo { background-color: #f5f5f5; border-color: #999; border-style: dashed; }
+
+        /* MAPA */
+        #mynetwork { width: 100%; height: 100vh; background-color: #ffffff; }
+
+        /* CONTROLES INFERIORES */
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: rgba(255,255,255,0.8);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            background: white; border: 1px solid #ccc; padding: 8px 15px;
+            border-radius: 5px; cursor: pointer; font-weight: bold; color: #555;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s;
+        }
+        button:hover { background: #f5f5f5; color: #000; }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* ESTILO DEL SELECTOR */
+        select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            color: #333;
+            min-width: 200px;
+            cursor: pointer;
+        }
+
+        /* PANEL INFO */
+        #info-panel {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            width: 320px;
+            background: rgba(255, 255, 255, 0.98);
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+            padding: 12px 14px;
+            z-index: 20;
+            display: none;
+        }
+        #info-panel h4 {
+            margin: 0 0 6px 0;
+            font-size: 14px;
+            color: #333;
+        }
+        #info-panel p {
+            margin: 6px 0;
+            font-size: 12px;
+            color: #555;
+            line-height: 1.3;
+        }
+        #info-panel ul {
+            margin: 6px 0 0 16px;
+            padding: 0;
+            font-size: 12px;
+            color: #555;
+        }
+        #info-panel .close {
+            float: right;
+            font-size: 12px;
+            color: #888;
+            cursor: pointer;
+        }
+
+        /* TOOLTIP COORDENADAS */
+        #coord-tooltip {
+            position: absolute;
+            padding: 6px 8px;
+            background: rgba(0, 0, 0, 0.75);
+            color: #fff;
+            font-size: 11px;
+            border-radius: 6px;
+            pointer-events: none;
+            display: none;
+            z-index: 30;
+            white-space: nowrap;
+        }
+
+        /* PANEL DE CONFIGURACIÓN DE ZONA */
+        #zone-config {
+            position: absolute;
+            top: 90px;
+            right: 20px;
+            width: 200px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 15;
+            font-size: 13px;
+        }
+        #zone-config h3 { margin: 0 0 10px 0; font-size: 14px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .input-group { margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .input-group label { color: #666; }
+        .input-group input { width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; }
+        
+        @media (max-width: 768px) {
+            #header { flex-direction: column; align-items: flex-start; }
+            .titles { max-width: 100%; margin-bottom: 10px; }
+            .legend { width: 100%; }
+            #zone-config { top: auto; bottom: 70px; right: 20px; width: 180px; }
+            .controls { flex-direction: column; align-items: stretch; left: 10px; right: 10px; bottom: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <div class="titles">
+            <h1>Itinerarios Educativos – IES El Majuelo <span class="version-tag">FINAL</span></h1>
+            <h2>Incluye pruebas libres, acceso al mercado laboral desde +16 años y subida de nota PAU desde CFGS.</h2>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item"><div class="dot eso"></div> ESO</div>
+            <div class="legend-item"><div class="dot bach"></div> Bachillerato</div>
+            <div class="legend-item"><div class="dot fp"></div> FP</div>
+            <div class="legend-item"><div class="dot adultos"></div> Adultos</div>
+            <div class="legend-item"><div class="dot prueba"></div> Pruebas / Accesos</div>
+            <div class="legend-item"><div class="dot pau"></div> PAU</div>
+            <div class="legend-item"><div class="dot salida"></div> Salidas</div>
+            <div class="legend-item"><div class="dot externo"></div> Otro Centro</div>
+        </div>
+    </div>
+
+    <!-- Panel para mover el rectángulo -->
+    <div id="zone-config">
+        <h3>Zona IES El Majuelo</h3>
+        <div class="input-group">
+            <label>Posición X:</label>
+            <input type="number" id="rectX" value="-480" onchange="updateZone()">
+        </div>
+        <div class="input-group">
+            <label>Posición Y:</label>
+            <input type="number" id="rectY" value="-330" onchange="updateZone()">
+        </div>
+        <div class="input-group">
+            <label>Ancho:</label>
+            <input type="number" id="rectW" value="790" onchange="updateZone()">
+        </div>
+        <div class="input-group">
+            <label>Alto:</label>
+            <input type="number" id="rectH" value="600" onchange="updateZone()">
+        </div>
+        <div style="font-size: 11px; color: #999; margin-top: 5px;">Ajusta el recuadro de la oferta interna.</div>
+    </div>
+
+    <div id="mynetwork"></div>
+
+    <div class="controls">
+        <!-- SELECTOR DE FILTRO -->
+        <select id="focusSelect" onchange="filterGraph()">
+            <option value="all">Ver Mapa Completo</option>
+        </select>
+        <button id="infoBtn" onclick="showInfo()" disabled>+ Info</button>
+        <button onclick="restorePositions()">Restaurar Nodos</button>
+        <button onclick="fitGraph()">Centrar Mapa</button>
+    </div>
+
+    <div id="info-panel">
+        <span class="close" onclick="hideInfo()">Cerrar ✕</span>
+        <h4 id="info-title"></h4>
+        <div id="info-body"></div>
+    </div>
+    <div id="coord-tooltip"></div>
+
+    <script type="text/javascript">
+        
+        // --- VARIABLES DE LA ZONA (RECTÁNGULO) ---
+        let zone = {
+            x: -480,
+            y: -330,
+            w: 790,
+            h: 600
+        };
+
+        // --- DATOS DE NODOS ---
+        const nodesData = [
+            // --- Nivel 0 ---
+            { id: 1, label: 'E.S.O.\n(Educación Secundaria Obligatoria)', group: 'eso', x: 40, y: -300 },
+
+            // --- Nivel 1 ---
+            { id: 5, label: 'ESA\n(Adultos)', group: 'adultos', x: -260, y: -40 }, 
+            { id: 6, label: 'Prueba Libre\nESO', group: 'prueba', x: -620, y: -120 },
+            { id: 3, label: 'F.P. Básica', group: 'fp', x: -260, y: -140 },
+
+            // --- BACHILLERATO (Interno) ---
+            { 
+                id: 2, 
+                label: 'Bachillerato\n(Ciencias y Humanidades)', 
+                group: 'bach', 
+                x: 220, 
+                y: -140 
+            },
+
+            // --- EXTERNOS (Derecha) ---
+            { 
+                id: 14, label: 'Bachillerato ARTES\n(En otro centro)', group: 'externo', 
+                x: 560, y: -120, shape: 'box', font: { color: '#666' }
+            },
+            { 
+                id: 16, label: 'Grado Medio\n(Otros Centros)', group: 'externo', 
+                x: 560, y: 60, shape: 'box', font: { color: '#666' }
+            },
+            { 
+                id: 17, label: 'Grado Superior\n(Otros Centros)', group: 'externo', 
+                x: 450, y: 200, shape: 'box', font: { color: '#666' }
+            },
+
+            // Bachillerato Adultos (Interno)
+            { id: 13, label: 'Bachillerato\n(Adultos)\n+Info', group: 'adultos', x: -400, y: -50 },
+
+            // --- Nivel 2 ---
+            { id: 19, label: 'Curso acceso GM\n(+17)', group: 'prueba', x: -520, y: 20 },
+            { id: 10, label: 'Prueba acceso GM\n(+17)', group: 'prueba', x: -520, y: 80 },
+            { id: 4, label: 'Grado Medio\n(Ciclo Formativo)\n+Info', group: 'fp', x: 200, y: 40 },
+
+            // --- NUEVO NODO: PRUEBA LIBRE BACHILLERATO ---
+            { id: 18, label: 'Prueba Libre\nBachillerato (+20)\n+Info', group: 'prueba', x: -520, y: 140 },
+
+            // --- PAU (Nodo Intermedio) ---
+            { 
+                id: 15, 
+                label: 'PAU', 
+                group: 'pau', 
+                x: 0, 
+                y: 320 
+            },
+
+            // --- Nivel 3 ---
+            { id: 26, label: 'Curso acceso GS\n(+19)', group: 'prueba', x: -520, y: 180 },
+            { id: 11, label: 'Prueba acceso GS\n(+19)', group: 'prueba', x: -520, y: 240 },
+            { id: 7, label: 'Grado Superior\n(Ciclo Formativo)\n+Info', group: 'fp', x: 50, y: 200 },
+
+            // --- Cursos de Especialización ---
+            { id: 20, label: 'Curso Especializ.\nGM', group: 'fp', x: -50, y: 320 },
+            { id: 21, label: 'Curso Especializ.\nGS', group: 'fp', x: 150, y: 320 },
+            { id: 22, label: 'Prueba Capacidad\n(+18, sin título GM)', group: 'prueba', x: -520, y: 300 },
+            { id: 23, label: 'Técnico Especialista', group: 'fp', x: -50, y: 430 },
+            { id: 24, label: 'Máster FP', group: 'fp', x: 150, y: 430 },
+            { id: 25, label: 'Certificación\n(aprovechamiento GM)', group: 'prueba', x: -200, y: 430 },
+            { id: 27, label: 'Certificación\n(aprovechamiento)', group: 'prueba', x: 260, y: 430 },
+
+            // --- Nivel 4 (Salidas) ---
+            { id: 12, label: 'Pruebas Acceso Univ\nMayores 25/40/45', group: 'prueba', x: -520, y: 360 },
+            { id: 9, label: 'MUNDO LABORAL\n(Empleo)', group: 'salida', x: 0, y: 520 },
+            { id: 8, label: 'UNIVERSIDAD\n(Grado)', group: 'salida', x: 200, y: 520 },
+        ];
+
+        const edgesData = [
+            // Desde ESO
+            { from: 1, to: 2, label: 'Título ESO' },
+            { from: 1, to: 4, label: 'Título ESO' },
+            { from: 1, to: 3, label: '15 años + 3º ESO (o 2º excepcional)\n+ propuesta equipo\nPrioridad: 17 años' },
+            { from: 1, to: 5, label: '+18 años' },
+            { from: 1, to: 6, label: '+18 años' },
+            { from: 1, to: 9, label: '+16 años', dashes: true, color: {color:'#B0BEC5'} }, // Salida Laboral ESO
+            
+            // CONEXIONES A EXTERNOS DESDE ESO
+            { from: 1, to: 14, label: 'Título ESO', dashes: true, color: { color: '#999'} },
+            { from: 1, to: 16, label: 'Título ESO', dashes: true, color: { color: '#999'} },
+
+            // FPB y Adultos ESO
+            { from: 3, to: 4, label: 'Título' },
+            { from: 3, to: 16, label: 'Título', dashes: true, color: { color: '#999'} },
+            { from: 3, to: 9, label: '', dashes: true, color: {color:'#B0BEC5'} }, // Salida Laboral FPB
+            { from: 3, to: 13, label: 'Título +18 años' },
+
+            { from: 5, to: 2, label: 'Título ESO' }, 
+            { from: 5, to: 13, label: 'Título ESO' }, 
+            { from: 5, to: 4, label: 'Título ESO' },
+            { from: 5, to: 16, label: 'Título ESO', dashes: true, color: { color: '#999'} },
+            { from: 5, to: 9, label: '', dashes: true, color: {color:'#B0BEC5'} }, // Salida Laboral ESA
+
+            { from: 6, to: 2, label: 'Título obtenido' },
+            { from: 6, to: 13, label: 'Título obtenido' },
+            { from: 6, to: 4, label: 'Título obtenido' },
+            { from: 6, to: 9, label: '', dashes: true, color: {color:'#B0BEC5'} }, // Salida Laboral Prueba ESO
+
+            // Acceso a GM por curso específico o prueba
+            { from: 19, to: 4, label: 'Curso +17' },
+            { from: 10, to: 4, label: 'Prueba +17' },
+            { from: 10, to: 16, label: 'Prueba +17', dashes: true, color: { color: '#999'} },
+            { from: 26, to: 7, label: 'Curso +19' },
+            { from: 26, to: 17, label: 'Curso +19', dashes: true, color: { color: '#999'} },
+
+            // Desde GM Interno
+            { from: 4, to: 2, label: 'Título Técnico' }, // Acceso a Bachillerato
+            { from: 4, to: 13, label: 'Título Técnico' }, // Acceso a Bachillerato Adultos
+            { from: 4, to: 7, label: 'Título Técnico' },
+            { from: 4, to: 17, label: 'Título Técnico', dashes: true, color: { color: '#999'} },
+            { from: 4, to: 9, label: 'Inserción' },
+            { from: 4, to: 20, label: 'Acceso' },
+            { from: 22, to: 20, label: 'Superar prueba\n(prelación por nota)' },
+            { from: 20, to: 23, label: 'Si acceso desde GM' },
+            { from: 20, to: 25, label: 'Si acceso por prueba' },
+            { from: 23, to: 9, label: 'Inserción' },
+            { from: 25, to: 9, label: 'Inserción' },
+
+            // Desde GM Externo
+            { from: 16, to: 17, label: 'Título Técnico', dashes: true, color: { color: '#999'} },
+            { from: 16, to: 7, label: 'Título Técnico', dashes: true, color: { color: '#999'} }, 
+
+            // Bachillerato (Normal)
+            { from: 2, to: 15, label: 'Título' }, // A PAU
+            { from: 2, to: 7, label: 'Título' },
+            { from: 2, to: 17, label: 'Título', dashes: true, color: { color: '#999'} },
+            { from: 2, to: 13, label: 'Sin título' },
+            { from: 2, to: 9, label: '', dashes: true, color: {color:'#ccc'} },
+
+            // Bachillerato (Adultos)
+            { from: 13, to: 15, label: 'Título' }, // A PAU
+            { from: 13, to: 7, label: 'Título' },
+            { from: 13, to: 17, label: 'Título', dashes: true, color: { color: '#999'} },
+            { from: 13, to: 9, label: '', dashes: true, color: {color:'#B0BEC5'} }, // Salida Laboral Bach Adultos
+
+            // Bachillerato Artes (Externo)
+            { from: 14, to: 15, label: 'Título', dashes: true, color: { color: '#999'} }, 
+            { from: 14, to: 17, label: 'Título', dashes: true, color: { color: '#999'} },
+
+            // NUEVO: Prueba Libre Bachillerato
+            { from: 18, to: 15, label: 'Título' }, // A PAU
+            { from: 18, to: 7, label: 'Título' },  // A CFGS
+            { from: 18, to: 17, label: 'Título', dashes: true, color: { color: '#999'} }, // A CFGS Externo
+
+            // PAU a Universidad
+            { from: 15, to: 8, label: 'Nota Admisión' },
+
+            // GS y Accesos
+            { from: 11, to: 7, label: 'Prueba +19' },
+            { from: 11, to: 17, label: 'Prueba +19', dashes: true, color: { color: '#999'} },
+
+            { from: 7, to: 8, label: 'Nota Media' }, // Acceso directo Univ desde GS
+            { from: 7, to: 15, label: 'Subir Nota', dashes: true }, // NUEVO: CFGS a PAU
+            { from: 7, to: 9, label: 'Inserción' },
+            { from: 7, to: 21, label: 'Acceso' },
+            { from: 22, to: 21, label: 'Superar prueba\n(prelación por nota)' },
+            { from: 21, to: 24, label: 'Si título GS' },
+            { from: 21, to: 27, label: 'Si acceso por prueba' },
+            { from: 24, to: 9, label: 'Inserción' },
+            { from: 27, to: 9, label: 'Inserción' },
+            
+            { from: 17, to: 8, label: 'Nota Media', dashes: true, color: { color: '#999'} }, 
+            { from: 17, to: 15, label: 'Subir Nota', dashes: true, color: { color: '#999'} }, // NUEVO: CFGS Ext a PAU
+
+            // Uni lateral
+            { from: 12, to: 8, label: 'Prueba Acceso' }
+        ];
+
+        // Definición de grupos
+        const groups = {
+            eso: { color: { background: '#E3F2FD', border: '#2196F3' }, font: { color: '#0d47a1' } },
+            bach: { color: { background: '#E8F5E9', border: '#4CAF50' }, font: { color: '#1b5e20' } },
+            fp: { color: { background: '#FFF3E0', border: '#FF9800' }, font: { color: '#e65100' } },
+            adultos: { color: { background: '#F3E5F5', border: '#9C27B0' }, font: { color: '#4a148c' } },
+            prueba: { color: { background: '#F5F5F5', border: '#9E9E9E' }, font: { color: '#616161' } },
+            salida: { color: { background: '#ECEFF1', border: '#607D8B' }, font: { color: '#37474f' } },
+            pau: { color: { background: '#FFEBEE', border: '#EF5350' }, font: { color: '#B71C1C' } },
+            externo: { 
+                color: { background: '#fafafa', border: '#999999' }, 
+                shapeProperties: { borderDashes: [5, 5] }, 
+                font: { color: '#666' } 
+            }
+        };
+
+        const container = document.getElementById('mynetwork');
+        const nodes = new vis.DataSet(nodesData);
+        const edges = new vis.DataSet(edgesData);
+        const data = { nodes: nodes, edges: edges };
+
+        const options = {
+            nodes: {
+                shape: 'box',
+                margin: 10,
+                borderWidth: 2,
+                shadow: true,
+                font: { size: 16, multi: true },
+                widthConstraint: { maximum: 200 }
+            },
+            edges: {
+                arrows: { to: { enabled: true, type: 'arrow' } },
+                color: { color: '#546E7A' },
+                font: { size: 11, align: 'horizontal', background: 'rgba(255, 255, 255, 0.9)', strokeWidth: 0 },
+                smooth: { enabled: true, type: 'cubicBezier', roundness: 0.5 }
+            },
+            physics: { enabled: false }, // Estático
+            layout: { hierarchical: { enabled: false } }, // Posición manual
+            interaction: { dragNodes: true, zoomView: true, dragView: true, hover: true }
+        };
+
+        const network = new vis.Network(container, data, options);
+        const coordTooltip = document.getElementById('coord-tooltip');
+        let hoveredNodeId = null;
+
+        // --- INFO POR NODO ---
+        const infoByNodeId = {
+            18: {
+                title: 'Prueba libre de Bachillerato (+20)',
+                body: `
+                    <p><strong>Edad:</strong> +20 (o cumplirlos en el año natural de la convocatoria).</p>
+                    <p><strong>Convocatoria:</strong> una vez al año (habitualmente en abril en Andalucía).</p>
+                    <p><strong>Compatibilidad:</strong> puedes inscribirte aunque curses otros estudios.</p>
+                    <p><strong>Notas:</strong> no sirve para mejorar calificaciones; solo para completar materias pendientes.</p>
+                    <p><strong>Si tienes título Técnico FP:</strong> modalidad General superando solo materias comunes.</p>
+                    <p><strong>Si tienes título de Artes Plásticas y Diseño o enseñanzas profesionales de Música/Danza:</strong> modalidad Artes superando materias comunes.</p>
+                `
+            },
+            4: {
+                title: 'FP Adultos - Requisitos adicionales (GM)',
+                body: `
+                    <p><strong>Edad:</strong> +18 (o cumplirlos en el año en que comience el curso).</p>
+                    <p><strong>Excepcionalmente +16</strong> si se solicita y se cumple alguna condición:</p>
+                    <ul>
+                        <li>Contrato laboral que impida cursar régimen ordinario.</li>
+                        <li>Deportista de alto rendimiento.</li>
+                        <li>Situación personal extraordinaria (enfermedad, discapacidad, violencia de género/terrorismo, hijos/as).</li>
+                        <li>Dificultad social extrema o riesgo de exclusión.</li>
+                        <li>No haber estado escolarizado en el sistema educativo español.</li>
+                    </ul>
+                    <p><strong>En todo caso:</strong> debe acreditarse alguna vía académica de acceso.</p>
+                `
+            },
+            7: {
+                title: 'FP Adultos - Requisitos adicionales (GS)',
+                body: `
+                    <p><strong>Edad:</strong> +18 (o cumplirlos en el año en que comience el curso).</p>
+                    <p><strong>Excepcionalmente +16</strong> si se solicita y se cumple alguna condición:</p>
+                    <ul>
+                        <li>Contrato laboral que impida cursar régimen ordinario.</li>
+                        <li>Deportista de alto rendimiento.</li>
+                        <li>Situación personal extraordinaria (enfermedad, discapacidad, violencia de género/terrorismo, hijos/as).</li>
+                        <li>Dificultad social extrema o riesgo de exclusión.</li>
+                        <li>No haber estado escolarizado en el sistema educativo español.</li>
+                    </ul>
+                    <p><strong>En todo caso:</strong> debe acreditarse alguna vía académica de acceso.</p>
+                `
+            },
+            13: {
+                title: 'Bachillerato (Adultos) - Requisitos de acceso',
+                body: `
+                    <p><strong>Edad:</strong> +18 (o cumplirlos en el año natural de inicio del curso).</p>
+                    <p><strong>Excepciones desde 16:</strong></p>
+                    <ul>
+                        <li>Trabajo que impida cursar régimen ordinario.</li>
+                        <li>Deportista de rendimiento/alto nivel.</li>
+                        <li>Situación personal extraordinaria (enfermedad, discapacidad, violencia de género/terrorismo, exclusión).</li>
+                        <li>Internamiento en centros penitenciarios o de menores.</li>
+                    </ul>
+                    <p><strong>Requisitos académicos:</strong> ESO o equivalente; Técnico FP (según especialidad); Técnico de Artes Plásticas y Diseño (para Bach. Artes).</p>
+                `
+            }
+        };
+
+        const infoBtn = document.getElementById('infoBtn');
+        let currentInfoNode = null;
+
+        // --- DIBUJADO DEL RECTÁNGULO DE FONDO ---
+        network.on("beforeDrawing", function (ctx) {
+            ctx.save();
+            ctx.setLineDash([10, 10]);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#2196F3';
+            ctx.fillStyle = 'rgba(33, 150, 243, 0.03)';
+
+            if (ctx.roundRect) {
+                ctx.beginPath();
+                ctx.roundRect(zone.x, zone.y, zone.w, zone.h, 20);
+                ctx.stroke();
+                ctx.fill();
+            } else {
+                ctx.beginPath();
+                ctx.rect(zone.x, zone.y, zone.w, zone.h);
+                ctx.stroke();
+                ctx.fill();
+            }
+
+            ctx.font = "bold 16px Arial";
+            ctx.fillStyle = "#2196F3";
+            ctx.textAlign = "left";
+            ctx.fillText("Oferta Educativa IES El Majuelo", zone.x + 20, zone.y + 30);
+            ctx.restore();
+        });
+
+        // --- FUNCIONALIDAD DEL PANEL ---
+        function updateZone() {
+            zone.x = parseInt(document.getElementById('rectX').value);
+            zone.y = parseInt(document.getElementById('rectY').value);
+            zone.w = parseInt(document.getElementById('rectW').value);
+            zone.h = parseInt(document.getElementById('rectH').value);
+            network.redraw();
+        }
+
+        function showInfo() {
+            if (!currentInfoNode || !infoByNodeId[currentInfoNode]) return;
+            const info = infoByNodeId[currentInfoNode];
+            document.getElementById('info-title').innerText = info.title;
+            document.getElementById('info-body').innerHTML = info.body;
+            document.getElementById('info-panel').style.display = 'block';
+        }
+
+        function hideInfo() {
+            document.getElementById('info-panel').style.display = 'none';
+        }
+
+        // --- FUNCIONALIDAD DE FILTRADO ---
+        function populateSelector() {
+            const selector = document.getElementById('focusSelect');
+            const sortedNodes = nodes.get().sort((a, b) => a.label.localeCompare(b.label));
+
+            sortedNodes.forEach(node => {
+                const option = document.createElement('option');
+                option.value = node.id;
+                option.text = node.label.replace(/\n/g, " ");
+                selector.appendChild(option);
+            });
+        }
+
+        function filterGraph() {
+            const selectedValue = document.getElementById('focusSelect').value;
+
+            if (selectedValue === 'all') {
+                nodes.forEach(n => nodes.update({id: n.id, hidden: false}));
+                edges.forEach(e => edges.update({id: e.id, hidden: false}));
+            } else {
+                const nodeId = parseInt(selectedValue);
+                const connectedNodes = network.getConnectedNodes(nodeId);
+                const connectedEdges = network.getConnectedEdges(nodeId);
+
+                const allNodes = nodes.getIds();
+                const nodeUpdates = allNodes.map(id => {
+                    const isVisible = (id === nodeId) || connectedNodes.includes(id);
+                    return { id: id, hidden: !isVisible };
+                });
+                nodes.update(nodeUpdates);
+
+                const allEdges = edges.getIds();
+                const edgeUpdates = allEdges.map(id => {
+                    const isVisible = connectedEdges.includes(id);
+                    return { id: id, hidden: !isVisible };
+                });
+                edges.update(edgeUpdates);
+            }
+        }
+
+        populateSelector();
+        document.getElementById('focusSelect').value = '1';
+        filterGraph();
+
+        network.on("click", function(params) {
+            if (params.nodes && params.nodes.length > 0) {
+                const nodeId = params.nodes[0];
+                if (infoByNodeId[nodeId]) {
+                    currentInfoNode = nodeId;
+                    infoBtn.disabled = false;
+                } else {
+                    currentInfoNode = null;
+                    infoBtn.disabled = true;
+                    hideInfo();
+                }
+            } else {
+                currentInfoNode = null;
+                infoBtn.disabled = true;
+                hideInfo();
+            }
+        });
+
+        network.on("hoverNode", function(params) {
+            hoveredNodeId = params.node;
+        });
+
+        network.on("blurNode", function() {
+            hoveredNodeId = null;
+            coordTooltip.style.display = "none";
+        });
+
+        network.on("mouseMove", function(params) {
+            if (!hoveredNodeId) return;
+            const pos = network.getPositions([hoveredNodeId])[hoveredNodeId];
+            if (!pos) return;
+            const dom = (params.event && params.event.pointer && params.event.pointer.DOM) ? params.event.pointer.DOM : null;
+            if (!dom) return;
+            const rect = container.getBoundingClientRect();
+            coordTooltip.textContent = `x: ${Math.round(pos.x)}  y: ${Math.round(pos.y)}`;
+            coordTooltip.style.left = (rect.left + dom.x + 12) + "px";
+            coordTooltip.style.top = (rect.top + dom.y + 12) + "px";
+            coordTooltip.style.display = "block";
+        });
+
+        network.once("afterDrawing", function() {
+            network.fit({ animation: { duration: 1000, easingFunction: 'easeInOutQuad' } });
+        });
+
+        function fitGraph() {
+            network.fit({ animation: { duration: 800 } });
+        }
+
+        function restorePositions() {
+            nodesData.forEach(nodeData => {
+                nodes.update({id: nodeData.id, x: nodeData.x, y: nodeData.y});
+            });
+            network.fit({ animation: { duration: 800 } });
+            document.getElementById('focusSelect').value = 'all';
+            filterGraph();
+        }
+
+    </script>
+</body>
+</html>

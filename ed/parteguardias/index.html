@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HORW Guardias Extractor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Librerías para PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .sticky-header { position: sticky; top: 0; z-index: 10; }
+        @media print { .no-print { display: none !important; } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="mb-10 text-center no-print">
+            <h1 class="text-4xl font-extrabold text-indigo-700 mb-2">HORW Guardias Extractor</h1>
+            <p class="text-slate-600">Generador de Partes de Guardia Institucionales - IES El Majuelo</p>
+        </header>
+
+        <!-- Upload Area -->
+        <div id="upload-container" class="bg-white rounded-2xl shadow-xl p-10 border-2 border-dashed border-indigo-200 flex flex-col items-center justify-center transition-all hover:border-indigo-400 no-print">
+            <div class="bg-indigo-100 p-4 rounded-full mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+            </div>
+            <label for="xmlInput" class="cursor-pointer bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">
+                Seleccionar Archivo XML
+            </label>
+            <input type="file" id="xmlInput" accept=".xml" class="hidden">
+            <p class="mt-4 text-sm text-slate-400 text-center">Configurado para 10 páginas con Logo y Avisos de Falta</p>
+        </div>
+
+        <!-- Results Area -->
+        <div id="results" class="hidden space-y-6 mt-10">
+            <div class="flex flex-wrap gap-4 justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200 sticky-header no-print">
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="filterDay(null)" class="day-tab px-4 py-2 rounded-md bg-indigo-600 text-white font-medium" id="tab-all">Vista Web</button>
+                    <button onclick="filterDay(1)" class="day-tab px-4 py-2 rounded-md hover:bg-slate-100 text-slate-600 font-medium" id="tab-1">Lunes</button>
+                    <button onclick="filterDay(2)" class="day-tab px-4 py-2 rounded-md hover:bg-slate-100 text-slate-600 font-medium" id="tab-2">Martes</button>
+                    <button onclick="filterDay(3)" class="day-tab px-4 py-2 rounded-md hover:bg-slate-100 text-slate-600 font-medium" id="tab-3">Miércoles</button>
+                    <button onclick="filterDay(4)" class="day-tab px-4 py-2 rounded-md hover:bg-slate-100 text-slate-600 font-medium" id="tab-4">Jueves</button>
+                    <button onclick="filterDay(5)" class="day-tab px-4 py-2 rounded-md hover:bg-slate-100 text-slate-600 font-medium" id="tab-5">Viernes</button>
+                </div>
+                <button onclick="generateInstitutionalPDF()" class="bg-rose-600 text-white px-6 py-2 rounded-md flex items-center gap-2 hover:bg-rose-700 shadow-lg shadow-rose-100 font-bold transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Descargar Partes PDF (10 hojas)
+                </button>
+            </div>
+            <div id="grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        </div>
+
+        <div id="status-msg" class="hidden mt-10 p-6 text-center text-red-500 font-medium bg-red-50 rounded-xl border border-red-100"></div>
+    </div>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+        const xmlInput = document.getElementById('xmlInput');
+        const uploadContainer = document.getElementById('upload-container');
+        const results = document.getElementById('results');
+        const gridContainer = document.getElementById('grid-container');
+        const statusMsg = document.getElementById('status-msg');
+
+        const DAY_NAMES = ["", "LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES"];
+        const GUARDIA_ID = "83";
+
+        let appData = { professors: {}, tramos: {}, activitiesByTramo: {} };
+
+        xmlInput.addEventListener('change', handleFile);
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const xmlDoc = new DOMParser().parseFromString(event.target.result, "text/xml");
+                    processXML(xmlDoc);
+                } catch (err) { showError("Error al procesar el XML."); }
+            };
+            reader.readAsText(file, "ISO-8859-1");
+        }
+
+        function processXML(xml) {
+            appData.professors = {};
+            xml.querySelectorAll('PROFESOR').forEach(p => {
+                const id = p.getAttribute('num_int_pr');
+                const nombre = p.getAttribute('nombre');
+                if (id && nombre) appData.professors[id] = nombre;
+            });
+
+            appData.tramos = {};
+            xml.querySelectorAll('TRAMO').forEach(t => {
+                const id = t.getAttribute('num_tr');
+                if (id) {
+                    appData.tramos[id] = {
+                        dia: parseInt(t.getAttribute('numero_dia')) || 0,
+                        hora: t.getAttribute('numero_hora') || "?",
+                        inicio: (t.getAttribute('hora_inicio') || "").trim(),
+                        fin: (t.getAttribute('hora_fin') || "").trim()
+                    };
+                }
+            });
+
+            appData.activitiesByTramo = {};
+            for (let i = 1; i <= 70; i++) appData.activitiesByTramo[i] = [];
+
+            const horAsigNode = xml.querySelector(`HORARIO_ASIG[hor_num_int_as="${GUARDIA_ID}"]`);
+            if (horAsigNode) {
+                horAsigNode.querySelectorAll('ACTIVIDAD').forEach(act => {
+                    const trId = act.getAttribute('tramo');
+                    const profId = act.getAttribute('profesor');
+                    if (appData.activitiesByTramo[trId] && appData.professors[profId]) {
+                        appData.activitiesByTramo[trId].push(appData.professors[profId]);
+                    }
+                });
+            }
+
+            const clean = (n) => (n || "").replace(/Dª\.|D\.|Mª\.|M\.ª/g, "").trim();
+            for (let tr in appData.activitiesByTramo) {
+                appData.activitiesByTramo[tr].sort((a, b) => clean(a).localeCompare(clean(b)));
+            }
+
+            uploadContainer.classList.add('hidden');
+            results.classList.remove('hidden');
+            statusMsg.classList.add('hidden');
+            filterDay(null);
+        }
+
+        async function generateInstitutionalPDF() {
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            
+            // Función para cargar imagen (logo_junta.png debe estar en el root)
+            const loadImage = (url) => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.onerror = () => resolve(null);
+                    img.src = url;
+                });
+            };
+
+            const logo = await loadImage('logo_junta.png');
+
+            for (let d = 1; d <= 5; d++) {
+                if (d > 1) doc.addPage();
+                addInstitutionalPage(doc, d, 'MAÑANA', logo);
+                doc.addPage();
+                addInstitutionalPage(doc, d, 'TARDE', logo);
+            }
+
+            doc.save(`Partes_Guardia_IES_El_Majuelo.pdf`);
+        }
+
+        function addInstitutionalPage(doc, dayNum, shift, logo) {
+            const isMorning = shift === 'MAÑANA';
+            const subRowsCount = isMorning ? 8 : 5;
+            const totalRowsInTable = 7 * subRowsCount;
+            
+            // FUENTE REDUCIDA EXTREMA para Mañana (5.2pt) para dejar sitio a los avisos
+            const currentFontSize = isMorning ? 5.2 : 8.2;
+            const currentCellPadding = isMorning ? 0.08 : 0.6;
+            
+            // Área de dibujo: Altura A4 Paisaje 210mm.
+            // Arriba (Header: 22mm). Avisos abajo (18mm). Footer (8mm).
+            // Disponible para tabla: ~160mm.
+            const totalAvailableHeight = isMorning ? 158 : 165; 
+            const rowHeight = totalAvailableHeight / totalRowsInTable;
+
+            const dayOffset = (dayNum - 1) * 14;
+            const startTramo = (isMorning ? 1 : 8) + dayOffset;
+            const endTramo = (isMorning ? 7 : 14) + dayOffset;
+
+            // ENCABEZADO e Identidad
+            if (logo) {
+                doc.addImage(logo, 'PNG', 15, 8, 30, 8); // Ajustar tamaño según archivo real
+            }
+            doc.setFontSize(7.5);
+            doc.setFont("helvetica", "bold");
+            doc.text("IES EL MAJUELO", 48, 12);
+            doc.setFont("helvetica", "normal");
+            doc.text("Consejería de Desarrollo Educativo y F.P.", 48, 15.5);
+
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${DAY_NAMES[dayNum]} - ${shift}`, 282, 12, { align: 'right' });
+            doc.setFontSize(9);
+            doc.text("Fecha: _________ / _________ / 202___", 282, 17.5, { align: 'right' });
+
+            const tableRows = [];
+            for (let t = startTramo; t <= endTramo; t++) {
+                const trInfo = appData.tramos[t] || { inicio: '--', fin: '--' };
+                const professors = appData.activitiesByTramo[t] || [];
+                
+                for (let s = 0; s < subRowsCount; s++) {
+                    const rowData = [];
+                    const profName = professors[s] || "";
+                    if (s === 0) {
+                        rowData.push({ 
+                            content: `${trInfo.inicio}\n${trInfo.fin}`, 
+                            rowSpan: subRowsCount, 
+                            styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fontSize: isMorning ? 6.5 : 8.5 } 
+                        });
+                        rowData.push(profName);
+                        rowData.push("");
+                        rowData.push({ content: "", rowSpan: subRowsCount });
+                        rowData.push({ content: "", rowSpan: subRowsCount });
+                        rowData.push({ content: "", rowSpan: subRowsCount });
+                    } else {
+                        rowData.push(profName);
+                        rowData.push("");
+                    }
+                    tableRows.push(rowData);
+                }
+            }
+
+            doc.autoTable({
+                startY: 21,
+                head: [['HORA', 'PROFESORADO DE GUARDIA', 'FIRMA', 'PROFESORADO AUSENTE', 'AULA', 'OBSERVACIONES']],
+                body: tableRows,
+                theme: 'grid',
+                styles: {
+                    lineColor: [0, 0, 0],
+                    lineWidth: 0.42, 
+                    fontSize: currentFontSize,
+                    cellPadding: currentCellPadding,
+                    textColor: [0, 0, 0],
+                    minCellHeight: rowHeight,
+                    overflow: 'linebreak'
+                },
+                headStyles: { fillColor: [235, 235, 235], fontStyle: 'bold', halign: 'center', fontSize: isMorning ? 7 : 9 },
+                columnStyles: {
+                    0: { cellWidth: 28 }, 1: { cellWidth: 90 }, 2: { cellWidth: 30 },
+                    3: { cellWidth: 65 }, 4: { cellWidth: 18 }, 5: { cellWidth: 'auto' }
+                },
+                margin: { left: 15, right: 15 },
+                rowPageBreak: 'avoid'
+            });
+
+            // SECCIÓN AVISOS DE FALTA (Debajo de la tabla)
+            let finalY = doc.lastAutoTable.finalY + 4;
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+            doc.text("AVISOS DE FALTA:", 15, finalY);
+            
+            doc.setLineWidth(0.2);
+            for(let i=0; i<3; i++) {
+                let lineY = finalY + 1.5 + (i * 4.5);
+                doc.line(15, lineY, 282, lineY);
+            }
+
+            // PIE DE PÁGINA
+            const pageCount = doc.internal.getNumberOfPages();
+            doc.setFontSize(7);
+            doc.setFont("helvetica", "italic");
+            doc.text(`Control de Guardia - Generación Automatizada - IES El Majuelo`, 15, 204);
+            doc.text(`Página ${pageCount} de 10`, 282, 204, { align: 'right' });
+        }
+
+        function filterDay(dayNum) {
+            gridContainer.innerHTML = '';
+            document.querySelectorAll('.day-tab').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white');
+                btn.classList.add('text-slate-600', 'hover:bg-slate-100');
+            });
+            const activeTab = document.getElementById(dayNum ? `tab-${dayNum}` : 'tab-all');
+            if (activeTab) {
+                activeTab.classList.remove('text-slate-600', 'hover:bg-slate-100');
+                activeTab.classList.add('bg-indigo-600', 'text-white');
+            }
+
+            for (let i = 1; i <= 70; i++) {
+                const trInfo = appData.tramos[i];
+                if (!trInfo) continue;
+                if (dayNum !== null && trInfo.dia !== dayNum) continue;
+                const profs = appData.activitiesByTramo[i] || [];
+                if (dayNum !== null && profs.length === 0) continue;
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col";
+                const colors = ["bg-slate-400", "bg-blue-600", "bg-emerald-600", "bg-amber-500", "bg-purple-600", "bg-rose-600"];
+                const dayColor = colors[trInfo.dia] || "bg-slate-600";
+                card.innerHTML = `
+                    <div class="${dayColor} px-4 py-2 text-white flex justify-between items-center text-xs font-bold">
+                        <span>${DAY_NAMES[trInfo.dia]}</span><span class="bg-white/20 px-2 rounded">T${i}</span>
+                    </div>
+                    <div class="p-3 bg-slate-50/50 border-b font-bold text-indigo-900">${trInfo.inicio} - ${trInfo.fin}</div>
+                    <div class="p-3 flex-grow text-[11px] text-slate-700">
+                        <ul class="space-y-1">${profs.map(p => `<li class="border-l-2 border-indigo-200 pl-2">${p}</li>`).join('')}</ul>
+                    </div>
+                `;
+                gridContainer.appendChild(card);
+            }
+        }
+
+        function showError(msg) {
+            statusMsg.textContent = msg;
+            statusMsg.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
