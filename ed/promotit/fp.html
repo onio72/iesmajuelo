@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promoción en Formación Profesional</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { primary: '#2d3748', secondary: '#4a5568', accent: '#3182ce', background: '#f7fafc', card: '#ffffff' }, fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } }
+    </script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-background text-primary antialiased selection:bg-accent selection:text-white pb-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
+        <nav class="mb-10 fade-in-up">
+            <div class="flex flex-wrap gap-2 justify-center">
+                <a href="index.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Índice</a>
+                <a href="eso.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción ESO</a>
+                <a href="bachillerato.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción Bachillerato</a>
+                <a href="fp.html" class="px-4 py-2 rounded-full bg-accent text-white text-sm font-semibold shadow-sm">Promoción FP</a>
+                <a href="pdc.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Acceso a PDC</a>
+                <a href="fpb.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Acceso a FPB</a>
+            </div>
+        </nav>
+
+        <header class="text-center mb-14 fade-in-up delay-100">
+            <div class="inline-flex items-center justify-center p-4 bg-accent/10 rounded-full mb-6">
+                <svg class="w-10 h-10 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.5 6h3M4 7a2 2 0 0 1 2-2h3l1-2h4l1 2h3a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 13l2.5 2.5L16 10"/></svg>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-6">Promoción en Formación Profesional</h1>
+            <p class="text-lg md:text-xl text-secondary max-w-2xl mx-auto leading-relaxed border-l-4 border-accent pl-4 text-left italic">
+                Las condiciones de promoción dependen del nivel formativo y de la carga horaria de los módulos no superados.
+            </p>
+        </header>
+
+        <main class="space-y-8">
+            <section class="bg-slate-50 text-gray-800 rounded-2xl p-8 md:p-10 shadow-sm border border-slate-200 fade-in-up delay-100 relative overflow-hidden">
+                <div class="absolute top-0 right-0 -mt-16 -mr-16 w-48 h-48 bg-accent rounded-full opacity-5 blur-2xl"></div>
+                <div class="relative z-10">
+                    <div class="flex items-center mb-6">
+                        <svg class="w-8 h-8 text-accent mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Criterio común de la nueva normativa</h2>
+                    </div>
+                    <p class="text-secondary text-sm md:text-base leading-relaxed">
+                        Tener pendiente la fase de formación en la empresa, con calificación <strong class="text-gray-900">X/PFE</strong>, <strong class="text-gray-900">no impide la promoción</strong> si la calificación numérica obtenida en el centro educativo es igual o superior a <strong class="text-gray-900 text-base">5</strong>.
+                    </p>
+                </div>
+            </section>
+
+            <section class="bg-card rounded-2xl shadow-sm border border-gray-100 p-8 fade-in-up delay-200">
+                <div class="flex items-center mb-8">
+                    <div class="bg-blue-50 p-3 rounded-lg mr-4">
+                        <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5-5 5M6 12h12"/></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-semibold">Grado Medio y Grado Superior</h2>
+                        <p class="text-secondary text-sm">Modalidad presencial completa.</p>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-5">
+                    <article class="rounded-xl bg-emerald-50 border border-emerald-100 p-5">
+                        <p class="text-3xl font-light text-emerald-300 mb-2">0%</p>
+                        <h3 class="font-semibold mb-2 text-gray-900">Todo superado</h3>
+                        <p class="text-secondary text-sm leading-relaxed">Promociona directamente a segundo curso si supera todos los módulos de primero.</p>
+                    </article>
+                    <article class="rounded-xl bg-rose-50 border border-rose-100 p-5">
+                        <p class="text-3xl font-light text-rose-300 mb-2">&gt; 50%</p>
+                        <h3 class="font-semibold mb-2 text-gray-900">Carga no superada alta</h3>
+                        <p class="text-secondary text-sm leading-relaxed">Debe repetir únicamente los módulos no superados y no puede matricularse de módulos de segundo.</p>
+                    </article>
+                    <article class="rounded-xl bg-blue-50 border border-blue-100 p-5">
+                        <p class="text-3xl font-light text-blue-300 mb-2">&le; 50%</p>
+                        <h3 class="font-semibold mb-2 text-gray-900">Carga no superada compatible</h3>
+                        <p class="text-secondary text-sm leading-relaxed">Puede repetir los módulos suspensos o ampliar matrícula con módulos de segundo curso.</p>
+                    </article>
+                </div>
+
+                <div class="mt-6 bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-900 mb-2">Condiciones para adelantar módulos de segundo</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start"><span class="mt-2 mr-3 h-2 w-2 rounded-full bg-accent flex-shrink-0"></span><p class="text-secondary text-sm leading-relaxed">La carga lectiva total, sumando módulos pendientes de 1º y módulos nuevos de 2º, no puede superar <strong class="text-gray-900">1.150 horas lectivas</strong> en ese curso.</p></li>
+                        <li class="flex items-start"><span class="mt-2 mr-3 h-2 w-2 rounded-full bg-accent flex-shrink-0"></span><p class="text-secondary text-sm leading-relaxed">Los horarios deben ser compatibles para permitir la evaluación continua.</p></li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="bg-card rounded-2xl shadow-sm border border-gray-100 p-8 fade-in-up delay-300">
+                <div class="flex items-center mb-8">
+                    <div class="bg-blue-50 p-3 rounded-lg mr-4">
+                        <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253"/></svg>
+                    </div>
+                    <h2 class="text-2xl font-semibold">Ciclos Formativos de Grado Básico</h2>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Promoción general</h3>
+                        <p class="text-secondary text-sm leading-relaxed">Pasa a segundo cuando supera los dos ámbitos no profesionales y los módulos suspensos del ámbito profesional no superan el <strong class="text-gray-900">20% del horario semanal</strong> de este ámbito.</p>
+                    </article>
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Promoción excepcional</h3>
+                        <p class="text-secondary text-sm leading-relaxed">El equipo docente puede promocionar si ha superado al menos uno de los dos ámbitos no profesionales, tiene madurez suficiente, expectativas favorables de recuperación y la promoción beneficia su evolución.</p>
+                    </article>
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Promociona con pendientes</h3>
+                        <p class="text-secondary text-sm leading-relaxed">Debe matricularse del segundo curso completo y de las materias suspensas de primero. El centro establecerá un programa de refuerzo para superarlas.</p>
+                    </article>
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">No promociona</h3>
+                        <p class="text-secondary text-sm leading-relaxed">Con 16 años o más puede matricularse solo de lo suspenso o de todo el curso. Si es menor de 16 años, debe matricularse de nuevo del curso completo.</p>
+                    </article>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
