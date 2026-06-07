@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Práctica de Francés 1º ESO - La Ville, Transports & Professions</title>
+    <style>
+        /* --- ESTILOS DE SISTEMA 100% OFFLINE Y AUTOCONTENIDOS --- */
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #e0e7ff;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-light: #94a3b8;
+            --border: #e2e8f0;
+            --correct: #22c55e;
+            --correct-light: #f0fdf4;
+            --correct-border: #bbf7d0;
+            --correct-dark: #15803d;
+            --incorrect: #ef4444;
+            --incorrect-light: #fef2f2;
+            --incorrect-border: #fca5a5;
+            --incorrect-dark: #b91c1c;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-col: column;
+            flex-direction: column;
+            justify-content: space-between;
+            line-height: 1.5;
+        }
+
+        /* --- LAYOUT & HEADER --- */
+        header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 640px) {
+            .header-container {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.6rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-md);
+        }
+
+        .logo-text h1 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+        }
+
+        .logo-text p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* --- TABLERO DE PUNTOS --- */
+        .scoreboard {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: #f1f5f9;
+            padding: 0.35rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .score-badge {
+            padding: 0.4rem 0.75rem;
+            border-radius: 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .score-badge.correct { background-color: var(--correct); }
+        .score-badge.incorrect { background-color: var(--incorrect); }
+        .score-badge.total {
+            background-color: var(--primary);
+            font-size: 0.85rem;
+            padding: 0.4rem 0.9rem;
+        }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        main {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 1.5rem 1rem;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- TARJETAS (CARDS) --- */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            display: none;
+        }
+
+        .card.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- CONFIGURADOR INICIAL --- */
+        .setup-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        .setup-desc {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.75rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        @media (max-width: 500px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* --- BOTONES --- */
+        .btn-limit {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 0.75rem 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .btn-limit.active {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+            color: var(--primary-hover);
+            font-weight: 800;
+        }
+
+        .checkbox-card {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background-color: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-card:hover {
+            background-color: #f1f5f9;
+        }
+
+        .checkbox-card input {
+            width: 1.15rem;
+            height: 1.15rem;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .checkbox-info span {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .checkbox-info p {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+
+        /* --- SECCIÓN PREGUNTAS (QUIZ) --- */
+        .progress-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-track {
+            background-color: var(--bg);
+            height: 0.6rem;
+            border-radius: 1rem;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .progress-bar {
+            background-color: var(--primary);
+            height: 100%;
+            width: 10%;
+            border-radius: 1rem;
+            transition: width 0.3s ease;
+        }
+
+        .badge-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 0.25rem 0.6rem;
+            border-radius: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge.category {
+            background-color: var(--primary-light);
+            color: var(--primary-hover);
+        }
+
+        .badge.type {
+            background-color: #fffbeb;
+            color: #b45309;
+        }
+
+        .question-prompt {
+            font-size: 1.35rem;
+            font-weight: 800;
+            line-height: 1.3;
+            margin-bottom: 0.25rem;
+            color: var(--text-main);
+        }
+
+        .question-subtext {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        /* --- BOTONES OPCIÓN MÚLTIPLE --- */
+        .option-btn {
+            width: 100%;
+            text-align: left;
+            background-color: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 1rem;
+            padding: 1rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            background-color: #fafafa;
+        }
+
+        .indicator-circle {
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 50%;
+            border: 2px solid var(--text-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 800;
+        }
+
+        /* --- ENTRADA ESCRITA --- */
+        .write-input {
+            width: 100%;
+            border: 2px solid var(--border);
+            border-radius: 1rem;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            outline: none;
+            transition: border-color 0.2s ease;
+            margin-bottom: 1rem;
+        }
+
+        .write-input:focus {
+            border-color: var(--primary);
+        }
+
+        .write-input::placeholder {
+            color: var(--text-light);
+        }
+
+        /* --- TECLADO VIRTUAL --- */
+        .keyboard-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .keyboard-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .keyboard-key {
+            background-color: #f1f5f9;
+            color: var(--text-main);
+            border: none;
+            border-radius: 0.5rem;
+            width: 2.25rem;
+            height: 2.25rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.15s ease;
+        }
+
+        .keyboard-key:active {
+            background-color: #cbd5e1;
+        }
+
+        /* --- CORRECCIONES Y FEEDBACK --- */
+        .feedback-panel {
+            margin-top: 1.5rem;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            border: 1px solid transparent;
+            display: none;
+        }
+
+        .feedback-panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .feedback-header {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feedback-icon {
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 900;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+
+        .feedback-info h4 {
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .feedback-info p {
+            font-size: 0.85rem;
+            margin-top: 0.15rem;
+        }
+
+        .feedback-rule {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            margin-top: 0.75rem;
+        }
+
+        /* --- COLORES DINÁMICOS DE FEEDBACK --- */
+        .feedback-correct {
+            background-color: var(--correct-light);
+            border-color: var(--correct-border);
+            color: var(--correct-dark);
+        }
+        .feedback-correct .feedback-icon { background-color: var(--correct); }
+
+        .feedback-incorrect {
+            background-color: var(--incorrect-light);
+            border-color: var(--incorrect-border);
+            color: var(--incorrect-dark);
+        }
+        .feedback-incorrect .feedback-icon { background-color: var(--incorrect); }
+
+        /* --- EVALUACIÓN FINAL --- */
+        .results-avatar {
+            width: 5rem;
+            height: 5rem;
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem auto;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        .results-avatar svg {
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            background-color: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .results-item span {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+        }
+
+        .results-item p {
+            font-size: 1.75rem;
+            font-weight: 900;
+        }
+
+        .results-item.score p { color: var(--primary); }
+        .results-item.percentage p { color: var(--correct); }
+
+        .result-msg {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding: 0 0.5rem;
+        }
+
+        /* --- BOTÓN DE SIGUIENTE --- */
+        .btn-next {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 0.85rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 1rem;
+            box-shadow: var(--shadow-md);
+            transition: background-color 0.15s ease;
+        }
+
+        .btn-next:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* --- PIE DE PÁGINA --- */
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.7rem;
+            color: var(--text-light);
+            border-top: 1px solid var(--border);
+            background-color: var(--card-bg);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-container">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>Pratique du Français</h1>
+                    <p>La Ville, les Transports et les Professions</p>
+                </div>
+            </div>
+
+            <!-- Tablero interactivo offline -->
+            <div class="scoreboard">
+                <div class="score-badge correct">Aciertos: <span id="score-correct">0</span></div>
+                <div class="score-badge incorrect">Fallos: <span id="score-incorrect">0</span></div>
+                <div class="score-badge total">Total: <span id="score-total">0</span> pts</div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- PANTALLA 1: CONFIGURACIÓN -->
+        <div id="setup-card" class="card active">
+            <h2 class="setup-title">¡Prepara tu examen de francés!</h2>
+            <p class="setup-desc">Fichas de repaso y ejercicios interactivos autónomos basados estrictamente en tu cuaderno de francés de 1º ESO.</p>
+
+            <form id="setup-form" onsubmit="startPractice(event)">
+                <div class="form-group">
+                    <label class="form-label">¿Cuántas preguntas quieres responder?</label>
+                    <div class="grid-3">
+                        <button type="button" onclick="setQuestionLimit(10)" class="btn-limit" id="btn-limit-10">10 Rápidas</button>
+                        <button type="button" onclick="setQuestionLimit(20)" class="btn-limit" id="btn-limit-20">20 Estándar</button>
+                        <button type="button" onclick="setQuestionLimit(40)" class="btn-limit active" id="btn-limit-40">40+ Completo</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Elige las categorías a incluir:</label>
+                    <div class="grid-2">
+                        <label class="checkbox-card">
+                            <input type="checkbox" checked value="ville" class="cat-checkbox">
+                            <div class="checkbox-info">
+                                <span>La Ville & Lieux</span>
+                                <p>Calles, aceras, edificios</p>
+                            </div>
+                        </label>
+                        <label class="checkbox-card">
+                            <input type="checkbox" checked value="transport" class="cat-checkbox">
+                            <div class="checkbox-info">
+                                <span>Moyens de Transport</span>
+                                <p>Preposiciones à / en</p>
+                            </div>
+                        </label>
+                        <label class="checkbox-card">
+                            <input type="checkbox" checked value="verbs" class="cat-checkbox">
+                            <div class="checkbox-info">
+                                <span>Verbes & Présent</span>
+                                <p>Aller, Prendre, etc.</p>
+                            </div>
+                        </label>
+                        <label class="checkbox-card">
+                            <input type="checkbox" checked value="professions" class="cat-checkbox">
+                            <div class="checkbox-info">
+                                <span>Les Professions</span>
+                                <p>Género y femenino (Fichas)</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Empezar práctica</button>
+            </form>
+        </div>
+
+        <!-- PANTALLA 2: JUEGO (PREGUNTAS) -->
+        <div id="quiz-card" class="card">
+            <div class="progress-container">
+                <div class="progress-info">
+                    <span id="question-index">Pregunta 1 de 10</span>
+                    <span id="question-percentage">10%</span>
+                </div>
+                <div class="progress-track">
+                    <div id="progress-bar" class="progress-bar"></div>
+                </div>
+            </div>
+
+            <div class="badge-row">
+                <span id="badge-category" class="badge category">LA VILLE</span>
+                <span id="badge-type" class="badge type">ESCRITURA</span>
+            </div>
+
+            <div class="question-area">
+                <h3 id="question-prompt" class="question-prompt">¿Cómo se dice 'un paso de peatones' en francés?</h3>
+                <p id="question-subtext" class="question-subtext">Introduce la traducción exacta.</p>
+            </div>
+
+            <!-- Entrada Tipo 1: Opción Múltiple -->
+            <div id="options-container" style="display: none;">
+                <!-- Botones inyectados dinámicamente -->
+            </div>
+
+            <!-- Entrada Tipo 2: Teclado y campo de texto -->
+            <div id="write-container" style="display: none;">
+                <input type="text" id="write-input" autocomplete="off" class="write-input" placeholder="Escribe tu respuesta aquí...">
+                
+                <div class="keyboard-area">
+                    <p class="keyboard-title">Caracteres especiales franceses:</p>
+                    <div class="keyboard-grid">
+                        <button type="button" onclick="insertChar('é')" class="keyboard-key">é</button>
+                        <button type="button" onclick="insertChar('è')" class="keyboard-key">è</button>
+                        <button type="button" onclick="insertChar('à')" class="keyboard-key">à</button>
+                        <button type="button" onclick="insertChar('ç')" class="keyboard-key">ç</button>
+                        <button type="button" onclick="insertChar('â')" class="keyboard-key">â</button>
+                        <button type="button" onclick="insertChar('ê')" class="keyboard-key">ê</button>
+                        <button type="button" onclick="insertChar('î')" class="keyboard-key">î</button>
+                        <button type="button" onclick="insertChar('ô')" class="keyboard-key">ô</button>
+                        <button type="button" onclick="insertChar('û')" class="keyboard-key">û</button>
+                    </div>
+                </div>
+
+                <button type="button" id="btn-submit-write" onclick="validateWriteAnswer()" class="btn-submit">Validar respuesta</button>
+            </div>
+
+            <!-- Panel de Feedback -->
+            <div id="feedback-panel" class="feedback-panel">
+                <div class="feedback-header">
+                    <div id="feedback-icon" class="feedback-icon">✓</div>
+                    <div class="feedback-info">
+                        <h4 id="feedback-title">¡Respuesta correcta!</h4>
+                        <p id="feedback-text">La respuesta es correcta.</p>
+                    </div>
+                </div>
+                <div id="feedback-rule" class="feedback-rule"></div>
+                <button type="button" onclick="nextQuestion()" class="btn-next">Siguiente pregunta</button>
+            </div>
+        </div>
+
+        <!-- PANTALLA 3: RESULTADOS -->
+        <div id="results-card" class="card" style="text-align: center;">
+            <div class="results-avatar">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+            </div>
+            <h2 class="setup-title" style="font-size: 1.8rem;">¡Práctica finalizada!</h2>
+            <p class="setup-desc">Has completado tu sesión de estudio.</p>
+
+            <div class="results-grid">
+                <div class="results-item score">
+                    <span>Puntuación</span>
+                    <p id="result-final-score">0</p>
+                </div>
+                <div class="results-item percentage">
+                    <span>Aciertos %</span>
+                    <p id="result-success-rate">0%</p>
+                </div>
+            </div>
+
+            <p id="result-evaluation" class="result-msg">¡Sigue practicando para asegurar la mejor nota!</p>
+
+            <button type="button" onclick="restartApp()" class="btn-submit" style="background-color: var(--text-main); box-shadow: none;">Volver al inicio</button>
+        </div>
+    </main>
+
+    <footer>
+        &copy; 2026 - Generador de Práctica y Aprendizaje Activo de Francés 1º ESO
+    </footer>
+
+    <script>
+        // Banco de preguntas exactas del temario de 1º ESO
+        const DATABASE = [
+            {
+                category: "ville",
+                type: "multiple",
+                prompt: "¿Cómo se traduce correctamente al francés 'un paso de peatones'?",
+                subtext: "Selecciona la opción con el género gramatical correcto.",
+                options: ["une piste cyclable", "un passage pour piétons", "un trottoir", "un rond-point"],
+                answer: "un passage pour piétons",
+                explanation: "'Un passage pour piétons' es paso de peatones. 'Un trottoir' es la acera."
+            },
+            {
+                category: "ville",
+                type: "write",
+                prompt: "¿Cómo se dice 'rotonda' en francés?",
+                subtext: "Escribe la respuesta en minúsculas incluyendo el artículo indeterminado 'un'.",
+                answer: "un rond-point",
+                explanation: "Rotonda se escribe con un guion intermedio en francés: 'un rond-point'."
+            },
+            {
+                category: "ville",
+                type: "multiple",
+                prompt: "¿Cuál es la traducción correcta de 'un semáforo'?",
+                subtext: "Selecciona el término exacto usado en clase.",
+                options: ["un pont", "un trottoir", "un feu", "une rue"],
+                answer: "un feu",
+                explanation: "Para el semáforo se usa la palabra 'un feu' (literalmente: un fuego/luz)."
+            },
+            {
+                category: "ville",
+                type: "write",
+                prompt: "¿Cómo se escribe la traducción de 'librería' en francés?",
+                subtext: "¡Cuidado con los falsos amigos! No confundir con biblioteca pública.",
+                answer: "une librairie",
+                explanation: "En francés, 'une librairie' es una tienda de libros (librería). Biblioteca se dice 'une bibliothèque'."
+            },
+            {
+                category: "ville",
+                type: "multiple",
+                prompt: "¿Cuál de estos lugares corresponde a 'una estación'?",
+                subtext: "Selecciona el lugar correspondiente.",
+                options: ["un collège", "un hôpital", "un musée", "une gare"],
+                answer: "une gare",
+                explanation: "'Une gare' es una estación de tren o de autobuses."
+            },
+            {
+                category: "ville",
+                type: "write",
+                prompt: "¿Cómo se dice 'panadería' en francés?",
+                subtext: "Escribe la respuesta con su artículo indeterminado femenino 'une'.",
+                answer: "une boulangerie",
+                explanation: "Viene de la persona que hace pan (boulanger): 'une boulangerie'."
+            },
+            {
+                category: "transport",
+                type: "write",
+                prompt: "Completa la frase: 'Nous allons au collège ___ métro.'",
+                subtext: "Escribe la preposición correcta (à o en).",
+                answer: "en",
+                explanation: "Se usa 'en' porque el metro es un transporte cerrado en el que entramos."
+            },
+            {
+                category: "transport",
+                type: "write",
+                prompt: "Completa la frase: 'Ils vont à la piscine ___ trottinette.'",
+                subtext: "Escribe la preposición correspondiente (à o en).",
+                answer: "à",
+                explanation: "La patinete es un medio abierto donde nos subimos encima, por lo tanto lleva 'à'."
+            },
+            {
+                category: "transport",
+                type: "write",
+                prompt: "Completa la frase: 'Elle va au parc ___ pied.'",
+                subtext: "Preposición para ir andando.",
+                answer: "à",
+                explanation: "Ir a pie es una expresión fija: 'à pied'."
+            },
+            {
+                category: "transport",
+                type: "multiple",
+                prompt: "Si vas en bicicleta, ¿cómo se traduce 'en bicicleta' en francés?",
+                subtext: "Analiza el uso de la preposición para transportes abiertos.",
+                options: ["en vélo", "à vélo", "par vélo", "sur vélo"],
+                answer: "à vélo",
+                explanation: "Los transportes sobre los que nos sentamos encima al aire libre se construyen con 'à'."
+            },
+            {
+                category: "transport",
+                type: "write",
+                prompt: "Completa: 'Ils vont à l'hôpital ___ voiture.'",
+                subtext: "Introduce la preposición.",
+                answer: "en",
+                explanation: "El coche es cerrado, por lo que exige el uso de 'en'."
+            },
+            {
+                category: "ville",
+                type: "multiple",
+                prompt: "¿Cómo se dice 'detrás del edificio' en francés?",
+                subtext: "Recuerda la contracción de la vocal.",
+                options: ["devant l'immeuble", "derrière l'immeuble", "sous l'immeuble", "dans l'immeuble"],
+                answer: "derrière l'immeuble",
+                explanation: "'Derrière' es detrás. Al empezar 'immeuble' con vocal, se acorta a 'l'immeuble'."
+            },
+            {
+                category: "ville",
+                type: "write",
+                prompt: "¿Cómo se dice 'al lado de la panadería'?",
+                subtext: "Escribe toda la locución.",
+                answer: "à côté de la boulangerie",
+                explanation: "La locución exacta es 'à côté de' seguido del lugar."
+            },
+            {
+                category: "ville",
+                type: "multiple",
+                prompt: "¿Qué significa la frase 'Le chat est sous la table'?",
+                subtext: "Traduce la preposición de lugar.",
+                options: ["El gato está encima de la mesa", "El gato está debajo de la mesa", "El gato está delante de la mesa", "El gato está detrás de la mesa"],
+                answer: "El gato está debajo de la mesa",
+                explanation: "'Sous' significa debajo de. No confundir con 'sur' (encima de)."
+            },
+            {
+                category: "verbs",
+                type: "write",
+                prompt: "Conjuga el verbo ALLER para ellos/ellas: 'Ils ____ au cinéma.'",
+                subtext: "Escribe solo el verbo en presente.",
+                answer: "vont",
+                explanation: "El presente de ALLER es: je vais, tu vas, il va, nous allons, vous allez, ils vont."
+            },
+            {
+                category: "verbs",
+                type: "write",
+                prompt: "Conjuga PRENDRE para nosotros: 'Nous ____ le métro.'",
+                subtext: "Escribe solo la conjugación.",
+                answer: "prenons",
+                explanation: "En las personas del plural de PRENDRE se elimina la 'd': nous prenons."
+            },
+            {
+                category: "verbs",
+                type: "write",
+                prompt: "Conjuga DESCENDRE en presente para tú: 'Tu ____ du bus.'",
+                subtext: "Verbo regular de la familia en -RE.",
+                answer: "descends",
+                explanation: "Los verbos en -RE mantienen la letra 's' en la conjugación con 'tu'."
+            },
+            {
+                category: "verbs",
+                type: "multiple",
+                prompt: "¿Cuál es la conjugación de la tercera persona de plural de PRENDRE?",
+                subtext: "Cuidado con la ortografía.",
+                options: ["prendent", "prendons", "prenent", "prennent"],
+                answer: "prennent",
+                explanation: "En la persona 'ils/elles' de PRENDRE, se dobla la consonante 'n' y se añade '-ent'."
+            },
+            {
+                category: "verbs",
+                type: "write",
+                prompt: "Conjuga CONTINUER para vosotros: 'Vous ____ tout droit.'",
+                subtext: "Terminación de segunda persona del plural.",
+                answer: "continuez",
+                explanation: "Los verbos del grupo -ER añaden '-ez' al conjugarse con vous."
+            },
+            {
+                category: "verbs",
+                type: "multiple",
+                prompt: "¿Cómo se escribe el imperativo informal de girar (¡Gira! para 'tú')?",
+                subtext: "Aplica la regla de la caída de la 's'.",
+                options: ["Tournes !", "Tourne !", "Tu tourne !", "Tournez !"],
+                answer: "Tourne !",
+                explanation: "El imperativo no lleva pronombre sujeto y los verbos acabados en -ER pierden la 's' final en la forma de tú."
+            },
+            {
+                category: "verbs",
+                type: "write",
+                prompt: "Traduce la orden formal de cortesía: '¡Gire a la derecha!'",
+                subtext: "Incluye los signos de exclamación.",
+                answer: "Tournez à droite !",
+                explanation: "Para la cortesía o plural usamos la terminación -ez: 'Tournez à droite !'"
+            },
+            {
+                category: "verbs",
+                type: "multiple",
+                prompt: "¿Cuál es el imperativo de ALLER para ordenar a 'tú' (¡Ve!)?",
+                subtext: "Sigue la misma regla que los verbos en -ER.",
+                options: ["Vas !", "Va !", "Allez !", "Allons !"],
+                answer: "Va !",
+                explanation: "El verbo irregular ALLER también pierde la letra 's' final en el imperativo de tú."
+            },
+            {
+                category: "verbs",
+                type: "write",
+                prompt: "Traduce la orden de tú: '¡Toma la primera calle!'",
+                subtext: "Usa el verbo PRENDRE. Recuerda si pierde o mantiene la 's'.",
+                answer: "Prends la première rue !",
+                explanation: "El verbo PRENDRE no termina en -ER, por lo tanto mantiene su 's' en imperativo de tú."
+            },
+            {
+                category: "professions",
+                type: "write",
+                prompt: "¿Cuál es el femenino de 'un pharmacien'?",
+                subtext: "Escribe la respuesta completa con el artículo indeterminado femenino 'une'.",
+                answer: "une pharmacienne",
+                explanation: "Los nombres terminados en '-ien' duplican la consonante y terminan en '-ienne'."
+            },
+            {
+                category: "professions",
+                type: "multiple",
+                prompt: "¿Cuál es el femenino de 'un infirmier' (enfermero)?",
+                subtext: "Revisa bien los acentos graves.",
+                options: ["une infirmier", "une infirmière", "une infirmieure", "une infirmiere"],
+                answer: "une infirmière",
+                explanation: "La terminación '-er' cambia a '-ère' en el género femenino."
+            },
+            {
+                category: "professions",
+                type: "write",
+                prompt: "¿Cuál es el femenino de 'un coiffeur' (peluquero)?",
+                subtext: "Escribe la respuesta con su artículo indeterminado 'une'.",
+                answer: "une coiffeuse",
+                explanation: "Los masculinos acabados en '-eur' suelen cambiar a '-euse' en femenino."
+            },
+            {
+                category: "professions",
+                type: "multiple",
+                prompt: "¿Cuál de estos oficios tiene la misma forma para masculino y femenino?",
+                subtext: "Es una palabra invariable.",
+                options: ["boulanger", "policier", "photographe", "conducteur"],
+                answer: "photographe",
+                explanation: "Los oficios acabados en '-e' muda son invariables: un/une photographe."
+            },
+            {
+                category: "professions",
+                type: "write",
+                prompt: "¿Cuál es el femenino de 'un conducteur'?",
+                subtext: "Escribe el femenino completo con el artículo 'une'.",
+                answer: "une conductrice",
+                explanation: "La terminación '-teur' cambia a '-trice' en la mayoría de estos casos."
+            },
+            {
+                category: "professions",
+                type: "multiple",
+                prompt: "¿Cuál es el femenino correcto de 'un cuisinier' (cocinero)?",
+                subtext: "Aplica las reglas de acentuación del cuaderno.",
+                options: ["une cuisinière", "une cuisinier", "une cuisinieuse", "une cuisiniere"],
+                answer: "une cuisinière",
+                explanation: "El masculino en '-er' pasa a ser '-ère': 'une cuisinière'."
+            },
+            {
+                category: "professions",
+                type: "write",
+                prompt: "Traduce al francés: 'una camarera'",
+                subtext: "Escribe 'une' más el oficio femenino.",
+                answer: "une serveuse",
+                explanation: "El masculino es 'un serveur' y su femenino correspondiente es 'une serveuse'."
+            },
+            {
+                category: "professions",
+                type: "multiple",
+                prompt: "Traduce: 'El panadero trabaja en la panadería.'",
+                subtext: "Usa el artículo determinado e incluye el punto final.",
+                options: [
+                    "Le boulanger travaille en la boulangerie.",
+                    "Le boulanger travaille dans la boulangerie.",
+                    "La boulangère travaille à la boulangerie.",
+                    "Le boulanger travaille sur la boulangerie."
+                ],
+                answer: "Le boulanger travaille dans la boulangerie.",
+                explanation: "En francés se dice que trabaja 'dentro de' ('dans') el lugar comercial."
+            },
+            {
+                category: "professions",
+                type: "write",
+                prompt: "Traduce al francés: 'una farmacéutica'",
+                subtext: "Incluye el artículo indeterminado femenino.",
+                answer: "une pharmacienne",
+                explanation: "Viene de 'un pharmacien' doblando la 'n': 'une pharmacienne'."
+            },
+            {
+                category: "professions",
+                type: "multiple",
+                prompt: "¿Cuál es el masculino y femenino de 'periodista'?",
+                subtext: "Es una profesión invariable en su forma.",
+                options: [
+                    "un journalier / une journalière",
+                    "un journaliste / une journaliste",
+                    "un journalisteur / une journalistrice",
+                    "un journaliste / une journalistese"
+                ],
+                answer: "un journaliste / une journaliste",
+                explanation: "Sustantivo invariable acabado en '-e': un/une journaliste."
+            },
+            {
+                category: "professions",
+                type: "write",
+                prompt: "Traduce al francés: 'La farmacéutica trabaja en la farmacia.'",
+                subtext: "Cuidado con la doble n y el punto final.",
+                answer: "La pharmacienne travaille dans la pharmacie.",
+                explanation: "'La pharmacienne' (femenino) + 'travaille' (verbo) + 'dans la pharmacie' (lugar)."
+            },
+            {
+                category: "professions",
+                type: "multiple",
+                prompt: "¿Cómo se dice 'un veterinario' y 'una veterinaria'?",
+                subtext: "Es un sustantivo invariable.",
+                options: [
+                    "un vétérinaire / une vétérinaire",
+                    "un vétérinaire / une vétérinarienne",
+                    "un vétérinier / une vétérinière",
+                    "un vétérinaire / une vétérinarice"
+                ],
+                answer: "un vétérinaire / une vétérinaire",
+                explanation: "Al terminar en '-e', es idéntico para ambos géneros."
+            },
+            {
+                category: "professions",
+                type: "write",
+                prompt: "Traduce al francés: 'un jardinero'",
+                subtext: "Masculino del oficio.",
+                answer: "un jardinier",
+                explanation: "Masculino: un jardinier. Su femenino es une jardinière."
+            },
+            {
+                category: "professions",
+                type: "multiple",
+                prompt: "Traduce: 'El enfermero y la enfermera trabajan en el hospital.'",
+                subtext: "Usa el plural correcto del verbo y la contracción de hospital.",
+                options: [
+                    "L'infirmier et l'infirmière travaille en l'hôpital.",
+                    "L'infirmier et l'infirmière travaillent à l'hôpital.",
+                    "L'infirmier et l'infirmière travaillent dans hôpital.",
+                    "L'infirmier et la infirmière travaillent à la hôpital."
+                ],
+                answer: "L'infirmier et l'infirmière travaillent à l'hôpital.",
+                explanation: "Enfermero y enfermera es plural ('travaillent') y se dirigen 'a el hospital' ('à l'hôpital')."
+            },
+            {
+                category: "professions",
+                type: "write",
+                prompt: "Traduce al francés: 'un policía'",
+                subtext: "Masculino singular.",
+                answer: "un policier",
+                explanation: "Un policier. El femenino es une policière."
+            },
+            {
+                category: "professions",
+                type: "multiple",
+                prompt: "Traduce: 'El cocinero prepara una pizza en el restaurante.'",
+                subtext: "Aplica las profesiones y lugares de la ciudad.",
+                options: [
+                    "Le cuisinier prépare un pizza en le restaurant.",
+                    "Le cuisinier prépare une pizza dans le restaurant.",
+                    "La cuisinière prépare une pizza à le restaurant.",
+                    "Le cuisinier prepare une pizza dans le restaurant."
+                ],
+                answer: "Le cuisinier prépare une pizza dans le restaurant.",
+                explanation: "El cocinero ('Le cuisinier') prepara ('prépare' con tilde) una pizza en el ('dans le') restaurante."
+            },
+            {
+                category: "professions",
+                type: "write",
+                prompt: "Traduce al francés: 'una peluquera'",
+                subtext: "Femenino de 'un coiffeur'.",
+                answer: "une coiffeuse",
+                explanation: "Femenino con terminación '-euse': 'une coiffeuse'."
+            }
+        ];
+
+        let activeQuestions = [];
+        let currentQuestionIndex = 0;
+        let scoreCorrect = 0;
+        let scoreIncorrect = 0;
+        let scoreTotal = 0;
+        let questionLimit = 40; // Completo por defecto
+
+        // Cambiar el límite de preguntas con botones
+        function setQuestionLimit(limit) {
+            questionLimit = limit;
+            document.querySelectorAll('.btn-limit').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`btn-limit-${limit}`).classList.add('active');
+        }
+
+        // Iniciar juego interactivo
+        function startPractice(event) {
+            event.preventDefault();
+
+            // Filtrar por categorías que el usuario tenga activas
+            const checkedCategories = Array.from(document.querySelectorAll('.cat-checkbox:checked')).map(el => el.value);
+            
+            if (checkedCategories.length === 0) {
+                alert("Por favor, selecciona al menos una categoría para empezar a estudiar.");
+                return;
+            }
+
+            // Filtrar preguntas de la base de datos
+            let filtered = DATABASE.filter(q => checkedCategories.includes(q.category));
+
+            if (filtered.length === 0) {
+                alert("No hay preguntas disponibles en las categorías que has marcado.");
+                return;
+            }
+
+            // Barajar aleatoriamente usando Fisher-Yates
+            for (let i = filtered.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+            }
+
+            // Seleccionar según el límite elegido
+            activeQuestions = filtered.slice(0, Math.min(questionLimit, filtered.length));
+            
+            // Inicializar estados de puntos
+            currentQuestionIndex = 0;
+            scoreCorrect = 0;
+            scoreIncorrect = 0;
+            scoreTotal = 0;
+
+            updateScoreboard();
+
+            // Transiciones de pantallas
+            document.getElementById('setup-card').classList.remove('active');
+            document.getElementById('quiz-card').classList.add('active');
+
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            // Reiniciar inputs y paneles de corrección previa
+            document.getElementById('feedback-panel').classList.remove('active');
+            document.getElementById('btn-submit-write').removeAttribute('disabled');
+            document.getElementById('write-input').value = '';
+            document.getElementById('write-input').className = "write-input";
+
+            const question = activeQuestions[currentQuestionIndex];
+
+            // Renderizar progreso numérico y gráfico
+            document.getElementById('question-index').innerText = `Pregunta ${currentQuestionIndex + 1} de ${activeQuestions.length}`;
+            const percentage = Math.round(((currentQuestionIndex) / activeQuestions.length) * 100);
+            document.getElementById('question-percentage').innerText = `${percentage}%`;
+            document.getElementById('progress-bar').style.width = `${percentage}%`;
+
+            // Badges identificadores
+            document.getElementById('badge-category').innerText = question.category.toUpperCase();
+            document.getElementById('badge-type').innerText = question.type === 'multiple' ? 'OPCIÓN MÚLTIPLE' : 'ESCRITURA';
+
+            // Textos descriptivos
+            document.getElementById('question-prompt').innerText = question.prompt;
+            document.getElementById('question-subtext').innerText = question.subtext;
+
+            // Renderizar formulario o botones según corresponda
+            if (question.type === 'multiple') {
+                document.getElementById('write-container').style.display = 'none';
+                document.getElementById('options-container').style.display = 'block';
+                renderMultipleChoiceOptions(question);
+            } else {
+                document.getElementById('options-container').style.display = 'none';
+                document.getElementById('write-container').style.display = 'block';
+                
+                // Dar foco automático para escribir rápido
+                setTimeout(() => {
+                    document.getElementById('write-input').focus();
+                }, 100);
+            }
+        }
+
+        function renderMultipleChoiceOptions(question) {
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            question.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.onclick = () => validateMultipleAnswer(opt, btn);
+                btn.className = "option-btn";
+                btn.innerHTML = `
+                    <span>${opt}</span>
+                    <span class="indicator-circle"></span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function insertChar(char) {
+            const input = document.getElementById('write-input');
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            const text = input.value;
+            input.value = text.substring(0, start) + char + text.substring(end);
+            input.focus();
+            input.selectionStart = input.selectionEnd = start + 1;
+        }
+
+        // Atajo teclado ENTER en campos escritos
+        document.getElementById('write-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                validateWriteAnswer();
+            }
+        });
+
+        function validateMultipleAnswer(selectedOption, clickedButton) {
+            const question = activeQuestions[currentQuestionIndex];
+            
+            // Desactivar botones de forma segura
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.setAttribute('disabled', 'true');
+                btn.style.opacity = '0.5';
+            });
+            clickedButton.style.opacity = '1';
+
+            // Normalización Unicode (NFC) contra discordancias de teclados Apple / iOS descompuestos
+            const cleanSelected = selectedOption.trim().toLowerCase().normalize("NFC");
+            const cleanAnswer = question.answer.trim().toLowerCase().normalize("NFC");
+
+            if (cleanSelected === cleanAnswer) {
+                scoreCorrect++;
+                scoreTotal += 1;
+                clickedButton.style.borderColor = "var(--correct)";
+                clickedButton.style.backgroundColor = "var(--correct-light)";
+                clickedButton.style.color = "var(--correct-dark)";
+                clickedButton.querySelector('.indicator-circle').style.backgroundColor = "var(--correct)";
+                clickedButton.querySelector('.indicator-circle').style.borderColor = "var(--correct)";
+                clickedButton.querySelector('.indicator-circle').style.color = "white";
+                clickedButton.querySelector('.indicator-circle').innerText = "✓";
+                showFeedback(true, question.explanation, question.answer);
+            } else {
+                scoreIncorrect++;
+                scoreTotal -= 1;
+                clickedButton.style.borderColor = "var(--incorrect)";
+                clickedButton.style.backgroundColor = "var(--incorrect-light)";
+                clickedButton.style.color = "var(--incorrect-dark)";
+                clickedButton.querySelector('.indicator-circle').style.backgroundColor = "var(--incorrect)";
+                clickedButton.querySelector('.indicator-circle').style.borderColor = "var(--incorrect)";
+                clickedButton.querySelector('.indicator-circle').style.color = "white";
+                clickedButton.querySelector('.indicator-circle').innerText = "✗";
+
+                // Resaltar visualmente la que era correcta
+                document.querySelectorAll('.option-btn').forEach(btn => {
+                    if (btn.querySelector('span').innerText.trim().toLowerCase().normalize("NFC") === cleanAnswer) {
+                        btn.style.opacity = '1';
+                        btn.style.borderColor = "var(--correct)";
+                        btn.style.backgroundColor = "var(--correct-light)";
+                        btn.style.color = "var(--correct-dark)";
+                    }
+                });
+
+                showFeedback(false, question.explanation, question.answer);
+            }
+
+            updateScoreboard();
+        }
+
+        function validateWriteAnswer() {
+            const question = activeQuestions[currentQuestionIndex];
+            const rawInput = document.getElementById('write-input').value;
+            
+            if (rawInput.trim() === "") return;
+
+            document.getElementById('btn-submit-write').setAttribute('disabled', 'true');
+
+            // MEJORA TÉCNICA CLAVE: .normalize("NFC") elimina fallos fantasma de caracteres en teclados iPhone/Mac (NFD descompuesto)
+            const cleanInput = rawInput.trim().toLowerCase().normalize("NFC").replace(/[.,\/#!$%\^&\*;:{}=\-_`~()¡!?¿]/g, "").replace(/\s+/g, " ");
+            const cleanAnswer = question.answer.trim().toLowerCase().normalize("NFC").replace(/[.,\/#!$%\^&\*;:{}=\-_`~()¡!?¿]/g, "").replace(/\s+/g, " ");
+
+            const inputElement = document.getElementById('write-input');
+
+            if (cleanInput === cleanAnswer) {
+                scoreCorrect++;
+                scoreTotal += 1;
+                inputElement.style.borderColor = "var(--correct)";
+                inputElement.style.backgroundColor = "var(--correct-light)";
+                inputElement.style.color = "var(--correct-dark)";
+                showFeedback(true, question.explanation, question.answer);
+            } else {
+                scoreIncorrect++;
+                scoreTotal -= 1;
+                inputElement.style.borderColor = "var(--incorrect)";
+                inputElement.style.backgroundColor = "var(--incorrect-light)";
+                inputElement.style.color = "var(--incorrect-dark)";
+                showFeedback(false, question.explanation, question.answer);
+            }
+
+            updateScoreboard();
+        }
+
+        function showFeedback(isCorrect, explanation, answer) {
+            const panel = document.getElementById('feedback-panel');
+            const icon = document.getElementById('feedback-icon');
+            const title = document.getElementById('feedback-title');
+            const text = document.getElementById('feedback-text');
+            const rule = document.getElementById('feedback-rule');
+
+            panel.classList.add('active');
+
+            if (isCorrect) {
+                panel.className = "feedback-panel feedback-correct active";
+                icon.innerText = "✓";
+                title.innerText = "¡Excelente! Respuesta correcta";
+                text.innerHTML = `La respuesta es correcta: <strong>${answer}</strong>.`;
+            } else {
+                panel.className = "feedback-panel feedback-incorrect active";
+                icon.innerText = "✗";
+                title.innerText = "¡Sigue repasando!";
+                text.innerHTML = `La respuesta correcta era: <strong>${answer}</strong>.`;
+            }
+
+            if (explanation) {
+                rule.style.display = 'block';
+                rule.innerHTML = `<strong>Ayuda de estudio:</strong> ${explanation}`;
+            } else {
+                rule.style.display = 'none';
+            }
+        }
+
+        function updateScoreboard() {
+            document.getElementById('score-correct').innerText = scoreCorrect;
+            document.getElementById('score-incorrect').innerText = scoreIncorrect;
+            document.getElementById('score-total').innerText = scoreTotal;
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < activeQuestions.length) {
+                renderQuestion();
+            } else {
+                showFinalResults();
+            }
+        }
+
+        function showFinalResults() {
+            document.getElementById('quiz-card').classList.remove('active');
+            document.getElementById('results-card').classList.add('active');
+
+            // Progreso totalizado al 100%
+            document.getElementById('progress-bar').style.width = '100%';
+            document.getElementById('question-percentage').innerText = '100%';
+
+            document.getElementById('result-final-score').innerText = `${scoreTotal} pts`;
+            
+            const successRate = Math.round((scoreCorrect / activeQuestions.length) * 100);
+            document.getElementById('result-success-rate').innerText = `${successRate}%`;
+
+            const evaluation = document.getElementById('result-evaluation');
+            if (successRate >= 90) {
+                evaluation.style.color = "var(--correct-dark)";
+                evaluation.innerText = "🏆 ¡Enhorabuena! Tienes un nivel excelente. Estás totalmente listo para sacar un Sobresaliente en el examen escrito.";
+            } else if (successRate >= 75) {
+                evaluation.style.color = "var(--primary-hover)";
+                evaluation.innerText = "👍 ¡Muy bien! Has asimilado la gran mayoría de la materia. Repasa un poco los fallos puntuales de acentuación o tildes para asegurar la máxima nota.";
+            } else if (successRate >= 50) {
+                evaluation.style.color = "#b45309";
+                evaluation.innerText = "📖 Aprobado, pero con algunos fallos. Te aconsejamos volver a repasar la hoja de apuntes escrita y volver a realizar una práctica de 20 preguntas.";
+            } else {
+                evaluation.style.color = "var(--incorrect-dark)";
+                evaluation.innerText = "❌ Necesitas estudiar un poco más. Repasa las tablas de verbos de movimiento y los femeninos de profesiones antes de volver a intentarlo.";
+            }
+        }
+
+        function restartApp() {
+            document.getElementById('results-card').classList.remove('active');
+            document.getElementById('setup-card').classList.add('active');
+        }
+    </script>
+</body>
+</html>
