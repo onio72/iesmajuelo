@@ -262,6 +262,7 @@
                 <ul class="list-disc pl-5 space-y-2">
                     <li id="enrollment-contact-reminder">Indicar teléfono móvil y correo electrónico actualizados de padre, madre o tutores.</li>
                     <li>Subir una fotografía reciente válida para documentos oficiales.</li>
+                    <li id="enrollment-adults-validation-reminder" class="hidden"></li>
                 </ul>
             </div>
             <button data-action="closeEnrollmentReminder" class="w-full py-3 px-4 bg-[#4f7f68] hover:bg-[#3f6854] text-white rounded-xl font-bold transition-colors">
@@ -671,9 +672,16 @@
         function showEnrollmentReminderModal(etapaId) {
             const modal = document.getElementById('enrollment-reminder-modal');
             const contactReminder = document.getElementById('enrollment-contact-reminder');
+            const adultsValidationReminder = document.getElementById('enrollment-adults-validation-reminder');
             contactReminder.textContent = etapaId === 'adultos'
                 ? 'Indicar tu teléfono móvil y correo electrónico.'
                 : 'Indicar teléfono móvil y correo electrónico actualizados de padre, madre o tutores.';
+            if (adultsValidationReminder) {
+                adultsValidationReminder.classList.toggle('hidden', etapaId !== 'adultos');
+                adultsValidationReminder.innerHTML = etapaId === 'adultos'
+                    ? 'Como puedes tener derecho a convalidaciones, se aconseja consultar esta posibilidad con la <a href="mailto:41701286.adultos@g.educaand.es" target="_blank" rel="noopener noreferrer" class="font-bold text-[#4f7f68] underline hover:text-[#3f6854] transition-colors">Jefatura de Estudios de Adultos</a>.'
+                    : '';
+            }
             modal.classList.remove('hidden', 'pointer-events-none');
             void modal.offsetWidth;
             modal.classList.remove('opacity-0');
@@ -1080,6 +1088,38 @@
                 return subject;
             },
 
+            isBachModalityGroup(group) {
+                return this.etapa && this.etapa.id === 'bach' && group && group.label && group.label.toLowerCase().includes('modalidad');
+            },
+
+            isBachOptativeGroup(group) {
+                return this.etapa && this.etapa.id === 'bach' && group && group.label && group.label.toLowerCase().includes('optativa');
+            },
+
+            isDenseOptativeGroup(group) {
+                return this.cursoId !== 'espa' && group && group.label && group.label.toLowerCase().includes('optativa');
+            },
+
+            getSelectedBachModalityIds(plan) {
+                const selectedIds = new Set();
+                (plan.choices || []).forEach(group => {
+                    if (!this.isBachModalityGroup(group)) return;
+                    (this.selections[this.getSelectionKey(group.id)] || []).forEach(id => selectedIds.add(id));
+                });
+                return selectedIds;
+            },
+
+            pruneBachOptativeDuplicates(plan) {
+                const selectedModalityIds = this.getSelectedBachModalityIds(plan);
+                if (!selectedModalityIds.size) return;
+                (plan.choices || []).forEach(group => {
+                    if (!this.isBachOptativeGroup(group)) return;
+                    const key = this.getSelectionKey(group.id);
+                    if (!this.selections[key]) return;
+                    this.selections[key] = this.selections[key].filter(id => !selectedModalityIds.has(id));
+                });
+            },
+
             renderSemipresencialLegend() {
                 return `<div class="w-full bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-5 text-xs sm:text-sm font-bold text-gray-700 flex flex-col sm:flex-row gap-3 sm:items-center">
                     <span class="text-gray-500 uppercase tracking-wider text-[11px]">Leyenda</span>
@@ -1147,7 +1187,9 @@
                 }
 
                 const isForcedLang = isFirstLang && this.programaId === "bil";
-                const isDisabled = isForcedLang && !isSelected; 
+                const plan = this.getPlan();
+                const isBlockedByModality = !isFirstLang && this.isBachOptativeGroup(groupObj) && this.getSelectedBachModalityIds(plan).has(subj.id);
+                const isDisabled = (isForcedLang && !isSelected) || isBlockedByModality;
 
                 const flagInfo = getFlagInfo(subj.name, this.programaId, this.languages.first, this.cursoId);
                 const needsAction = !isComplete && !isSelected && !isDisabled;
@@ -1158,25 +1200,28 @@
                 const moduleTerm = { I: "1.er trimestre", II: "2.º trimestre", III: "3.er trimestre", IV: "1.er trimestre", V: "2.º trimestre", VI: "3.er trimestre" }[subj.module] || "";
                 const scopeName = isEspaModule ? subj.name.split(" · ")[1] : "";
                 const isAlternative = isComplete && !isSelected && !isDisabled;
-                const stateIcon = isSelected ? 'check-circle-2' : 'circle';
-                const stateClass = isSelected ? 'text-[#2f6f50]' : (isAlternative ? 'text-gray-300' : 'text-amber-500');
+                const stateIcon = isSelected ? 'check-circle-2' : (isBlockedByModality ? 'lock' : 'circle');
+                const stateClass = isSelected ? 'text-[#2f6f50]' : (isBlockedByModality ? 'text-gray-400' : (isAlternative ? 'text-gray-300' : 'text-amber-500'));
                 const fadeClass = isDisabled
-                    ? 'opacity-35 grayscale hover:opacity-80 hover:grayscale-0'
+                    ? 'opacity-35 grayscale'
                     : (isAlternative ? 'opacity-45 saturate-50 hover:opacity-85 hover:saturate-100' : '');
                 
                 // Siempre usamos checkbox para permitir deseleccionar
                 const inputType = 'checkbox';
                 const isBinaryOneHourGroup = Array.isArray(groupObj.options) && groupObj.options.length === 2 && groupObj.max === 1 && groupObj.hoursEach === 1;
-                const widthPercent = hasMspHours || isBinaryOneHourGroup ? 100 : getPillWidth(subj.hours);
+                const widthPercent = hasMspHours || isBinaryOneHourGroup
+                    ? 100
+                    : (this.isDenseOptativeGroup(groupObj) ? 100 : getPillWidth(subj.hours));
                 const cardSizeClass = 'min-h-[56px] px-3 py-2.5';
                 const titleSizeClass = 'text-[13px] sm:text-[14px]';
                 
                 return `
                 <div class="flex justify-start w-full">
                     <label class="choice-pill-wrapper block transition-all duration-500 cursor-pointer
-                        ${isDisabled ? '!pointer-events-none' : ''} 
+                        ${isDisabled ? '!pointer-events-none cursor-not-allowed' : ''} 
                         ${fadeClass}"
-                        style="--pill-width: ${widthPercent}%;">
+                        style="--pill-width: ${widthPercent}%;"
+                        ${isBlockedByModality ? 'title="Ya seleccionada como materia de modalidad"' : ''}>
                         
                         <input type="${inputType}" name="${groupObj.id}" value="${subj.id}" 
                                data-action="${isFirstLang ? 'setLanguage' : 'choiceChange'}" 
@@ -1193,6 +1238,7 @@
                                 <span class="min-w-0">
                                     <strong class="block ${titleSizeClass} font-bold text-gray-800 peer-checked:text-[#2f6f50] leading-tight transition-colors">${subjectName}</strong>
                                     ${isEspaModule ? `<span class="block text-[11px] sm:text-[12px] font-bold text-gray-500 leading-tight mt-1">${moduleTerm} · ${scopeName}</span>` : ''}
+                                    ${isBlockedByModality ? '<span class="block text-[11px] sm:text-[12px] font-bold text-gray-500 leading-tight mt-1">Ya elegida en modalidad</span>' : ''}
                                 </span>
                             </div>
                             <div class="w-full flex flex-col gap-2">
@@ -1208,6 +1254,7 @@
                 if (this.programaId === "bil" && !this.languages.first) this.languages.first = "Inglés";
 
                 const plan = this.getPlan();
+                this.pruneBachOptativeDuplicates(plan);
                 let finalTitle = plan.title;
                 if (this.programaId && this.etapa.id !== 'adultos') {
                     const curso = this.etapa.courses.find(c => c.id === this.cursoId);
@@ -1306,7 +1353,9 @@
                         const secondForeignLanguageWarning = hasSecondForeignLanguage ? ' Si optas por 2ª Lengua Extranjera, deberá ser distinta de la elegida como 1ª Lengua Extranjera.' : '';
                         const cols = isEspaModules
                             ? 'grid-cols-1 md:grid-cols-3'
-                            : (isBinaryChoiceGroup || isEsoOptativaGroup || isBachOptativaGroup ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1');
+                            : (this.isDenseOptativeGroup(group)
+                                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+                                : (isBinaryChoiceGroup ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'));
 
                         html += `<div class="w-full mt-4 mb-2 border-t border-gray-100 pt-4"><h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest text-left mb-1">${group.label}</h3></div>`;
                         if (this.cursoId === 'eso1' && group.label === 'Optativas') {
@@ -1378,6 +1427,7 @@
                     while (next.length >= group.max) next.shift();
                     this.selections[key] = [...next, optionId];
                 }
+                this.pruneBachOptativeDuplicates(plan);
                 this.renderMaterias();
             },
 
