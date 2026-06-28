@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revisiones y reclamaciones</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { primary: '#2d3748', secondary: '#4a5568', accent: '#3182ce', background: '#f7fafc', card: '#ffffff' }, fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } }
+    </script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-background text-primary antialiased selection:bg-accent selection:text-white pb-16">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
+        <nav class="mb-10 fade-in-up">
+            <div class="flex flex-wrap gap-2 justify-center">
+                <a href="index.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Índice</a>
+                <a href="eso.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción ESO</a>
+                <a href="titulacion-eso.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Titulación ESO</a>
+                <a href="bachillerato.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción Bachillerato</a>
+                <a href="btopa.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción BTOPA</a>
+                <a href="fp.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción FP</a>
+                <a href="titulacion-fp.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Titulación FP</a>
+                <a href="espa.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción ESPA</a>
+                <a href="revisiones.html" class="px-4 py-2 rounded-full bg-accent text-white text-sm font-semibold shadow-sm">Revisiones</a>
+                <a href="pdc.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Acceso a PDC</a>
+                <a href="fpb.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Acceso a FPB</a>
+            </div>
+        </nav>
+
+        <header class="text-center mb-12 fade-in-up delay-100">
+            <div class="inline-flex items-center justify-center p-4 bg-accent/10 rounded-full mb-6">
+                <svg class="w-10 h-10 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h8m-8 4h5m-7 9h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3.5L12 2 9.5 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"/></svg>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-6">Revisiones y reclamaciones</h1>
+            <p class="text-lg md:text-xl text-secondary max-w-3xl mx-auto leading-relaxed border-l-4 border-accent pl-4 text-left italic">
+                Secuencia interactiva para aclaración, revisión y reclamación de calificaciones o decisiones de promoción en centros educativos.
+            </p>
+        </header>
+
+        <main class="space-y-8">
+            <section class="bg-card rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 fade-in-up delay-100">
+                <div class="review-intro">
+                    <p>
+                        El alumnado y sus familias, en caso de menores de 18 años, tienen derecho a solicitar aclaraciones tras la publicación de las calificaciones. El centro habilitará un horario, comunicado previamente a las familias, para que el profesorado atienda estas aclaraciones mostrando las pruebas realizadas y explicando la calificación obtenida.
+                    </p>
+                </div>
+                <div class="review-persistent-actions">
+                    <a href="revisiones_diagrama.png" class="review-scheme-link" target="_blank" rel="noopener">
+                        Esquema
+                    </a>
+                    <button type="button" class="review-reset-button" data-action="restart">
+                        Reiniciar
+                    </button>
+                </div>
+
+                <div class="review-guide" aria-live="polite">
+                    <div class="review-guide-head">
+                        <div>
+                            <p class="review-guide-label">Pregunta</p>
+                            <h3 data-question-title>¿El alumno y/o sus tutores legales siguen en desacuerdo con la calificación obtenida?</h3>
+                        </div>
+                    </div>
+                    <div class="review-question-resources" data-question-resources></div>
+                    <div class="review-answer-list" data-answer-list></div>
+                </div>
+
+                <div class="review-flow" aria-live="polite">
+                    <div class="review-stage review-stage-top">
+                        <article class="review-node" data-step="clarificacion">
+                            <span>1</span>
+                            <strong>Aclaración</strong>
+                            <p>El profesorado atiende la aclaración, muestra las pruebas realizadas y explica la calificación obtenida.</p>
+                            <em>Horario comunicado previamente a las familias.</em>
+                        </article>
+                        <article class="review-node review-node-end" data-step="fin-aclaracion">
+                            <span>Fin</span>
+                            <strong>Conforme</strong>
+                            <p>Si la explicación resuelve la duda, termina el procedimiento.</p>
+                        </article>
+                    </div>
+
+                    <div class="review-divider">
+                        <span>1º aclaración</span>
+                        <span>2º revisión</span>
+                    </div>
+
+                    <article class="review-node review-node-wide" data-step="solicitud-revision">
+                        <span>2</span>
+                        <strong>Solicitud de revisión</strong>
+                        <p>Si no hay conformidad, se presenta escrito dirigido a Jefatura de Estudios en Secretaría, de 9:30 a 11:30. <a href="Modelo_solicitud_revision.pdf" target="_blank" rel="noopener">Descargar solicitud de revisión</a>.</p>
+                        <em>Plazo: 2 días hábiles desde la comunicación.</em>
+                    </article>
+
+                    <div class="review-branches">
+                        <section class="review-branch" data-branch="calificacion">
+                            <h3>Calificación</h3>
+                            <article class="review-node" data-step="departamento">
+                                <span>3A</span>
+                                <strong>Traslado al departamento</strong>
+                                <p>Jefatura de Estudios entrega y tramita la solicitud al departamento responsable.</p>
+                                <em>Tercer día.</em>
+                            </article>
+                            <article class="review-node" data-step="informe-departamento">
+                                <span>4A</span>
+                                <strong>Informe del departamento</strong>
+                                <p>El departamento revisa criterios e instrumentos de evaluación y remite informe motivado a Jefatura de Estudios.</p>
+                            </article>
+                            <article class="review-node" data-step="ratificacion-calificacion">
+                                <span>5A</span>
+                                <strong>Ratificación de calificación</strong>
+                                <p>El departamento se ratifica en la calificación. Jefatura de Estudios remite respuesta al alumno o tutores legales y no hay cambio en la calificación.</p>
+                            </article>
+                            <article class="review-node" data-step="modificacion-calificacion">
+                                <span>5A</span>
+                                <strong>Modificación de calificación</strong>
+                                <p>Se realiza una adenda al acta, se genera un nuevo boletín de calificaciones y Jefatura informa a la familia.</p>
+                            </article>
+                            <article class="review-node" data-step="comunicacion-calificacion">
+                                <span>6A</span>
+                                <strong>Comunicación al alumno o tutores</strong>
+                                <p>Jefatura comunica por escrito la resolución de la revisión.</p>
+                            </article>
+                        </section>
+
+                        <section class="review-branch" data-branch="promocion">
+                            <h3>Promoción</h3>
+                            <article class="review-node" data-step="jefatura-promocion">
+                                <span>3B</span>
+                                <strong>Entrega a Jefatura</strong>
+                                <p>La solicitud sobre promoción se entrega a Jefatura de Estudios para iniciar la tramitación.</p>
+                            </article>
+                            <article class="review-node" data-step="tutoria">
+                                <span>4B</span>
+                                <strong>Traslado al tutor o tutora</strong>
+                                <p>Jefatura entrega la solicitud para que se tramite con el equipo docente.</p>
+                                <em>Primer y segundo día.</em>
+                            </article>
+                            <article class="review-node" data-step="equipo-docente">
+                                <span>5B</span>
+                                <strong>Reunión del equipo docente</strong>
+                                <p>El equipo docente revisa la decisión y el tutor levanta acta. <a href="revisiones_modelo_acta_equipo_docente.docx">Descargar modelo de acta</a>.</p>
+                                <em>Cuarto y quinto día.</em>
+                            </article>
+                            <article class="review-node" data-step="acta-tutoria">
+                                <span>6B</span>
+                                <strong>Acta del tutor o tutora</strong>
+                                <p>El tutor o tutora elabora acta con la decisión adoptada por el equipo docente.</p>
+                            </article>
+                            <article class="review-node" data-step="comunicacion-promocion">
+                                <span>7B</span>
+                                <strong>Comunicación al alumno o tutores</strong>
+                                <p>Jefatura de Estudios comunica por escrito la resolución de la revisión.</p>
+                            </article>
+                            <article class="review-node" data-step="secretaria">
+                                <span>8B</span>
+                                <strong>Actualización administrativa</strong>
+                                <p>Si procede, Secretaría modifica actas, expediente e historial académico.</p>
+                            </article>
+                        </section>
+                    </div>
+
+                    <article class="review-node review-node-wide review-node-final" data-step="reclamacion">
+                        <span>3</span>
+                        <strong>Reclamación</strong>
+                        <p>Si persiste el desacuerdo, el alumno o sus tutores legales pueden presentar reclamación ante la Dirección del centro para su elevación a la Delegación Territorial.</p>
+                        <em>Plazo: 2 días hábiles desde la comunicación de la revisión.</em>
+                    </article>
+
+                    <div class="review-claim">
+                        <article class="review-node" data-step="direccion-delegacion">
+                            <span>4</span>
+                            <strong>Remisión a Delegación Territorial</strong>
+                            <p>La Dirección remite el expediente de reclamación a la Delegación Territorial, incorporando los informes del centro y los datos del proceso de evaluación.</p>
+                            <em>Plazo máximo: 3 días hábiles.</em>
+                        </article>
+                        <article class="review-node" data-step="ctpr-informe">
+                            <span>5</span>
+                            <strong>Informe de la CTPR</strong>
+                            <p>La Comisión Técnica Provincial de Reclamaciones analiza el expediente y eleva informe con propuesta de ratificación o modificación.</p>
+                            <em>Plazo máximo: 15 días hábiles desde la constitución de la Comisión.</em>
+                        </article>
+                        <article class="review-node" data-step="resolucion-delegacion">
+                            <span>6</span>
+                            <strong>Resolución de Delegación Territorial</strong>
+                            <p>La Delegación Territorial dicta resolución y la comunica al centro para su aplicación cuando proceda.</p>
+                            <em>Pone fin a la vía administrativa.</em>
+                        </article>
+                        <article class="review-node" data-step="comunicacion-direccion">
+                            <span>7</span>
+                            <strong>Comunicación de la Dirección</strong>
+                            <p>La Dirección del centro comunica la resolución al alumno o alumna y a sus tutores legales, si es menor de edad.</p>
+                        </article>
+                        <article class="review-node" data-step="correccion-documentos">
+                            <span>8</span>
+                            <strong>Corrección de documentos</strong>
+                            <p>Si la reclamación se estima total o parcialmente, Secretaría corrige los documentos oficiales de evaluación mediante diligencia visada por la Dirección. Si se desestima, no hay cambios.</p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section class="grid md:grid-cols-3 gap-5 fade-in-up delay-200">
+                <article class="rounded-xl bg-white border border-gray-100 p-5 shadow-sm">
+                    <h2 class="font-semibold text-gray-900 mb-2">Quién inicia</h2>
+                    <p class="text-secondary text-sm leading-relaxed">El alumno o alumna y sus tutores legales, cuando sea menor de 18 años, tras la publicación de las calificaciones.</p>
+                </article>
+                <article class="rounded-xl bg-blue-50 border border-blue-100 p-5 shadow-sm">
+                    <h2 class="font-semibold text-gray-900 mb-2">Plazos clave</h2>
+                    <p class="text-secondary text-sm leading-relaxed">Revisión: 2 días hábiles desde la comunicación. Reclamación: 2 días hábiles desde la resolución de la revisión.</p>
+                </article>
+                <article class="rounded-xl bg-white border border-gray-100 p-5 shadow-sm">
+                    <h2 class="font-semibold text-gray-900 mb-2">Documentación</h2>
+                    <p class="text-secondary text-sm leading-relaxed">Las solicitudes se presentan por escrito en Secretaría, de 9:30 a 11:30, y las resoluciones deben comunicarse de forma motivada.</p>
+                </article>
+                <article class="rounded-xl bg-white border border-gray-100 p-5 shadow-sm">
+                    <h2 class="font-semibold text-gray-900 mb-2">CTPR</h2>
+                    <p class="text-secondary text-sm leading-relaxed">CTPR significa Comisión Técnica Provincial de Reclamaciones, el órgano que informa las reclamaciones elevadas a la Delegación Territorial.</p>
+                </article>
+            </section>
+        </main>
+
+        <footer class="normative-footer fade-in-up delay-400">
+            <h2>Normativa de referencia</h2>
+            <ul>
+                <li><a href="https://www.juntadeandalucia.es/boja/2023/104/36" target="_blank" rel="noopener">Orden de 30 de mayo de 2023 de ESO</a>, sobre evaluación y procedimiento de revisión en Andalucía.</li>
+                <li><a href="https://www.juntadeandalucia.es/boja/2023/104/37" target="_blank" rel="noopener">Orden de 30 de mayo de 2023 de Bachillerato</a>, sobre evaluación, revisión y reclamación.</li>
+                <li><a href="revisiones_guia_asesoramiento_CTPR_202526.pdf" target="_blank" rel="noopener">Guía de asesoramiento para las Comisiones Técnicas Provinciales de Reclamaciones 2025/2026</a>.</li>
+            </ul>
+        </footer>
+    </div>
+
+    <script>
+        const reviewNodes = Array.from(document.querySelectorAll('[data-step]'));
+        const reviewGuide = document.querySelector('.review-guide');
+        const reviewFlow = document.querySelector('.review-flow');
+        const reviewBranchesWrap = document.querySelector('.review-branches');
+        const reviewBranches = Array.from(document.querySelectorAll('[data-branch]'));
+        const questionTitle = document.querySelector('[data-question-title]');
+        const questionResources = document.querySelector('[data-question-resources]');
+        const answerList = document.querySelector('[data-answer-list]');
+        const restartButtons = Array.from(document.querySelectorAll('[data-action="restart"]'));
+
+        const questions = {
+            inicio: {
+                active: 'clarificacion',
+                path: ['clarificacion'],
+                title: '¿El alumno y/o sus tutores legales siguen en desacuerdo con la calificación obtenida?',
+                answers: [
+                    { label: 'No', next: 'fin', path: ['clarificacion', 'fin-aclaracion'] },
+                    { label: 'Sí', next: 'revision', path: ['clarificacion', 'solicitud-revision'] }
+                ]
+            },
+            fin: {
+                active: 'fin-aclaracion',
+                path: ['clarificacion', 'fin-aclaracion'],
+                title: 'El procedimiento queda cerrado en la fase de aclaración.',
+                answers: [
+                    { label: 'Volver al inicio', next: 'inicio', path: ['clarificacion'] }
+                ]
+            },
+            revision: {
+                active: 'solicitud-revision',
+                path: ['clarificacion', 'solicitud-revision'],
+                title: '¿Qué se revisa?',
+                answers: [
+                    { label: 'Una calificación', next: 'calificacion', path: ['clarificacion', 'solicitud-revision', 'departamento'] },
+                    { label: 'Una decisión de promoción', next: 'promocion', path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion'] }
+                ]
+            },
+            calificacion: {
+                active: 'departamento',
+                path: ['clarificacion', 'solicitud-revision', 'departamento'],
+                title: '¿El departamento ha emitido el informe?',
+                resources: [
+                    { label: 'PDF', type: 'pdf', href: 'revisiones_modelo_informe_dpto.pdf' },
+                    { label: 'Word', type: 'word', href: 'revisiones_modelo_informe_dpto.docx' }
+                ],
+                answers: [
+                    { label: 'Continuar', next: 'informeCalificacion', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento'] }
+                ]
+            },
+            informeCalificacion: {
+                active: 'informe-departamento',
+                path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento'],
+                title: 'El departamento ha emitido el informe. ¿Se ratifica en la calificación o acepta la modificación solicitada?',
+                answers: [
+                    { label: 'Se ratifica', next: 'ratificaCalificacion', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'ratificacion-calificacion'] },
+                    { label: 'Modifica la calificación', next: 'modificaCalificacion', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'modificacion-calificacion'] }
+                ]
+            },
+            ratificaCalificacion: {
+                active: 'ratificacion-calificacion',
+                path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'ratificacion-calificacion'],
+                title: 'Jefatura de Estudios remite respuesta al alumno o tutores legales. ¿Reclaman?',
+                answers: [
+                    { label: 'No', next: 'cierreRevision', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'ratificacion-calificacion'] },
+                    { label: 'Sí', next: 'reclamacion', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'ratificacion-calificacion', 'reclamacion'] }
+                ]
+            },
+            modificaCalificacion: {
+                active: 'modificacion-calificacion',
+                path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'modificacion-calificacion'],
+                title: 'Realizada la adenda, generado el boletín e informada la familia, ¿la nueva calificación afecta a la promoción?',
+                answers: [
+                    { label: 'No', next: 'resolverCalificacion', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'modificacion-calificacion', 'comunicacion-calificacion'] },
+                    { label: 'Sí', next: 'promocionDesdeCalificacion', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'modificacion-calificacion', 'tutoria'] }
+                ]
+            },
+            resolverCalificacion: {
+                active: 'comunicacion-calificacion',
+                path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'modificacion-calificacion', 'comunicacion-calificacion'],
+                title: 'Comunicada la revisión de calificación, ¿el alumno y/o sus tutores legales reclaman?',
+                answers: [
+                    { label: 'No', next: 'cierreRevision', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'modificacion-calificacion', 'comunicacion-calificacion'] },
+                    { label: 'Sí', next: 'reclamacion', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'modificacion-calificacion', 'comunicacion-calificacion', 'reclamacion'] }
+                ]
+            },
+            promocion: {
+                active: 'jefatura-promocion',
+                path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion'],
+                title: 'Jefatura de Estudios inicia la revisión de promoción. ¿Se traslada al tutor o tutora?',
+                answers: [
+                    { label: 'Continuar', next: 'tutoriaPromocion', path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion', 'tutoria'] }
+                ]
+            },
+            promocionDesdeCalificacion: {
+                active: 'tutoria',
+                path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'tutoria'],
+                title: 'La calificación afecta a la promoción. ¿Se tramita con el tutor o tutora?',
+                answers: [
+                    { label: 'Continuar', next: 'equipoDocenteDesdeCalificacion', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'tutoria', 'equipo-docente'] }
+                ]
+            },
+            tutoriaPromocion: {
+                active: 'tutoria',
+                path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion', 'tutoria'],
+                title: 'El tutor o tutora recibe la solicitud. ¿Se reúne el equipo docente?',
+                answers: [
+                    { label: 'Sí', next: 'equipoDocente', path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion', 'tutoria', 'equipo-docente'] }
+                ]
+            },
+            equipoDocente: {
+                active: 'equipo-docente',
+                path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion', 'tutoria', 'equipo-docente'],
+                title: 'El equipo docente revisa la decisión. ¿El tutor o tutora elabora acta?',
+                answers: [
+                    { label: 'Continuar', next: 'actaPromocion', path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion', 'tutoria', 'equipo-docente', 'acta-tutoria'] }
+                ]
+            },
+            equipoDocenteDesdeCalificacion: {
+                active: 'equipo-docente',
+                path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'tutoria', 'equipo-docente'],
+                title: 'El equipo docente revisa la promoción. ¿El tutor o tutora elabora acta?',
+                answers: [
+                    { label: 'Continuar', next: 'actaPromocionDesdeCalificacion', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'tutoria', 'equipo-docente', 'acta-tutoria'] }
+                ]
+            },
+            actaPromocion: {
+                active: 'acta-tutoria',
+                path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion', 'tutoria', 'equipo-docente', 'acta-tutoria'],
+                title: 'Recibida el acta, ¿Jefatura comunica por escrito la resolución?',
+                answers: [
+                    { label: 'Comunicar resolución', next: 'comunicacionPromocion', path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion'] }
+                ]
+            },
+            actaPromocionDesdeCalificacion: {
+                active: 'acta-tutoria',
+                path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'tutoria', 'equipo-docente', 'acta-tutoria'],
+                title: 'Recibida el acta, ¿Jefatura comunica por escrito la resolución?',
+                answers: [
+                    { label: 'Comunicar resolución', next: 'comunicacionPromocionDesdeCalificacion', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion'] }
+                ]
+            },
+            comunicacionPromocion: {
+                active: 'comunicacion-promocion',
+                path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion'],
+                title: '¿La resolución requiere modificar actas, expediente o historial académico?',
+                answers: [
+                    { label: 'Sí', next: 'secretariaPromocion', path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion', 'secretaria'] },
+                    { label: 'No', next: 'resolverPromocion', path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion'] }
+                ]
+            },
+            comunicacionPromocionDesdeCalificacion: {
+                active: 'comunicacion-promocion',
+                path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion'],
+                title: '¿La resolución requiere modificar actas, expediente o historial académico?',
+                answers: [
+                    { label: 'Sí', next: 'secretariaPromocionDesdeCalificacion', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion', 'secretaria'] },
+                    { label: 'No', next: 'resolverPromocionDesdeCalificacion', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion'] }
+                ]
+            },
+            secretariaPromocion: {
+                active: 'secretaria',
+                path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion', 'secretaria'],
+                title: 'Actualizada la documentación, ¿el alumno y/o sus tutores legales reclaman?',
+                answers: [
+                    { label: 'No', next: 'cierreRevision', path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion', 'secretaria'] },
+                    { label: 'Sí', next: 'reclamacion', path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion', 'secretaria', 'reclamacion'] }
+                ]
+            },
+            secretariaPromocionDesdeCalificacion: {
+                active: 'secretaria',
+                path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion', 'secretaria'],
+                title: 'Actualizada la documentación, ¿el alumno y/o sus tutores legales reclaman?',
+                answers: [
+                    { label: 'No', next: 'cierreRevision', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion', 'secretaria'] },
+                    { label: 'Sí', next: 'reclamacion', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion', 'secretaria', 'reclamacion'] }
+                ]
+            },
+            resolverPromocion: {
+                active: 'comunicacion-promocion',
+                path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion'],
+                title: 'Comunicada la revisión de promoción, ¿el alumno y/o sus tutores legales reclaman?',
+                answers: [
+                    { label: 'No', next: 'cierreRevision', path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion'] },
+                    { label: 'Sí', next: 'reclamacion', path: ['clarificacion', 'solicitud-revision', 'jefatura-promocion', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion', 'reclamacion'] }
+                ]
+            },
+            resolverPromocionDesdeCalificacion: {
+                active: 'comunicacion-promocion',
+                path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion'],
+                title: 'Comunicada la revisión de promoción, ¿el alumno y/o sus tutores legales reclaman?',
+                answers: [
+                    { label: 'No', next: 'cierreRevision', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion'] },
+                    { label: 'Sí', next: 'reclamacion', path: ['clarificacion', 'solicitud-revision', 'departamento', 'informe-departamento', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion', 'reclamacion'] }
+                ]
+            },
+            cierreRevision: {
+                active: null,
+                path: [],
+                title: 'El procedimiento termina con la resolución de revisión.',
+                answers: [
+                    { label: 'Volver al inicio', next: 'inicio', path: ['clarificacion'] }
+                ]
+            },
+            reclamacion: {
+                active: 'reclamacion',
+                path: [],
+                title: 'Presentada la reclamación, ¿la Dirección remite el expediente a la Delegación Territorial?',
+                answers: [
+                    { label: 'Continuar', next: 'direccionDelegacion', path: ['reclamacion', 'direccion-delegacion'] }
+                ]
+            },
+            direccionDelegacion: {
+                active: 'direccion-delegacion',
+                path: ['reclamacion', 'direccion-delegacion'],
+                title: 'Recibido el expediente, ¿la Comisión Técnica Provincial de Reclamaciones emite informe?',
+                answers: [
+                    { label: 'Continuar', next: 'ctprInforme', path: ['reclamacion', 'direccion-delegacion', 'ctpr-informe'] }
+                ]
+            },
+            ctprInforme: {
+                active: 'ctpr-informe',
+                path: ['reclamacion', 'direccion-delegacion', 'ctpr-informe'],
+                title: 'La CTPR eleva informe. ¿La Delegación Territorial dicta resolución?',
+                answers: [
+                    { label: 'Continuar', next: 'resolucionDelegacion', path: ['reclamacion', 'direccion-delegacion', 'ctpr-informe', 'resolucion-delegacion'] }
+                ]
+            },
+            resolucionDelegacion: {
+                active: 'resolucion-delegacion',
+                path: ['reclamacion', 'direccion-delegacion', 'ctpr-informe', 'resolucion-delegacion'],
+                title: 'La resolución de Delegación Territorial pone fin a la vía administrativa. ¿La Dirección la comunica a la familia o persona interesada?',
+                answers: [
+                    { label: 'Continuar', next: 'comunicacionDireccion', path: ['reclamacion', 'direccion-delegacion', 'ctpr-informe', 'resolucion-delegacion', 'comunicacion-direccion'] }
+                ]
+            },
+            comunicacionDireccion: {
+                active: 'comunicacion-direccion',
+                path: ['reclamacion', 'direccion-delegacion', 'ctpr-informe', 'resolucion-delegacion', 'comunicacion-direccion'],
+                title: '¿La reclamación ha sido estimada total o parcialmente?',
+                answers: [
+                    { label: 'No, se desestima', next: 'cierreReclamacion', path: ['reclamacion', 'direccion-delegacion', 'ctpr-informe', 'resolucion-delegacion', 'comunicacion-direccion'] },
+                    { label: 'Sí', next: 'correccionDocumentos', path: ['reclamacion', 'direccion-delegacion', 'ctpr-informe', 'resolucion-delegacion', 'comunicacion-direccion', 'correccion-documentos'] }
+                ]
+            },
+            correccionDocumentos: {
+                active: 'correccion-documentos',
+                path: ['reclamacion', 'direccion-delegacion', 'ctpr-informe', 'resolucion-delegacion', 'comunicacion-direccion', 'correccion-documentos'],
+                title: 'Secretaría corrige los documentos oficiales. El procedimiento administrativo queda cerrado.',
+                answers: [
+                    { label: 'Volver al inicio', next: 'inicio', path: ['clarificacion'] }
+                ]
+            },
+            cierreReclamacion: {
+                active: 'comunicacion-direccion',
+                path: ['reclamacion', 'direccion-delegacion', 'ctpr-informe', 'resolucion-delegacion', 'comunicacion-direccion'],
+                title: 'La reclamación se desestima. No hay cambios en la calificación o decisión revisada.',
+                answers: [
+                    { label: 'Volver al inicio', next: 'inicio', path: ['clarificacion'] }
+                ]
+            }
+        };
+
+        function paintPath(path, activeId) {
+            const calificacionSteps = ['departamento', 'informe-departamento', 'ratificacion-calificacion', 'modificacion-calificacion', 'comunicacion-calificacion'];
+            const promocionSteps = ['jefatura-promocion', 'tutoria', 'equipo-docente', 'acta-tutoria', 'comunicacion-promocion', 'secretaria'];
+            const showsCalificacion = path.some((step) => calificacionSteps.includes(step));
+            const showsPromocion = path.some((step) => promocionSteps.includes(step));
+            const visibleBranchCount = Number(showsCalificacion) + Number(showsPromocion);
+
+            reviewBranches.forEach((branch) => {
+                const shouldHide = (branch.dataset.branch === 'calificacion' && !showsCalificacion) ||
+                    (branch.dataset.branch === 'promocion' && !showsPromocion);
+                branch.classList.toggle('is-hidden', shouldHide);
+            });
+            reviewBranchesWrap.classList.toggle('is-single-branch', visibleBranchCount === 1);
+            document.querySelector('.review-stage-top').classList.toggle('is-single-stage', path.filter((step) => ['clarificacion', 'fin-aclaracion'].includes(step)).length === 1);
+
+            reviewNodes.forEach((node) => {
+                const isVisible = path.includes(node.dataset.step);
+                node.classList.toggle('is-complete', isVisible && node.dataset.step !== activeId);
+                node.classList.toggle('is-active', node.dataset.step === activeId);
+                node.classList.toggle('is-muted', path.length > 0 && !isVisible);
+                node.classList.toggle('is-step-hidden', path.length > 0 && !isVisible);
+            });
+        }
+
+        function moveQuestionToStep(activeId) {
+            const activeNode = reviewNodes.find((node) => node.dataset.step === activeId);
+            if (activeNode) {
+                activeNode.insertAdjacentElement('afterend', reviewGuide);
+            } else {
+                reviewFlow.insertAdjacentElement('beforebegin', reviewGuide);
+            }
+        }
+
+        function renderQuestion(key, overridePath) {
+            const question = questions[key];
+            const path = overridePath || question.path;
+            const activeId = path[path.length - 1] || question.active;
+            questionTitle.textContent = question.title;
+            questionResources.innerHTML = '';
+            (question.resources || []).forEach((resource) => {
+                const link = document.createElement('a');
+                link.href = resource.href;
+                link.textContent = resource.label;
+                link.dataset.type = resource.type || '';
+                if (resource.href.endsWith('.pdf')) {
+                    link.target = '_blank';
+                    link.rel = 'noopener';
+                }
+                questionResources.appendChild(link);
+            });
+            answerList.innerHTML = '';
+            question.answers.forEach((answer) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'review-answer';
+                button.textContent = answer.label;
+                button.addEventListener('click', () => renderQuestion(answer.next, answer.path));
+                answerList.appendChild(button);
+            });
+            paintPath(path, activeId);
+            moveQuestionToStep(activeId);
+        }
+
+        restartButtons.forEach((button) => button.addEventListener('click', () => {
+            renderQuestion('inicio');
+        }));
+
+        renderQuestion('inicio');
+    </script>
+</body>
+</html>
