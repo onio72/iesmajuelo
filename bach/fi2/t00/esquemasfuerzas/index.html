@@ -1,3 +1,10 @@
+<!doctype html>
+<html lang="es" data-visualize-standalone>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Diagramas de fuerzas - práctica adaptativa</title>
 <style>:root {
   color-scheme: light dark;
   background-color: transparent !important;
@@ -681,41 +688,8 @@ svg {
   color: var(--destructive);
 }
 </style>
-<script>
-(() => {
-  const root = document.documentElement;
-  const initialGlobals =
-    globalThis.__codexVisualizationInitialGlobals ?? globalThis.openai;
-  delete globalThis.__codexVisualizationInitialGlobals;
-  let appliedProperties = [];
-
-  const applyHostStyleVariables = (styleVariables) => {
-    if (styleVariables == null || typeof styleVariables !== "object") {
-      return;
-    }
-    for (const property of appliedProperties) {
-      root.style.removeProperty(property);
-    }
-    appliedProperties = [];
-    for (const [property, value] of Object.entries(styleVariables)) {
-      if (property.startsWith("--") && typeof value === "string") {
-        root.style.setProperty(property, value);
-        appliedProperties.push(property);
-      }
-    }
-  };
-
-  const syncHostStyles = (globals) => {
-    applyHostStyleVariables(globals?.visualizationStyleVariables);
-  };
-
-  syncHostStyles(initialGlobals);
-  globalThis.addEventListener("openai:set_globals", (event) => {
-    syncHostStyles(event.detail?.globals);
-  });
-})();
-</script>
-
+</head>
+<body>
 <div id="force-bayes-app">
   <style>
     #force-bayes-app {
@@ -923,15 +897,111 @@ svg {
       margin: 0 0 0.55rem;
     }
 
-    #force-bayes-app .fa-feedback-list,
+    #force-bayes-app .fa-feedback-detail-list,
     #force-bayes-app .fa-report-list {
       margin: 0.55rem 0 0.8rem;
       padding-left: 1.2rem;
     }
 
-    #force-bayes-app .fa-feedback-list li,
+    #force-bayes-app .fa-feedback-detail-list li,
     #force-bayes-app .fa-report-list li {
       margin-bottom: 0.35rem;
+    }
+
+    #force-bayes-app .fa-feedback-sections {
+      display: grid;
+      gap: 0.65rem;
+      margin: 0.65rem 0 0.8rem;
+    }
+
+    #force-bayes-app .fa-feedback-block {
+      padding: 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 0.65rem;
+      background: color-mix(in srgb, var(--card) 70%, transparent);
+    }
+
+    #force-bayes-app .fa-feedback-block-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    #force-bayes-app .fa-feedback-block p {
+      margin: 0.45rem 0 0;
+    }
+
+    #force-bayes-app .fa-feedback-block .fa-feedback-detail-list {
+      margin-bottom: 0;
+    }
+
+    #force-bayes-app .fa-physics-explanation {
+      margin: 0.75rem 0;
+      padding: 0.7rem;
+      border-left: 3px solid var(--primary);
+      background: color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+
+    #force-bayes-app .fa-physics-explanation p {
+      margin: 0.35rem 0 0;
+    }
+
+    #force-bayes-app .fa-calculator {
+      width: min(24rem, calc(100% - 2rem));
+      max-width: calc(100% - 2rem);
+      padding: 0.9rem;
+      color: var(--popover-foreground);
+      background: var(--popover);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+    }
+
+    #force-bayes-app .fa-calculator::backdrop {
+      background: color-mix(in srgb, var(--foreground) 28%, transparent);
+    }
+
+    #force-bayes-app .fa-calculator-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      margin-bottom: 0.65rem;
+    }
+
+    #force-bayes-app .fa-calculator-head strong {
+      font-weight: 500;
+    }
+
+    #force-bayes-app .fa-calculator-display {
+      width: 100%;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #force-bayes-app .fa-calculator-help,
+    #force-bayes-app .fa-calculator-status {
+      min-height: 1.35rem;
+      margin: 0.35rem 0 0.55rem;
+    }
+
+    #force-bayes-app .fa-calculator-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.4rem;
+    }
+
+    #force-bayes-app .fa-calculator-grid .btn {
+      min-width: 0;
+    }
+
+    #force-bayes-app .fa-calculator-zero {
+      grid-column: span 2;
+    }
+
+    #force-bayes-app .fa-calculator-equals {
+      grid-row: span 2;
     }
 
     #force-bayes-app .fa-hint {
@@ -1073,6 +1143,7 @@ svg {
       <span id="fa-scorm-status" class="text-small text-muted" hidden></span>
     </div>
     <div class="fa-actions">
+      <button type="button" class="btn btn-ghost" id="fa-calculator-button" aria-haspopup="dialog">Calculadora</button>
       <button type="button" class="btn btn-ghost" id="fa-hint-button">Pista</button>
       <button type="button" class="btn btn-ghost" id="fa-report-button">Progreso</button>
       <button type="button" class="btn" id="fa-reset-button">Reiniciar</button>
@@ -1137,8 +1208,11 @@ svg {
           <button type="button" class="btn" id="fa-view-solution" aria-pressed="true">Solución correcta</button>
         </div>
         <p class="fa-view-caption text-small text-muted" id="fa-view-caption"></p>
-        <ul class="fa-feedback-list" id="fa-feedback-list"></ul>
-        <p id="fa-explanation"></p>
+        <div class="fa-feedback-sections" id="fa-feedback-list"></div>
+        <div class="fa-physics-explanation">
+          <strong>Idea física clave</strong>
+          <p id="fa-explanation"></p>
+        </div>
         <button type="button" class="btn btn-primary" id="fa-next">Siguiente situación</button>
       </div>
     </section>
@@ -1169,6 +1243,51 @@ svg {
       </div>
     </details>
   </section>
+
+  <dialog class="fa-calculator" id="fa-calculator" aria-labelledby="fa-calculator-title">
+    <div class="fa-calculator-head">
+      <strong id="fa-calculator-title">Calculadora</strong>
+      <button type="button" class="btn btn-ghost" id="fa-calculator-close">Cerrar</button>
+    </div>
+    <label class="sr-only" for="fa-calculator-display">Expresión matemática</label>
+    <input class="form-control fa-calculator-display" id="fa-calculator-display" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="fa-calculator-help fa-calculator-status">
+    <p class="fa-calculator-help text-small text-muted" id="fa-calculator-help">Los ángulos de seno, coseno y tangente se expresan en grados.</p>
+    <div class="fa-calculator-grid" aria-label="Teclado de la calculadora">
+      <button type="button" class="btn" data-calc-action="clear" aria-label="Borrar todo">C</button>
+      <button type="button" class="btn" data-calc-action="backspace" aria-label="Borrar último carácter">⌫</button>
+      <button type="button" class="btn" data-calc-value="(">(</button>
+      <button type="button" class="btn" data-calc-value=")">)</button>
+
+      <button type="button" class="btn" data-calc-wrap="sin">sin</button>
+      <button type="button" class="btn" data-calc-wrap="cos">cos</button>
+      <button type="button" class="btn" data-calc-wrap="tan">tan</button>
+      <button type="button" class="btn" data-calc-wrap="sqrt" aria-label="Raíz cuadrada">√</button>
+
+      <button type="button" class="btn" data-calc-wrap="inv" aria-label="Inversa">1/x</button>
+      <button type="button" class="btn" data-calc-action="square" aria-label="Elevar al cuadrado">x²</button>
+      <button type="button" class="btn" data-calc-value="/" aria-label="Dividir">÷</button>
+      <button type="button" class="btn" data-calc-value="*" aria-label="Multiplicar">×</button>
+
+      <button type="button" class="btn" data-calc-value="7">7</button>
+      <button type="button" class="btn" data-calc-value="8">8</button>
+      <button type="button" class="btn" data-calc-value="9">9</button>
+      <button type="button" class="btn" data-calc-value="-" aria-label="Restar">−</button>
+
+      <button type="button" class="btn" data-calc-value="4">4</button>
+      <button type="button" class="btn" data-calc-value="5">5</button>
+      <button type="button" class="btn" data-calc-value="6">6</button>
+      <button type="button" class="btn" data-calc-value="+" aria-label="Sumar">+</button>
+
+      <button type="button" class="btn" data-calc-value="1">1</button>
+      <button type="button" class="btn" data-calc-value="2">2</button>
+      <button type="button" class="btn" data-calc-value="3">3</button>
+      <button type="button" class="btn btn-primary fa-calculator-equals" data-calc-action="equals" aria-label="Calcular resultado">=</button>
+
+      <button type="button" class="btn fa-calculator-zero" data-calc-value="0">0</button>
+      <button type="button" class="btn" data-calc-value="," aria-label="Separador decimal">,</button>
+    </div>
+    <p class="fa-calculator-status text-small" id="fa-calculator-status" aria-live="polite"></p>
+  </dialog>
 
   <script>
     (function () {
@@ -1224,6 +1343,11 @@ svg {
         hintButton: root.querySelector("#fa-hint-button"),
         reportButton: root.querySelector("#fa-report-button"),
         resetButton: root.querySelector("#fa-reset-button"),
+        calculatorButton: root.querySelector("#fa-calculator-button"),
+        calculator: root.querySelector("#fa-calculator"),
+        calculatorClose: root.querySelector("#fa-calculator-close"),
+        calculatorDisplay: root.querySelector("#fa-calculator-display"),
+        calculatorStatus: root.querySelector("#fa-calculator-status"),
         confirmForces: root.querySelector("#fa-confirm-forces"),
         backSelection: root.querySelector("#fa-back-selection"),
         undo: root.querySelector("#fa-undo"),
@@ -1252,6 +1376,226 @@ svg {
         tension: { label: "Tensión", symbol: "T", color: "var(--fa-force-tension)" },
         motion: { label: "Fuerza de movimiento", symbol: "Fm", color: "var(--fa-force-motion)" }
       };
+
+      function evaluateCalculatorExpression(expression) {
+        var source = String(expression || "")
+          .replace(/,/g, ".")
+          .replace(/×/g, "*")
+          .replace(/÷/g, "/")
+          .replace(/−/g, "-");
+        var tokens = [];
+        var position = 0;
+
+        while (position < source.length) {
+          var character = source.charAt(position);
+          if (/\s/.test(character)) {
+            position += 1;
+            continue;
+          }
+          var numberMatch = source.slice(position).match(/^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?/i);
+          if (numberMatch) {
+            tokens.push({ type: "number", value: Number(numberMatch[0]) });
+            position += numberMatch[0].length;
+            continue;
+          }
+          var nameMatch = source.slice(position).match(/^[a-z]+/i);
+          if (nameMatch) {
+            tokens.push({ type: "name", value: nameMatch[0].toLowerCase() });
+            position += nameMatch[0].length;
+            continue;
+          }
+          if ("+-*/^()".indexOf(character) !== -1) {
+            tokens.push({ type: "symbol", value: character });
+            position += 1;
+            continue;
+          }
+          throw new Error("Hay un símbolo que la calculadora no reconoce.");
+        }
+        tokens.push({ type: "end", value: "" });
+
+        var index = 0;
+        var peek = function () { return tokens[index]; };
+        var match = function (value) {
+          if (peek().value !== value) return false;
+          index += 1;
+          return true;
+        };
+        var expect = function (value) {
+          if (!match(value)) throw new Error(value === ")" ? "Falta cerrar un paréntesis." : "La expresión está incompleta.");
+        };
+
+        function applyFunction(name, value) {
+          var radians = value * Math.PI / 180;
+          if (name === "sin") return Math.sin(radians);
+          if (name === "cos") return Math.cos(radians);
+          if (name === "tan") {
+            if (Math.abs(Math.cos(radians)) < 1e-12) throw new Error("La tangente no está definida para ese ángulo.");
+            return Math.tan(radians);
+          }
+          if (name === "sqrt") {
+            if (value < 0) throw new Error("No se puede calcular la raíz cuadrada de un número negativo.");
+            return Math.sqrt(value);
+          }
+          if (name === "inv") {
+            if (Math.abs(value) < 1e-15) throw new Error("No se puede calcular la inversa de cero.");
+            return 1 / value;
+          }
+          throw new Error("La función «" + name + "» no está disponible.");
+        }
+
+        function parsePrimary() {
+          var token = peek();
+          if (token.type === "number") {
+            index += 1;
+            return token.value;
+          }
+          if (match("(")) {
+            var grouped = parseExpression();
+            expect(")");
+            return grouped;
+          }
+          if (token.type === "name") {
+            index += 1;
+            var name = token.value;
+            expect("(");
+            var argument = parseExpression();
+            expect(")");
+            return applyFunction(name, argument);
+          }
+          throw new Error("Escribe un número o completa la expresión.");
+        }
+
+        function parsePower() {
+          var base = parsePrimary();
+          if (match("^")) return Math.pow(base, parseUnary());
+          return base;
+        }
+
+        function parseUnary() {
+          if (match("+")) return parseUnary();
+          if (match("-")) return -parseUnary();
+          return parsePower();
+        }
+
+        function parseTerm() {
+          var value = parseUnary();
+          while (peek().value === "*" || peek().value === "/") {
+            var operator = peek().value;
+            index += 1;
+            var right = parseUnary();
+            if (operator === "*") value *= right;
+            else {
+              if (Math.abs(right) < 1e-15) throw new Error("No se puede dividir entre cero.");
+              value /= right;
+            }
+          }
+          return value;
+        }
+
+        function parseExpression() {
+          var value = parseTerm();
+          while (peek().value === "+" || peek().value === "-") {
+            var operator = peek().value;
+            index += 1;
+            var right = parseTerm();
+            value = operator === "+" ? value + right : value - right;
+          }
+          return value;
+        }
+
+        if (!source.trim()) throw new Error("Escribe una operación.");
+        var result = parseExpression();
+        if (peek().type !== "end") throw new Error("Revisa la operación: quedan elementos sin calcular.");
+        if (!isFinite(result)) throw new Error("El resultado no es un número finito.");
+        return Math.abs(result) < 1e-14 ? 0 : result;
+      }
+
+      function formatCalculatorResult(value) {
+        return String(Number(value.toPrecision(12))).replace(".", ",");
+      }
+
+      function setCalculatorValue(value, selectionStart, selectionEnd) {
+        els.calculatorDisplay.value = value;
+        els.calculatorStatus.textContent = "";
+        els.calculatorDisplay.focus();
+        if (typeof els.calculatorDisplay.setSelectionRange === "function") {
+          var start = selectionStart == null ? value.length : selectionStart;
+          var end = selectionEnd == null ? start : selectionEnd;
+          els.calculatorDisplay.setSelectionRange(start, end);
+        }
+      }
+
+      function insertCalculatorText(text) {
+        var input = els.calculatorDisplay;
+        var start = input.selectionStart == null ? input.value.length : input.selectionStart;
+        var end = input.selectionEnd == null ? start : input.selectionEnd;
+        var next = input.value.slice(0, start) + text + input.value.slice(end);
+        setCalculatorValue(next, start + text.length);
+      }
+
+      function wrapCalculatorExpression(name) {
+        var input = els.calculatorDisplay;
+        var start = input.selectionStart == null ? input.value.length : input.selectionStart;
+        var end = input.selectionEnd == null ? start : input.selectionEnd;
+        var selected = input.value.slice(start, end);
+        if (selected) {
+          var wrappedSelection = name + "(" + selected + ")";
+          setCalculatorValue(input.value.slice(0, start) + wrappedSelection + input.value.slice(end), start + wrappedSelection.length);
+          return;
+        }
+        if (input.value.trim()) {
+          setCalculatorValue(name + "(" + input.value + ")");
+          return;
+        }
+        setCalculatorValue(name + "(", name.length + 1);
+      }
+
+      function squareCalculatorExpression() {
+        var input = els.calculatorDisplay;
+        var start = input.selectionStart == null ? input.value.length : input.selectionStart;
+        var end = input.selectionEnd == null ? start : input.selectionEnd;
+        var selected = input.value.slice(start, end);
+        if (selected) {
+          var squaredSelection = "(" + selected + ")^2";
+          setCalculatorValue(input.value.slice(0, start) + squaredSelection + input.value.slice(end), start + squaredSelection.length);
+          return;
+        }
+        if (input.value.trim()) {
+          setCalculatorValue("(" + input.value + ")^2");
+          return;
+        }
+        setCalculatorValue("()^2", 1);
+      }
+
+      function calculateExpression() {
+        try {
+          var result = evaluateCalculatorExpression(els.calculatorDisplay.value);
+          setCalculatorValue(formatCalculatorResult(result));
+          els.calculatorStatus.textContent = "Resultado calculado.";
+          els.calculatorStatus.classList.remove("text-destructive");
+        } catch (error) {
+          els.calculatorStatus.textContent = error.message || "No se ha podido calcular la expresión.";
+          els.calculatorStatus.classList.add("text-destructive");
+          els.calculatorDisplay.focus();
+        }
+      }
+
+      function openCalculator() {
+        if (typeof els.calculator.showModal === "function") {
+          if (!els.calculator.open) els.calculator.showModal();
+        } else {
+          els.calculator.setAttribute("open", "");
+        }
+        els.calculatorStatus.textContent = "";
+        els.calculatorStatus.classList.remove("text-destructive");
+        els.calculatorDisplay.focus();
+      }
+
+      function closeCalculator() {
+        if (typeof els.calculator.close === "function" && els.calculator.open) els.calculator.close();
+        else els.calculator.removeAttribute("open");
+        els.calculatorButton.focus();
+      }
 
       var FACTOR_DEFS = {
         motionForce: {
@@ -1448,7 +1792,8 @@ svg {
               directionScores: [],
               directionDetails: [],
               magnitudeScores: [],
-              magnitudeMessages: []
+              magnitudeMessages: [],
+              magnitudeDetails: []
             };
             return {
               templateId: entry[0],
@@ -3058,33 +3403,60 @@ svg {
         if (rule.kind === "ratio") {
           var drawingA = state.drawings[rule.a];
           var drawingB = state.drawings[rule.b];
-          if (!drawingA || !drawingB) return { score: 0, message: rule.label };
+          if (!drawingA || !drawingB) {
+            return {
+              kind: "ratio",
+              a: rule.a,
+              b: rule.b,
+              expectedRatio: rule.ratio,
+              actualRatio: null,
+              score: 0,
+              message: rule.label
+            };
+          }
           var actualRatio = drawingLength(drawingA) / Math.max(drawingLength(drawingB), 1e-9);
           var relativeError = Math.abs(actualRatio - rule.ratio) / Math.max(Math.abs(rule.ratio), 0.1);
           var ratioScore = relativeError <= 0.12 ? 1 : clamp(1 - (relativeError - 0.12) / 0.43, 0, 1);
           if (rule.ratio < 0.97 && actualRatio >= 0.99) ratioScore = Math.min(ratioScore, 0.65);
           if (rule.ratio > 1.03 && actualRatio <= 1.01) ratioScore = Math.min(ratioScore, 0.65);
-          return { score: ratioScore, message: rule.label };
+          return {
+            kind: "ratio",
+            a: rule.a,
+            b: rule.b,
+            expectedRatio: rule.ratio,
+            actualRatio: actualRatio,
+            score: ratioScore,
+            message: rule.label
+          };
         }
         if (rule.kind === "greater") {
           var left = drawnTermValue(rule.left);
           var right = drawnTermValue(rule.right);
-          if (left == null || right == null) return { score: 0, message: rule.label };
-          if (left > right) return { score: 1, message: rule.label };
+          if (left == null || right == null) {
+            return { kind: "greater", left: left, right: right, score: 0, message: rule.label };
+          }
+          if (left > right) return { kind: "greater", left: left, right: right, score: 1, message: rule.label };
           var shortfall = (right - left) / Math.max(right, 1e-9);
-          return { score: clamp(0.72 - shortfall / 0.35 * 0.72, 0, 0.72), message: rule.label };
+          return {
+            kind: "greater",
+            left: left,
+            right: right,
+            score: clamp(0.72 - shortfall / 0.35 * 0.72, 0, 0.72),
+            message: rule.label
+          };
         }
-        return { score: 1, message: rule.label };
+        return { kind: rule.kind, score: 1, message: rule.label };
       }
 
       function scoreMagnitudeRelations(item) {
         var rules = magnitudeRulesForItem(item);
-        if (!rules.length) return { score: 1, scores: [1], messages: [] };
+        if (!rules.length) return { score: 1, scores: [1], messages: [], evaluations: [] };
         var evaluations = rules.map(evaluateMagnitudeRule);
         return {
           score: evaluations.reduce(function (sum, result) { return sum + result.score; }, 0) / evaluations.length,
           scores: evaluations.map(function (result) { return result.score; }),
-          messages: evaluations.filter(function (result) { return result.score < 0.999; }).map(function (result) { return result.message; })
+          messages: evaluations.filter(function (result) { return result.score < 0.999; }).map(function (result) { return result.message; }),
+          evaluations: evaluations
         };
       }
 
@@ -3103,13 +3475,20 @@ svg {
           var drawing = state.drawings[force.type];
           if (!drawing) {
             directionScores.push(0);
-            directionDetails.push({ type: force.type, difference: null, score: 0 });
+            directionDetails.push({ type: force.type, difference: null, lineDifference: null, senseCorrect: false, score: 0 });
             return;
           }
           var diff = angleDifference(drawingAngle(drawing), force.angle);
+          var lineDiff = Math.min(diff, Math.abs(180 - diff));
           var forceDirectionScore = diff <= 15 ? 1 : clamp(1 - (diff - 15) / 40, 0, 1);
           directionScores.push(forceDirectionScore);
-          directionDetails.push({ type: force.type, difference: diff, score: forceDirectionScore });
+          directionDetails.push({
+            type: force.type,
+            difference: diff,
+            lineDifference: lineDiff,
+            senseCorrect: diff <= 90,
+            score: forceDirectionScore
+          });
         });
         var direction = directionScores.reduce(function (sum, value) { return sum + value; }, 0) / directionScores.length;
 
@@ -3130,7 +3509,8 @@ svg {
           directionScores: directionScores,
           directionDetails: directionDetails,
           magnitudeScores: magnitudeScores,
-          magnitudeMessages: magnitudeResult.messages
+          magnitudeMessages: magnitudeResult.messages,
+          magnitudeDetails: magnitudeResult.evaluations
         };
       }
 
@@ -3244,47 +3624,171 @@ svg {
         updateFeedbackViewControls();
       }
 
+      function forceInteractionExplanation(type) {
+        if (type === "weight") return "La Tierra atrae al bloque, por eso siempre aparece la fuerza peso.";
+        if (type === "normal") return "La superficie de apoyo empuja al bloque perpendicularmente al contacto.";
+        if (type === "friction") return "El contacto rugoso puede ejercer rozamiento para oponerse al deslizamiento o a su tendencia.";
+        if (type === "applied") return "El enunciado describe un empuje o un tirón ejercido directamente sobre el bloque.";
+        if (type === "tension") return "Una cuerda tensa tira del bloque en la dirección de la propia cuerda.";
+        if (type === "motion") return "Moverse o acelerar no es una interacción y, por tanto, no crea una «fuerza de movimiento».";
+        return "Comprueba qué cuerpo o elemento del entorno ejerce esta fuerza.";
+      }
+
+      function expectedDirectionDescription(item, force) {
+        var scene = item.scene;
+        if (force.type === "weight") return "vertical y hacia abajo";
+        if (force.type === "normal") {
+          if (scene.type === "incline") return "perpendicular al plano y alejándose de la superficie";
+          if (scene.type === "wall") return "horizontal y hacia la izquierda, alejándose de la pared";
+          return "vertical y hacia arriba, perpendicular a la superficie horizontal";
+        }
+        if (force.type === "tension") return "paralela a la cuerda y dirigida hacia su anclaje, cuesta arriba";
+        if (scene.type === "incline") {
+          if (angleDifference(force.angle, scene.angle) <= 2) return "paralela al plano y hacia arriba";
+          if (angleDifference(force.angle, scene.angle + 180) <= 2) return "paralela al plano y hacia abajo";
+        }
+        if (angleDifference(force.angle, 0) <= 2) return "horizontal y hacia la derecha";
+        if (angleDifference(force.angle, 180) <= 2) return "horizontal y hacia la izquierda";
+        if (angleDifference(force.angle, 90) <= 2) return "vertical y hacia arriba";
+        if (angleDifference(force.angle, -90) <= 2) return "vertical y hacia abajo";
+        return "con el ángulo y el sentido mostrados en la solución";
+      }
+
+      function directionFeedbackMessage(item, detail) {
+        var force = item.forces.filter(function (candidate) { return candidate.type === detail.type; })[0];
+        var name = FORCE_DEFS[detail.type].label;
+        var expected = force ? expectedDirectionDescription(item, force) : "como muestra la solución";
+        if (detail.difference == null) {
+          return "No has dibujado " + name + ". Su dirección correcta es " + expected + ".";
+        }
+        if (detail.score >= 0.999) {
+          return name + ": dirección y sentido correctos; debe apuntar " + expected + ".";
+        }
+        if (detail.lineDifference != null && detail.lineDifference <= 15 && !detail.senseCorrect) {
+          return name + ": la línea de acción es correcta, pero el sentido está invertido. Debe apuntar " + expected + ".";
+        }
+        return name + ": la flecha se desvía aproximadamente " + Math.round(detail.difference) + "°. Debe dibujarse " + expected + ".";
+      }
+
+      function magnitudeFeedbackMessage(detail) {
+        if (detail.kind === "ratio") {
+          var nameA = FORCE_DEFS[detail.a].label;
+          var nameB = FORCE_DEFS[detail.b].label;
+          var expected = formatTwoDecimals(detail.expectedRatio);
+          if (detail.actualRatio == null) {
+            return "No se puede comparar " + nameA + " con " + nameB + " porque falta uno de esos vectores. " + detail.message;
+          }
+          var actual = formatTwoDecimals(detail.actualRatio);
+          if (detail.score >= 0.999) {
+            return "Correcto: " + nameA + " mide aproximadamente " + actual + " veces " + nameB + ". " + detail.message;
+          }
+          if (detail.actualRatio > detail.expectedRatio) {
+            return nameA + " es demasiado largo respecto a " + nameB + ": has dibujado una relación " + actual + " y debería ser aproximadamente " + expected + ". Acorta " + nameA + " o alarga " + nameB + ". " + detail.message;
+          }
+          return nameA + " es demasiado corto respecto a " + nameB + ": has dibujado una relación " + actual + " y debería ser aproximadamente " + expected + ". Alarga " + nameA + " o acorta " + nameB + ". " + detail.message;
+        }
+        if (detail.kind === "greater") {
+          if (detail.left == null || detail.right == null) return "Falta algún vector para comprobar esta comparación. " + detail.message;
+          if (detail.score >= 0.999) return "Correcto: los tamaños que has dibujado cumplen esta condición: " + detail.message;
+          return "Los tamaños relativos todavía no cumplen esta condición: " + detail.message;
+        }
+        return detail.message;
+      }
+
+      function appendFeedbackBlock(title, score, summary, details) {
+        var section = document.createElement("section");
+        section.className = "fa-feedback-block";
+        section.setAttribute("aria-label", title);
+        var head = document.createElement("div");
+        head.className = "fa-feedback-block-head";
+        var heading = document.createElement("strong");
+        heading.textContent = title;
+        var badge = document.createElement("span");
+        badge.className = "viz-badge";
+        badge.textContent = (score >= 0.999 ? "✓ " : "") + Math.round(score * 100) + " %";
+        head.appendChild(heading);
+        head.appendChild(badge);
+        section.appendChild(head);
+        var summaryText = document.createElement("p");
+        summaryText.textContent = summary;
+        section.appendChild(summaryText);
+        if (details && details.length) {
+          var list = document.createElement("ul");
+          list.className = "fa-feedback-detail-list";
+          details.forEach(function (message) {
+            var item = document.createElement("li");
+            item.textContent = message;
+            list.appendChild(item);
+          });
+          section.appendChild(list);
+        }
+        els.feedbackList.appendChild(section);
+      }
+
       function renderFeedback(record) {
         var result = record.result;
         var contribution = clamp(result.overall, 0, 1) * POINTS_PER_PERFECT_ITEM;
         els.score.textContent = Math.round(result.overall * 100) + " %";
-        els.scoreBreakdown.textContent = "Identificación: " + Math.round(result.identification * 100) + " %" +
-          " · Dirección: " + Math.round(result.direction * 100) + " %" +
-          " · Proporciones: " + Math.round(result.magnitude * 100) + " %" +
+        els.scoreBreakdown.textContent = "Fuerzas presentes: " + Math.round(result.identification * 100) + " %" +
+          " · Dirección y sentido: " + Math.round(result.direction * 100) + " %" +
+          " · Tamaño relativo: " + Math.round(result.magnitude * 100) + " %" +
           " · Este ejercicio suma " + formatTwoDecimals(contribution) + " puntos.";
         updateSessionScoreDisplay();
         els.progress.style.width = (cumulativeScore() / TARGET_SCORE * 100) + "%";
         updateFeedbackViewControls();
         els.feedbackList.innerHTML = "";
-        var messages = [];
-        if (!result.missing.length && !result.extra.length) messages.push("Has identificado todas las fuerzas presentes.");
-        if (result.missing.length) messages.push("Faltaban: " + forceNames(result.missing) + ".");
-        if (result.extra.length) messages.push("No debías incluir: " + forceNames(result.extra) + ".");
-        var directionMisses = (result.directionDetails || []).filter(function (detail) { return detail.score < 0.999; });
-        if (!directionMisses.length) {
-          messages.push("Todas las direcciones y sentidos están dentro de la tolerancia completa de 15°.");
-        } else {
-          var directionSummary = directionMisses.slice(0, 2).map(function (detail) {
-            return FORCE_DEFS[detail.type].label + (detail.difference == null ? " sin dibujar" : " desviada " + Math.round(detail.difference) + "°");
-          }).join("; ");
-          messages.push("Para alcanzar el 100 % en dirección, revisa: " + directionSummary + ".");
+
+        var identificationDetails = [];
+        if (!result.missing.length && !result.extra.length) {
+          identificationDetails.push("Las fuerzas presentes son: " + forceNames(record.expectedTypes || state.current.forces.map(function (force) { return force.type; })) + ".");
         }
-        if (result.magnitude >= 0.999) {
-          messages.push("Las longitudes guardan una proporción física razonable. La escala absoluta que hayas elegido es válida.");
-        } else if (result.magnitudeMessages && result.magnitudeMessages.length) {
-          messages.push("La escala absoluta es válida; falta ajustar alguna proporción relativa para alcanzar el 100 % en este apartado.");
-          result.magnitudeMessages.slice(0, 2).forEach(function (message) { messages.push(message); });
-        } else {
-          messages.push("Compara mejor las longitudes relativas de los vectores.");
-        }
-        if (scoreReachedForState(state)) {
-          messages.push("Has alcanzado 10 puntos. Puedes finalizar la actividad.");
-        }
-        messages.forEach(function (message) {
-          var li = document.createElement("li");
-          li.textContent = message;
-          els.feedbackList.appendChild(li);
+        result.missing.forEach(function (type) {
+          identificationDetails.push("Falta " + FORCE_DEFS[type].label + ". " + forceInteractionExplanation(type));
         });
+        result.extra.forEach(function (type) {
+          identificationDetails.push("Sobra " + FORCE_DEFS[type].label + ". " + forceInteractionExplanation(type));
+        });
+        appendFeedbackBlock(
+          "1. Fuerzas presentes",
+          result.identification,
+          !result.missing.length && !result.extra.length
+            ? "Has identificado exactamente las fuerzas que actúan sobre el bloque."
+            : "Revisa qué interacciones reales aparecen en la situación: Tierra, superficie, cuerda o fuerza aplicada.",
+          identificationDetails
+        );
+
+        var directionDetails = (result.directionDetails || []).map(function (detail) {
+          return directionFeedbackMessage(state.current, detail);
+        });
+        appendFeedbackBlock(
+          "2. Dirección y sentido",
+          result.direction,
+          result.direction >= 0.999
+            ? "Todas las flechas apuntan en la dirección y el sentido físicos correctos."
+            : "Compara cada flecha con la orientación del plano, la vertical y el sentido de la interacción.",
+          directionDetails
+        );
+
+        var magnitudeDetails = (result.magnitudeDetails || []).map(magnitudeFeedbackMessage);
+        if (!magnitudeDetails.length) {
+          magnitudeDetails.push(result.magnitude >= 0.999
+            ? "Los tamaños dibujados son coherentes con la situación."
+            : "Compara las longitudes de las flechas que deben ser iguales, mayores o menores.");
+        }
+        appendFeedbackBlock(
+          "3. Tamaño relativo de los vectores",
+          result.magnitude,
+          result.magnitude >= 0.999
+            ? "Las proporciones son correctas. El valor absoluto en newtons que hayas elegido como escala no se penaliza."
+            : "Tu escala en newtons es válida, pero debes ajustar la longitud de alguna flecha respecto a las demás.",
+          magnitudeDetails
+        );
+
+        if (scoreReachedForState(state)) {
+          var goalMessage = document.createElement("p");
+          goalMessage.textContent = "Has alcanzado 10 puntos. Puedes finalizar la actividad.";
+          els.feedbackList.appendChild(goalMessage);
+        }
         els.explanation.textContent = state.current.explanation;
         if (scoreReachedForState(state)) {
           els.next.textContent = "Finalizar actividad";
@@ -3551,6 +4055,53 @@ svg {
         updateDrawStatus();
       });
 
+      els.calculatorButton.addEventListener("click", openCalculator);
+      els.calculatorClose.addEventListener("click", closeCalculator);
+      els.calculator.addEventListener("close", function () {
+        els.calculatorButton.focus();
+      });
+      els.calculator.addEventListener("click", function (event) {
+        var button = event.target.closest ? event.target.closest("button") : null;
+        if (!button || !els.calculator.contains(button)) return;
+        var value = button.getAttribute("data-calc-value");
+        var wrap = button.getAttribute("data-calc-wrap");
+        var action = button.getAttribute("data-calc-action");
+        if (value != null) {
+          insertCalculatorText(value);
+          return;
+        }
+        if (wrap) {
+          wrapCalculatorExpression(wrap);
+          return;
+        }
+        if (action === "clear") {
+          setCalculatorValue("");
+          return;
+        }
+        if (action === "backspace") {
+          var input = els.calculatorDisplay;
+          var start = input.selectionStart == null ? input.value.length : input.selectionStart;
+          var end = input.selectionEnd == null ? start : input.selectionEnd;
+          if (start !== end) {
+            setCalculatorValue(input.value.slice(0, start) + input.value.slice(end), start);
+          } else if (start > 0) {
+            setCalculatorValue(input.value.slice(0, start - 1) + input.value.slice(end), start - 1);
+          }
+          return;
+        }
+        if (action === "square") {
+          squareCalculatorExpression();
+          return;
+        }
+        if (action === "equals") calculateExpression();
+      });
+      els.calculatorDisplay.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          calculateExpression();
+        }
+      });
+
       els.reportButton.addEventListener("click", function () { showReport(false); });
       els.closeReport.addEventListener("click", function () { els.report.hidden = true; });
       els.resetButton.addEventListener("click", resetSession);
@@ -3573,11 +4124,6 @@ svg {
     }());
   </script>
 </div>
-
-<style id="codex-visualization-document-overflow">html,body{overflow:hidden!important}</style>
-<script id="codex-visualization-floating-ui-core" src="https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js"></script>
-<script id="codex-visualization-floating-ui-dom" src="https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js"></script>
-<script id="codex-visualization-lucide" async src="https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js"></script>
 <script id="codex-visualization-tooltip">/* oxlint-disable typescript/no-unsafe-argument, typescript/no-unsafe-call, typescript/no-unsafe-return */
 // Runs inside the visualization sandbox, not the host webview.
 (() => {
@@ -3813,3 +4359,5 @@ svg {
     ?.addEventListener("load", initialize, { once: true });
 })();
 </script>
+</body>
+</html>
