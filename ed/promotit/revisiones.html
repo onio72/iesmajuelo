@@ -28,7 +28,34 @@
         </header>
 
         <main class="space-y-8">
-            <section class="bg-card rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 fade-in-up delay-100">
+            <section class="bg-card rounded-2xl shadow-sm border border-gray-100 p-6 fade-in-up delay-100" aria-labelledby="scope-title">
+                <p class="text-xs font-bold uppercase tracking-wider text-accent mb-2">Selecciona la enseñanza</p>
+                <h2 id="scope-title" class="text-xl font-semibold mb-4">El procedimiento no es idéntico en todas las etapas</h2>
+                <div class="flex flex-wrap gap-3" role="group" aria-label="Tipo de enseñanza">
+                    <button type="button" data-review-scope="general" aria-pressed="true" class="px-4 py-2 rounded-full bg-accent text-white text-sm font-semibold transition-colors">ESO, Bachillerato y Adultos</button>
+                    <button type="button" data-review-scope="fp" aria-pressed="false" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Formación Profesional (grados D y E)</button>
+                </div>
+            </section>
+
+            <section data-review-panel="fp" hidden class="bg-card rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 fade-in-up">
+                <div class="review-intro mb-6">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-3">Revisión en Formación Profesional</h2>
+                    <p>La solicitud puede discrepar de una <strong>calificación final</strong> o de una <strong>decisión de promoción</strong>, pero ambas siguen la misma tramitación. El equipo docente analiza lo solicitado y el departamento canaliza su informe; no son dos ramas independientes.</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-5">
+                    <article class="review-node is-active"><span>1</span><strong>Solicitud a la Dirección</strong><p>La persona interesada presenta la solicitud, con sus alegaciones, dirigida a la Dirección del centro.</p><em>Resolución y notificación: máximo 5 días hábiles.</em></article>
+                    <article class="review-node"><span>2</span><strong>Tramitación por Jefatura de Estudios</strong><p>La traslada a la jefatura del departamento responsable del módulo, ámbito o proyecto y avisa a la tutoría del grupo.</p></article>
+                    <article class="review-node"><span>3</span><strong>Análisis del equipo docente</strong><p>El primer día hábil tras finalizar el plazo de solicitudes, la tutoría convoca al equipo docente. Este contrasta el proceso tanto si se cuestiona una calificación como si se cuestiona la promoción.</p></article>
+                    <article class="review-node"><span>4</span><strong>Informe único del equipo docente</strong><p>Describe hechos y actuaciones, recoge el análisis y decide ratificar o modificar la calificación final objeto de revisión. Se remite a la jefatura del departamento.</p></article>
+                    <article class="review-node"><span>5</span><strong>Departamento → Jefatura</strong><p>La jefatura del departamento traslada el informe a Jefatura de Estudios.</p><em>En los 2 días hábiles siguientes a la entrega de las solicitudes.</em></article>
+                    <article class="review-node"><span>6</span><strong>Resolución de la Dirección</strong><p>Jefatura de Estudios eleva el informe y la Dirección comunica por escrito una decisión razonada de ratificación o modificación.</p><em>En los 2 días hábiles siguientes a recibir el informe.</em></article>
+                    <article class="review-node"><span>7</span><strong>Diligencia, si hay cambios</strong><p>Si cambia una calificación y, como consecuencia, la promoción o titulación, Secretaría diligencia las actas y el expediente; la Dirección da el visto bueno.</p></article>
+                    <article class="review-node"><span>8</span><strong>Reclamación ante Delegación</strong><p>Solo si persiste el desacuerdo con la <strong>calificación final del módulo</strong>, puede pedirse a la Dirección que eleve la reclamación a la Delegación Territorial.</p><em>Solicitud: 2 días hábiles. Remisión del expediente: máximo 3 días hábiles.</em></article>
+                </div>
+                <div class="mt-6 rounded-xl bg-amber-50 border border-amber-100 p-5 text-sm text-secondary leading-relaxed"><strong class="text-gray-900">Distinción clave:</strong> la promoción puede ser objeto de la revisión interna, pero el apartado 7 del artículo 24 limita expresamente la reclamación posterior a la calificación final del módulo.</div>
+            </section>
+
+            <section data-review-panel="general" class="bg-card rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 fade-in-up delay-100">
                 <div class="review-intro">
                     <p>
                         El alumnado y sus familias, en caso de menores de 18 años, tienen derecho a solicitar aclaraciones tras la publicación de las calificaciones. El centro habilitará un horario, comunicado previamente a las familias, para que el profesorado atienda estas aclaraciones mostrando las pruebas realizadas y explicando la calificación obtenida.
@@ -189,7 +216,7 @@
                 </div>
             </section>
 
-            <section class="grid md:grid-cols-3 gap-5 fade-in-up delay-200">
+            <section data-review-panel="general" class="grid md:grid-cols-3 gap-5 fade-in-up delay-200">
                 <article class="rounded-xl bg-white border border-gray-100 p-5 shadow-sm">
                     <h2 class="font-semibold text-gray-900 mb-2">Quién inicia</h2>
                     <p class="text-secondary text-sm leading-relaxed">El alumno o alumna y sus tutores legales, cuando sea menor de 18 años, tras la publicación de las calificaciones.</p>
@@ -214,6 +241,7 @@
             <ul>
                 <li><a href="https://www.juntadeandalucia.es/boja/2023/104/36" target="_blank" rel="noopener">Orden de 30 de mayo de 2023 de ESO</a>, sobre evaluación y procedimiento de revisión en Andalucía.</li>
                 <li><a href="https://www.juntadeandalucia.es/boja/2023/104/37" target="_blank" rel="noopener">Orden de 30 de mayo de 2023 de Bachillerato</a>, sobre evaluación, revisión y reclamación.</li>
+                <li><a href="https://www.juntadeandalucia.es/boja/2025/218001/1.html" target="_blank" rel="noopener">Orden de 18 de septiembre de 2025 de Formación Profesional</a>, sobre evaluación, certificación, acreditación y titulación de los grados D y E (artículo 24).</li>
                 <li><a href="revisiones_guia_asesoramiento_CTPR_202526.pdf" target="_blank" rel="noopener">Guía de asesoramiento para las Comisiones Técnicas Provinciales de Reclamaciones 2025/2026</a>.</li>
             </ul>
         </footer>
@@ -229,6 +257,24 @@
         const questionResources = document.querySelector('[data-question-resources]');
         const answerList = document.querySelector('[data-answer-list]');
         const restartButtons = Array.from(document.querySelectorAll('[data-action="restart"]'));
+        const scopeButtons = Array.from(document.querySelectorAll('[data-review-scope]'));
+        const scopePanels = Array.from(document.querySelectorAll('[data-review-panel]'));
+
+        function selectReviewScope(scope) {
+            scopePanels.forEach((panel) => { panel.hidden = panel.dataset.reviewPanel !== scope; });
+            scopeButtons.forEach((button) => {
+                const selected = button.dataset.reviewScope === scope;
+                button.setAttribute('aria-pressed', String(selected));
+                button.classList.toggle('bg-accent', selected);
+                button.classList.toggle('text-white', selected);
+                button.classList.toggle('bg-white', !selected);
+                button.classList.toggle('text-secondary', !selected);
+                button.classList.toggle('border', !selected);
+                button.classList.toggle('border-gray-200', !selected);
+            });
+        }
+
+        scopeButtons.forEach((button) => button.addEventListener('click', () => selectReviewScope(button.dataset.reviewScope)));
 
         const questions = {
             inicio: {
