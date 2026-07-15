@@ -9,24 +9,13 @@
         tailwind.config = { theme: { extend: { colors: { primary: '#2d3748', secondary: '#4a5568', accent: '#3182ce', background: '#f7fafc', card: '#ffffff' }, fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } }
     </script>
     <link rel="stylesheet" href="styles.css">
+    <script src="nav.js" defer></script>
 </head>
 <body class="bg-background text-primary antialiased selection:bg-accent selection:text-white pb-16">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
         <nav class="mb-10 fade-in-up">
-            <div class="flex flex-wrap gap-2 justify-center">
-                <a href="index.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Índice</a>
-                <a href="eso.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción ESO</a>
-                <a href="titulacion-eso.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Titulación ESO</a>
-                <a href="bachillerato.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción Bachillerato</a>
-                <a href="btopa.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción BTOPA</a>
-                <a href="fp.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción FP</a>
-                <a href="titulacion-fp.html" class="px-4 py-2 rounded-full bg-accent text-white text-sm font-semibold shadow-sm">Titulación FP</a>
-                <a href="espa.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción ESPA</a>
-                <a href="revisiones.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Revisiones</a>
-                <a href="pdc.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Acceso a PDC</a>
-                <a href="fpb.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Acceso a FPB</a>
-            </div>
-        </nav>
+    <div data-main-nav class="flex flex-wrap gap-2 justify-center"></div>
+</nav>
 
         <header class="text-center mb-14 fade-in-up delay-100">
             <div class="inline-flex items-center justify-center p-4 bg-accent/10 rounded-full mb-6">
@@ -34,7 +23,7 @@
             </div>
             <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-6">Titulación en Formación Profesional</h1>
             <p class="text-lg md:text-xl text-secondary max-w-2xl mx-auto leading-relaxed border-l-4 border-accent pl-4 text-left italic">
-                Para titular en FP deben cumplirse condiciones académicas y procedimentales: módulos, proyecto, formación en empresa y decisión docente.
+                Para titular en Formación Profesional deben superarse los elementos formativos del ciclo o curso de especialización, incluida la fase de formación en empresa u organismo equiparado cuando corresponda.
             </p>
         </header>
 
@@ -47,7 +36,7 @@
                         <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Requisito base</h2>
                     </div>
                     <p class="text-secondary text-sm md:text-base leading-relaxed">
-                        Para superar ofertas formativas de grados D y E es necesario obtener evaluación positiva en todos los módulos profesionales o ámbitos, en el proyecto intermodular y en la fase de formación en empresa.
+                        Para superar una oferta formativa de Grado D o Grado E es necesario obtener evaluación positiva en todos los módulos profesionales o ámbitos que la integran y, en su caso, en el proyecto intermodular y en la fase de formación en empresa u organismo equiparado.
                     </p>
                 </div>
             </section>
@@ -56,17 +45,21 @@
                 <article class="bg-card rounded-2xl shadow-sm border border-gray-100 p-8 fade-in-up delay-100">
                     <div class="flex items-center mb-5">
                         <div class="bg-blue-50 p-3 rounded-lg mr-4"><span class="text-accent font-bold">1</span></div>
-                        <h2 class="text-2xl font-semibold">Módulos y proyecto</h2>
+                        <h2 class="text-2xl font-semibold">Módulos, ámbitos y proyecto</h2>
                     </div>
-                    <p class="text-secondary text-sm leading-relaxed">El alumnado debe obtener evaluación positiva en todos los módulos profesionales o ámbitos y en el proyecto intermodular que compone el plan de estudios, alcanzando los resultados de aprendizaje definidos en las programaciones didácticas.</p>
+                    <p class="text-secondary text-sm leading-relaxed">
+                        El alumnado debe superar todos los módulos profesionales o ámbitos y, cuando forme parte del plan de estudios, el proyecto intermodular. La evaluación debe acreditar la adquisición de los resultados de aprendizaje establecidos.
+                    </p>
                 </article>
 
                 <article class="bg-card rounded-2xl shadow-sm border border-gray-100 p-8 fade-in-up delay-200">
                     <div class="flex items-center mb-5">
                         <div class="bg-blue-50 p-3 rounded-lg mr-4"><span class="text-accent font-bold">2</span></div>
-                        <h2 class="text-2xl font-semibold">Fase en empresa</h2>
+                        <h2 class="text-2xl font-semibold">Fase de formación en empresa</h2>
                     </div>
-                    <p class="text-secondary text-sm leading-relaxed">Es indispensable haber finalizado con éxito la fase de formación en empresa u organismo equiparado <strong class="text-gray-900">(FFEOE)</strong>. Sin superar esta fase práctica no es posible obtener el título o certificado profesional.</p>
+                    <p class="text-secondary text-sm leading-relaxed">
+                        En las enseñanzas dualizadas, la fase de formación en empresa u organismo equiparado forma parte del proceso de evaluación. La calificación final de los módulos dualizados integra la valoración de los resultados de aprendizaje desarrollados en dicha fase.
+                    </p>
                 </article>
             </section>
 
@@ -75,37 +68,129 @@
                     <div class="bg-blue-50 p-3 rounded-lg mr-4">
                         <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14v7"/></svg>
                     </div>
-                    <h2 class="text-2xl font-semibold">Requisitos según el grado</h2>
+                    <h2 class="text-2xl font-semibold">Titulación según el grado</h2>
                 </div>
+
                 <div class="grid md:grid-cols-2 gap-6">
                     <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
                         <h3 class="font-semibold mb-3 text-gray-900">Grado Básico</h3>
-                        <p class="text-secondary text-sm leading-relaxed">Requiere una evaluación positiva colegiada del equipo docente, valorando competencias básicas, profesionales y para la empleabilidad. Quienes superen los ámbitos y el proyecto obtienen doble titulación: Técnico Básico y Graduado en ESO.</p>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            La superación de un ciclo formativo de grado básico da lugar al título de Técnico Básico correspondiente. Además, la superación de los ámbitos incluidos en el ciclo permite la obtención del título de Graduado en Educación Secundaria Obligatoria.
+                        </p>
                     </article>
+
                     <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
-                        <h3 class="font-semibold mb-3 text-gray-900">Grado Medio, Superior y especialización</h3>
-                        <p class="text-secondary text-sm leading-relaxed">Para obtener los títulos de Técnico, Técnico Superior, Especialista o Máster de FP, además de superar módulos y proyecto, deben haberse cumplido previamente los requisitos académicos de acceso.</p>
+                        <h3 class="font-semibold mb-3 text-gray-900">Grado Medio</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            La superación de un ciclo formativo de grado medio permite obtener el título de Técnico o Técnica en la especialidad correspondiente.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Grado Superior</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            La superación de un ciclo formativo de grado superior permite obtener el título de Técnico Superior o Técnica Superior en la especialidad correspondiente.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Cursos de especialización</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            La superación de un curso de especialización de Grado E permite obtener la certificación o título que corresponda según la oferta cursada.
+                        </p>
                     </article>
                 </div>
             </section>
 
-            <section class="bg-slate-50 text-gray-800 rounded-2xl p-8 md:p-10 shadow-sm border border-slate-200 fade-in-up delay-400">
+            <section class="bg-blue-50 text-gray-800 rounded-2xl p-8 md:p-10 shadow-sm border border-blue-200 fade-in-up delay-400">
+                <div class="flex items-center mb-6">
+                    <div class="bg-blue-100 p-3 rounded-lg mr-4">
+                        <svg class="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5h6m-6 4h6m-6 4h4m-7 8h10a2 2 0 0 0 2-2V7.414a2 2 0 0 0-.586-1.414L14 2.586A2 2 0 0 0 12.586 2H6a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2z"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Convalidaciones, exenciones y módulos comunes</h2>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <article class="rounded-xl bg-white/70 border border-blue-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Módulos comunes</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            En los módulos comunes a más de un título de Formación Profesional, se reconocerá la calificación de un ciclo formativo o curso de especialización a otro cuando coincidan código, denominación, duración, resultados de aprendizaje, criterios de evaluación y contenidos.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-white/70 border border-blue-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Convalidación o exención</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Los módulos convalidados por otras formaciones se califican con la expresión <strong class="text-gray-900">Convalidado</strong>. La convalidación o exención no será efectiva hasta que exista resolución favorable.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-white/70 border border-blue-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Hasta que haya resolución</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Mientras no se obtenga resolución favorable, el alumnado debe asistir a las actividades lectivas y será evaluado del módulo correspondiente.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-white/70 border border-blue-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Cuando no quedan materias por evaluar</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Si el alumnado de segundo curso queda sin materias por evaluar como consecuencia de convalidación, exención o superación previa, podrá ser evaluado en cualquiera de las evaluaciones excepcionales del curso para certificar o titular.
+                        </p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="bg-slate-50 text-gray-800 rounded-2xl p-8 md:p-10 shadow-sm border border-slate-200 fade-in-up delay-500">
                 <div class="flex items-center mb-6">
                     <svg class="w-8 h-8 text-accent mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m2-7H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/></svg>
-                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Decisión y solicitud del título</h2>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Decisión, certificación y solicitud del título</h2>
                 </div>
+
                 <div class="space-y-5">
-                    <p class="text-secondary text-sm md:text-base leading-relaxed">La decisión de otorgar el título se toma conjuntamente por el equipo docente, evaluando la globalidad de las competencias adquiridas, y se refleja en las actas oficiales con la clave <strong class="text-gray-900">TIT</strong>.</p>
-                    <p class="text-secondary text-sm md:text-base leading-relaxed">Una vez adoptada la decisión, el alumno o la alumna debe solicitar formalmente la expedición del título en el centro donde aprobó su último módulo o proyecto.</p>
-                    <p class="text-secondary text-sm md:text-base leading-relaxed">Se recomienda no tramitar la expedición hasta finalizar la segunda evaluación final, normalmente a finales de junio, para preservar el derecho a presentarse a pruebas de mejora de nota.</p>
+                    <p class="text-secondary text-sm md:text-base leading-relaxed">
+                        La decisión sobre la superación de la oferta formativa se adopta por el equipo docente y se recoge en los documentos oficiales de evaluación.
+                    </p>
+
+                    <p class="text-secondary text-sm md:text-base leading-relaxed">
+                        Una vez cumplidos los requisitos académicos, el alumno o la alumna podrá solicitar formalmente la expedición del título en el centro docente correspondiente.
+                    </p>
+
+                    <p class="text-secondary text-sm md:text-base leading-relaxed">
+                        En las enseñanzas de Grado D y E podrán emitirse, cuando proceda, certificaciones o acreditaciones académicas parciales de los módulos, ámbitos, proyectos o resultados de aprendizaje superados.
+                    </p>
+                </div>
+            </section>
+
+            <section class="bg-amber-50 text-gray-800 rounded-2xl p-8 md:p-10 shadow-sm border border-amber-200 fade-in-up delay-500">
+                <div class="flex items-center mb-6">
+                    <div class="bg-amber-100 p-3 rounded-lg mr-4">
+                        <svg class="w-7 h-7 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Mejora de nota y tramitación del título</h2>
+                </div>
+
+                <div class="space-y-4 text-secondary text-sm md:text-base leading-relaxed">
+                    <p>
+                        Cuando el alumnado tenga derecho a presentarse a pruebas o actuaciones de mejora de nota, conviene no tramitar la expedición del título hasta que haya finalizado el proceso de evaluación correspondiente.
+                    </p>
+                    <p>
+                        De este modo se preserva el derecho del alumnado a mejorar su calificación antes de que se cierre definitivamente la propuesta de expedición del título.
+                    </p>
                 </div>
             </section>
         </main>
-        <footer class="normative-footer fade-in-up delay-400">
+
+        <footer class="normative-footer fade-in-up delay-500">
             <h2>Normativa de referencia</h2>
             <ul>
-                <li><a href="https://www.boe.es/buscar/act.php?id=BOE-A-2022-5139" target="_blank" rel="noopener">Ley Orgánica 3/2022, de 31 de marzo</a>, de ordenación e integración de la Formación Profesional.</li>
-                <li><a href="https://www.boe.es/buscar/act.php?id=BOE-A-2023-16889" target="_blank" rel="noopener">Real Decreto 659/2023, de 18 de julio</a>, por el que se desarrolla la ordenación del Sistema de Formación Profesional.</li>
+                <li><a href="https://www.juntadeandalucia.es/boja/2025/180/c01/1" target="_blank" rel="noopener">Orden de 18 de septiembre de 2025</a>, por la que se regula la evaluación, certificación, acreditación y titulación académica del alumnado que cursa enseñanzas de los grados D y E del Sistema de Formación Profesional en Andalucía.</li>
+                <li><a href="https://www.juntadeandalucia.es/boja/2025/179/c01/1" target="_blank" rel="noopener">Decreto 147/2025, de 17 de septiembre</a>, por el que se establece la ordenación de las enseñanzas de los grados D y E del Sistema de Formación Profesional en Andalucía.</li>
+                <li><a href="https://www.juntadeandalucia.es/educacion/portales/web/inspeccion-educativa/w/instrucciones-de-20-de-mayo-de-2026-de-la-direccion-general-de-formacion-profesional-y-educacion-permanente-por-la-que-se-establecen-aspectos-relativos-a-la-evaluacion-final-del-alumnado-de-las-ensenanzas-de-los-grados-d-y-e-del-sistema-de-formacion-profe" target="_blank" rel="noopener">Instrucciones de 20 de mayo de 2026</a>, sobre aspectos relativos a la evaluación final del alumnado de los grados D y E para el curso 2025/2026.</li>
             </ul>
         </footer>
     </div>

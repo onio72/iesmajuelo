@@ -9,24 +9,13 @@
         tailwind.config = { theme: { extend: { colors: { primary: '#2d3748', secondary: '#4a5568', accent: '#3182ce', background: '#f7fafc', card: '#ffffff' }, fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } }
     </script>
     <link rel="stylesheet" href="styles.css">
+    <script src="nav.js" defer></script>
 </head>
 <body class="bg-background text-primary antialiased selection:bg-accent selection:text-white pb-16">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
         <nav class="mb-10 fade-in-up">
-            <div class="flex flex-wrap gap-2 justify-center">
-                <a href="index.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Índice</a>
-                <a href="eso.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción ESO</a>
-                <a href="titulacion-eso.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Titulación ESO</a>
-                <a href="bachillerato.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción Bachillerato</a>
-                <a href="btopa.html" class="px-4 py-2 rounded-full bg-accent text-white text-sm font-semibold shadow-sm">Promoción BTOPA</a>
-                <a href="fp.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción FP</a>
-                <a href="titulacion-fp.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Titulación FP</a>
-                <a href="espa.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción ESPA</a>
-                <a href="revisiones.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Revisiones</a>
-                <a href="pdc.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Acceso a PDC</a>
-                <a href="fpb.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Acceso a FPB</a>
-            </div>
-        </nav>
+    <div data-main-nav class="flex flex-wrap gap-2 justify-center"></div>
+</nav>
 
         <header class="text-center mb-14 fade-in-up delay-100">
             <div class="inline-flex items-center justify-center p-4 bg-accent/10 rounded-full mb-6">
@@ -97,41 +86,128 @@
                 </div>
             </section>
 
-            <section class="bg-slate-50 text-gray-800 rounded-2xl p-8 md:p-10 shadow-sm border border-slate-200 fade-in-up delay-400">
+            <section class="bg-blue-50 text-gray-800 rounded-2xl p-8 md:p-10 shadow-sm border border-blue-200 fade-in-up delay-400">
                 <div class="flex items-center mb-6">
-                    <svg class="w-8 h-8 text-accent mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m2-7H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/></svg>
-                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Titulación</h2>
-                </div>
-                <div class="space-y-5">
-                    <p class="text-secondary text-sm md:text-base leading-relaxed">Para titular se requiere evaluación positiva en todas las materias de la etapa.</p>
-                    <p class="text-secondary text-sm md:text-base leading-relaxed">Excepcionalmente, se puede titular con una materia no superada si el equipo docente considera que se han alcanzado objetivos y competencias, no ha habido inasistencia continuada e injustificada, el alumnado se ha presentado a todas las pruebas y la media global es igual o superior a <strong class="text-gray-900">cinco</strong>.</p>
-                </div>
-            </section>
-
-            <section class="bg-card rounded-2xl shadow-sm border border-gray-100 p-8 fade-in-up delay-400">
-                <div class="flex items-center mb-8">
-                    <div class="bg-amber-50 p-3 rounded-lg mr-4">
-                        <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+                    <div class="bg-blue-100 p-3 rounded-lg mr-4">
+                        <svg class="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/>
+                        </svg>
                     </div>
-                    <h2 class="text-2xl font-semibold">Evaluación final excepcional</h2>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Evaluación final excepcional</h2>
                 </div>
-                <div class="rounded-xl bg-amber-50 border border-amber-100 p-6 mb-6">
+
+                <div class="rounded-xl bg-white border border-blue-100 p-6 mb-6">
                     <h3 class="font-semibold mb-2 text-gray-900">¿Qué es?</h3>
                     <p class="text-secondary text-sm leading-relaxed">Es una sesión específica, distinta de las evaluaciones final ordinaria y extraordinaria, en la que se decide la evaluación final del alumnado matriculado que esté en condiciones de titular. No basta con solicitarla: <strong class="text-gray-900">el equipo docente debe valorar previamente que la persona solicitante está en condiciones de obtener el título</strong>.</p>
                 </div>
                 <ol class="grid md:grid-cols-3 gap-5">
-                    <li class="rounded-xl bg-slate-50 border border-slate-100 p-5"><span class="text-xs font-bold text-accent uppercase tracking-wide">1. Solicitud</span><p class="text-secondary text-sm leading-relaxed mt-2">Se dirige a la Dirección del centro durante la segunda quincena de enero.</p></li>
-                    <li class="rounded-xl bg-slate-50 border border-slate-100 p-5"><span class="text-xs font-bold text-accent uppercase tracking-wide">2. Valoración</span><p class="text-secondary text-sm leading-relaxed mt-2">El equipo docente determina si la persona está en condiciones de titular; la Dirección resuelve a la vista de esa decisión.</p></li>
-                    <li class="rounded-xl bg-slate-50 border border-slate-100 p-5"><span class="text-xs font-bold text-accent uppercase tracking-wide">3. Sesión</span><p class="text-secondary text-sm leading-relaxed mt-2">Si se autoriza, la evaluación final excepcional se celebra durante la primera quincena de febrero.</p></li>
+                    <li class="rounded-xl bg-white border border-blue-100 p-5"><span class="text-xs font-bold text-accent uppercase tracking-wide">1. Solicitud</span><p class="text-secondary text-sm leading-relaxed mt-2">Se dirige a la Dirección del centro durante la segunda quincena de enero.</p></li>
+                    <li class="rounded-xl bg-white border border-blue-100 p-5"><span class="text-xs font-bold text-accent uppercase tracking-wide">2. Valoración</span><p class="text-secondary text-sm leading-relaxed mt-2">El equipo docente determina si la persona está en condiciones de titular; la Dirección resuelve a la vista de esa decisión.</p></li>
+                    <li class="rounded-xl bg-white border border-blue-100 p-5"><span class="text-xs font-bold text-accent uppercase tracking-wide">3. Sesión</span><p class="text-secondary text-sm leading-relaxed mt-2">Si se autoriza, se celebra durante la primera quincena de febrero conforme al Proyecto educativo.</p></li>
                 </ol>
             </section>
+
+            <section class="bg-slate-50 text-gray-800 rounded-2xl p-8 md:p-10 shadow-sm border border-slate-200 fade-in-up delay-500">
+                <div class="flex items-center mb-6">
+                    <svg class="w-8 h-8 text-accent mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m2-7H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/></svg>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Titulación</h2>
+                </div>
+
+                <div class="space-y-5">
+                    <p class="text-secondary text-sm md:text-base leading-relaxed">
+                        Para obtener el título de Bachiller se requiere evaluación positiva en todas las materias de la etapa.
+                    </p>
+
+                    <div class="rounded-xl bg-white border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Título con una materia no superada</h3>
+                        <p class="text-secondary text-sm leading-relaxed mb-4">
+                            Excepcionalmente, el equipo docente podrá decidir la obtención del título con una materia no superada si se cumplen simultáneamente estas condiciones:
+                        </p>
+
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <span class="mt-2 mr-3 h-2 w-2 rounded-full bg-accent flex-shrink-0"></span>
+                                <p class="text-secondary text-sm leading-relaxed">Que el equipo docente considere que el alumno o la alumna ha alcanzado los objetivos y competencias vinculados a ese título.</p>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="mt-2 mr-3 h-2 w-2 rounded-full bg-accent flex-shrink-0"></span>
+                                <p class="text-secondary text-sm leading-relaxed">Que no se haya producido abandono en la materia por parte del alumno o la alumna.</p>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="mt-2 mr-3 h-2 w-2 rounded-full bg-accent flex-shrink-0"></span>
+                                <p class="text-secondary text-sm leading-relaxed">Que el alumno o la alumna se haya presentado a las pruebas y realizado las actividades necesarias para su evaluación, incluidas las de la convocatoria extraordinaria.</p>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="mt-2 mr-3 h-2 w-2 rounded-full bg-accent flex-shrink-0"></span>
+                                <p class="text-secondary text-sm leading-relaxed">Que la media aritmética de las calificaciones obtenidas en todas las materias de la etapa sea igual o superior a cinco. En este caso, para el cálculo de la calificación final se tendrá en cuenta la nota numérica obtenida en la materia no superada.</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="rounded-xl bg-white border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Decisión del equipo docente</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Las decisiones se adoptarán por consenso del equipo docente, de manera colegiada. En caso de desacuerdo, se tomarán por mayoría simple de los integrantes del equipo docente.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-amber-50 text-gray-800 rounded-2xl p-8 md:p-10 shadow-sm border border-amber-200 fade-in-up delay-500">
+                <div class="flex items-center mb-6">
+                    <div class="bg-amber-100 p-3 rounded-lg mr-4">
+                        <svg class="w-7 h-7 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422A12.083 12.083 0 0 1 18.5 14c0 3.866-2.91 7-6.5 7s-6.5-3.134-6.5-7c0-1.18.27-2.29.75-3.267L12 14z"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Obtención del título desde otras enseñanzas</h2>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <article class="rounded-xl bg-white/70 border border-amber-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Título de Técnico/a de Formación Profesional</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            El alumnado que tenga el título de Técnico o Técnica en Formación Profesional podrá obtener el título de Bachiller en la modalidad General mediante la superación de las materias comunes.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-white/70 border border-amber-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Técnico/a de Artes Plásticas y Diseño</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            El alumnado que tenga el título de Técnico o Técnica de Artes Plásticas y Diseño podrá obtener el título de Bachiller en la modalidad de Artes mediante la superación de las materias comunes.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-white/70 border border-amber-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Enseñanzas Profesionales de Música o Danza</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Quienes hayan superado las Enseñanzas Profesionales de Música o de Danza podrán obtener el título de Bachiller en la modalidad de Artes si superan además las materias comunes.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-white/70 border border-amber-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Simultaneidad con Música o Danza</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            El alumnado que curse simultáneamente Bachillerato y Enseñanzas Profesionales de Música o Danza, y haya superado dichas enseñanzas, podrá obtener el título de Bachiller por la modalidad de Artes. Además, podrá obtenerlo por otra modalidad si supera las materias comunes y las materias específicas de la modalidad elegida distinta a Artes.
+                        </p>
+                    </article>
+                </div>
+
+                <div class="mt-6 bg-white/70 text-gray-800 rounded-2xl p-6 border border-amber-100">
+                    <h3 class="font-semibold mb-2 text-gray-900">Aclaración</h3>
+                    <p class="text-secondary text-sm leading-relaxed">
+                        Estas vías no permiten obtener cualquier modalidad indistintamente. Por ejemplo, el título de Técnico/a de Formación Profesional permite obtener el Bachiller en la modalidad General, no en la modalidad de Artes.
+                    </p>
+                </div>
+            </section>
+
         </main>
-        <footer class="normative-footer fade-in-up delay-400">
+
+        <footer class="normative-footer fade-in-up delay-500">
             <h2>Normativa de referencia</h2>
             <ul>
-                <li><a href="https://www.boe.es/buscar/act.php?id=BOE-A-2022-5521" target="_blank" rel="noopener">Real Decreto 243/2022, de 5 de abril</a>, por el que se establecen la ordenación y las enseñanzas mínimas del Bachillerato.</li>
-                <li><a href="https://www.juntadeandalucia.es/boja/2023/90/4" target="_blank" rel="noopener">Decreto 103/2023, de 9 de mayo</a>, por el que se establece la ordenación y el currículo de Bachillerato en Andalucía.</li>
-                <li><a href="https://www.juntadeandalucia.es/boja/2025/88/1.html" target="_blank" rel="noopener">Orden de 30 de abril de 2025</a>, por la que se regulan las enseñanzas de Bachillerato para personas adultas en Andalucía (artículo 18).</li>
+                <li><a href="https://www.juntadeandalucia.es/boja/2025/88/1" target="_blank" rel="noopener">Orden de 30 de abril de 2025</a>, por la que se regulan las enseñanzas de la etapa de Bachillerato para personas adultas en Andalucía (artículo 18).</li>
             </ul>
         </footer>
     </div>

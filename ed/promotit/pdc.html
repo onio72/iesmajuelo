@@ -9,23 +9,13 @@
         tailwind.config = { theme: { extend: { colors: { primary: '#2d3748', secondary: '#4a5568', accent: '#3182ce', background: '#f7fafc', card: '#ffffff' }, fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } }
     </script>
     <link rel="stylesheet" href="styles.css">
+    <script src="nav.js" defer></script>
 </head>
 <body class="bg-background text-primary antialiased selection:bg-accent selection:text-white pb-16">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
         <nav class="mb-10 fade-in-up">
-            <div class="flex flex-wrap gap-2 justify-center">
-                <a href="index.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Índice</a>
-                <a href="eso.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción ESO</a>
-                <a href="titulacion-eso.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Titulación ESO</a>
-                <a href="bachillerato.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción Bachillerato</a>
-                <a href="btopa.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción BTOPA</a>
-                <a href="fp.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción FP</a>
-                <a href="titulacion-fp.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Titulación FP</a>
-                <a href="espa.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción ESPA</a>
-                <a href="pdc.html" class="px-4 py-2 rounded-full bg-accent text-white text-sm font-semibold shadow-sm">Acceso a PDC</a>
-                <a href="fpb.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Acceso a FPB</a>
-            </div>
-        </nav>
+    <div data-main-nav class="flex flex-wrap gap-2 justify-center"></div>
+</nav>
 
         <header class="text-center mb-14 fade-in-up delay-100">
             <div class="inline-flex items-center justify-center p-4 bg-accent/10 rounded-full mb-6">
@@ -33,7 +23,7 @@
             </div>
             <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-6">Programa de diversificación curricular <span class="text-accent">(PDC)</span></h1>
             <p class="text-lg md:text-xl text-secondary max-w-2xl mx-auto leading-relaxed border-l-4 border-accent pl-4 text-left italic">
-                "Diseñado para el alumnado que presenta dificultades relevantes de aprendizaje, con el objetivo de facilitar la consecución del título de graduado en educación secundaria obligatoria."
+                Diseñado para el alumnado que presenta dificultades relevantes de aprendizaje tras haber recibido, en su caso, medidas de atención a la diversidad y a las diferencias individuales.
             </p>
         </header>
 
@@ -47,9 +37,26 @@
                         <h2 class="text-2xl font-semibold">1. Situación académica</h2>
                     </div>
                     <ul class="space-y-6">
-                        <li class="relative pl-6"><span class="absolute left-0 top-2 w-2 h-2 bg-accent rounded-full"></span><h3 class="font-semibold mb-1 text-gray-900">Al finalizar 2º o 3º de ESO</h3><p class="text-secondary text-sm leading-relaxed">No estar en condiciones de promocionar, siempre que el equipo docente considere que repetir curso no beneficiará su evolución.</p></li>
-                        <li class="relative pl-6"><span class="absolute left-0 top-2 w-2 h-2 bg-yellow-400 rounded-full"></span><h3 class="font-semibold mb-1 text-gray-900">Al finalizar 4º de ESO <span class="text-xs font-normal text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded ml-2">excepcional</span></h3><p class="text-secondary text-sm leading-relaxed">No estar en condiciones de titular, si el equipo docente estima que esta medida permitirá obtener el título sin exceder los límites de permanencia.</p></li>
-                        <li class="relative pl-6"><span class="absolute left-0 top-2 w-2 h-2 bg-gray-400 rounded-full"></span><h3 class="font-semibold mb-1 text-gray-900">Repetición previa</h3><p class="text-secondary text-sm leading-relaxed">No es requisito haber repetido curso para incorporarse al PDC.</p></li>
+                        <li class="relative pl-6">
+                            <span class="absolute left-0 top-2 w-2 h-2 bg-accent rounded-full"></span>
+                            <h3 class="font-semibold mb-1 text-gray-900">Al finalizar 2.º de ESO</h3>
+                            <p class="text-secondary text-sm leading-relaxed">Puede incorporarse a primero de diversificación curricular el alumnado que no esté en condiciones de promocionar a 3.º y cuyo equipo docente considere que permanecer un año más en 2.º no supondrá un beneficio en su evolución académica.</p>
+                        </li>
+                        <li class="relative pl-6">
+                            <span class="absolute left-0 top-2 w-2 h-2 bg-accent rounded-full"></span>
+                            <h3 class="font-semibold mb-1 text-gray-900">Al finalizar 3.º de ESO</h3>
+                            <p class="text-secondary text-sm leading-relaxed">También puede incorporarse al primer año del programa el alumnado que no esté en condiciones de promocionar a 4.º y cuyo equipo docente considere que repetir 3.º no beneficiará su evolución académica.</p>
+                        </li>
+                        <li class="relative pl-6">
+                            <span class="absolute left-0 top-2 w-2 h-2 bg-yellow-400 rounded-full"></span>
+                            <h3 class="font-semibold mb-1 text-gray-900">Al finalizar 4.º de ESO <span class="text-xs font-normal text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded ml-2">excepcional</span></h3>
+                            <p class="text-secondary text-sm leading-relaxed">Puede proponerse la incorporación si no está en condiciones de obtener el título y el equipo docente considera que esta medida le permitirá titular sin exceder los límites de permanencia.</p>
+                        </li>
+                        <li class="relative pl-6">
+                            <span class="absolute left-0 top-2 w-2 h-2 bg-gray-400 rounded-full"></span>
+                            <h3 class="font-semibold mb-1 text-gray-900">Repetición previa</h3>
+                            <p class="text-secondary text-sm leading-relaxed">No es requisito haber repetido curso para incorporarse al PDC.</p>
+                        </li>
                     </ul>
                 </section>
 
@@ -61,40 +68,116 @@
                         <h2 class="text-2xl font-semibold">2. Procedimiento</h2>
                     </div>
                     <ul class="space-y-4">
-                        <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><p class="text-secondary text-sm leading-relaxed"><strong class="text-gray-800">Evaluación académica</strong> e informe de idoneidad de la medida.</p></li>
-                        <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><p class="text-secondary text-sm leading-relaxed">La medida se adopta preferentemente por consenso; si no lo hay, requiere <strong class="text-gray-800">mayoría simple del equipo docente</strong>.</p></li>
-                        <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><p class="text-secondary text-sm leading-relaxed">Incorporación tras haber <strong class="text-gray-800">escuchado al propio alumno/a</strong>.</p></li>
-                        <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><p class="text-secondary text-sm leading-relaxed">Conformidad <strong class="text-gray-800">expresa de madres, padres o tutores</strong> legales.</p></li>
+                        <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><p class="text-secondary text-sm leading-relaxed"><strong class="text-gray-800">Evaluación académica</strong> e informe de idoneidad de la medida, incluido en el consejo orientador.</p></li>
+                        <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><p class="text-secondary text-sm leading-relaxed">La decisión se adopta preferentemente por consenso; si no lo hay, requiere <strong class="text-gray-800">mayoría simple del equipo docente</strong>.</p></li>
+                        <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><p class="text-secondary text-sm leading-relaxed">La propuesta debe realizarse tras haber <strong class="text-gray-800">oído al propio alumno o alumna</strong>.</p></li>
+                        <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><p class="text-secondary text-sm leading-relaxed">Requiere la conformidad de <strong class="text-gray-800">madres, padres o personas que ejerzan la tutela legal</strong>.</p></li>
                     </ul>
                 </section>
             </div>
 
-            <section class="bg-slate-50 text-gray-800 rounded-2xl p-8 md:p-10 shadow-sm border border-slate-200 fade-in-up delay-300 relative overflow-hidden">
-                <div class="absolute top-0 right-0 -mt-16 -mr-16 w-48 h-48 bg-accent rounded-full opacity-5 blur-2xl"></div>
-                <div class="relative z-10">
-                    <div class="flex items-center mb-6">
-                        <svg class="w-8 h-8 text-accent mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
-                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Aclaración sobre criterios de edad</h2>
+            <section class="bg-blue-50 text-gray-800 rounded-2xl p-8 md:p-10 shadow-sm border border-blue-200 fade-in-up delay-300">
+                <div class="flex items-center mb-6">
+                    <div class="bg-blue-100 p-3 rounded-lg mr-4">
+                        <svg class="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>
                     </div>
-                    <div class="space-y-6">
-                        <div>
-                            <p class="text-secondary text-sm md:text-base leading-relaxed mb-4">La normativa vigente <strong class="text-gray-900">no establece ningún requisito de edad mínima o máxima</strong> específica para acceder al PDC.</p>
-                            <p class="text-secondary text-sm md:text-base leading-relaxed">La entrada viene determinada exclusivamente por el hecho de no poder promocionar o titular, y por la valoración docente.</p>
-                        </div>
-                        <div class="bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
-                            <h3 class="font-semibold text-gray-900 mb-2">Límite general de permanencia</h3>
-                            <p class="text-secondary text-sm leading-relaxed">El único factor cronológico es el derecho a permanecer escolarizado en la ESO, con carácter general, hasta los <strong class="text-gray-900 text-base">18 años cumplidos</strong> en el año en que finalice el curso.</p>
-                        </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Incorporación excepcional a principios de curso</h2>
+                </div>
+
+                <div class="space-y-4 text-secondary text-sm md:text-base leading-relaxed">
+                    <p>
+                        De manera excepcional, el equipo docente podrá proponer la incorporación al PDC en función de los resultados obtenidos en la evaluación inicial.
+                    </p>
+                    <p>
+                        Esta posibilidad está prevista para alumnado que, tras haber agotado previamente otras medidas de atención a la diversidad y a las diferencias individuales, presente dificultades que le impidan seguir la ESO por la vía ordinaria.
+                    </p>
+                    <p>
+                        La finalidad de esta incorporación excepcional es atender adecuadamente sus necesidades de aprendizaje desde el inicio del curso.
+                    </p>
+                </div>
+            </section>
+
+            <section class="bg-slate-50 text-gray-800 rounded-2xl p-8 md:p-10 shadow-sm border border-slate-200 fade-in-up delay-400 relative overflow-hidden">
+    <div class="absolute top-0 right-0 -mt-16 -mr-16 w-48 h-48 bg-accent rounded-full opacity-5 blur-2xl"></div>
+    <div class="relative z-10">
+        <div class="flex items-center mb-6">
+            <svg class="w-8 h-8 text-accent mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Aclaración sobre criterios de edad</h2>
+        </div>
+
+        <div class="space-y-6">
+            <div>
+                <p class="text-secondary text-sm md:text-base leading-relaxed mb-4">
+                    La normativa no establece una edad específica de acceso al PDC. Lo determinante es la situación académica del alumnado, sus dificultades relevantes de aprendizaje y la valoración del equipo docente.
+                </p>
+                <p class="text-secondary text-sm md:text-base leading-relaxed">
+                    En particular, al finalizar 2.º de ESO el criterio es que el alumnado no esté en condiciones de promocionar a 3.º y que el equipo docente considere que permanecer un año más en 2.º no va a suponer un beneficio en su evolución académica.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+                <h3 class="font-semibold text-gray-900 mb-2">Límite general de permanencia</h3>
+                <p class="text-secondary text-sm leading-relaxed">
+                    Con carácter general, el alumnado tiene derecho a permanecer escolarizado en la ESO hasta los <strong class="text-gray-900 text-base">18 años cumplidos</strong> en el año en que finalice el curso.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+                <h3 class="font-semibold text-gray-900 mb-2">El límite puede superar los 18 años</h3>
+                <p class="text-secondary text-sm leading-relaxed mb-3">
+                    Este límite general puede ampliarse excepcionalmente cuando, al finalizar 4.º de ESO, el equipo docente considere conveniente que el alumno o la alumna permanezca un año más en ese curso para favorecer la adquisición de las competencias establecidas para la etapa.
+                </p>
+                <p class="text-secondary text-sm leading-relaxed">
+                    En el caso del alumnado con necesidades educativas especiales, la permanencia en la etapa también puede prolongarse un año más cuando ello favorezca la consecución de los objetivos de la ESO, sin perjuicio de las medidas específicas que correspondan.
+                </p>
+            </div>
+
+            <p class="text-xs text-gray-500">
+                Referencia normativa: Real Decreto 217/2022, art. 5.1, art. 16.7 y art. 20.4.
+            </p>
+        </div>
+    </div>
+</section>
+            <section class="bg-card rounded-2xl shadow-sm border border-gray-100 p-8 fade-in-up delay-500">
+                <div class="flex items-center mb-8">
+                    <div class="bg-blue-50 p-3 rounded-lg mr-4">
+                        <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5h6M9 12h6M9 19h6"/></svg>
+                    </div>
+                    <h2 class="text-2xl font-semibold">Materias y ámbitos no superados</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Materias de cursos anteriores</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Quienes se incorporen a un programa de diversificación curricular deberán seguir los programas de refuerzo del aprendizaje establecidos por el equipo docente y superar las evaluaciones correspondientes de aquellas materias de cursos anteriores no superadas que no estén integradas en alguno de los ámbitos del programa.
+                        </p>
+                    </article>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                            <h3 class="font-semibold mb-3 text-gray-900">Ámbitos no superados de 1.º de PDC</h3>
+                            <p class="text-secondary text-sm leading-relaxed">
+                                Los ámbitos no superados del primer año del programa se recuperarán superando los ámbitos del segundo año, aunque el alumnado tenga un programa de refuerzo del aprendizaje del ámbito no superado.
+                            </p>
+                        </article>
+
+                        <article class="rounded-xl bg-blue-50 border border-blue-100 p-6">
+                            <h3 class="font-semibold mb-3 text-gray-900">Materias no incluidas en ámbitos</h3>
+                            <p class="text-secondary text-sm leading-relaxed">
+                                Las materias no incluidas en ámbitos que no se superen en el primer año del programa, tengan o no continuidad en el curso siguiente, tendrán la consideración de pendientes. El alumnado deberá seguir un programa de refuerzo y superar su evaluación.
+                            </p>
+                        </article>
                     </div>
                 </div>
             </section>
         </main>
-        <footer class="normative-footer fade-in-up delay-400">
+
+        <footer class="normative-footer fade-in-up delay-500">
             <h2>Normativa de referencia</h2>
             <ul>
-                <li><a href="https://www.boe.es/buscar/act.php?id=BOE-A-2022-4975" target="_blank" rel="noopener">Real Decreto 217/2022, de 29 de marzo</a>, por el que se establece la ordenación y las enseñanzas mínimas de la Educación Secundaria Obligatoria.</li>
-                <li><a href="https://www.juntadeandalucia.es/boja/2023/90/3" target="_blank" rel="noopener">Decreto 102/2023, de 9 de mayo</a>, por el que se establece la ordenación y el currículo de la ESO en Andalucía.</li>
-                <li><a href="https://www.juntadeandalucia.es/boja/2023/104/36" target="_blank" rel="noopener">Orden de 30 de mayo de 2023 de ESO</a>, que regula la atención a la diversidad, los programas de diversificación curricular y la evaluación en Andalucía.</li>
+                <li><a href="https://www.juntadeandalucia.es/boja/2023/104/36" target="_blank" rel="noopener">Orden de 30 de mayo de 2023 de ESO</a>, que regula en Andalucía la atención a la diversidad, los programas de diversificación curricular y la evaluación.</li>
+                <li><a href="https://www.boe.es/buscar/act.php?id=BOE-A-2022-4975" target="_blank" rel="noopener">Real Decreto 217/2022, de 29 de marzo</a>, referencia básica estatal para los programas de diversificación curricular y los límites de permanencia en la ESO.</li>
             </ul>
         </footer>
     </div>

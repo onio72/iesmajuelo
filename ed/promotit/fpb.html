@@ -3,38 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso a Formación Profesional Básica</title>
+    <title>Acceso a ciclos formativos de grado básico</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { theme: { extend: { colors: { primary: '#2d3748', secondary: '#4a5568', accent: '#3182ce', background: '#f7fafc', card: '#ffffff' }, fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } }
     </script>
     <link rel="stylesheet" href="styles.css">
+    <script src="nav.js" defer></script>
 </head>
 <body class="bg-background text-primary antialiased selection:bg-accent selection:text-white pb-16">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
-        <nav class="mb-10 fade-in-up">
-            <div class="flex flex-wrap gap-2 justify-center">
-                <a href="index.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Índice</a>
-                <a href="eso.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción ESO</a>
-                <a href="titulacion-eso.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Titulación ESO</a>
-                <a href="bachillerato.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción Bachillerato</a>
-                <a href="btopa.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción BTOPA</a>
-                <a href="fp.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción FP</a>
-                <a href="titulacion-fp.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Titulación FP</a>
-                <a href="espa.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción ESPA</a>
-                <a href="revisiones.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Revisiones</a>
-                <a href="pdc.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Acceso a PDC</a>
-                <a href="fpb.html" class="px-4 py-2 rounded-full bg-accent text-white text-sm font-semibold shadow-sm">Acceso a FPB</a>
-            </div>
-        </nav>
+       <nav class="mb-10 fade-in-up">
+    <div data-main-nav class="flex flex-wrap gap-2 justify-center"></div>
+</nav>
 
         <header class="text-center mb-14 fade-in-up delay-100">
             <div class="inline-flex items-center justify-center p-4 bg-accent/10 rounded-full mb-6">
                 <svg class="w-10 h-10 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15z"/></svg>
             </div>
-            <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-6">Acceso a la Formación Profesional Básica</h1>
+            <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-6">Acceso a ciclos formativos de grado básico</h1>
             <p class="text-lg md:text-xl text-secondary max-w-2xl mx-auto leading-relaxed border-l-4 border-accent pl-4 text-left italic">
-                Requisitos generales simultáneos y vías excepcionales para acceder a ciclos formativos de grado básico.
+                Requisitos generales, vías excepcionales y criterios básicos de permanencia y promoción en los ciclos formativos de grado básico.
             </p>
         </header>
 
@@ -45,32 +34,70 @@
                         <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2"/></svg>
                     </div>
                     <div>
-                        <h2 class="text-2xl font-semibold">Requisitos generales</h2>
+                        <h2 class="text-2xl font-semibold">Requisitos generales de acceso</h2>
                         <p class="text-secondary text-sm">Vía ordinaria para alumnado que cursa ESO.</p>
                     </div>
                 </div>
+
                 <div class="grid md:grid-cols-3 gap-5">
                     <article class="rounded-xl bg-slate-50 border border-slate-100 p-5">
                         <h3 class="font-semibold mb-2 text-gray-900">Edad</h3>
-                        <p class="text-secondary text-sm leading-relaxed">Tener cumplidos <strong>15 años</strong>, o cumplirlos durante el año natural en curso en el que se inicia la formación.</p>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Tener cumplidos <strong>15 años</strong>, o cumplirlos durante el año natural en curso.
+                        </p>
                     </article>
+
                     <article class="rounded-xl bg-slate-50 border border-slate-100 p-5">
                         <h3 class="font-semibold mb-2 text-gray-900">Nivel académico</h3>
-                        <p class="text-secondary text-sm leading-relaxed">Haber cursado el <strong>3º curso de ESO</strong> o, de forma excepcional, haber cursado 2º.</p>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Haber cursado <strong>3.º de ESO</strong> o, excepcionalmente y a criterio del equipo docente y de orientación, haber cursado <strong>2.º de ESO</strong>.
+                        </p>
                     </article>
+
                     <article class="rounded-xl bg-slate-50 border border-slate-100 p-5">
-                        <h3 class="font-semibold mb-2 text-gray-900">Propuesta docente</h3>
-                        <p class="text-secondary text-sm leading-relaxed">Propuesta del equipo de profesores, basada en el perfil académico y vocacional, mediante el <strong>consejo orientador</strong>.</p>
+                        <h3 class="font-semibold mb-2 text-gray-900">Perfil académico y vocacional</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            La incorporación debe estar aconsejada por el perfil académico y vocacional del alumno o alumna.
+                        </p>
                     </article>
+                </div>
+
+                <div class="mt-6 bg-blue-50 rounded-xl p-6 border border-blue-100">
+                    <h3 class="font-semibold text-gray-900 mb-2">Consejo orientador</h3>
+                    <p class="text-secondary text-sm leading-relaxed">
+                        La incorporación se canaliza mediante propuesta del equipo docente a través del consejo orientador, o por solicitud del propio alumno o alumna junto con sus padres, madres o representantes legales, cuando su perfil vocacional lo aconseje.
+                    </p>
                 </div>
             </section>
 
             <section class="bg-slate-50 text-gray-800 rounded-2xl p-8 md:p-10 shadow-sm border border-slate-200 fade-in-up delay-200">
                 <div class="flex items-center mb-6">
                     <svg class="w-8 h-8 text-accent mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
-                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Requisitos de formalización</h2>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Formalización de la incorporación</h2>
                 </div>
-                <p class="text-secondary text-sm md:text-base leading-relaxed">Además de los requisitos técnicos anteriores, es normativamente obligatorio <strong class="text-gray-900">escuchar al alumno/a</strong> y contar con la <strong class="text-gray-900">conformidad expresa de sus padres, madres o tutores legales</strong> para formalizar la matrícula.</p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <article class="rounded-xl bg-white border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Participación del alumnado</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            El alumno o la alumna debe participar en el proceso de orientación y toma de decisión sobre su incorporación al ciclo formativo de grado básico.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-white border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Familia o representantes legales</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            La familia o quienes ejerzan la tutela legal deben intervenir en el procedimiento, especialmente cuando la incorporación se realiza a propuesta del equipo docente o a solicitud del propio alumnado menor de edad.
+                        </p>
+                    </article>
+                </div>
+
+                <div class="mt-6 bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-900 mb-2">Régimen intensivo</h3>
+                    <p class="text-secondary text-sm leading-relaxed">
+                        Si el ciclo se desarrolla en régimen intensivo, el alumnado deberá tener cumplidos 16 años para poder acceder a la formación práctica en empresa vinculada a contratación.
+                    </p>
+                </div>
             </section>
 
             <section class="bg-card rounded-2xl shadow-sm border border-gray-100 p-8 fade-in-up delay-300">
@@ -78,30 +105,132 @@
                     <div class="bg-blue-50 p-3 rounded-lg mr-4">
                         <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
                     </div>
-                    <h2 class="text-2xl font-semibold">Requisitos excepcionales</h2>
+                    <h2 class="text-2xl font-semibold">Vías y situaciones excepcionales</h2>
                 </div>
-                <div class="grid md:grid-cols-3 gap-5">
-                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-5">
-                        <h3 class="font-semibold mb-2 text-gray-900">Jóvenes no escolarizados en España</h3>
-                        <p class="text-secondary text-sm leading-relaxed">Entre <strong>15 y 18 años</strong>, sin escolarización previa en el sistema educativo español y con itinerario aconsejado para esta vía.</p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Jóvenes no escolarizados en España</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Jóvenes entre <strong>15 y 18 años</strong> que no hayan estado escolarizados en el sistema educativo español y cuyo itinerario educativo aconseje la incorporación a un ciclo formativo de grado básico.
+                        </p>
                     </article>
-                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-5">
-                        <h3 class="font-semibold mb-2 text-gray-900">Mayores de 17 años</h3>
-                        <p class="text-secondary text-sm leading-relaxed">Personas con al menos <strong>17 años</strong> cuya historia escolar lo aconseje, o que abandonaron el sistema sin cualificación.</p>
+
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Mayores de 17 años</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            La Administración podrá ofertar ciclos de grado básico dirigidos a quienes hayan cumplido al menos <strong>17 años</strong>, cuando su historia escolar así lo aconseje.
+                        </p>
                     </article>
-                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-5">
-                        <h3 class="font-semibold mb-2 text-gray-900">Alumnado con NEE</h3>
-                        <p class="text-secondary text-sm leading-relaxed">Jóvenes de <strong>hasta 21 años</strong> para quienes se agotaron medidas ordinarias o no sea posible la inclusión con medidas habituales.</p>
+
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Formaciones de Grado C</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            También podrán existir ofertas dirigidas a personas que hayan superado una o varias formaciones de Grado C incluidas en el ciclo formativo de grado básico.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Alumnado con NEE</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Jóvenes de hasta <strong>21 años</strong> con necesidades educativas especiales cuando no sea posible su inclusión en la oferta ordinaria y sus necesidades no puedan ser atendidas con las medidas habituales de inclusión y atención a la diversidad.
+                        </p>
                     </article>
                 </div>
             </section>
+
+            <section class="bg-blue-50 text-gray-800 rounded-2xl p-8 md:p-10 shadow-sm border border-blue-200 fade-in-up delay-400">
+                <div class="flex items-center mb-6">
+                    <div class="bg-blue-100 p-3 rounded-lg mr-4">
+                        <svg class="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Estructura y permanencia</h2>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-5">
+                    <article class="rounded-xl bg-white/70 border border-blue-100 p-5">
+                        <h3 class="font-semibold mb-2 text-gray-900">Forma parte de la educación básica</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Los ciclos formativos de grado básico forman parte de la educación básica, en calidad de Educación Secundaria Obligatoria.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-white/70 border border-blue-100 p-5">
+                        <h3 class="font-semibold mb-2 text-gray-900">Duración ordinaria</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Tienen una duración ordinaria de dos cursos académicos a tiempo completo, aunque determinadas ofertas pueden organizarse con una duración distinta cuando la normativa lo permita.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-white/70 border border-blue-100 p-5">
+                        <h3 class="font-semibold mb-2 text-gray-900">Permanencia máxima</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            El alumnado podrá permanecer cursando un ciclo formativo de grado básico durante un máximo de <strong class="text-gray-900">cuatro cursos académicos</strong>.
+                        </p>
+                    </article>
+                </div>
+
+                <div class="mt-6 bg-white/70 rounded-xl p-6 border border-blue-100">
+                    <h3 class="font-semibold text-gray-900 mb-2">Modalidad dirigida a alumnado con necesidades educativas especiales</h3>
+                    <p class="text-secondary text-sm leading-relaxed">
+                        En los ciclos dirigidos a personas con necesidades educativas o formativas especiales, el alumnado podrá permanecer, al menos, hasta los 21 años cumplidos en el año natural en que finalice el curso. Este plazo podrá ampliarse excepcionalmente un año más si el equipo docente considera que esa ampliación hará posible la consecución de los resultados de aprendizaje.
+                    </p>
+                </div>
+            </section>
+
+            <section class="bg-card rounded-2xl shadow-sm border border-gray-100 p-8 fade-in-up delay-500">
+                <div class="flex items-center mb-8">
+                    <div class="bg-blue-50 p-3 rounded-lg mr-4">
+                        <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5-5 5M6 12h12"/></svg>
+                    </div>
+                    <h2 class="text-2xl font-semibold">Promoción y repetición en grado básico</h2>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Promoción general a segundo curso</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Con carácter general, promociona a segundo curso el alumnado que supera los dos ámbitos no profesionales y cuyos módulos no superados del ámbito profesional no exceden del 20% del horario semanal de dicho ámbito.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Promoción excepcional</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Excepcionalmente, el equipo docente podrá proponer la promoción si el alumnado ha superado al menos uno de los dos ámbitos no profesionales, posee madurez suficiente, tiene expectativas favorables de recuperación y la promoción beneficia su evolución académica.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Promoción con pendientes</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            El alumnado que promociona a segundo curso con módulos o ámbitos pendientes de primero deberá matricularse del segundo curso y de las materias pendientes. Para estas materias se establecerá un programa de refuerzo de aprendizajes.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Repetición con 16 años o más</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Si repite curso como consecuencia de los criterios de promoción o titulación y tiene 16 años o más, podrá optar por matricularse tanto de las materias no superadas como de aquellas ya superadas. El centro deberá recoger en su Proyecto educativo las actividades asignadas a este alumnado durante la jornada lectiva.
+                        </p>
+                    </article>
+                </div>
+
+                <div class="mt-6 bg-slate-50 rounded-xl p-6 border border-slate-200">
+                    <h3 class="font-semibold text-gray-900 mb-2">Alumnado menor de 16 años que repite</h3>
+                    <p class="text-secondary text-sm leading-relaxed">
+                        El alumnado menor de 16 años deberá matricularse del curso completo.
+                    </p>
+                </div>
+            </section>
         </main>
-        <footer class="normative-footer fade-in-up delay-400">
+
+        <footer class="normative-footer fade-in-up delay-500">
             <h2>Normativa de referencia</h2>
             <ul>
-                <li><a href="https://www.boe.es/buscar/act.php?id=BOE-A-2022-5139" target="_blank" rel="noopener">Ley Orgánica 3/2022, de 31 de marzo</a>, de ordenación e integración de la Formación Profesional.</li>
-                <li><a href="https://www.boe.es/buscar/act.php?id=BOE-A-2023-16889" target="_blank" rel="noopener">Real Decreto 659/2023, de 18 de julio</a>, por el que se desarrolla la ordenación del Sistema de Formación Profesional y los ciclos de grado básico.</li>
-                <li><a href="https://www.juntadeandalucia.es/boja/2023/104/36" target="_blank" rel="noopener">Orden de 30 de mayo de 2023 de ESO</a>, en lo relativo a consejo orientador, atención a la diversidad y tránsito hacia enseñanzas posteriores.</li>
+                <li><a href="https://www.juntadeandalucia.es/boja/2025/179/c01/1" target="_blank" rel="noopener">Decreto 147/2025, de 17 de septiembre</a>, por el que se establece la ordenación de las enseñanzas de los grados D y E del Sistema de Formación Profesional en Andalucía.</li>
+                <li><a href="https://www.juntadeandalucia.es/boja/2025/180/c01/1" target="_blank" rel="noopener">Orden de 18 de septiembre de 2025</a>, por la que se regula la evaluación, certificación, acreditación y titulación académica del alumnado que cursa enseñanzas de los grados D y E del Sistema de Formación Profesional en Andalucía.</li>
+                <li><a href="https://www.boe.es/buscar/act.php?id=BOE-A-2023-16889" target="_blank" rel="noopener">Real Decreto 659/2023, de 18 de julio</a>, por el que se desarrolla la ordenación del Sistema de Formación Profesional, en lo relativo a los requisitos básicos de acceso a los ciclos formativos de grado básico.</li>
             </ul>
         </footer>
     </div>

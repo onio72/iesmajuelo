@@ -1,0 +1,4363 @@
+<!doctype html>
+<html lang="es" data-visualize-standalone>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Diagramas de fuerzas - práctica adaptativa</title>
+<style>:root {
+  color-scheme: light dark;
+  background-color: transparent !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --main-surface-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: light-dark(rgb(26 28 31), rgb(255 255 255));
+  --card: color-mix(in oklab, var(--foreground) 5%, transparent);
+  --card-foreground: var(--foreground);
+  --popover: light-dark(rgb(255 255 255), rgb(45 45 45));
+  --popover-foreground: var(--foreground);
+  --primary: light-dark(rgb(51 156 255), rgb(131 195 255));
+  --primary-foreground: light-dark(rgb(255 255 255), rgb(13 13 13));
+  --secondary: light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%));
+  --secondary-foreground: var(--foreground);
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: light-dark(
+    rgb(26 28 31 / 49.4%),
+    rgb(255 255 255 / 49.8%)
+  );
+  --accent: light-dark(rgb(229 242 255), rgb(13 39 63));
+  --accent-foreground: var(--primary);
+  --destructive: light-dark(rgb(226 85 7), rgb(255 133 73));
+  --border: light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%));
+  --input: light-dark(
+    rgb(26 28 31 / 11.8%),
+    color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+  );
+  --ring: light-dark(rgb(51 156 255), rgb(131 195 255 / 76%));
+  --font-size-base: 14px;
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, "Segoe UI", sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --radius: 10px;
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 17 17'%3E%3Cpath d='M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z'/%3E%3C/svg%3E");
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+  --color-background-primary: var(--background);
+  --color-text-primary: var(--foreground);
+  --color-border-secondary: var(--border);
+}
+
+:root[data-visualize-standalone] {
+  background-color: var(--background) !important;
+}
+
+/* Generic mobile code-block hosts provide light/dark mode but no series palette.
+   AppBlock hosts set all six variables themselves. */
+:root:not([data-app-block-surface]) {
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(#f3883b, #f59a56);
+  --viz-series-3: light-dark(#5dc977, #74d58b);
+  --viz-series-4: light-dark(#eb77b1, #f08fc0);
+  --viz-series-5: light-dark(#9b79ec, #aa91ef);
+  --viz-series-6: light-dark(#3ab9b1, #5acbc2);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html > body {
+  margin: 0;
+  padding: 5px;
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+:root:not([data-app-block-surface]) > body {
+  padding: 12px;
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--viz-font-weight-medium);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget > :not(.card) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-legend,
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls > .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls > .form-label > :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn {
+  appearance: button;
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type="checkbox"] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type="checkbox"]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: "";
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type="radio"] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type="radio"]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: "";
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+    [aria-pressed="true"],
+    [aria-selected="true"],
+    .is-selected
+  ) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed="true"], [aria-selected="true"], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget > svg {
+  width: 100%;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+</style>
+</head>
+<body>
+<div id="force-bayes-app">
+  <style>
+    #force-bayes-app {
+      --fa-force-weight: var(--viz-series-1);
+      --fa-force-normal: var(--viz-series-2);
+      --fa-force-friction: var(--viz-series-3);
+      --fa-force-applied: var(--viz-series-4);
+      --fa-force-tension: var(--viz-series-5);
+      --fa-force-motion: var(--viz-series-6);
+      color: var(--foreground);
+      background: transparent;
+      width: 100%;
+    }
+
+    #force-bayes-app * { box-sizing: border-box; }
+    #force-bayes-app [hidden] { display: none !important; }
+
+    #force-bayes-app .fa-topbar,
+    #force-bayes-app .fa-actions,
+    #force-bayes-app .fa-inline,
+    #force-bayes-app .fa-draw-tools {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    #force-bayes-app .fa-topbar {
+      justify-content: space-between;
+      margin-bottom: 0.65rem;
+    }
+
+    #force-bayes-app .fa-progress-track {
+      height: 0.45rem;
+      background: var(--muted);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 0.85rem;
+    }
+
+    #force-bayes-app .fa-progress-fill {
+      height: 100%;
+      width: 0;
+      background: var(--primary);
+      transition: width 220ms ease;
+    }
+
+    #force-bayes-app .fa-prompt {
+      margin: 0 0 0.3rem;
+      font-weight: 500;
+    }
+
+    #force-bayes-app .fa-data {
+      margin: 0 0 0.8rem;
+    }
+
+    #force-bayes-app .fa-workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(16rem, 0.8fr);
+      gap: 1rem;
+      align-items: start;
+    }
+
+    #force-bayes-app .fa-scene-wrap {
+      min-width: 0;
+    }
+
+    #force-bayes-app .fa-scene {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      min-height: 15rem;
+      background: color-mix(in srgb, var(--card) 80%, transparent);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      touch-action: none;
+      user-select: none;
+    }
+
+    #force-bayes-app .fa-scene-note {
+      margin: 0.4rem 0 0;
+    }
+
+    #force-bayes-app .fa-panel {
+      border-left: 1px solid var(--border);
+      padding-left: 1rem;
+      min-width: 0;
+    }
+
+    #force-bayes-app .fa-step-title {
+      margin: 0 0 0.7rem;
+      font-weight: 500;
+    }
+
+    #force-bayes-app .fa-force-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.55rem;
+      margin-bottom: 0.8rem;
+    }
+
+    #force-bayes-app .fa-force-option {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      min-width: 0;
+    }
+
+    #force-bayes-app .fa-force-swatch {
+      width: 0.75rem;
+      height: 0.75rem;
+      border-radius: 999px;
+      flex: 0 0 auto;
+      background: var(--fa-color);
+    }
+
+    #force-bayes-app .fa-force-name {
+      overflow-wrap: anywhere;
+    }
+
+    #force-bayes-app .fa-force-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 0.65rem;
+    }
+
+    #force-bayes-app .fa-force-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    #force-bayes-app .fa-force-button[aria-pressed="true"] {
+      background: var(--primary);
+      color: var(--primary-foreground);
+    }
+
+    #force-bayes-app .fa-draw-status {
+      min-height: 2.6rem;
+      margin: 0.2rem 0 0.7rem;
+    }
+
+    #force-bayes-app .fa-module-readout {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.65rem;
+      margin-bottom: 0.45rem;
+      padding: 0.55rem 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 0.65rem;
+      background: color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+
+    #force-bayes-app .fa-module-readout strong {
+      white-space: nowrap;
+      font-size: calc(var(--font-size-base) * 1.2);
+    }
+
+    #force-bayes-app .fa-guide-control {
+      margin-bottom: 0.6rem;
+    }
+
+    #force-bayes-app .fa-guide-controls {
+      display: grid;
+      gap: 0.35rem;
+      margin-bottom: 0.65rem;
+    }
+
+    #force-bayes-app .fa-guide-controls .fa-guide-control {
+      margin-bottom: 0;
+    }
+
+    #force-bayes-app .fa-feedback-score {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    #force-bayes-app .fa-feedback-view {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin: 0.55rem 0 0.25rem;
+    }
+
+    #force-bayes-app .fa-feedback-view .btn[aria-pressed="true"] {
+      background: var(--primary);
+      color: var(--primary-foreground);
+    }
+
+    #force-bayes-app .fa-view-caption {
+      min-height: 1.4rem;
+      margin: 0 0 0.65rem;
+    }
+
+    #force-bayes-app .fa-score-number {
+      font-size: calc(var(--font-size-base) * 1.5);
+      font-weight: 500;
+    }
+
+    #force-bayes-app .fa-score-breakdown {
+      margin: 0 0 0.55rem;
+    }
+
+    #force-bayes-app .fa-feedback-detail-list,
+    #force-bayes-app .fa-report-list {
+      margin: 0.55rem 0 0.8rem;
+      padding-left: 1.2rem;
+    }
+
+    #force-bayes-app .fa-feedback-detail-list li,
+    #force-bayes-app .fa-report-list li {
+      margin-bottom: 0.35rem;
+    }
+
+    #force-bayes-app .fa-feedback-sections {
+      display: grid;
+      gap: 0.65rem;
+      margin: 0.65rem 0 0.8rem;
+    }
+
+    #force-bayes-app .fa-feedback-block {
+      padding: 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 0.65rem;
+      background: color-mix(in srgb, var(--card) 70%, transparent);
+    }
+
+    #force-bayes-app .fa-feedback-block-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    #force-bayes-app .fa-feedback-block p {
+      margin: 0.45rem 0 0;
+    }
+
+    #force-bayes-app .fa-feedback-block .fa-feedback-detail-list {
+      margin-bottom: 0;
+    }
+
+    #force-bayes-app .fa-physics-explanation {
+      margin: 0.75rem 0;
+      padding: 0.7rem;
+      border-left: 3px solid var(--primary);
+      background: color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+
+    #force-bayes-app .fa-physics-explanation p {
+      margin: 0.35rem 0 0;
+    }
+
+    #force-bayes-app .fa-calculator {
+      width: min(24rem, calc(100% - 2rem));
+      max-width: calc(100% - 2rem);
+      padding: 0.9rem;
+      color: var(--popover-foreground);
+      background: var(--popover);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+    }
+
+    #force-bayes-app .fa-calculator::backdrop {
+      background: color-mix(in srgb, var(--foreground) 28%, transparent);
+    }
+
+    #force-bayes-app .fa-calculator-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      margin-bottom: 0.65rem;
+    }
+
+    #force-bayes-app .fa-calculator-head strong {
+      font-weight: 500;
+    }
+
+    #force-bayes-app .fa-calculator-display {
+      width: 100%;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #force-bayes-app .fa-calculator-help,
+    #force-bayes-app .fa-calculator-status {
+      min-height: 1.35rem;
+      margin: 0.35rem 0 0.55rem;
+    }
+
+    #force-bayes-app .fa-calculator-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.4rem;
+    }
+
+    #force-bayes-app .fa-calculator-grid .btn {
+      min-width: 0;
+    }
+
+    #force-bayes-app .fa-calculator-zero {
+      grid-column: span 2;
+    }
+
+    #force-bayes-app .fa-calculator-equals {
+      grid-row: span 2;
+    }
+
+    #force-bayes-app .fa-hint {
+      margin-top: 0.8rem;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 0.65rem;
+      background: color-mix(in srgb, var(--accent) 35%, transparent);
+    }
+
+    #force-bayes-app .fa-report {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    #force-bayes-app .fa-report-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 0.8rem;
+    }
+
+    #force-bayes-app .fa-report-head h2,
+    #force-bayes-app .fa-teacher summary {
+      margin: 0;
+      font-weight: 500;
+    }
+
+    #force-bayes-app .fa-skill-row {
+      display: grid;
+      grid-template-columns: minmax(8rem, 1fr) minmax(9rem, 2fr) auto;
+      gap: 0.65rem;
+      align-items: center;
+      margin-bottom: 0.65rem;
+    }
+
+    #force-bayes-app .fa-bar {
+      height: 0.6rem;
+      background: var(--muted);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    #force-bayes-app .fa-bar > span {
+      display: block;
+      height: 100%;
+      background: var(--viz-series-1);
+      border-radius: inherit;
+    }
+
+    #force-bayes-app .fa-factor-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.65rem;
+      margin: 0.75rem 0;
+    }
+
+    #force-bayes-app .fa-factor {
+      padding: 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 0.65rem;
+    }
+
+    #force-bayes-app .fa-factor p { margin: 0.2rem 0 0; }
+
+    #force-bayes-app .fa-teacher {
+      margin-top: 1rem;
+      border-top: 1px solid var(--border);
+      padding-top: 0.8rem;
+    }
+
+    #force-bayes-app .fa-teacher summary {
+      cursor: pointer;
+    }
+
+    #force-bayes-app .fa-validation {
+      margin-top: 0.7rem;
+    }
+
+    #force-bayes-app .fa-matrix {
+      border-collapse: collapse;
+      margin-top: 0.6rem;
+      width: 100%;
+    }
+
+    #force-bayes-app .fa-matrix th,
+    #force-bayes-app .fa-matrix td {
+      border: 1px solid var(--border);
+      padding: 0.4rem;
+      text-align: center;
+    }
+
+    #force-bayes-app .fa-svg-surface { fill: var(--muted); }
+    #force-bayes-app .fa-svg-line { stroke: var(--muted-foreground); stroke-width: 3; }
+    #force-bayes-app .fa-svg-wall { stroke: var(--foreground); stroke-width: 4; }
+    #force-bayes-app .fa-svg-rope { stroke: var(--foreground); stroke-width: 4; stroke-linecap: round; }
+    #force-bayes-app .fa-svg-block { fill: var(--accent); stroke: var(--foreground); stroke-width: 2; }
+    #force-bayes-app .fa-svg-center { fill: var(--foreground); }
+    #force-bayes-app .fa-svg-label { fill: var(--foreground); font-weight: 500; }
+    #force-bayes-app .fa-svg-muted { fill: var(--muted-foreground); }
+    #force-bayes-app .fa-motion-line { stroke: var(--muted-foreground); stroke-width: 3; stroke-dasharray: 8 6; }
+    #force-bayes-app .fa-motion-head { fill: var(--muted-foreground); }
+    #force-bayes-app .fa-force-line { stroke-width: 5; stroke-linecap: round; }
+    #force-bayes-app .fa-force-head { stroke: none; }
+    #force-bayes-app .fa-force-label { fill: var(--foreground); font-weight: 500; paint-order: stroke; stroke: var(--card); stroke-width: 5; stroke-linejoin: round; }
+    #force-bayes-app .fa-force-label-bg { fill: var(--card); stroke: var(--border); stroke-width: 1; }
+    #force-bayes-app .fa-label-leader { stroke: var(--muted-foreground); stroke-width: 1.5; }
+    #force-bayes-app .fa-expected-line { stroke-dasharray: 8 5; }
+    #force-bayes-app .fa-origin-halo { fill: none; stroke: var(--ring); stroke-width: 2; stroke-dasharray: 4 4; }
+    #force-bayes-app .fa-guide-line { stroke: var(--ring); stroke-width: 2; stroke-dasharray: 10 7; opacity: 0.72; }
+    #force-bayes-app .fa-world-guide-line { stroke-dasharray: 4 7; opacity: 0.62; }
+    #force-bayes-app .fa-guide-label { fill: var(--foreground); font-weight: 500; paint-order: stroke; stroke: var(--card); stroke-width: 5; stroke-linejoin: round; }
+
+    @media (max-width: 720px) {
+      #force-bayes-app .fa-workspace { grid-template-columns: 1fr; }
+      #force-bayes-app .fa-panel { border-left: 0; border-top: 1px solid var(--border); padding-left: 0; padding-top: 0.9rem; }
+      #force-bayes-app .fa-factor-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 460px) {
+      #force-bayes-app .fa-force-grid { grid-template-columns: 1fr; }
+      #force-bayes-app .fa-skill-row { grid-template-columns: 1fr; gap: 0.25rem; }
+      #force-bayes-app .fa-scene { min-height: 12rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #force-bayes-app .fa-progress-fill { transition: none; }
+    }
+  </style>
+
+  <div class="fa-topbar">
+    <div class="fa-inline">
+      <span class="viz-badge" id="fa-phase">Diagnóstico</span>
+      <span id="fa-counter" class="text-small text-muted">Situación 1 de 19</span>
+      <span id="fa-session-score" class="viz-badge">Puntuación total: 0,0 / 10</span>
+      <span id="fa-scorm-status" class="text-small text-muted" hidden></span>
+    </div>
+    <div class="fa-actions">
+      <button type="button" class="btn btn-ghost" id="fa-calculator-button" aria-haspopup="dialog">Calculadora</button>
+      <button type="button" class="btn btn-ghost" id="fa-hint-button">Pista</button>
+      <button type="button" class="btn btn-ghost" id="fa-report-button">Progreso</button>
+      <button type="button" class="btn" id="fa-reset-button">Reiniciar</button>
+    </div>
+  </div>
+
+  <div class="fa-progress-track" aria-label="Progreso hacia los 10 puntos">
+    <div class="fa-progress-fill" id="fa-progress"></div>
+  </div>
+
+  <section aria-labelledby="fa-prompt">
+    <p class="fa-prompt" id="fa-prompt"></p>
+    <p class="fa-data text-muted" id="fa-data"></p>
+  </section>
+
+  <div class="fa-workspace">
+    <div class="fa-scene-wrap">
+      <svg class="fa-scene" id="fa-scene" viewBox="0 0 640 400" role="img" aria-label="Escena física para dibujar el diagrama de fuerzas"></svg>
+      <p class="fa-scene-note text-small text-muted" id="fa-scene-note">Las flechas grises discontinuas indican movimiento o aceleración; no son fuerzas. Los newtons son una escala gráfica: se corrige la proporción entre vectores, no un valor absoluto.</p>
+    </div>
+
+    <section class="fa-panel" aria-label="Herramientas de respuesta">
+      <div id="fa-select-step">
+        <p class="fa-step-title">1. Elige todas las fuerzas que actúan sobre el cuerpo.</p>
+        <div class="fa-force-grid" id="fa-force-choices"></div>
+        <button type="button" class="btn btn-primary" id="fa-confirm-forces">Confirmar fuerzas</button>
+      </div>
+
+      <div id="fa-draw-step" hidden>
+        <p class="fa-step-title">2. Selecciona una fuerza y arrastra desde el punto central.</p>
+        <div class="fa-force-buttons" id="fa-draw-buttons"></div>
+        <div class="fa-guide-controls" aria-label="Guías de dirección">
+          <label class="form-check form-switch fa-guide-control">
+            <input class="form-check-input" type="checkbox" id="fa-guide-toggle">
+            <span class="form-check-label" id="fa-guide-label">Mostrar ejes paralelos y perpendiculares al plano</span>
+          </label>
+          <label class="form-check form-switch fa-guide-control" id="fa-world-guide-control">
+            <input class="form-check-input" type="checkbox" id="fa-world-guide-toggle">
+            <span class="form-check-label">Mostrar ejes vertical y horizontal</span>
+          </label>
+        </div>
+        <div class="fa-module-readout" aria-live="polite">
+          <span>Módulo de la flecha</span>
+          <strong id="fa-module-value">—</strong>
+        </div>
+        <p class="fa-draw-status text-small" id="fa-draw-status" aria-live="polite"></p>
+        <div class="fa-draw-tools">
+          <button type="button" class="btn btn-ghost" id="fa-back-selection">Cambiar fuerzas</button>
+          <button type="button" class="btn btn-ghost" id="fa-undo">Deshacer</button>
+          <button type="button" class="btn btn-primary" id="fa-check">Comprobar</button>
+        </div>
+      </div>
+
+      <div id="fa-feedback" hidden aria-live="polite">
+        <div class="fa-feedback-score">
+          <span class="fa-score-number" id="fa-score">0 %</span>
+          <span class="text-muted">en esta situación</span>
+        </div>
+        <p class="fa-score-breakdown text-small text-muted" id="fa-score-breakdown"></p>
+        <div class="fa-feedback-view" role="group" aria-label="Cambiar entre respuesta y solución">
+          <button type="button" class="btn" id="fa-view-student" aria-pressed="false">Mi respuesta</button>
+          <button type="button" class="btn" id="fa-view-solution" aria-pressed="true">Solución correcta</button>
+        </div>
+        <p class="fa-view-caption text-small text-muted" id="fa-view-caption"></p>
+        <div class="fa-feedback-sections" id="fa-feedback-list"></div>
+        <div class="fa-physics-explanation">
+          <strong>Idea física clave</strong>
+          <p id="fa-explanation"></p>
+        </div>
+        <button type="button" class="btn btn-primary" id="fa-next">Siguiente situación</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="fa-hint" id="fa-hint" hidden aria-live="polite"></div>
+  <div class="sr-only" id="fa-live" aria-live="polite"></div>
+
+  <section class="fa-report" id="fa-report" hidden aria-label="Informe de progreso">
+    <div class="fa-report-head">
+      <h2 id="fa-report-title">Informe de progreso</h2>
+      <button type="button" class="btn btn-ghost" id="fa-close-report">Cerrar</button>
+    </div>
+    <p id="fa-report-status"></p>
+    <p id="fa-report-score"></p>
+    <div id="fa-skill-report"></div>
+    <div class="fa-factor-grid" id="fa-factor-report"></div>
+    <p id="fa-recommendation"></p>
+    <p class="text-small text-muted" id="fa-fit-report"></p>
+    <div class="fa-actions" id="fa-report-actions"></div>
+
+    <details class="fa-teacher">
+      <summary>Vista docente: validación del modelo</summary>
+      <div class="fa-validation">
+        <p class="text-small text-muted">La simulación comprueba si el banco distingue internamente los tres niveles previstos. No sustituye la validación con alumnado real.</p>
+        <button type="button" class="btn" id="fa-validate">Ejecutar simulación Monte Carlo</button>
+        <div id="fa-validation-output" aria-live="polite"></div>
+      </div>
+    </details>
+  </section>
+
+  <dialog class="fa-calculator" id="fa-calculator" aria-labelledby="fa-calculator-title">
+    <div class="fa-calculator-head">
+      <strong id="fa-calculator-title">Calculadora</strong>
+      <button type="button" class="btn btn-ghost" id="fa-calculator-close">Cerrar</button>
+    </div>
+    <label class="sr-only" for="fa-calculator-display">Expresión matemática</label>
+    <input class="form-control fa-calculator-display" id="fa-calculator-display" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="fa-calculator-help fa-calculator-status">
+    <p class="fa-calculator-help text-small text-muted" id="fa-calculator-help">Los ángulos de seno, coseno y tangente se expresan en grados.</p>
+    <div class="fa-calculator-grid" aria-label="Teclado de la calculadora">
+      <button type="button" class="btn" data-calc-action="clear" aria-label="Borrar todo">C</button>
+      <button type="button" class="btn" data-calc-action="backspace" aria-label="Borrar último carácter">⌫</button>
+      <button type="button" class="btn" data-calc-value="(">(</button>
+      <button type="button" class="btn" data-calc-value=")">)</button>
+
+      <button type="button" class="btn" data-calc-wrap="sin">sin</button>
+      <button type="button" class="btn" data-calc-wrap="cos">cos</button>
+      <button type="button" class="btn" data-calc-wrap="tan">tan</button>
+      <button type="button" class="btn" data-calc-wrap="sqrt" aria-label="Raíz cuadrada">√</button>
+
+      <button type="button" class="btn" data-calc-wrap="inv" aria-label="Inversa">1/x</button>
+      <button type="button" class="btn" data-calc-action="square" aria-label="Elevar al cuadrado">x²</button>
+      <button type="button" class="btn" data-calc-value="/" aria-label="Dividir">÷</button>
+      <button type="button" class="btn" data-calc-value="*" aria-label="Multiplicar">×</button>
+
+      <button type="button" class="btn" data-calc-value="7">7</button>
+      <button type="button" class="btn" data-calc-value="8">8</button>
+      <button type="button" class="btn" data-calc-value="9">9</button>
+      <button type="button" class="btn" data-calc-value="-" aria-label="Restar">−</button>
+
+      <button type="button" class="btn" data-calc-value="4">4</button>
+      <button type="button" class="btn" data-calc-value="5">5</button>
+      <button type="button" class="btn" data-calc-value="6">6</button>
+      <button type="button" class="btn" data-calc-value="+" aria-label="Sumar">+</button>
+
+      <button type="button" class="btn" data-calc-value="1">1</button>
+      <button type="button" class="btn" data-calc-value="2">2</button>
+      <button type="button" class="btn" data-calc-value="3">3</button>
+      <button type="button" class="btn btn-primary fa-calculator-equals" data-calc-action="equals" aria-label="Calcular resultado">=</button>
+
+      <button type="button" class="btn fa-calculator-zero" data-calc-value="0">0</button>
+      <button type="button" class="btn" data-calc-value="," aria-label="Separador decimal">,</button>
+    </div>
+    <p class="fa-calculator-status text-small" id="fa-calculator-status" aria-live="polite"></p>
+  </dialog>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var ROOT_ID = "force-bayes-app";
+      var STORAGE_KEY = "diagramasFuerzasBayes_v3";
+      var MAX_ITEMS = 19;
+      var MIN_ITEMS = 7;
+      var TARGET_SCORE = 10;
+      var PERFECT_ITEMS_FOR_MAX = 8;
+      var POINTS_PER_PERFECT_ITEM = TARGET_SCORE / PERFECT_ITEMS_FOR_MAX;
+      var THETAS = [-2, 0, 2];
+      var LEVEL_NAMES = ["Inicial", "En desarrollo", "Sólido"];
+      var SKILL_IDS = ["identification", "direction", "magnitude"];
+      var CATEGORY_IDS = ["horizontal", "inclineBasic", "friction", "tension", "wall"];
+      var NS = "http://www.w3.org/2000/svg";
+      var REFERENCE_ARROW_LENGTH = 120;
+      var GRAPHIC_NEWTONS_PER_UNIT = 0.1;
+
+      var root = document.getElementById(ROOT_ID);
+      if (!root) return;
+
+      var els = {
+        phase: root.querySelector("#fa-phase"),
+        counter: root.querySelector("#fa-counter"),
+        progress: root.querySelector("#fa-progress"),
+        prompt: root.querySelector("#fa-prompt"),
+        data: root.querySelector("#fa-data"),
+        scene: root.querySelector("#fa-scene"),
+        sceneNote: root.querySelector("#fa-scene-note"),
+        choices: root.querySelector("#fa-force-choices"),
+        selectStep: root.querySelector("#fa-select-step"),
+        drawStep: root.querySelector("#fa-draw-step"),
+        drawButtons: root.querySelector("#fa-draw-buttons"),
+        drawStatus: root.querySelector("#fa-draw-status"),
+        moduleValue: root.querySelector("#fa-module-value"),
+        guideToggle: root.querySelector("#fa-guide-toggle"),
+        guideLabel: root.querySelector("#fa-guide-label"),
+        worldGuideControl: root.querySelector("#fa-world-guide-control"),
+        worldGuideToggle: root.querySelector("#fa-world-guide-toggle"),
+        feedback: root.querySelector("#fa-feedback"),
+        score: root.querySelector("#fa-score"),
+        scoreBreakdown: root.querySelector("#fa-score-breakdown"),
+        sessionScore: root.querySelector("#fa-session-score"),
+        scormStatus: root.querySelector("#fa-scorm-status"),
+        viewStudent: root.querySelector("#fa-view-student"),
+        viewSolution: root.querySelector("#fa-view-solution"),
+        viewCaption: root.querySelector("#fa-view-caption"),
+        feedbackList: root.querySelector("#fa-feedback-list"),
+        explanation: root.querySelector("#fa-explanation"),
+        hint: root.querySelector("#fa-hint"),
+        hintButton: root.querySelector("#fa-hint-button"),
+        reportButton: root.querySelector("#fa-report-button"),
+        resetButton: root.querySelector("#fa-reset-button"),
+        calculatorButton: root.querySelector("#fa-calculator-button"),
+        calculator: root.querySelector("#fa-calculator"),
+        calculatorClose: root.querySelector("#fa-calculator-close"),
+        calculatorDisplay: root.querySelector("#fa-calculator-display"),
+        calculatorStatus: root.querySelector("#fa-calculator-status"),
+        confirmForces: root.querySelector("#fa-confirm-forces"),
+        backSelection: root.querySelector("#fa-back-selection"),
+        undo: root.querySelector("#fa-undo"),
+        check: root.querySelector("#fa-check"),
+        next: root.querySelector("#fa-next"),
+        live: root.querySelector("#fa-live"),
+        report: root.querySelector("#fa-report"),
+        reportTitle: root.querySelector("#fa-report-title"),
+        reportStatus: root.querySelector("#fa-report-status"),
+        reportScore: root.querySelector("#fa-report-score"),
+        skillReport: root.querySelector("#fa-skill-report"),
+        factorReport: root.querySelector("#fa-factor-report"),
+        recommendation: root.querySelector("#fa-recommendation"),
+        fitReport: root.querySelector("#fa-fit-report"),
+        reportActions: root.querySelector("#fa-report-actions"),
+        closeReport: root.querySelector("#fa-close-report"),
+        validate: root.querySelector("#fa-validate"),
+        validationOutput: root.querySelector("#fa-validation-output")
+      };
+
+      var FORCE_DEFS = {
+        weight: { label: "Peso", symbol: "P", color: "var(--fa-force-weight)" },
+        normal: { label: "Normal", symbol: "N", color: "var(--fa-force-normal)" },
+        friction: { label: "Rozamiento", symbol: "Fr", color: "var(--fa-force-friction)" },
+        applied: { label: "Fuerza aplicada", symbol: "F", color: "var(--fa-force-applied)" },
+        tension: { label: "Tensión", symbol: "T", color: "var(--fa-force-tension)" },
+        motion: { label: "Fuerza de movimiento", symbol: "Fm", color: "var(--fa-force-motion)" }
+      };
+
+      function evaluateCalculatorExpression(expression) {
+        var source = String(expression || "")
+          .replace(/,/g, ".")
+          .replace(/×/g, "*")
+          .replace(/÷/g, "/")
+          .replace(/−/g, "-");
+        var tokens = [];
+        var position = 0;
+
+        while (position < source.length) {
+          var character = source.charAt(position);
+          if (/\s/.test(character)) {
+            position += 1;
+            continue;
+          }
+          var numberMatch = source.slice(position).match(/^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?/i);
+          if (numberMatch) {
+            tokens.push({ type: "number", value: Number(numberMatch[0]) });
+            position += numberMatch[0].length;
+            continue;
+          }
+          var nameMatch = source.slice(position).match(/^[a-z]+/i);
+          if (nameMatch) {
+            tokens.push({ type: "name", value: nameMatch[0].toLowerCase() });
+            position += nameMatch[0].length;
+            continue;
+          }
+          if ("+-*/^()".indexOf(character) !== -1) {
+            tokens.push({ type: "symbol", value: character });
+            position += 1;
+            continue;
+          }
+          throw new Error("Hay un símbolo que la calculadora no reconoce.");
+        }
+        tokens.push({ type: "end", value: "" });
+
+        var index = 0;
+        var peek = function () { return tokens[index]; };
+        var match = function (value) {
+          if (peek().value !== value) return false;
+          index += 1;
+          return true;
+        };
+        var expect = function (value) {
+          if (!match(value)) throw new Error(value === ")" ? "Falta cerrar un paréntesis." : "La expresión está incompleta.");
+        };
+
+        function applyFunction(name, value) {
+          var radians = value * Math.PI / 180;
+          if (name === "sin") return Math.sin(radians);
+          if (name === "cos") return Math.cos(radians);
+          if (name === "tan") {
+            if (Math.abs(Math.cos(radians)) < 1e-12) throw new Error("La tangente no está definida para ese ángulo.");
+            return Math.tan(radians);
+          }
+          if (name === "sqrt") {
+            if (value < 0) throw new Error("No se puede calcular la raíz cuadrada de un número negativo.");
+            return Math.sqrt(value);
+          }
+          if (name === "inv") {
+            if (Math.abs(value) < 1e-15) throw new Error("No se puede calcular la inversa de cero.");
+            return 1 / value;
+          }
+          throw new Error("La función «" + name + "» no está disponible.");
+        }
+
+        function parsePrimary() {
+          var token = peek();
+          if (token.type === "number") {
+            index += 1;
+            return token.value;
+          }
+          if (match("(")) {
+            var grouped = parseExpression();
+            expect(")");
+            return grouped;
+          }
+          if (token.type === "name") {
+            index += 1;
+            var name = token.value;
+            expect("(");
+            var argument = parseExpression();
+            expect(")");
+            return applyFunction(name, argument);
+          }
+          throw new Error("Escribe un número o completa la expresión.");
+        }
+
+        function parsePower() {
+          var base = parsePrimary();
+          if (match("^")) return Math.pow(base, parseUnary());
+          return base;
+        }
+
+        function parseUnary() {
+          if (match("+")) return parseUnary();
+          if (match("-")) return -parseUnary();
+          return parsePower();
+        }
+
+        function parseTerm() {
+          var value = parseUnary();
+          while (peek().value === "*" || peek().value === "/") {
+            var operator = peek().value;
+            index += 1;
+            var right = parseUnary();
+            if (operator === "*") value *= right;
+            else {
+              if (Math.abs(right) < 1e-15) throw new Error("No se puede dividir entre cero.");
+              value /= right;
+            }
+          }
+          return value;
+        }
+
+        function parseExpression() {
+          var value = parseTerm();
+          while (peek().value === "+" || peek().value === "-") {
+            var operator = peek().value;
+            index += 1;
+            var right = parseTerm();
+            value = operator === "+" ? value + right : value - right;
+          }
+          return value;
+        }
+
+        if (!source.trim()) throw new Error("Escribe una operación.");
+        var result = parseExpression();
+        if (peek().type !== "end") throw new Error("Revisa la operación: quedan elementos sin calcular.");
+        if (!isFinite(result)) throw new Error("El resultado no es un número finito.");
+        return Math.abs(result) < 1e-14 ? 0 : result;
+      }
+
+      function formatCalculatorResult(value) {
+        return String(Number(value.toPrecision(12))).replace(".", ",");
+      }
+
+      function setCalculatorValue(value, selectionStart, selectionEnd) {
+        els.calculatorDisplay.value = value;
+        els.calculatorStatus.textContent = "";
+        els.calculatorDisplay.focus();
+        if (typeof els.calculatorDisplay.setSelectionRange === "function") {
+          var start = selectionStart == null ? value.length : selectionStart;
+          var end = selectionEnd == null ? start : selectionEnd;
+          els.calculatorDisplay.setSelectionRange(start, end);
+        }
+      }
+
+      function insertCalculatorText(text) {
+        var input = els.calculatorDisplay;
+        var start = input.selectionStart == null ? input.value.length : input.selectionStart;
+        var end = input.selectionEnd == null ? start : input.selectionEnd;
+        var next = input.value.slice(0, start) + text + input.value.slice(end);
+        setCalculatorValue(next, start + text.length);
+      }
+
+      function wrapCalculatorExpression(name) {
+        var input = els.calculatorDisplay;
+        var start = input.selectionStart == null ? input.value.length : input.selectionStart;
+        var end = input.selectionEnd == null ? start : input.selectionEnd;
+        var selected = input.value.slice(start, end);
+        if (selected) {
+          var wrappedSelection = name + "(" + selected + ")";
+          setCalculatorValue(input.value.slice(0, start) + wrappedSelection + input.value.slice(end), start + wrappedSelection.length);
+          return;
+        }
+        if (input.value.trim()) {
+          setCalculatorValue(name + "(" + input.value + ")");
+          return;
+        }
+        setCalculatorValue(name + "(", name.length + 1);
+      }
+
+      function squareCalculatorExpression() {
+        var input = els.calculatorDisplay;
+        var start = input.selectionStart == null ? input.value.length : input.selectionStart;
+        var end = input.selectionEnd == null ? start : input.selectionEnd;
+        var selected = input.value.slice(start, end);
+        if (selected) {
+          var squaredSelection = "(" + selected + ")^2";
+          setCalculatorValue(input.value.slice(0, start) + squaredSelection + input.value.slice(end), start + squaredSelection.length);
+          return;
+        }
+        if (input.value.trim()) {
+          setCalculatorValue("(" + input.value + ")^2");
+          return;
+        }
+        setCalculatorValue("()^2", 1);
+      }
+
+      function calculateExpression() {
+        try {
+          var result = evaluateCalculatorExpression(els.calculatorDisplay.value);
+          setCalculatorValue(formatCalculatorResult(result));
+          els.calculatorStatus.textContent = "Resultado calculado.";
+          els.calculatorStatus.classList.remove("text-destructive");
+        } catch (error) {
+          els.calculatorStatus.textContent = error.message || "No se ha podido calcular la expresión.";
+          els.calculatorStatus.classList.add("text-destructive");
+          els.calculatorDisplay.focus();
+        }
+      }
+
+      function openCalculator() {
+        if (typeof els.calculator.showModal === "function") {
+          if (!els.calculator.open) els.calculator.showModal();
+        } else {
+          els.calculator.setAttribute("open", "");
+        }
+        els.calculatorStatus.textContent = "";
+        els.calculatorStatus.classList.remove("text-destructive");
+        els.calculatorDisplay.focus();
+      }
+
+      function closeCalculator() {
+        if (typeof els.calculator.close === "function" && els.calculator.open) els.calculator.close();
+        else els.calculator.removeAttribute("open");
+        els.calculatorButton.focus();
+      }
+
+      var FACTOR_DEFS = {
+        motionForce: {
+          label: "Fuerza de movimiento inventada",
+          recommendation: "Diferenciar velocidad y fuerza: un cuerpo puede moverse sin que exista una fuerza en el sentido del movimiento.",
+          prior: 0.22
+        },
+        frictionDirection: {
+          label: "Sentido del rozamiento",
+          recommendation: "Revisar que el rozamiento se opone al deslizamiento o a su tendencia, no siempre a la fuerza aplicada.",
+          prior: 0.25
+        },
+        normalEqualsWeight: {
+          label: "Normal igual al peso en cualquier caso",
+          recommendation: "Revisar de qué interacción nace la normal y por qué no siempre tiene el mismo módulo que el peso.",
+          prior: 0.25
+        }
+      };
+
+      var SKILL_LABELS = {
+        identification: "Identificación de fuerzas",
+        direction: "Dirección y sentido",
+        magnitude: "Módulo relativo"
+      };
+
+      var scorm = createScormAdapter();
+      var scormState = scorm.initialize();
+      var state = chooseInitialState(loadState(), scormState) || freshState();
+      var currentOrigin = { x: 320, y: 250 };
+      var draft = null;
+      var pointerId = null;
+
+      function freshState() {
+        var factors = {};
+        Object.keys(FACTOR_DEFS).forEach(function (id) {
+          factors[id] = { p: FACTOR_DEFS[id].prior, evidence: 0 };
+        });
+        return {
+          version: 3,
+          attempt: 0,
+          phase: "diagnostic",
+          skills: {
+            identification: [1 / 3, 1 / 3, 1 / 3],
+            direction: [1 / 3, 1 / 3, 1 / 3],
+            magnitude: [1 / 3, 1 / 3, 1 / 3]
+          },
+          factors: factors,
+          categoryCounts: { horizontal: 0, inclineBasic: 0, friction: 0, tension: 0, wall: 0 },
+          usedTemplates: [],
+          history: [],
+          current: null,
+          selectedForces: [],
+          drawings: {},
+          activeForce: null,
+          responseStage: "select",
+          feedbackView: "solution",
+          hintLevel: 0,
+          guideDefault: false,
+          guideEnabled: false,
+          guideUsed: false,
+          worldGuideDefault: false,
+          worldGuideEnabled: false,
+          finished: false
+        };
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (error) {
+          return;
+        }
+      }
+
+      function loadState() {
+        try {
+          var saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          if (!saved || saved.version !== 3) return null;
+          if (typeof saved.worldGuideDefault !== "boolean") saved.worldGuideDefault = false;
+          if (typeof saved.worldGuideEnabled !== "boolean") saved.worldGuideEnabled = false;
+          CATEGORY_IDS.forEach(function (id) {
+            if (!saved.categoryCounts || typeof saved.categoryCounts[id] !== "number") {
+              if (!saved.categoryCounts) saved.categoryCounts = {};
+              saved.categoryCounts[id] = 0;
+            }
+          });
+          saved.finished = saved.attempt >= MAX_ITEMS || scoreReachedForState(saved);
+          return saved;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function cumulativeScoreForState(sourceState) {
+        var history = sourceState && Array.isArray(sourceState.history) ? sourceState.history : [];
+        var total = history.reduce(function (sum, entry) {
+          var overall = entry && entry.result ? Number(entry.result.overall) : 0;
+          return sum + clamp(isFinite(overall) ? overall : 0, 0, 1) * POINTS_PER_PERFECT_ITEM;
+        }, 0);
+        return Math.min(TARGET_SCORE, total);
+      }
+
+      function scoreReachedForState(sourceState) {
+        return cumulativeScoreForState(sourceState) >= TARGET_SCORE - 0.0001;
+      }
+
+      function chooseInitialState(localState, remoteState) {
+        if (!localState) return remoteState;
+        if (!remoteState) return localState;
+        var localScore = cumulativeScoreForState(localState);
+        var remoteScore = cumulativeScoreForState(remoteState);
+        if (remoteState.attempt > localState.attempt || remoteScore > localScore + 0.001) return remoteState;
+        return localState;
+      }
+
+      function compactNumber(value, digits) {
+        var factor = Math.pow(10, digits || 0);
+        return Math.round(Number(value || 0) * factor) / factor;
+      }
+
+      function encodeScormState(sourceState) {
+        var factorIds = Object.keys(FACTOR_DEFS);
+        var payload = {
+          v: 1,
+          a: sourceState.attempt,
+          p: sourceState.phase === "reinforcement" ? 1 : 0,
+          s: SKILL_IDS.map(function (id) {
+            return sourceState.skills[id].map(function (value) { return compactNumber(value, 4); });
+          }),
+          f: factorIds.map(function (id) {
+            var factor = sourceState.factors[id];
+            return [compactNumber(factor.p, 4), factor.evidence || 0];
+          }),
+          c: CATEGORY_IDS.map(function (id) { return sourceState.categoryCounts[id] || 0; }),
+          u: sourceState.usedTemplates.slice(),
+          h: sourceState.history.map(function (entry) {
+            var result = entry.result || {};
+            return [
+              entry.templateId,
+              entry.category,
+              compactNumber(entry.difficulty, 2),
+              entry.hintLevel || 0,
+              entry.guideUsed ? 1 : 0,
+              compactNumber(result.identification, 3),
+              compactNumber(result.direction, 3),
+              compactNumber(result.magnitude, 3),
+              compactNumber(result.overall, 3)
+            ];
+          }),
+          z: sourceState.finished ? 1 : 0
+        };
+        return JSON.stringify(payload);
+      }
+
+      function decodeScormState(serialized) {
+        if (!serialized) return null;
+        try {
+          var payload = JSON.parse(serialized);
+          if (!payload || payload.v !== 1 || !Array.isArray(payload.h)) return null;
+          var restored = freshState();
+          restored.attempt = Math.max(0, Number(payload.a) || payload.h.length);
+          restored.phase = payload.p === 1 ? "reinforcement" : "diagnostic";
+          if (Array.isArray(payload.s) && payload.s.length === SKILL_IDS.length) {
+            SKILL_IDS.forEach(function (id, index) {
+              if (Array.isArray(payload.s[index]) && payload.s[index].length === THETAS.length) {
+                restored.skills[id] = normalize(payload.s[index].map(Number));
+              }
+            });
+          }
+          var factorIds = Object.keys(FACTOR_DEFS);
+          if (Array.isArray(payload.f)) {
+            factorIds.forEach(function (id, index) {
+              if (!Array.isArray(payload.f[index])) return;
+              restored.factors[id] = {
+                p: clamp(Number(payload.f[index][0]) || FACTOR_DEFS[id].prior, 0.0001, 0.9999),
+                evidence: Math.max(0, Number(payload.f[index][1]) || 0)
+              };
+            });
+          }
+          if (Array.isArray(payload.c)) {
+            CATEGORY_IDS.forEach(function (id, index) {
+              restored.categoryCounts[id] = Math.max(0, Number(payload.c[index]) || 0);
+            });
+          }
+          restored.usedTemplates = Array.isArray(payload.u) ? payload.u.slice() : [];
+          restored.history = payload.h.map(function (entry) {
+            var result = {
+              identification: clamp(Number(entry[5]) || 0, 0, 1),
+              direction: clamp(Number(entry[6]) || 0, 0, 1),
+              magnitude: clamp(Number(entry[7]) || 0, 0, 1),
+              overall: clamp(Number(entry[8]) || 0, 0, 1),
+              missing: [],
+              extra: [],
+              directionScores: [],
+              directionDetails: [],
+              magnitudeScores: [],
+              magnitudeMessages: [],
+              magnitudeDetails: []
+            };
+            return {
+              templateId: entry[0],
+              category: entry[1],
+              difficulty: Number(entry[2]) || 0,
+              hintLevel: Number(entry[3]) || 0,
+              guideUsed: entry[4] === 1,
+              result: result,
+              expectedTypes: []
+            };
+          });
+          restored.attempt = Math.max(restored.attempt, restored.history.length);
+          restored.finished = payload.z === 1 || restored.attempt >= MAX_ITEMS || scoreReachedForState(restored);
+          return restored;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function createScormAdapter() {
+        var api = null;
+        var version = null;
+        var initialized = false;
+        var terminated = false;
+        var bestScore = 0;
+
+        function successful(value) {
+          return value === true || String(value).toLowerCase() === "true";
+        }
+
+        function locateIn(startWindow) {
+          var candidate = startWindow;
+          var depth = 0;
+          while (candidate && depth < 20) {
+            try {
+              if (candidate.API) return { api: candidate.API, version: "1.2" };
+              if (candidate.API_1484_11) return { api: candidate.API_1484_11, version: "2004" };
+              if (candidate.parent === candidate) break;
+              candidate = candidate.parent;
+            } catch (error) {
+              break;
+            }
+            depth += 1;
+          }
+          return null;
+        }
+
+        function locate() {
+          var found = locateIn(window);
+          if (found) return found;
+          try {
+            if (window.opener && !window.opener.closed) return locateIn(window.opener);
+          } catch (error) {
+            return null;
+          }
+          return null;
+        }
+
+        function invoke(method, args) {
+          if (!api || typeof api[method] !== "function") return null;
+          try {
+            return api[method].apply(api, args || []);
+          } catch (error) {
+            return null;
+          }
+        }
+
+        function getValue(element) {
+          var method = version === "2004" ? "GetValue" : "LMSGetValue";
+          var value = invoke(method, [element]);
+          return value == null ? "" : String(value);
+        }
+
+        function setValue(element, value) {
+          var method = version === "2004" ? "SetValue" : "LMSSetValue";
+          return successful(invoke(method, [element, String(value)]));
+        }
+
+        function commit() {
+          var method = version === "2004" ? "Commit" : "LMSCommit";
+          return successful(invoke(method, [""]));
+        }
+
+        function showStatus(message, isError) {
+          if (!els.scormStatus) return;
+          els.scormStatus.hidden = false;
+          els.scormStatus.textContent = message;
+          els.scormStatus.classList.toggle("text-destructive", Boolean(isError));
+          els.scormStatus.classList.toggle("text-muted", !isError);
+        }
+
+        return {
+          initialize: function () {
+            var found = locate();
+            if (!found) return null;
+            api = found.api;
+            version = found.version;
+            var method = version === "2004" ? "Initialize" : "LMSInitialize";
+            initialized = successful(invoke(method, [""]));
+            if (!initialized) {
+              showStatus("Moodle: no se pudo iniciar el seguimiento", true);
+              return null;
+            }
+            var serializedState = getValue("cmi.suspend_data");
+            var resumedState = decodeScormState(serializedState);
+            var raw = parseFloat(getValue(version === "2004" ? "cmi.score.raw" : "cmi.core.score.raw"));
+            if (isFinite(raw)) {
+              var resumedScore = resumedState ? cumulativeScoreForState(resumedState) : null;
+              var looksLikeLegacyPercent = resumedScore != null && Math.abs(raw - resumedScore * 10) < 0.06 && Math.abs(raw - resumedScore) >= 0.06;
+              if (raw > TARGET_SCORE || looksLikeLegacyPercent) raw /= 10;
+              bestScore = clamp(raw, 0, TARGET_SCORE);
+            }
+            if (version === "2004" && !isFinite(raw)) {
+              var scaled = parseFloat(getValue("cmi.score.scaled"));
+              if (isFinite(scaled)) bestScore = clamp(scaled, 0, 1) * TARGET_SCORE;
+            }
+            showStatus("Moodle: progreso conectado", false);
+            return resumedState;
+          },
+          isConnected: function () {
+            return initialized && !terminated;
+          },
+          sync: function (score, serializedState, finished, passed, attempt) {
+            if (!initialized || terminated) return false;
+            var normalizedScore = Math.round(clamp(score, 0, TARGET_SCORE) * 100) / 100;
+            bestScore = Math.max(bestScore, normalizedScore);
+            passed = Boolean(passed || bestScore >= TARGET_SCORE - 0.0001);
+            finished = Boolean(finished || passed);
+            var ok = true;
+            if (version === "2004") {
+              ok = setValue("cmi.score.min", "0") && ok;
+              ok = setValue("cmi.score.max", TARGET_SCORE) && ok;
+              ok = setValue("cmi.score.raw", bestScore) && ok;
+              ok = setValue("cmi.score.scaled", bestScore / TARGET_SCORE) && ok;
+              ok = setValue("cmi.completion_status", finished ? "completed" : "incomplete") && ok;
+              ok = setValue("cmi.success_status", passed ? "passed" : "unknown") && ok;
+              ok = setValue("cmi.location", attempt) && ok;
+              ok = setValue("cmi.exit", finished ? "normal" : "suspend") && ok;
+            } else {
+              ok = setValue("cmi.core.score.min", "0") && ok;
+              ok = setValue("cmi.core.score.max", TARGET_SCORE) && ok;
+              ok = setValue("cmi.core.score.raw", bestScore) && ok;
+              ok = setValue("cmi.core.lesson_status", passed ? "passed" : (finished ? "completed" : "incomplete")) && ok;
+              ok = setValue("cmi.core.lesson_location", attempt) && ok;
+              ok = setValue("cmi.core.exit", finished ? "" : "suspend") && ok;
+            }
+            ok = setValue("cmi.suspend_data", serializedState) && ok;
+            ok = commit() && ok;
+            showStatus(ok ? "Moodle: progreso guardado" : "Moodle: no se pudo guardar el progreso", !ok);
+            return ok;
+          },
+          terminate: function () {
+            if (!initialized || terminated) return;
+            var method = version === "2004" ? "Terminate" : "LMSFinish";
+            invoke(method, [""]);
+            terminated = true;
+          }
+        };
+      }
+
+      function syncScorm(finalize) {
+        if (!scorm || !scorm.isConnected()) return false;
+        var reached = scoreReachedForState(state);
+        var finished = Boolean(finalize || reached || state.attempt >= MAX_ITEMS || state.finished);
+        return scorm.sync(cumulativeScoreForState(state), encodeScormState(state), finished, reached, state.attempt);
+      }
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function choose(list) {
+        return list[Math.floor(Math.random() * list.length)];
+      }
+
+      function round(value, digits) {
+        var factor = Math.pow(10, digits || 0);
+        return Math.round(value * factor) / factor;
+      }
+
+      function normalize(values) {
+        var sum = values.reduce(function (acc, value) { return acc + value; }, 0);
+        if (!isFinite(sum) || sum <= 0) return values.map(function () { return 1 / values.length; });
+        return values.map(function (value) { return value / sum; });
+      }
+
+      function entropy(dist) {
+        return -dist.reduce(function (sum, p) {
+          return p > 0 ? sum + p * Math.log(p) / Math.log(2) : sum;
+        }, 0);
+      }
+
+      function expectedTheta(dist) {
+        return dist.reduce(function (sum, p, index) { return sum + p * THETAS[index]; }, 0);
+      }
+
+      function itemProbability(theta, difficulty, chance) {
+        var c = chance == null ? 0.04 : chance;
+        var a = 1.25 / (1 - c);
+        var logistic = 1 / (1 + Math.exp(-a * (theta - difficulty)));
+        return clamp(c + (1 - c) * logistic, c, 0.93);
+      }
+
+      function posteriorFor(dist, difficulty, chance, score) {
+        var likelihoods = THETAS.map(function (theta) {
+          var p = itemProbability(theta, difficulty, chance);
+          return Math.pow(p, score) * Math.pow(1 - p, 1 - score);
+        });
+        return normalize(dist.map(function (prior, index) { return prior * likelihoods[index]; }));
+      }
+
+      function applyForgetting(dist, lambda) {
+        if (lambda >= 1) return dist.slice();
+        var base = 1 / dist.length;
+        return normalize(dist.map(function (p) {
+          return Math.pow(Math.max(p, 1e-9), lambda) * Math.pow(base, 1 - lambda);
+        }));
+      }
+
+      function updateSkill(id, score, difficulty, chance) {
+        var lambda = state.phase === "reinforcement" ? 0.95 : 1;
+        var faded = applyForgetting(state.skills[id], lambda);
+        state.skills[id] = posteriorFor(faded, difficulty, chance, score);
+      }
+
+      function expectedInformation(dist, difficulty, chance) {
+        var probs = THETAS.map(function (theta) { return itemProbability(theta, difficulty, chance); });
+        var pCorrect = probs.reduce(function (sum, p, index) { return sum + p * dist[index]; }, 0);
+        var postCorrect = normalize(dist.map(function (prior, index) { return prior * probs[index]; }));
+        var postWrong = normalize(dist.map(function (prior, index) { return prior * (1 - probs[index]); }));
+        return entropy(dist) - (pCorrect * entropy(postCorrect) + (1 - pCorrect) * entropy(postWrong));
+      }
+
+      function binaryEntropy(p) {
+        if (p <= 0 || p >= 1) return 0;
+        return -(p * Math.log(p) / Math.log(2) + (1 - p) * Math.log(1 - p) / Math.log(2));
+      }
+
+      function factorInformation(p) {
+        var sensitivity = 0.84;
+        var falsePositive = 0.14;
+        var pEvidence = p * sensitivity + (1 - p) * falsePositive;
+        var postYes = (p * sensitivity) / Math.max(pEvidence, 1e-9);
+        var pNo = 1 - pEvidence;
+        var postNo = (p * (1 - sensitivity)) / Math.max(pNo, 1e-9);
+        return binaryEntropy(p) - (pEvidence * binaryEntropy(postYes) + pNo * binaryEntropy(postNo));
+      }
+
+      function updateFactor(id, observedError) {
+        var record = state.factors[id];
+        if (!record) return;
+        var prior = FACTOR_DEFS[id].prior;
+        var p = record.p;
+        if (state.phase === "reinforcement") {
+          var logit = function (x) { return Math.log(x / (1 - x)); };
+          var invLogit = function (x) { return 1 / (1 + Math.exp(-x)); };
+          p = invLogit(0.95 * logit(clamp(p, 1e-5, 1 - 1e-5)) + 0.05 * logit(prior));
+        }
+        var likePresent = observedError ? 0.84 : 0.16;
+        var likeAbsent = observedError ? 0.14 : 0.86;
+        record.p = (p * likePresent) / (p * likePresent + (1 - p) * likeAbsent);
+        record.evidence += 1;
+      }
+
+      function makeForce(type, angle, magnitude) {
+        return { type: type, angle: angle, magnitude: Math.max(1, magnitude) };
+      }
+
+      function baseItem(meta, prompt, dataText, scene, forces, explanation, hints) {
+        return {
+          uid: meta.id + "-" + Date.now() + "-" + Math.floor(Math.random() * 100000),
+          templateId: meta.id,
+          category: meta.category,
+          difficulty: meta.difficulty,
+          dimensionOffsets: meta.dimensionOffsets || { identification: 0, direction: 0, magnitude: 0.15 },
+          opportunities: meta.opportunities || [],
+          prompt: prompt,
+          dataText: dataText,
+          scene: scene,
+          forces: forces,
+          explanation: explanation,
+          hints: hints
+        };
+      }
+
+      function randomMass() {
+        return choose([2, 3, 4, 5, 6, 8, 10]);
+      }
+
+      function randomAngle() {
+        return choose([20, 25, 30, 35]);
+      }
+
+      function horizontalForces(mass) {
+        var weight = mass * 9.8;
+        return [makeForce("weight", -90, weight), makeForce("normal", 90, weight)];
+      }
+
+      function inclineCore(mass, angle) {
+        var weight = mass * 9.8;
+        return {
+          weight: weight,
+          normal: weight * Math.cos(angle * Math.PI / 180),
+          parallel: weight * Math.sin(angle * Math.PI / 180)
+        };
+      }
+
+      function ropeInclineCore(mass, angle, ropeAngle, parallelShare) {
+        var core = inclineCore(mass, angle);
+        var share = parallelShare == null ? 1 : parallelShare;
+        var delta = (ropeAngle - angle) * Math.PI / 180;
+        var tension = share * core.parallel / Math.cos(delta);
+        var frictionBalance = (1 - share) * core.parallel;
+        return {
+          weight: core.weight,
+          tension: tension,
+          friction: Math.abs(frictionBalance),
+          frictionAngle: frictionBalance >= 0 ? angle : angle + 180,
+          normal: core.normal - tension * Math.sin(delta),
+          delta: delta
+        };
+      }
+
+      var TEMPLATES = [
+        {
+          id: "horizontal-rest",
+          category: "horizontal",
+          difficulty: -1,
+          opportunities: [],
+          generate: function () {
+            var m = randomMass();
+            return baseItem(this,
+              "Un bloque permanece en reposo sobre una superficie horizontal.",
+              "Masa no especificada · Sin fuerzas horizontales aplicadas.",
+              { type: "horizontal", motionAngle: null, accelerationAngle: null, stateLabel: "reposo" },
+              horizontalForces(m),
+              "El peso y la normal son verticales, de sentidos opuestos y del mismo módulo porque no hay aceleración vertical.",
+              ["Empieza por identificar las interacciones: Tierra y superficie.", "En vertical, la resultante debe ser nula."]);
+          }
+        },
+        {
+          id: "horizontal-uniform",
+          category: "horizontal",
+          difficulty: -0.85,
+          opportunities: ["motionForce"],
+          generate: function () {
+            var m = randomMass();
+            return baseItem(this,
+              "Un bloque se desplaza hacia la derecha con velocidad constante sobre una superficie horizontal sin rozamiento.",
+              "Masa no especificada · No actúa ninguna fuerza horizontal.",
+              { type: "horizontal", motionAngle: 0, accelerationAngle: null },
+              horizontalForces(m),
+              "La velocidad constante no necesita una fuerza que la mantenga. Las únicas fuerzas son el peso y la normal, que se equilibran.",
+              ["Velocidad constante significa aceleración nula.", "No dibujes una fuerza solo porque el cuerpo se mueve."]);
+          }
+        },
+        {
+          id: "horizontal-push-no-friction",
+          category: "horizontal",
+          difficulty: -0.55,
+          opportunities: [],
+          generate: function () {
+            var m = randomMass();
+            var force = choose([12, 18, 24, 30]);
+            var forces = horizontalForces(m).concat([makeForce("applied", 0, force)]);
+            return baseItem(this,
+              "Sobre un bloque situado en un plano horizontal sin rozamiento se aplica una fuerza hacia la derecha.",
+              "Masa no especificada · La fuerza aplicada es horizontal.",
+              { type: "horizontal", motionAngle: 0, accelerationAngle: 0 },
+              forces,
+              "El peso y la normal se equilibran. La fuerza aplicada es la única fuerza horizontal, por lo que la aceleración apunta hacia la derecha.",
+              ["La superficie ejerce una fuerza perpendicular a ella.", "Compara por separado las componentes verticales y horizontales."]);
+          }
+        },
+        {
+          id: "horizontal-slide-friction",
+          category: "friction",
+          difficulty: -0.35,
+          opportunities: ["motionForce", "frictionDirection"],
+          generate: function () {
+            var m = randomMass();
+            var mu = choose([0.25, 0.3, 0.35]);
+            var weight = m * 9.8;
+            var forces = horizontalForces(m).concat([makeForce("friction", 180, mu * weight)]);
+            return baseItem(this,
+              "Un bloque fue lanzado hacia la derecha y ahora desliza sobre una superficie horizontal rugosa, sin que nadie lo empuje.",
+              "Masa no especificada · Coeficiente de rozamiento: " + mu + ".",
+              { type: "horizontal", motionAngle: 0, accelerationAngle: 180 },
+              forces,
+              "El rozamiento se opone al deslizamiento y apunta a la izquierda. No existe una fuerza de movimiento hacia la derecha.",
+              ["Distingue la dirección de la velocidad de la dirección de la aceleración.", "El rozamiento se opone al deslizamiento relativo."]);
+          }
+        },
+        {
+          id: "horizontal-force-friction-accelerated",
+          category: "friction",
+          difficulty: 0.05,
+          opportunities: ["frictionDirection"],
+          generate: function () {
+            var m = randomMass();
+            var mu = choose([0.25, 0.3, 0.35]);
+            var weight = m * 9.8;
+            var friction = mu * weight;
+            var applied = round(friction + choose([8, 12, 16]), 1);
+            var forces = horizontalForces(m).concat([
+              makeForce("friction", 180, friction),
+              makeForce("applied", 0, applied)
+            ]);
+            return baseItem(this,
+              "Un bloque desliza hacia la derecha y aumenta su rapidez mientras una fuerza horizontal tira de él hacia la derecha.",
+              "Masa no especificada · μ = " + mu + " · La fuerza aplicada supera al rozamiento.",
+              { type: "horizontal", motionAngle: 0, accelerationAngle: 0 },
+              forces,
+              "La fuerza aplicada supera al rozamiento, de modo que la resultante horizontal y la aceleración apuntan a la derecha.",
+              ["El rozamiento apunta en sentido contrario al deslizamiento.", "Si la rapidez aumenta hacia la derecha, la resultante horizontal también apunta a la derecha."]);
+          }
+        },
+        {
+          id: "horizontal-force-friction-uniform",
+          category: "friction",
+          difficulty: 0.15,
+          opportunities: ["motionForce", "frictionDirection"],
+          generate: function () {
+            var m = randomMass();
+            var mu = choose([0.25, 0.3, 0.35]);
+            var weight = m * 9.8;
+            var friction = round(mu * weight, 1);
+            var forces = horizontalForces(m).concat([
+              makeForce("friction", 180, friction),
+              makeForce("applied", 0, friction)
+            ]);
+            return baseItem(this,
+              "Un bloque se mueve hacia la derecha con velocidad constante sobre una superficie rugosa mientras se tira de él horizontalmente.",
+              "Masa no especificada · μ = " + mu + " · Movimiento uniforme.",
+              { type: "horizontal", motionAngle: 0, accelerationAngle: null },
+              forces,
+              "La fuerza aplicada y el rozamiento tienen el mismo módulo y sentidos opuestos. También se equilibran peso y normal.",
+              ["Velocidad constante implica resultante nula.", "Hay dos pares de fuerzas equilibradas: uno horizontal y otro vertical."]);
+          }
+        },
+        {
+          id: "horizontal-static",
+          category: "friction",
+          difficulty: 0.25,
+          opportunities: ["frictionDirection"],
+          generate: function () {
+            var m = randomMass();
+            var applied = round(m * 9.8 * choose([0.25, 0.3, 0.35]), 1);
+            var forces = horizontalForces(m).concat([
+              makeForce("friction", 180, applied),
+              makeForce("applied", 0, applied)
+            ]);
+            return baseItem(this,
+              "Se empuja un bloque hacia la derecha, pero el bloque permanece en reposo sobre una superficie rugosa.",
+              "Masa no especificada · No se supera el rozamiento estático máximo.",
+              { type: "horizontal", motionAngle: null, accelerationAngle: null, tendencyAngle: 0, stateLabel: "reposo" },
+              forces,
+              "El rozamiento estático se ajusta al empuje y apunta a la izquierda. Mientras el bloque siga en reposo, ambos módulos son iguales.",
+              ["El rozamiento estático se opone a la tendencia de deslizamiento.", "En reposo, la resultante es nula."]);
+          }
+        },
+        {
+          id: "incline-up-no-friction",
+          category: "inclineBasic",
+          difficulty: -0.25,
+          opportunities: ["motionForce", "normalEqualsWeight"],
+          generate: function () {
+            var m = randomMass();
+            var angle = randomAngle();
+            var core = inclineCore(m, angle);
+            var forces = [
+              makeForce("weight", -90, core.weight),
+              makeForce("normal", 90 + angle, core.normal)
+            ];
+            return baseItem(this,
+              "Un bloque asciende por un plano inclinado sin rozamiento después de haber sido lanzado. Ya no está en contacto con quien lo lanzó.",
+              "Masa no especificada · Inclinación: " + angle + "°.",
+              { type: "incline", angle: angle, motionAngle: angle, accelerationAngle: 180 + angle },
+              forces,
+              "Tras el lanzamiento no queda una fuerza hacia arriba del plano. Actúan el peso y la normal; la componente del peso paralela al plano frena el ascenso.",
+              ["El lanzamiento inicial no sigue actuando como fuerza.", "La normal es perpendicular al plano y vale mg·cos θ."]);
+          }
+        },
+        {
+          id: "incline-down-no-friction",
+          category: "inclineBasic",
+          difficulty: -0.1,
+          opportunities: ["motionForce", "normalEqualsWeight"],
+          generate: function () {
+            var m = randomMass();
+            var angle = randomAngle();
+            var core = inclineCore(m, angle);
+            var forces = [
+              makeForce("weight", -90, core.weight),
+              makeForce("normal", 90 + angle, core.normal)
+            ];
+            return baseItem(this,
+              "Un bloque desciende cada vez más rápido por un plano inclinado sin rozamiento.",
+              "Masa no especificada · Inclinación: " + angle + "°.",
+              { type: "incline", angle: angle, motionAngle: 180 + angle, accelerationAngle: 180 + angle },
+              forces,
+              "Solo actúan el peso y la normal. La componente del peso paralela al plano produce la aceleración descendente.",
+              ["No dibujes por separado una componente del peso y el peso completo.", "La normal es perpendicular al plano."]);
+          }
+        },
+        {
+          id: "incline-rope-no-friction",
+          category: "tension",
+          difficulty: 0.05,
+          opportunities: ["normalEqualsWeight"],
+          generate: function () {
+            var m = randomMass();
+            var angle = choose([20, 25, 30]);
+            var ropeAngle = angle;
+            var core = ropeInclineCore(m, angle, ropeAngle, 1);
+            var forces = [
+              makeForce("weight", -90, core.weight),
+              makeForce("normal", 90 + angle, core.normal),
+              makeForce("tension", ropeAngle, core.tension)
+            ];
+            return baseItem(this,
+              "Un bloque permanece en reposo sobre un plano inclinado sin rozamiento, sostenido por una cuerda paralela al plano.",
+              "Masa no especificada · Plano: " + angle + "° · Cuerda paralela al plano.",
+              { type: "incline", angle: angle, ropeAngle: ropeAngle, ropeShare: 1, motionAngle: null, accelerationAngle: null, stateLabel: "reposo" },
+              forces,
+              "La tensión es paralela al plano y apunta hacia la parte superior. Equilibra la componente descendente del peso; la normal compensa la componente perpendicular.",
+              ["La tensión siempre tiene la dirección de la cuerda y tira hacia el anclaje.", "Como la cuerda es paralela al plano, T equilibra P·sin θ y N equilibra P·cos θ."]);
+          }
+        },
+        {
+          id: "incline-rope-static-friction",
+          category: "tension",
+          difficulty: 0.55,
+          opportunities: ["frictionDirection", "normalEqualsWeight"],
+          generate: function () {
+            var m = randomMass();
+            var angle = choose([20, 25, 30]);
+            var ropeAngle = angle;
+            var share = choose([1.4, 1.5]);
+            var core = ropeInclineCore(m, angle, ropeAngle, share);
+            var minimumMu = core.friction / core.normal;
+            var muStatic = Math.ceil((minimumMu + 0.08) * 100) / 100;
+            var forces = [
+              makeForce("weight", -90, core.weight),
+              makeForce("normal", 90 + angle, core.normal),
+              makeForce("tension", ropeAngle, core.tension),
+              makeForce("friction", core.frictionAngle, core.friction)
+            ];
+            return baseItem(this,
+              "Un bloque permanece en reposo sobre un plano inclinado rugoso, sujeto por una cuerda paralela al plano.",
+              "Masa no especificada · Plano: " + angle + "° · Cuerda paralela al plano · T equivale al " + Math.round(share * 100) + " % de P·sin θ · μs = " + muStatic + ".",
+              { type: "incline", angle: angle, ropeAngle: ropeAngle, ropeShare: share, motionAngle: null, accelerationAngle: null, stateLabel: "reposo" },
+              forces,
+              "La cuerda es paralela al plano. Como la tensión supera la componente descendente del peso, la tendencia sería subir; por eso el rozamiento estático apunta hacia abajo y equilibra el exceso. La normal vale P·cos θ.",
+              ["La tensión tira hacia el anclaje y es paralela al plano.", "El rozamiento estático se opone a la tendencia de movimiento: aquí apunta hacia abajo del plano."]);
+          }
+        },
+        {
+          id: "incline-up-friction",
+          category: "friction",
+          difficulty: 0.25,
+          opportunities: ["motionForce", "frictionDirection", "normalEqualsWeight"],
+          generate: function () {
+            var m = randomMass();
+            var angle = randomAngle();
+            var mu = choose([0.25, 0.3, 0.35]);
+            var core = inclineCore(m, angle);
+            var forces = [
+              makeForce("weight", -90, core.weight),
+              makeForce("normal", 90 + angle, core.normal),
+              makeForce("friction", 180 + angle, mu * core.normal)
+            ];
+            return baseItem(this,
+              "Un bloque asciende por un plano inclinado rugoso después de ser lanzado y va perdiendo rapidez.",
+              "Masa no especificada · Inclinación: " + angle + "° · μ = " + mu + ".",
+              { type: "incline", angle: angle, motionAngle: angle, accelerationAngle: 180 + angle },
+              forces,
+              "El rozamiento apunta hacia abajo del plano porque el bloque desliza hacia arriba. El peso también contribuye a frenar mediante su componente paralela.",
+              ["El rozamiento se opone al movimiento relativo.", "La normal vale mg·cos θ, no mg."]);
+          }
+        },
+        {
+          id: "incline-down-friction-uniform",
+          category: "friction",
+          difficulty: 0.35,
+          opportunities: ["frictionDirection", "normalEqualsWeight"],
+          generate: function () {
+            var m = randomMass();
+            var angle = choose([20, 25, 30]);
+            var core = inclineCore(m, angle);
+            var friction = core.parallel;
+            var mu = round(Math.tan(angle * Math.PI / 180), 2);
+            var forces = [
+              makeForce("weight", -90, core.weight),
+              makeForce("normal", 90 + angle, core.normal),
+              makeForce("friction", angle, friction)
+            ];
+            return baseItem(this,
+              "Un bloque desciende con velocidad constante por un plano inclinado rugoso.",
+              "Masa no especificada · Inclinación: " + angle + "° · μ = " + mu + ".",
+              { type: "incline", angle: angle, motionAngle: 180 + angle, accelerationAngle: null },
+              forces,
+              "El rozamiento apunta hacia arriba del plano y equilibra la componente del peso paralela al plano. La normal equilibra la componente perpendicular.",
+              ["Velocidad constante implica resultante nula.", "El rozamiento debe igualar mg·sin θ, no el peso completo."]);
+          }
+        },
+        {
+          id: "incline-down-friction-accelerated",
+          category: "friction",
+          difficulty: 0.45,
+          opportunities: ["frictionDirection", "normalEqualsWeight"],
+          generate: function () {
+            var m = randomMass();
+            var angle = choose([25, 30, 35]);
+            var mu = choose([0.25, 0.3, 0.35]);
+            var core = inclineCore(m, angle);
+            var forces = [
+              makeForce("weight", -90, core.weight),
+              makeForce("normal", 90 + angle, core.normal),
+              makeForce("friction", angle, mu * core.normal)
+            ];
+            return baseItem(this,
+              "Un bloque desciende cada vez más rápido por un plano inclinado rugoso.",
+              "Masa no especificada · Inclinación: " + angle + "° · μ = " + mu + ".",
+              { type: "incline", angle: angle, motionAngle: 180 + angle, accelerationAngle: 180 + angle },
+              forces,
+              "El rozamiento apunta hacia arriba del plano, pero es menor que la componente del peso paralela al plano; por eso la resultante es descendente.",
+              ["Rozamiento y velocidad tienen sentidos opuestos.", "Para que acelere al bajar, mg·sin θ debe superar al rozamiento."]);
+          }
+        },
+        {
+          id: "wall-held",
+          category: "wall",
+          difficulty: 0.55,
+          opportunities: ["frictionDirection"],
+          generate: function () {
+            var m = randomMass();
+            var weight = m * 9.8;
+            var muStatic = choose([0.5, 0.6, 0.7]);
+            var push = Math.ceil(weight / (0.85 * muStatic));
+            var forces = [
+              makeForce("weight", -90, weight),
+              makeForce("normal", 180, push),
+              makeForce("friction", 90, weight),
+              makeForce("applied", 0, push)
+            ];
+            return baseItem(this,
+              "Una persona mantiene un bloque en reposo apretándolo horizontalmente contra una pared vertical rugosa.",
+              "Masa no especificada · El bloque permanece en equilibrio.",
+              { type: "wall", motionAngle: null, accelerationAngle: null, stateLabel: "reposo" },
+              forces,
+              "La pared ejerce una normal opuesta al empuje. El rozamiento estático apunta hacia arriba y equilibra el peso.",
+              ["Identifica dos equilibrios: uno horizontal y otro vertical.", "La normal iguala al empuje; el rozamiento iguala al peso."]);
+          }
+        },
+        {
+          id: "incline-applied-down-moving-down",
+          category: "friction",
+          difficulty: 0.7,
+          opportunities: ["frictionDirection", "normalEqualsWeight"],
+          generate: function () {
+            var m = randomMass();
+            var angle = randomAngle();
+            var mu = choose([0.25, 0.3, 0.35]);
+            var core = inclineCore(m, angle);
+            var applied = choose([15, 20, 25, 30]);
+            var forces = [
+              makeForce("weight", -90, core.weight),
+              makeForce("normal", 90 + angle, core.normal),
+              makeForce("friction", angle, mu * core.normal),
+              makeForce("applied", 180 + angle, applied)
+            ];
+            return baseItem(this,
+              "Un bloque desciende por un plano inclinado rugoso y una fuerza paralela al plano tira de él hacia abajo. Su rapidez aumenta.",
+              "Masa no especificada · θ = " + angle + "° · μ = " + mu + ".",
+              { type: "incline", angle: angle, motionAngle: 180 + angle, accelerationAngle: 180 + angle },
+              forces,
+              "La fuerza aplicada y la componente paralela del peso favorecen el descenso; el rozamiento se opone y apunta hacia arriba.",
+              ["Separa el sentido del movimiento del de cada interacción.", "El rozamiento es la única fuerza paralela que apunta hacia arriba del plano."]);
+          }
+        },
+        {
+          id: "incline-applied-down-moving-up",
+          category: "friction",
+          difficulty: 0.8,
+          opportunities: ["frictionDirection", "normalEqualsWeight"],
+          generate: function () {
+            var m = randomMass();
+            var angle = randomAngle();
+            var mu = choose([0.25, 0.3, 0.35]);
+            var core = inclineCore(m, angle);
+            var applied = choose([12, 18, 24]);
+            var forces = [
+              makeForce("weight", -90, core.weight),
+              makeForce("normal", 90 + angle, core.normal),
+              makeForce("friction", 180 + angle, mu * core.normal),
+              makeForce("applied", 180 + angle, applied)
+            ];
+            return baseItem(this,
+              "Un bloque se mueve hacia arriba por un plano inclinado rugoso, mientras una fuerza paralela al plano tira de él hacia abajo. El bloque pierde rapidez.",
+              "Masa no especificada · θ = " + angle + "° · μ = " + mu + ".",
+              { type: "incline", angle: angle, motionAngle: angle, accelerationAngle: 180 + angle },
+              forces,
+              "Mientras el bloque sube, tanto el rozamiento como la fuerza aplicada apuntan hacia abajo del plano. La componente paralela del peso también favorece la desaceleración.",
+              ["El rozamiento se opone al movimiento actual, aunque la fuerza aplicada apunte en el mismo sentido que él.", "Puede haber dos fuerzas diferentes con igual dirección y sentido."]);
+          }
+        },
+        {
+          id: "incline-applied-up-moving-down",
+          category: "friction",
+          difficulty: 0.9,
+          opportunities: ["frictionDirection", "normalEqualsWeight"],
+          generate: function () {
+            var m = randomMass();
+            var angle = choose([30, 35]);
+            var mu = choose([0.25, 0.3]);
+            var core = inclineCore(m, angle);
+            var friction = mu * core.normal;
+            var applied = round((core.parallel - friction) * choose([0.55, 0.7, 0.8]), 1);
+            var forces = [
+              makeForce("weight", -90, core.weight),
+              makeForce("normal", 90 + angle, core.normal),
+              makeForce("friction", angle, friction),
+              makeForce("applied", angle, applied)
+            ];
+            return baseItem(this,
+              "Un bloque desciende por un plano inclinado rugoso mientras una fuerza paralela al plano tira de él hacia arriba. Aun así, su rapidez aumenta.",
+              "Masa no especificada · θ = " + angle + "° · μ = " + mu + ".",
+              { type: "incline", angle: angle, motionAngle: 180 + angle, accelerationAngle: 180 + angle },
+              forces,
+              "La fuerza aplicada y el rozamiento apuntan hacia arriba, pero su suma es menor que la componente descendente del peso; la resultante sigue apuntando hacia abajo.",
+              ["El sentido de la aceleración lo decide la resultante, no una fuerza aislada.", "Mientras baja, el rozamiento apunta hacia arriba del plano."]);
+          }
+        },
+        {
+          id: "incline-applied-up-moving-up",
+          category: "friction",
+          difficulty: 1.05,
+          opportunities: ["frictionDirection", "normalEqualsWeight"],
+          generate: function () {
+            var m = randomMass();
+            var angle = choose([25, 30, 35]);
+            var mu = choose([0.25, 0.3, 0.35]);
+            var core = inclineCore(m, angle);
+            var friction = mu * core.normal;
+            var applied = round(core.parallel + friction + choose([8, 12, 16]), 1);
+            var forces = [
+              makeForce("weight", -90, core.weight),
+              makeForce("normal", 90 + angle, core.normal),
+              makeForce("friction", 180 + angle, friction),
+              makeForce("applied", angle, applied)
+            ];
+            return baseItem(this,
+              "Un bloque asciende cada vez más rápido por un plano inclinado rugoso gracias a una fuerza paralela al plano dirigida hacia arriba.",
+              "Masa no especificada · θ = " + angle + "° · μ = " + mu + ".",
+              { type: "incline", angle: angle, motionAngle: angle, accelerationAngle: angle },
+              forces,
+              "La fuerza aplicada apunta hacia arriba y supera la suma del rozamiento y la componente paralela del peso, ambos dirigidos hacia abajo del plano.",
+              ["Mientras el bloque sube, el rozamiento apunta hacia abajo.", "Para acelerar hacia arriba, la fuerza aplicada debe superar todas las contribuciones descendentes."]);
+          }
+        }
+      ];
+
+      function templateMetadata(template) {
+        return {
+          id: template.id,
+          category: template.category,
+          difficulty: template.difficulty,
+          dimensionOffsets: template.dimensionOffsets || { identification: 0, direction: 0, magnitude: 0.15 },
+          opportunities: template.opportunities || []
+        };
+      }
+
+      function phaseForState() {
+        var uncovered = CATEGORY_IDS.some(function (id) { return state.categoryCounts[id] < 1; });
+        return uncovered && state.attempt < 6 ? "diagnostic" : "reinforcement";
+      }
+
+      function globalTheta() {
+        return SKILL_IDS.reduce(function (sum, id) { return sum + expectedTheta(state.skills[id]); }, 0) / SKILL_IDS.length;
+      }
+
+      function candidateMetrics(template) {
+        var meta = templateMetadata(template);
+        var skillIG = SKILL_IDS.map(function (id) {
+          var b = meta.difficulty + (meta.dimensionOffsets[id] || 0);
+          return expectedInformation(state.skills[id], b, 0.04);
+        });
+        var ig = skillIG.reduce(function (sum, value) { return sum + value; }, 0) / skillIG.length;
+        var errorIG = meta.opportunities.reduce(function (sum, id) {
+          return sum + (state.factors[id] ? factorInformation(state.factors[id].p) : 0);
+        }, 0);
+        var targetSkill = SKILL_IDS.slice().sort(function (a, b) {
+          return expectedTheta(state.skills[a]) - expectedTheta(state.skills[b]);
+        })[0];
+        var targetIndex = SKILL_IDS.indexOf(targetSkill);
+        var bTarget = meta.difficulty + (meta.dimensionOffsets[targetSkill] || 0);
+        var fit = clamp(1 - Math.abs(bTarget - expectedTheta(state.skills[targetSkill])) / 2, 0, 1);
+        return { template: template, meta: meta, ig: ig, errorIG: errorIG, fit: fit, targetIG: skillIG[targetIndex] };
+      }
+
+      function weightedPick(items, weightFn) {
+        var weights = items.map(function (item) { return Math.max(0.001, weightFn(item)); });
+        var total = weights.reduce(function (sum, value) { return sum + value; }, 0);
+        var cursor = Math.random() * total;
+        for (var i = 0; i < items.length; i += 1) {
+          cursor -= weights[i];
+          if (cursor <= 0) return items[i];
+        }
+        return items[items.length - 1];
+      }
+
+      function selectNextTemplate() {
+        state.phase = phaseForState();
+        var unused = TEMPLATES.filter(function (template) {
+          return state.usedTemplates.indexOf(template.id) === -1;
+        });
+        var pool = unused.length ? unused : TEMPLATES.filter(function (template) {
+          return state.usedTemplates.slice(-4).indexOf(template.id) === -1;
+        });
+
+        var abilityBonus = (globalTheta() + 2) * 0.12;
+        var ceiling = clamp(-0.75 + state.attempt * 0.28 + abilityBonus, -0.75, 1.1);
+        var progressive = pool.filter(function (template) { return template.difficulty <= ceiling + 0.001; });
+        if (progressive.length >= 2) pool = progressive;
+
+        if (state.attempt === 0) {
+          pool = pool.filter(function (template) { return template.difficulty <= -0.85; });
+        }
+
+        if (state.phase === "diagnostic") {
+          var minCount = Math.min.apply(null, CATEGORY_IDS.map(function (id) { return state.categoryCounts[id]; }));
+          var categories = CATEGORY_IDS.filter(function (id) { return state.categoryCounts[id] === minCount; });
+          var coveredPool = pool.filter(function (template) { return categories.indexOf(template.category) !== -1; });
+          if (coveredPool.length) pool = coveredPool;
+        } else {
+          var weakestSkill = SKILL_IDS.slice().sort(function (a, b) {
+            return expectedTheta(state.skills[a]) - expectedTheta(state.skills[b]);
+          })[0];
+          var targetTheta = expectedTheta(state.skills[weakestSkill]);
+          var distances = pool.map(function (template) {
+            var offsets = template.dimensionOffsets || { identification: 0, direction: 0, magnitude: 0.15 };
+            return Math.abs(template.difficulty + (offsets[weakestSkill] || 0) - targetTheta);
+          });
+          var nearest = Math.min.apply(null, distances);
+          var fittedPool = pool.filter(function (template, index) { return distances[index] <= nearest + 0.55; });
+          if (fittedPool.length) pool = fittedPool;
+        }
+
+        var metrics = pool.map(candidateMetrics);
+        var maxIG = Math.max.apply(null, metrics.map(function (item) { return item.ig + item.errorIG * 0.25; }));
+        metrics.forEach(function (item) {
+          var igNorm = maxIG > 0 ? (item.ig + item.errorIG * 0.25) / maxIG : 0;
+          var coverage = 1 / (1 + state.categoryCounts[item.meta.category]);
+          if (state.phase === "diagnostic") {
+            item.utility = 0.72 * igNorm + 0.28 * coverage;
+          } else {
+            item.utility = 0.65 * igNorm + 0.35 * item.fit;
+          }
+        });
+        var maxUtility = Math.max.apply(null, metrics.map(function (item) { return item.utility; }));
+        var shortlist = metrics.filter(function (item) { return item.utility >= maxUtility - 0.07; });
+        return weightedPick(shortlist, function (item) {
+          return 1 / (1 + state.categoryCounts[item.meta.category]);
+        }).template;
+      }
+
+      function ensureCurrentItem() {
+        if (state.current) return;
+        var template = selectNextTemplate();
+        state.current = template.generate();
+        state.selectedForces = [];
+        state.drawings = {};
+        state.activeForce = null;
+        state.responseStage = "select";
+        state.feedbackView = "solution";
+        state.hintLevel = 0;
+        state.guideDefault = state.current.difficulty <= -0.25;
+        state.guideEnabled = state.guideDefault;
+        state.guideUsed = false;
+        state.worldGuideDefault = state.current.scene.type === "incline" && state.current.difficulty <= -0.25;
+        state.worldGuideEnabled = state.worldGuideDefault;
+        saveState();
+      }
+
+      function svgEl(name, attrs, text) {
+        var el = document.createElementNS(NS, name);
+        Object.keys(attrs || {}).forEach(function (key) { el.setAttribute(key, attrs[key]); });
+        if (text != null) el.textContent = text;
+        return el;
+      }
+
+      function clearSvg() {
+        while (els.scene.firstChild) els.scene.removeChild(els.scene.firstChild);
+      }
+
+      function anglePoint(origin, angle, length) {
+        var rad = angle * Math.PI / 180;
+        return { x: origin.x + length * Math.cos(rad), y: origin.y - length * Math.sin(rad) };
+      }
+
+      function drawArrow(group, origin, end, color, label, expected, muted) {
+        var dx = end.x - origin.x;
+        var dy = end.y - origin.y;
+        var length = Math.sqrt(dx * dx + dy * dy);
+        if (length < 2) return;
+        var ux = dx / length;
+        var uy = dy / length;
+        var head = muted ? Math.min(10, Math.max(5, length * 0.25)) : Math.min(14, Math.max(5, length * 0.32));
+        var wing = muted ? Math.min(5, Math.max(3, length * 0.14)) : Math.min(7, Math.max(3, length * 0.16));
+        var baseX = end.x - ux * head;
+        var baseY = end.y - uy * head;
+        var px = -uy;
+        var py = ux;
+        var line = svgEl("line", {
+          x1: origin.x,
+          y1: origin.y,
+          x2: baseX,
+          y2: baseY,
+          stroke: color,
+          "class": muted ? "fa-motion-line" : "fa-force-line" + (expected ? " fa-expected-line" : "")
+        });
+        var headEl = svgEl("polygon", {
+          points: end.x + "," + end.y + " " + (baseX + px * wing) + "," + (baseY + py * wing) + " " + (baseX - px * wing) + "," + (baseY - py * wing),
+          fill: color,
+          "class": muted ? "fa-motion-head" : "fa-force-head"
+        });
+        group.appendChild(line);
+        group.appendChild(headEl);
+        if (label) {
+          var outward = length < 35 ? 24 : 8;
+          var offsetX = px * 12 + ux * outward;
+          var offsetY = py * 12 + uy * outward;
+          group.appendChild(svgEl("text", {
+            x: end.x + offsetX,
+            y: end.y + offsetY,
+            "class": muted ? "fa-svg-muted" : "fa-force-label",
+            "font-size": muted ? 15 : 17,
+            "text-anchor": "middle"
+          }, label));
+        }
+      }
+
+      function boxesOverlap(a, b, padding) {
+        var gap = padding || 0;
+        return a.x < b.x + b.width + gap && a.x + a.width + gap > b.x && a.y < b.y + b.height + gap && a.y + a.height + gap > b.y;
+      }
+
+      function pointInsideBox(point, box) {
+        return point.x >= box.x && point.x <= box.x + box.width && point.y >= box.y && point.y <= box.y + box.height;
+      }
+
+      function segmentCrossesSegment(a, b, c, d) {
+        function cross(p, q, r) {
+          return (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
+        }
+        if (Math.max(a.x, b.x) < Math.min(c.x, d.x) || Math.max(c.x, d.x) < Math.min(a.x, b.x) ||
+            Math.max(a.y, b.y) < Math.min(c.y, d.y) || Math.max(c.y, d.y) < Math.min(a.y, b.y)) return false;
+        var abC = cross(a, b, c);
+        var abD = cross(a, b, d);
+        var cdA = cross(c, d, a);
+        var cdB = cross(c, d, b);
+        return ((abC <= 0 && abD >= 0) || (abC >= 0 && abD <= 0)) && ((cdA <= 0 && cdB >= 0) || (cdA >= 0 && cdB <= 0));
+      }
+
+      function segmentCrossesBox(start, end, box) {
+        if (pointInsideBox(start, box) || pointInsideBox(end, box)) return true;
+        var topLeft = { x: box.x, y: box.y };
+        var topRight = { x: box.x + box.width, y: box.y };
+        var bottomRight = { x: box.x + box.width, y: box.y + box.height };
+        var bottomLeft = { x: box.x, y: box.y + box.height };
+        return segmentCrossesSegment(start, end, topLeft, topRight) ||
+          segmentCrossesSegment(start, end, topRight, bottomRight) ||
+          segmentCrossesSegment(start, end, bottomRight, bottomLeft) ||
+          segmentCrossesSegment(start, end, bottomLeft, topLeft);
+      }
+
+      function forceLabelBox(center, label) {
+        var width = clamp(label.length * 8.1 + 20, 76, 148);
+        var height = 28;
+        return { x: center.x - width / 2, y: center.y - height / 2, width: width, height: height };
+      }
+
+      function labelCandidates(entry) {
+        var dx = entry.end.x - entry.origin.x;
+        var dy = entry.end.y - entry.origin.y;
+        var length = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+        var ux = dx / length;
+        var uy = dy / length;
+        var px = -uy;
+        var py = ux;
+        var width = forceLabelBox(entry.end, entry.label).width;
+        var ahead = width / 2 + 22;
+        var side = 34;
+        var farSide = 76;
+        var along = function (factor, lateral) {
+          return {
+            x: entry.origin.x + dx * factor + px * lateral,
+            y: entry.origin.y + dy * factor + py * lateral
+          };
+        };
+        var candidates = [
+          { x: entry.end.x + ux * ahead + px * 18, y: entry.end.y + uy * ahead + py * 18 },
+          { x: entry.end.x + ux * ahead - px * 18, y: entry.end.y + uy * ahead - py * 18 },
+          { x: entry.end.x + px * side, y: entry.end.y + py * side },
+          { x: entry.end.x - px * side, y: entry.end.y - py * side },
+          { x: entry.end.x + px * farSide, y: entry.end.y + py * farSide },
+          { x: entry.end.x - px * farSide, y: entry.end.y - py * farSide },
+          along(1, 68),
+          along(1, -68),
+          along(0.8, 38),
+          along(0.8, -38),
+          along(0.62, 45),
+          along(0.62, -45),
+          { x: entry.end.x + ux * ahead, y: entry.end.y + uy * ahead }
+        ];
+        var railY = [30, 82, 134, 266, 318, 370];
+        var leftX = 14 + width / 2;
+        var rightX = 626 - width / 2;
+        railY.forEach(function (y) {
+          candidates.push({ x: leftX, y: y });
+          candidates.push({ x: rightX, y: y });
+        });
+        [86, 210, 430, 554].forEach(function (x) {
+          candidates.push({ x: x, y: 26 });
+          candidates.push({ x: x, y: 374 });
+        });
+        return candidates;
+      }
+
+      function placeForceLabel(group, entry, allEntries, occupied) {
+        var candidates = labelCandidates(entry);
+        var blockBox = { x: currentOrigin.x - 50, y: currentOrigin.y - 50, width: 100, height: 100 };
+        var best = null;
+        candidates.forEach(function (candidate, index) {
+          var rawBox = forceLabelBox(candidate, entry.label);
+          var centered = {
+            x: clamp(candidate.x, 10 + rawBox.width / 2, 630 - rawBox.width / 2),
+            y: clamp(candidate.y, 10 + rawBox.height / 2, 390 - rawBox.height / 2)
+          };
+          var box = forceLabelBox(centered, entry.label);
+          var score = index * 3 + distance(centered, entry.end) * 0.08 + distance(centered, candidate) * 4;
+          occupied.forEach(function (other) {
+            if (boxesOverlap(box, other, 5)) score += 50000;
+          });
+          allEntries.forEach(function (vector) {
+            if (segmentCrossesBox(vector.origin, vector.end, box)) score += 9000;
+          });
+          if (boxesOverlap(box, blockBox, 4)) score += 12000;
+          if (!best || score < best.score) best = { center: centered, box: box, score: score };
+        });
+        if (!best) return;
+        occupied.push(best.box);
+        var leaderEnd = {
+          x: clamp(entry.end.x, best.box.x, best.box.x + best.box.width),
+          y: clamp(entry.end.y, best.box.y, best.box.y + best.box.height)
+        };
+        if (distance(entry.end, leaderEnd) > 4) {
+          group.appendChild(svgEl("line", {
+            x1: entry.end.x,
+            y1: entry.end.y,
+            x2: leaderEnd.x,
+            y2: leaderEnd.y,
+            "class": "fa-label-leader"
+          }));
+        }
+        group.appendChild(svgEl("rect", {
+          x: best.box.x,
+          y: best.box.y,
+          width: best.box.width,
+          height: best.box.height,
+          rx: 7,
+          "class": "fa-force-label-bg"
+        }));
+        group.appendChild(svgEl("text", {
+          x: best.center.x,
+          y: best.center.y + 5,
+          "class": "fa-force-label",
+          "font-size": 16,
+          "text-anchor": "middle"
+        }, entry.label));
+      }
+
+      function drawForceVectors(group, entries) {
+        var renderOrder = entries.slice().sort(function (a, b) {
+          return distance(b.origin, b.end) - distance(a.origin, a.end);
+        });
+        renderOrder.forEach(function (entry) {
+          drawArrow(group, entry.origin, entry.end, entry.color, null, entry.expected, false);
+        });
+        var occupied = [];
+        renderOrder.forEach(function (entry) {
+          placeForceLabel(group, entry, entries, occupied);
+        });
+      }
+
+      function drawMotionCue(origin, angle, label, offset) {
+        if (angle == null) return;
+        var rad = angle * Math.PI / 180;
+        var nx = Math.sin(rad);
+        var ny = Math.cos(rad);
+        var start = { x: origin.x - nx * (offset || 55), y: origin.y - ny * (offset || 55) };
+        var end = anglePoint(start, angle, 75);
+        var group = svgEl("g", {});
+        drawArrow(group, start, end, "var(--muted-foreground)", label, false, true);
+        els.scene.appendChild(group);
+      }
+
+      function drawDirectionGuides(scene) {
+        function appendAxes(axes, labels, lineClass, ariaLabel, radius) {
+          var group = svgEl("g", { "class": "fa-guide-layer", "aria-label": ariaLabel });
+          group.appendChild(svgEl("title", {}, ariaLabel));
+          axes.forEach(function (angle, index) {
+            var start = anglePoint(currentOrigin, angle + 180, radius);
+            var end = anglePoint(currentOrigin, angle, radius);
+            var labelPoint = anglePoint(currentOrigin, angle, radius - 34);
+            group.appendChild(svgEl("line", {
+              x1: start.x,
+              y1: start.y,
+              x2: end.x,
+              y2: end.y,
+              "class": lineClass
+            }));
+            group.appendChild(svgEl("text", {
+              x: labelPoint.x,
+              y: labelPoint.y - 8,
+              "class": "fa-guide-label",
+              "font-size": 14,
+              "text-anchor": "middle"
+            }, labels[index]));
+          });
+          els.scene.appendChild(group);
+        }
+
+        if (state.guideEnabled) {
+          var parallelAngle = scene.type === "incline" ? scene.angle : 0;
+          var planeLabels = scene.type === "wall" ? ["⊥ pared", "∥ pared"] : ["∥ plano", "⊥ plano"];
+          appendAxes([parallelAngle, parallelAngle + 90], planeLabels, "fa-guide-line", "Ejes paralelos y perpendiculares a la superficie", 230);
+        }
+        if (scene.type === "incline" && state.worldGuideEnabled) {
+          appendAxes([0, 90], ["horizontal", "vertical"], "fa-guide-line fa-world-guide-line", "Ejes horizontal y vertical", 205);
+        }
+      }
+
+      function drawSceneBase(item) {
+        clearSvg();
+        var scene = item.scene;
+        els.scene.appendChild(svgEl("title", {}, "Escena: " + item.prompt));
+        els.scene.appendChild(svgEl("desc", {}, "Dibuja todas las fuerzas desde el punto central del bloque." + (scene.ropeAngle != null ? " La línea continua que sale del bloque representa una cuerda cuyo anclaje queda fuera de la imagen." : "")));
+
+        if (scene.type === "horizontal") {
+          currentOrigin = { x: 320, y: 200 };
+          var horizontalSurfaceY = 235;
+          els.scene.appendChild(svgEl("rect", { x: 0, y: horizontalSurfaceY, width: 640, height: 400 - horizontalSurfaceY, "class": "fa-svg-surface" }));
+          els.scene.appendChild(svgEl("line", { x1: 0, y1: horizontalSurfaceY, x2: 640, y2: horizontalSurfaceY, "class": "fa-svg-line" }));
+          els.scene.appendChild(svgEl("rect", { x: 286, y: 165, width: 68, height: 70, rx: 5, "class": "fa-svg-block" }));
+        } else if (scene.type === "incline") {
+          var angle = scene.angle;
+          var rad = angle * Math.PI / 180;
+          currentOrigin = { x: 320, y: 200 };
+          var supportPoint = anglePoint(currentOrigin, angle - 90, 29);
+          var halfLength = 285;
+          var start = anglePoint(supportPoint, angle + 180, halfLength);
+          var end = anglePoint(supportPoint, angle, halfLength);
+          els.scene.appendChild(svgEl("polygon", {
+            points: start.x + "," + start.y + " " + end.x + "," + end.y + " " + end.x + ",400 " + start.x + ",400",
+            "class": "fa-svg-surface"
+          }));
+          els.scene.appendChild(svgEl("line", { x1: start.x, y1: start.y, x2: end.x, y2: end.y, "class": "fa-svg-line" }));
+          if (scene.ropeAngle != null) {
+            var ropeRad = scene.ropeAngle * Math.PI / 180;
+            var ropeLength = (currentOrigin.y + 48) / Math.max(Math.sin(ropeRad), 0.2);
+            var ropeEnd = anglePoint(currentOrigin, scene.ropeAngle, ropeLength);
+            var ropeGroup = svgEl("g", { "class": "fa-rope-layer", "aria-label": "Cuerda paralela al plano y prolongada fuera de la imagen" });
+            ropeGroup.appendChild(svgEl("title", {}, "Cuerda paralela al plano: la tensión apunta hacia la parte superior"));
+            ropeGroup.appendChild(svgEl("line", {
+              x1: currentOrigin.x,
+              y1: currentOrigin.y,
+              x2: ropeEnd.x,
+              y2: ropeEnd.y,
+              "class": "fa-svg-rope"
+            }));
+            els.scene.appendChild(ropeGroup);
+          }
+          var group = svgEl("g", { transform: "translate(" + currentOrigin.x + " " + currentOrigin.y + ") rotate(" + (-angle) + ")" });
+          group.appendChild(svgEl("rect", { x: -34, y: -29, width: 68, height: 58, rx: 5, "class": "fa-svg-block" }));
+          els.scene.appendChild(group);
+          var arcRadius = 46;
+          els.scene.appendChild(svgEl("line", {
+            x1: start.x,
+            y1: start.y,
+            x2: start.x + arcRadius + 18,
+            y2: start.y,
+            stroke: "var(--muted-foreground)",
+            "stroke-width": 2
+          }));
+          els.scene.appendChild(svgEl("path", {
+            d: "M " + (start.x + arcRadius) + " " + start.y + " A " + arcRadius + " " + arcRadius + " 0 0 0 " + (start.x + arcRadius * Math.cos(rad)) + " " + (start.y - arcRadius * Math.sin(rad)),
+            fill: "none",
+            stroke: "var(--muted-foreground)",
+            "stroke-width": 2
+          }));
+          var angleLabelRadius = arcRadius + 52;
+          els.scene.appendChild(svgEl("text", {
+            x: start.x + angleLabelRadius * Math.cos(rad / 2),
+            y: start.y - angleLabelRadius * Math.sin(rad / 2),
+            "class": "fa-svg-muted",
+            "font-size": 15,
+            "text-anchor": "middle"
+          }, angle + "°"));
+        } else if (scene.type === "wall") {
+          currentOrigin = { x: 320, y: 200 };
+          els.scene.appendChild(svgEl("rect", { x: 0, y: 350, width: 640, height: 50, "class": "fa-svg-surface" }));
+          els.scene.appendChild(svgEl("line", { x1: 0, y1: 350, x2: 640, y2: 350, "class": "fa-svg-line" }));
+          els.scene.appendChild(svgEl("line", { x1: 360, y1: 25, x2: 360, y2: 350, "class": "fa-svg-wall" }));
+          for (var y = 50; y < 345; y += 28) {
+            els.scene.appendChild(svgEl("line", { x1: 360, y1: y, x2: 380, y2: y - 12, "class": "fa-svg-line" }));
+          }
+          els.scene.appendChild(svgEl("rect", { x: 280, y: 160, width: 80, height: 80, rx: 5, "class": "fa-svg-block" }));
+        }
+
+        drawDirectionGuides(scene);
+        els.scene.appendChild(svgEl("circle", { cx: currentOrigin.x, cy: currentOrigin.y, r: 23, "class": "fa-origin-halo" }));
+        els.scene.appendChild(svgEl("circle", { cx: currentOrigin.x, cy: currentOrigin.y, r: 5, "class": "fa-svg-center" }));
+
+        if (scene.stateLabel) {
+          els.scene.appendChild(svgEl("text", { x: 24, y: 35, "class": "fa-svg-label", "font-size": 16 }, scene.stateLabel));
+        }
+        drawMotionCue(currentOrigin, scene.motionAngle, "v", 70);
+        drawMotionCue(currentOrigin, scene.accelerationAngle, "a", 108);
+        if (scene.tendencyAngle != null) drawMotionCue(currentOrigin, scene.tendencyAngle, "tendencia", 88);
+      }
+
+      function solutionScaleForItem(item) {
+        var referenceForce = item.forces.filter(function (force) { return force.type === "weight" && state.drawings.weight; })[0];
+        if (!referenceForce) {
+          referenceForce = item.forces.filter(function (force) { return state.drawings[force.type]; })[0];
+        }
+        if (referenceForce) return drawingLength(state.drawings[referenceForce.type]) / referenceForce.magnitude;
+        var maxMagnitude = Math.max.apply(null, item.forces.map(function (force) { return force.magnitude; }));
+        return REFERENCE_ARROW_LENGTH / maxMagnitude;
+      }
+
+      function solutionLengthForForce(item, force, visited) {
+        var chain = visited || [];
+        if (chain.indexOf(force.type) !== -1) {
+          return state.drawings[force.type] ? drawingLength(state.drawings[force.type]) : solutionScaleForItem(item) * force.magnitude;
+        }
+        var ratioRule = magnitudeRulesForItem(item).filter(function (rule) {
+          return rule.kind === "ratio" && rule.a === force.type;
+        })[0];
+        if (ratioRule) {
+          var referenceForce = item.forces.filter(function (candidate) { return candidate.type === ratioRule.b; })[0];
+          if (referenceForce) return solutionLengthForForce(item, referenceForce, chain.concat([force.type])) * ratioRule.ratio;
+        }
+        if (state.drawings[force.type]) return drawingLength(state.drawings[force.type]);
+        return solutionScaleForItem(item) * force.magnitude;
+      }
+
+      function graphicNewtonsFromLength(length) {
+        return Math.max(0, length * GRAPHIC_NEWTONS_PER_UNIT);
+      }
+
+      function formatNewtons(value) {
+        return value.toLocaleString("es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " N";
+      }
+
+      function moduleLabelForLength(length) {
+        return formatNewtons(graphicNewtonsFromLength(length));
+      }
+
+      function matchingModuleForce(length, excludedType) {
+        var rounded = Math.round(graphicNewtonsFromLength(length) * 10) / 10;
+        var match = Object.keys(state.drawings).filter(function (type) {
+          if (type === excludedType || !state.drawings[type]) return false;
+          var other = Math.round(graphicNewtonsFromLength(drawingLength(state.drawings[type])) * 10) / 10;
+          return other === rounded;
+        })[0];
+        return match ? FORCE_DEFS[match].label : null;
+      }
+
+      function renderStudentDrawings(viewMode) {
+        var mode = viewMode || "student";
+        var old = els.scene.querySelectorAll(".fa-drawing-layer");
+        Array.prototype.forEach.call(old, function (node) { node.remove(); });
+        if (mode !== "solution") {
+          var studentLayer = svgEl("g", { "class": "fa-drawing-layer fa-student-layer" });
+          var studentEntries = [];
+          Object.keys(state.drawings).forEach(function (type) {
+            var drawing = state.drawings[type];
+            var def = FORCE_DEFS[type];
+            if (!def || !drawing) return;
+            var label = def.symbol + " · " + moduleLabelForLength(drawingLength(drawing));
+            studentEntries.push({ origin: currentOrigin, end: drawing.end, color: def.color, label: label, expected: false, type: type });
+          });
+          if (draft && state.activeForce && FORCE_DEFS[state.activeForce]) {
+            var draftLength = distance(draft.end, currentOrigin);
+            var draftLabel = FORCE_DEFS[state.activeForce].symbol + " · " + moduleLabelForLength(draftLength);
+            studentEntries = studentEntries.filter(function (entry) { return entry.type !== state.activeForce; });
+            studentEntries.push({ origin: currentOrigin, end: draft.end, color: FORCE_DEFS[state.activeForce].color, label: draftLabel, expected: false, type: state.activeForce });
+          }
+          drawForceVectors(studentLayer, studentEntries);
+          els.scene.appendChild(studentLayer);
+        }
+
+        if (mode === "solution") {
+          var expectedLayer = svgEl("g", { "class": "fa-drawing-layer fa-solution-layer" });
+          var expectedEntries = [];
+          state.current.forces.forEach(function (force) {
+            var length = solutionLengthForForce(state.current, force);
+            var end = anglePoint(currentOrigin, force.angle, length);
+            var def = FORCE_DEFS[force.type];
+            expectedEntries.push({ origin: currentOrigin, end: end, color: def.color, label: "✓ " + def.symbol + " · " + moduleLabelForLength(length), expected: true, type: force.type });
+          });
+          drawForceVectors(expectedLayer, expectedEntries);
+          els.scene.appendChild(expectedLayer);
+        }
+      }
+
+      function renderForceChoices() {
+        els.choices.innerHTML = "";
+        Object.keys(FORCE_DEFS).forEach(function (type) {
+          var def = FORCE_DEFS[type];
+          var id = "fa-force-choice-" + type;
+          var label = document.createElement("label");
+          label.className = "form-check fa-force-option";
+          var input = document.createElement("input");
+          input.type = "checkbox";
+          input.id = id;
+          input.value = type;
+          input.className = "form-check-input";
+          input.checked = state.selectedForces.indexOf(type) !== -1;
+          input.addEventListener("change", function () {
+            if (input.checked && state.selectedForces.indexOf(type) === -1) state.selectedForces.push(type);
+            if (!input.checked) state.selectedForces = state.selectedForces.filter(function (value) { return value !== type; });
+            saveState();
+          });
+          var swatch = document.createElement("span");
+          swatch.className = "fa-force-swatch";
+          swatch.style.setProperty("--fa-color", def.color);
+          var name = document.createElement("span");
+          name.className = "fa-force-name";
+          name.textContent = def.label;
+          label.appendChild(input);
+          label.appendChild(swatch);
+          label.appendChild(name);
+          els.choices.appendChild(label);
+        });
+      }
+
+      function renderDrawButtons() {
+        els.drawButtons.innerHTML = "";
+        state.selectedForces.forEach(function (type) {
+          var def = FORCE_DEFS[type];
+          var button = document.createElement("button");
+          button.type = "button";
+          button.className = "btn fa-force-button";
+          button.setAttribute("aria-pressed", state.activeForce === type ? "true" : "false");
+          button.innerHTML = "<span class=\"fa-force-swatch\" style=\"--fa-color:" + def.color + "\"></span><span>" + def.label + (state.drawings[type] ? " ✓" : "") + "</span>";
+          button.addEventListener("click", function () {
+            state.activeForce = type;
+            saveState();
+            renderDrawButtons();
+            updateDrawStatus();
+          });
+          els.drawButtons.appendChild(button);
+        });
+      }
+
+      function updateDrawStatus(message, measuredLength, measuredType) {
+        measuredType = measuredType || state.activeForce;
+        if (measuredLength == null && measuredType && state.drawings[measuredType]) {
+          measuredLength = drawingLength(state.drawings[measuredType]);
+        }
+        if (measuredLength == null) {
+          els.moduleValue.textContent = "—";
+        } else {
+          els.moduleValue.textContent = moduleLabelForLength(measuredLength);
+        }
+        if (message) {
+          els.drawStatus.textContent = message;
+          return;
+        }
+        if (!state.activeForce) {
+          els.drawStatus.textContent = "Elige una fuerza antes de dibujar.";
+          return;
+        }
+        if (measuredLength != null) {
+          var matchingForce = matchingModuleForce(measuredLength, measuredType);
+          els.drawStatus.textContent = "Módulo actual: " + moduleLabelForLength(measuredLength) + (matchingForce ? " · Igual que " + matchingForce + "." : ".");
+          return;
+        }
+        els.drawStatus.textContent = "Dibuja " + FORCE_DEFS[state.activeForce].label + " desde el centro. " + (Object.keys(state.drawings).length === 0 ? "Este primer vector fijará tu escala; su valor absoluto no se penaliza." : "La app comprobará su proporción con los vectores anteriores.");
+      }
+
+      function renderApp() {
+        ensureCurrentItem();
+        els.prompt.textContent = state.current.prompt;
+        els.data.textContent = state.current.dataText;
+        els.sceneNote.textContent = "Las flechas grises discontinuas indican movimiento o aceleración; no son fuerzas. Los newtons son una escala gráfica: se corrige la proporción entre vectores, no un valor absoluto." +
+          (state.current.scene.ropeAngle != null ? " La línea continua que sale del bloque es la cuerda; la tensión debe dibujarse como un vector desde el centro." : "");
+        els.phase.textContent = state.phase === "diagnostic" ? "Diagnóstico" : "Refuerzo adaptativo";
+        els.counter.textContent = "Situación " + Math.min(state.attempt + 1, MAX_ITEMS) + " de " + MAX_ITEMS;
+        els.progress.style.width = (cumulativeScore() / TARGET_SCORE * 100) + "%";
+        els.hint.hidden = state.hintLevel === 0;
+        if (state.hintLevel > 0) els.hint.textContent = state.current.hints[Math.min(state.hintLevel - 1, state.current.hints.length - 1)];
+        els.hintButton.disabled = state.responseStage === "feedback" || state.hintLevel >= state.current.hints.length;
+        els.guideToggle.checked = Boolean(state.guideEnabled);
+        els.guideLabel.textContent = state.current.scene.type === "wall"
+          ? "Mostrar ejes paralelos y perpendiculares a la pared"
+          : "Mostrar ejes paralelos y perpendiculares al plano";
+        els.worldGuideControl.hidden = state.current.scene.type !== "incline";
+        els.worldGuideToggle.checked = Boolean(state.worldGuideEnabled);
+        updateSessionScoreDisplay();
+        els.report.hidden = true;
+
+        drawSceneBase(state.current);
+        renderForceChoices();
+        renderDrawButtons();
+        renderStudentDrawings(state.responseStage === "feedback" ? state.feedbackView : "student");
+
+        els.selectStep.hidden = state.responseStage !== "select";
+        els.drawStep.hidden = state.responseStage !== "draw";
+        els.feedback.hidden = state.responseStage !== "feedback";
+        if (state.responseStage === "draw") updateDrawStatus();
+        if (state.responseStage === "feedback" && state.history.length) renderFeedback(state.history[state.history.length - 1]);
+      }
+
+      function svgCoordinates(event) {
+        var point = els.scene.createSVGPoint();
+        point.x = event.clientX;
+        point.y = event.clientY;
+        var matrix = els.scene.getScreenCTM();
+        if (!matrix) return currentOrigin;
+        var result = point.matrixTransform(matrix.inverse());
+        return { x: result.x, y: result.y };
+      }
+
+      function distance(a, b) {
+        var dx = a.x - b.x;
+        var dy = a.y - b.y;
+        return Math.sqrt(dx * dx + dy * dy);
+      }
+
+      function drawingAngle(drawing) {
+        var dx = drawing.end.x - currentOrigin.x;
+        var dy = currentOrigin.y - drawing.end.y;
+        return Math.atan2(dy, dx) * 180 / Math.PI;
+      }
+
+      function drawingLength(drawing) {
+        return distance(drawing.end, currentOrigin);
+      }
+
+      function angleDifference(a, b) {
+        var diff = Math.abs(((a - b + 180) % 360 + 360) % 360 - 180);
+        return diff;
+      }
+
+      function onPointerDown(event) {
+        if (state.responseStage !== "draw" || !state.activeForce) return;
+        var point = svgCoordinates(event);
+        if (distance(point, currentOrigin) > 34) {
+          updateDrawStatus("Empieza la flecha dentro del círculo punteado central.");
+          return;
+        }
+        pointerId = event.pointerId;
+        els.scene.setPointerCapture(pointerId);
+        draft = { end: point };
+        renderStudentDrawings("student");
+        updateDrawStatus(null, 0, state.activeForce);
+      }
+
+      function onPointerMove(event) {
+        if (pointerId !== event.pointerId || !draft) return;
+        draft.end = svgCoordinates(event);
+        renderStudentDrawings("student");
+        updateDrawStatus(null, distance(draft.end, currentOrigin), state.activeForce);
+      }
+
+      function onPointerUp(event) {
+        if (pointerId !== event.pointerId || !draft) return;
+        var end = svgCoordinates(event);
+        var finalLength = distance(end, currentOrigin);
+        if (finalLength < 8) {
+          updateDrawStatus("La flecha es demasiado corta. Arrastra un poco más.", finalLength, state.activeForce);
+        } else {
+          state.drawings[state.activeForce] = { end: end };
+          saveState();
+          var equalTo = matchingModuleForce(finalLength, state.activeForce);
+          updateDrawStatus(FORCE_DEFS[state.activeForce].label + " dibujada: " + moduleLabelForLength(finalLength) + (equalTo ? " · Igual que " + equalTo + "." : "."), finalLength, state.activeForce);
+        }
+        draft = null;
+        pointerId = null;
+        renderDrawButtons();
+        renderStudentDrawings("student");
+      }
+
+      function forceMagnitude(item, type) {
+        var force = item.forces.filter(function (candidate) { return candidate.type === type; })[0];
+        return force ? force.magnitude : null;
+      }
+
+      function magnitudeRulesForItem(item) {
+        var rules = [];
+        var has = function (type) { return forceMagnitude(item, type) != null; };
+        var ratioText = function (value) { return round(value, 2).toString().replace(".", ","); };
+        var addRatio = function (a, b, ratio, label) {
+          rules.push({ kind: "ratio", a: a, b: b, ratio: ratio, label: label });
+        };
+        var addGreater = function (left, right, label) {
+          rules.push({ kind: "greater", left: left, right: right, label: label });
+        };
+        var angle = item.scene.angle || 0;
+        var sinAngle = Math.sin(angle * Math.PI / 180);
+        var cosAngle = Math.cos(angle * Math.PI / 180);
+
+        if (has("weight") && has("normal")) {
+          if (item.scene.type === "horizontal") {
+            addRatio("normal", "weight", 1, "En un plano horizontal, N debe tener el mismo módulo que P.");
+          } else if (item.scene.type === "incline") {
+            if (item.scene.ropeAngle != null && has("tension")) {
+              var ropeNormalRatio = forceMagnitude(item, "normal") / forceMagnitude(item, "weight");
+              addRatio("normal", "weight", ropeNormalRatio, "Como la cuerda es paralela al plano, la tensión no altera la normal: N = P·cos θ (aprox. " + ratioText(ropeNormalRatio) + "·P)." );
+            } else {
+              addRatio("normal", "weight", cosAngle, "En el plano inclinado, N debe medir P·cos θ (aprox. " + ratioText(cosAngle) + "·P)." );
+            }
+          }
+        }
+
+        if (item.scene.ropeAngle != null && has("tension") && has("weight")) {
+          var tensionRatio = forceMagnitude(item, "tension") / forceMagnitude(item, "weight");
+          if (item.templateId === "incline-rope-no-friction") {
+            addRatio("tension", "weight", tensionRatio, "Sin rozamiento, T debe equilibrar P·sin θ (T es aprox. " + ratioText(tensionRatio) + "·P)." );
+          } else if (item.templateId === "incline-rope-static-friction") {
+            addRatio("tension", "weight", tensionRatio, "La tensión equivale al " + Math.round(item.scene.ropeShare * 100) + " % de P·sin θ (T es aprox. " + ratioText(tensionRatio) + "·P)." );
+            var staticFrictionRatio = forceMagnitude(item, "friction") / forceMagnitude(item, "weight");
+            addRatio("friction", "weight", staticFrictionRatio, "El rozamiento estático, dirigido hacia abajo, equilibra el exceso de tensión (Fr es aprox. " + ratioText(staticFrictionRatio) + "·P)." );
+          }
+        }
+
+        if (item.scene.type === "wall") {
+          addRatio("normal", "applied", 1, "La normal de la pared debe igualar a la fuerza aplicada.");
+          addRatio("friction", "weight", 1, "El rozamiento estático vertical debe igualar al peso.");
+        }
+
+        var frictionRatio = has("friction") && has("normal") ? forceMagnitude(item, "friction") / forceMagnitude(item, "normal") : null;
+        var frictionUsesMu = [
+          "horizontal-slide-friction",
+          "horizontal-force-friction-accelerated",
+          "horizontal-force-friction-uniform",
+          "incline-up-friction",
+          "incline-down-friction-accelerated",
+          "incline-applied-down-moving-down",
+          "incline-applied-down-moving-up",
+          "incline-applied-up-moving-down",
+          "incline-applied-up-moving-up"
+        ].indexOf(item.templateId) !== -1;
+        if (frictionRatio != null && frictionUsesMu) {
+          addRatio("friction", "normal", frictionRatio, "El rozamiento cinético debe medir μ·N (aprox. " + ratioText(frictionRatio) + "·N)." );
+        }
+
+        if (item.templateId === "incline-down-friction-uniform") {
+          addRatio("friction", "weight", sinAngle, "Al bajar con velocidad constante, Fr debe medir P·sin θ (aprox. " + ratioText(sinAngle) + "·P)." );
+        }
+        if (item.templateId === "horizontal-force-friction-uniform" || item.templateId === "horizontal-static") {
+          addRatio("applied", "friction", 1, "Sin aceleración horizontal, la fuerza aplicada debe igualar al rozamiento.");
+        }
+        if (item.templateId === "horizontal-force-friction-accelerated") {
+          addGreater([{ type: "applied", factor: 1 }], [{ type: "friction", factor: 1 }], "La fuerza aplicada debe ser mayor que el rozamiento.");
+        }
+        if (item.templateId === "incline-down-friction-accelerated") {
+          addGreater([{ type: "weight", factor: sinAngle }], [{ type: "friction", factor: 1 }], "La componente P·sin θ debe superar al rozamiento.");
+        }
+        if (item.templateId === "incline-applied-down-moving-down") {
+          addGreater([
+            { type: "weight", factor: sinAngle },
+            { type: "applied", factor: 1 }
+          ], [{ type: "friction", factor: 1 }], "P·sin θ más la fuerza aplicada deben superar al rozamiento.");
+        }
+        if (item.templateId === "incline-applied-up-moving-down") {
+          addGreater([{ type: "weight", factor: sinAngle }], [
+            { type: "friction", factor: 1 },
+            { type: "applied", factor: 1 }
+          ], "Para acelerar hacia abajo, P·sin θ debe superar a Fr + F.");
+        }
+        if (item.templateId === "incline-applied-up-moving-up") {
+          addGreater([{ type: "applied", factor: 1 }], [
+            { type: "weight", factor: sinAngle },
+            { type: "friction", factor: 1 }
+          ], "Para acelerar hacia arriba, F debe superar a P·sin θ + Fr.");
+        }
+        return rules;
+      }
+
+      function drawnTermValue(terms) {
+        var total = 0;
+        for (var i = 0; i < terms.length; i += 1) {
+          var drawing = state.drawings[terms[i].type];
+          if (!drawing) return null;
+          total += drawingLength(drawing) * terms[i].factor;
+        }
+        return total;
+      }
+
+      function evaluateMagnitudeRule(rule) {
+        if (rule.kind === "ratio") {
+          var drawingA = state.drawings[rule.a];
+          var drawingB = state.drawings[rule.b];
+          if (!drawingA || !drawingB) {
+            return {
+              kind: "ratio",
+              a: rule.a,
+              b: rule.b,
+              expectedRatio: rule.ratio,
+              actualRatio: null,
+              score: 0,
+              message: rule.label
+            };
+          }
+          var actualRatio = drawingLength(drawingA) / Math.max(drawingLength(drawingB), 1e-9);
+          var relativeError = Math.abs(actualRatio - rule.ratio) / Math.max(Math.abs(rule.ratio), 0.1);
+          var ratioScore = relativeError <= 0.12 ? 1 : clamp(1 - (relativeError - 0.12) / 0.43, 0, 1);
+          if (rule.ratio < 0.97 && actualRatio >= 0.99) ratioScore = Math.min(ratioScore, 0.65);
+          if (rule.ratio > 1.03 && actualRatio <= 1.01) ratioScore = Math.min(ratioScore, 0.65);
+          return {
+            kind: "ratio",
+            a: rule.a,
+            b: rule.b,
+            expectedRatio: rule.ratio,
+            actualRatio: actualRatio,
+            score: ratioScore,
+            message: rule.label
+          };
+        }
+        if (rule.kind === "greater") {
+          var left = drawnTermValue(rule.left);
+          var right = drawnTermValue(rule.right);
+          if (left == null || right == null) {
+            return { kind: "greater", left: left, right: right, score: 0, message: rule.label };
+          }
+          if (left > right) return { kind: "greater", left: left, right: right, score: 1, message: rule.label };
+          var shortfall = (right - left) / Math.max(right, 1e-9);
+          return {
+            kind: "greater",
+            left: left,
+            right: right,
+            score: clamp(0.72 - shortfall / 0.35 * 0.72, 0, 0.72),
+            message: rule.label
+          };
+        }
+        return { kind: rule.kind, score: 1, message: rule.label };
+      }
+
+      function scoreMagnitudeRelations(item) {
+        var rules = magnitudeRulesForItem(item);
+        if (!rules.length) return { score: 1, scores: [1], messages: [], evaluations: [] };
+        var evaluations = rules.map(evaluateMagnitudeRule);
+        return {
+          score: evaluations.reduce(function (sum, result) { return sum + result.score; }, 0) / evaluations.length,
+          scores: evaluations.map(function (result) { return result.score; }),
+          messages: evaluations.filter(function (result) { return result.score < 0.999; }).map(function (result) { return result.message; }),
+          evaluations: evaluations
+        };
+      }
+
+      function scoreResponse() {
+        var expectedTypes = state.current.forces.map(function (force) { return force.type; });
+        var selected = state.selectedForces.slice();
+        var truePositives = selected.filter(function (type) { return expectedTypes.indexOf(type) !== -1; }).length;
+        var precision = selected.length ? truePositives / selected.length : 0;
+        var recall = expectedTypes.length ? truePositives / expectedTypes.length : 0;
+        var identification = expectedTypes.length ? 0.45 * precision + 0.55 * recall : 0;
+        if (precision === 1 && recall === 1) identification = 1;
+
+        var directionScores = [];
+        var directionDetails = [];
+        state.current.forces.forEach(function (force) {
+          var drawing = state.drawings[force.type];
+          if (!drawing) {
+            directionScores.push(0);
+            directionDetails.push({ type: force.type, difference: null, lineDifference: null, senseCorrect: false, score: 0 });
+            return;
+          }
+          var diff = angleDifference(drawingAngle(drawing), force.angle);
+          var lineDiff = Math.min(diff, Math.abs(180 - diff));
+          var forceDirectionScore = diff <= 15 ? 1 : clamp(1 - (diff - 15) / 40, 0, 1);
+          directionScores.push(forceDirectionScore);
+          directionDetails.push({
+            type: force.type,
+            difference: diff,
+            lineDifference: lineDiff,
+            senseCorrect: diff <= 90,
+            score: forceDirectionScore
+          });
+        });
+        var direction = directionScores.reduce(function (sum, value) { return sum + value; }, 0) / directionScores.length;
+
+        var magnitudeResult = scoreMagnitudeRelations(state.current);
+        var magnitudeScores = magnitudeResult.scores;
+        var magnitude = magnitudeResult.score;
+        var overall = 0.35 * identification + 0.4 * direction + 0.25 * magnitude;
+
+        var missing = expectedTypes.filter(function (type) { return selected.indexOf(type) === -1; });
+        var extra = selected.filter(function (type) { return expectedTypes.indexOf(type) === -1; });
+        return {
+          identification: identification,
+          direction: direction,
+          magnitude: magnitude,
+          overall: overall,
+          missing: missing,
+          extra: extra,
+          directionScores: directionScores,
+          directionDetails: directionDetails,
+          magnitudeScores: magnitudeScores,
+          magnitudeMessages: magnitudeResult.messages,
+          magnitudeDetails: magnitudeResult.evaluations
+        };
+      }
+
+      function evidenceScore(score) {
+        if (state.hintLevel === 0) return score;
+        var cap = state.hintLevel === 1 ? 0.76 : 0.56;
+        return score >= 0.5 ? Math.min(score, cap) : score;
+      }
+
+      function updateErrorFactors(result) {
+        var opportunities = state.current.opportunities;
+        if (opportunities.indexOf("motionForce") !== -1) {
+          updateFactor("motionForce", state.selectedForces.indexOf("motion") !== -1);
+        }
+        if (opportunities.indexOf("frictionDirection") !== -1) {
+          var expectedFriction = state.current.forces.filter(function (force) { return force.type === "friction"; })[0];
+          var frictionDrawing = state.drawings.friction;
+          if (expectedFriction && frictionDrawing) {
+            var frictionDiff = angleDifference(drawingAngle(frictionDrawing), expectedFriction.angle);
+            if (frictionDiff <= 22) updateFactor("frictionDirection", false);
+            else if (frictionDiff >= 38) updateFactor("frictionDirection", true);
+          }
+        }
+        if (opportunities.indexOf("normalEqualsWeight") !== -1) {
+          var normal = state.current.forces.filter(function (force) { return force.type === "normal"; })[0];
+          var weight = state.current.forces.filter(function (force) { return force.type === "weight"; })[0];
+          var normalDrawing = state.drawings.normal;
+          var weightDrawing = state.drawings.weight;
+          if (normal && weight && normalDrawing && weightDrawing && Math.abs(normal.magnitude / weight.magnitude - 1) > 0.12) {
+            var expectedRatio = normal.magnitude / weight.magnitude;
+            var drawnRatio = drawingLength(normalDrawing) / Math.max(drawingLength(weightDrawing), 1);
+            var looksEqual = Math.abs(drawnRatio - 1) < 0.13;
+            var looksCorrect = Math.abs(drawnRatio - expectedRatio) < 0.18;
+            if (looksEqual) updateFactor("normalEqualsWeight", true);
+            else if (looksCorrect) updateFactor("normalEqualsWeight", false);
+          }
+        }
+      }
+
+      function registerResponse() {
+        var result = scoreResponse();
+        var offsets = state.current.dimensionOffsets;
+        var directionEvidence = evidenceScore(result.direction);
+        if (state.guideUsed && result.direction >= 0.5) directionEvidence = Math.min(directionEvidence, 0.82);
+        updateSkill("identification", evidenceScore(result.identification), state.current.difficulty + (offsets.identification || 0), 0.04);
+        updateSkill("direction", directionEvidence, state.current.difficulty + (offsets.direction || 0), 0.03);
+        updateSkill("magnitude", evidenceScore(result.magnitude), state.current.difficulty + (offsets.magnitude || 0), 0.03);
+        updateErrorFactors(result);
+
+        var record = {
+          templateId: state.current.templateId,
+          category: state.current.category,
+          difficulty: state.current.difficulty,
+          hintLevel: state.hintLevel,
+          guideUsed: state.guideUsed,
+          worldGuideEnabled: state.worldGuideEnabled,
+          result: result,
+          expectedTypes: state.current.forces.map(function (force) { return force.type; })
+        };
+        state.history.push(record);
+        state.categoryCounts[state.current.category] += 1;
+        state.usedTemplates.push(state.current.templateId);
+        state.attempt += 1;
+        state.responseStage = "feedback";
+        state.feedbackView = "solution";
+        saveState();
+        syncScorm(false);
+        return record;
+      }
+
+      function forceNames(types) {
+        return types.map(function (type) { return FORCE_DEFS[type].label; }).join(", ");
+      }
+
+      function formatOneDecimal(value) {
+        return value.toLocaleString("es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+      }
+
+      function formatTwoDecimals(value) {
+        return value.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+
+      function formatTotalScore(score) {
+        return clamp(score, 0, TARGET_SCORE).toLocaleString("es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 2 }) + " / 10";
+      }
+
+      function cumulativeScore() {
+        return cumulativeScoreForState(state);
+      }
+
+      function updateSessionScoreDisplay() {
+        els.sessionScore.hidden = false;
+        els.sessionScore.textContent = "Puntuación total: " + formatTotalScore(cumulativeScore());
+      }
+
+      function updateFeedbackViewControls() {
+        var showingSolution = state.feedbackView === "solution";
+        els.viewStudent.setAttribute("aria-pressed", showingSolution ? "false" : "true");
+        els.viewSolution.setAttribute("aria-pressed", showingSolution ? "true" : "false");
+        els.viewCaption.textContent = showingSolution
+          ? "Se muestra únicamente la solución correcta. Pulsa «Mi respuesta» para compararla."
+          : "Se muestra únicamente lo que has dibujado. Pulsa «Solución correcta» para compararlo.";
+      }
+
+      function setFeedbackView(view) {
+        if (state.responseStage !== "feedback") return;
+        state.feedbackView = view === "student" ? "student" : "solution";
+        saveState();
+        drawSceneBase(state.current);
+        renderStudentDrawings(state.feedbackView);
+        updateFeedbackViewControls();
+      }
+
+      function forceInteractionExplanation(type) {
+        if (type === "weight") return "La Tierra atrae al bloque, por eso siempre aparece la fuerza peso.";
+        if (type === "normal") return "La superficie de apoyo empuja al bloque perpendicularmente al contacto.";
+        if (type === "friction") return "El contacto rugoso puede ejercer rozamiento para oponerse al deslizamiento o a su tendencia.";
+        if (type === "applied") return "El enunciado describe un empuje o un tirón ejercido directamente sobre el bloque.";
+        if (type === "tension") return "Una cuerda tensa tira del bloque en la dirección de la propia cuerda.";
+        if (type === "motion") return "Moverse o acelerar no es una interacción y, por tanto, no crea una «fuerza de movimiento».";
+        return "Comprueba qué cuerpo o elemento del entorno ejerce esta fuerza.";
+      }
+
+      function expectedDirectionDescription(item, force) {
+        var scene = item.scene;
+        if (force.type === "weight") return "vertical y hacia abajo";
+        if (force.type === "normal") {
+          if (scene.type === "incline") return "perpendicular al plano y alejándose de la superficie";
+          if (scene.type === "wall") return "horizontal y hacia la izquierda, alejándose de la pared";
+          return "vertical y hacia arriba, perpendicular a la superficie horizontal";
+        }
+        if (force.type === "tension") return "paralela a la cuerda y dirigida hacia su anclaje, cuesta arriba";
+        if (scene.type === "incline") {
+          if (angleDifference(force.angle, scene.angle) <= 2) return "paralela al plano y hacia arriba";
+          if (angleDifference(force.angle, scene.angle + 180) <= 2) return "paralela al plano y hacia abajo";
+        }
+        if (angleDifference(force.angle, 0) <= 2) return "horizontal y hacia la derecha";
+        if (angleDifference(force.angle, 180) <= 2) return "horizontal y hacia la izquierda";
+        if (angleDifference(force.angle, 90) <= 2) return "vertical y hacia arriba";
+        if (angleDifference(force.angle, -90) <= 2) return "vertical y hacia abajo";
+        return "con el ángulo y el sentido mostrados en la solución";
+      }
+
+      function directionFeedbackMessage(item, detail) {
+        var force = item.forces.filter(function (candidate) { return candidate.type === detail.type; })[0];
+        var name = FORCE_DEFS[detail.type].label;
+        var expected = force ? expectedDirectionDescription(item, force) : "como muestra la solución";
+        if (detail.difference == null) {
+          return "No has dibujado " + name + ". Su dirección correcta es " + expected + ".";
+        }
+        if (detail.score >= 0.999) {
+          return name + ": dirección y sentido correctos; debe apuntar " + expected + ".";
+        }
+        if (detail.lineDifference != null && detail.lineDifference <= 15 && !detail.senseCorrect) {
+          return name + ": la línea de acción es correcta, pero el sentido está invertido. Debe apuntar " + expected + ".";
+        }
+        return name + ": la flecha se desvía aproximadamente " + Math.round(detail.difference) + "°. Debe dibujarse " + expected + ".";
+      }
+
+      function magnitudeFeedbackMessage(detail) {
+        if (detail.kind === "ratio") {
+          var nameA = FORCE_DEFS[detail.a].label;
+          var nameB = FORCE_DEFS[detail.b].label;
+          var expected = formatTwoDecimals(detail.expectedRatio);
+          if (detail.actualRatio == null) {
+            return "No se puede comparar " + nameA + " con " + nameB + " porque falta uno de esos vectores. " + detail.message;
+          }
+          var actual = formatTwoDecimals(detail.actualRatio);
+          if (detail.score >= 0.999) {
+            return "Correcto: " + nameA + " mide aproximadamente " + actual + " veces " + nameB + ". " + detail.message;
+          }
+          if (detail.actualRatio > detail.expectedRatio) {
+            return nameA + " es demasiado largo respecto a " + nameB + ": has dibujado una relación " + actual + " y debería ser aproximadamente " + expected + ". Acorta " + nameA + " o alarga " + nameB + ". " + detail.message;
+          }
+          return nameA + " es demasiado corto respecto a " + nameB + ": has dibujado una relación " + actual + " y debería ser aproximadamente " + expected + ". Alarga " + nameA + " o acorta " + nameB + ". " + detail.message;
+        }
+        if (detail.kind === "greater") {
+          if (detail.left == null || detail.right == null) return "Falta algún vector para comprobar esta comparación. " + detail.message;
+          if (detail.score >= 0.999) return "Correcto: los tamaños que has dibujado cumplen esta condición: " + detail.message;
+          return "Los tamaños relativos todavía no cumplen esta condición: " + detail.message;
+        }
+        return detail.message;
+      }
+
+      function appendFeedbackBlock(title, score, summary, details) {
+        var section = document.createElement("section");
+        section.className = "fa-feedback-block";
+        section.setAttribute("aria-label", title);
+        var head = document.createElement("div");
+        head.className = "fa-feedback-block-head";
+        var heading = document.createElement("strong");
+        heading.textContent = title;
+        var badge = document.createElement("span");
+        badge.className = "viz-badge";
+        badge.textContent = (score >= 0.999 ? "✓ " : "") + Math.round(score * 100) + " %";
+        head.appendChild(heading);
+        head.appendChild(badge);
+        section.appendChild(head);
+        var summaryText = document.createElement("p");
+        summaryText.textContent = summary;
+        section.appendChild(summaryText);
+        if (details && details.length) {
+          var list = document.createElement("ul");
+          list.className = "fa-feedback-detail-list";
+          details.forEach(function (message) {
+            var item = document.createElement("li");
+            item.textContent = message;
+            list.appendChild(item);
+          });
+          section.appendChild(list);
+        }
+        els.feedbackList.appendChild(section);
+      }
+
+      function renderFeedback(record) {
+        var result = record.result;
+        var contribution = clamp(result.overall, 0, 1) * POINTS_PER_PERFECT_ITEM;
+        els.score.textContent = Math.round(result.overall * 100) + " %";
+        els.scoreBreakdown.textContent = "Fuerzas presentes: " + Math.round(result.identification * 100) + " %" +
+          " · Dirección y sentido: " + Math.round(result.direction * 100) + " %" +
+          " · Tamaño relativo: " + Math.round(result.magnitude * 100) + " %" +
+          " · Este ejercicio suma " + formatTwoDecimals(contribution) + " puntos.";
+        updateSessionScoreDisplay();
+        els.progress.style.width = (cumulativeScore() / TARGET_SCORE * 100) + "%";
+        updateFeedbackViewControls();
+        els.feedbackList.innerHTML = "";
+
+        var identificationDetails = [];
+        if (!result.missing.length && !result.extra.length) {
+          identificationDetails.push("Las fuerzas presentes son: " + forceNames(record.expectedTypes || state.current.forces.map(function (force) { return force.type; })) + ".");
+        }
+        result.missing.forEach(function (type) {
+          identificationDetails.push("Falta " + FORCE_DEFS[type].label + ". " + forceInteractionExplanation(type));
+        });
+        result.extra.forEach(function (type) {
+          identificationDetails.push("Sobra " + FORCE_DEFS[type].label + ". " + forceInteractionExplanation(type));
+        });
+        appendFeedbackBlock(
+          "1. Fuerzas presentes",
+          result.identification,
+          !result.missing.length && !result.extra.length
+            ? "Has identificado exactamente las fuerzas que actúan sobre el bloque."
+            : "Revisa qué interacciones reales aparecen en la situación: Tierra, superficie, cuerda o fuerza aplicada.",
+          identificationDetails
+        );
+
+        var directionDetails = (result.directionDetails || []).map(function (detail) {
+          return directionFeedbackMessage(state.current, detail);
+        });
+        appendFeedbackBlock(
+          "2. Dirección y sentido",
+          result.direction,
+          result.direction >= 0.999
+            ? "Todas las flechas apuntan en la dirección y el sentido físicos correctos."
+            : "Compara cada flecha con la orientación del plano, la vertical y el sentido de la interacción.",
+          directionDetails
+        );
+
+        var magnitudeDetails = (result.magnitudeDetails || []).map(magnitudeFeedbackMessage);
+        if (!magnitudeDetails.length) {
+          magnitudeDetails.push(result.magnitude >= 0.999
+            ? "Los tamaños dibujados son coherentes con la situación."
+            : "Compara las longitudes de las flechas que deben ser iguales, mayores o menores.");
+        }
+        appendFeedbackBlock(
+          "3. Tamaño relativo de los vectores",
+          result.magnitude,
+          result.magnitude >= 0.999
+            ? "Las proporciones son correctas. El valor absoluto en newtons que hayas elegido como escala no se penaliza."
+            : "Tu escala en newtons es válida, pero debes ajustar la longitud de alguna flecha respecto a las demás.",
+          magnitudeDetails
+        );
+
+        if (scoreReachedForState(state)) {
+          var goalMessage = document.createElement("p");
+          goalMessage.textContent = "Has alcanzado 10 puntos. Puedes finalizar la actividad.";
+          els.feedbackList.appendChild(goalMessage);
+        }
+        els.explanation.textContent = state.current.explanation;
+        if (scoreReachedForState(state)) {
+          els.next.textContent = "Finalizar actividad";
+        } else {
+          els.next.textContent = state.attempt >= MAX_ITEMS ? "Ver informe final" : "Siguiente situación";
+        }
+      }
+
+      function shouldConverge() {
+        if (state.attempt < MIN_ITEMS) return false;
+        var covered = CATEGORY_IDS.every(function (id) { return state.categoryCounts[id] >= 1; });
+        var skillsDecided = SKILL_IDS.every(function (id) {
+          return Math.max.apply(null, state.skills[id]) >= 0.8 && entropy(state.skills[id]) <= 0.92;
+        });
+        return covered && skillsDecided;
+      }
+
+      function nextItem() {
+        if (state.attempt >= MAX_ITEMS || scoreReachedForState(state)) {
+          state.finished = true;
+          saveState();
+          syncScorm(true);
+          showReport(true);
+          return;
+        }
+        state.current = null;
+        state.selectedForces = [];
+        state.drawings = {};
+        state.activeForce = null;
+        state.responseStage = "select";
+        state.feedbackView = "solution";
+        state.hintLevel = 0;
+        state.guideDefault = false;
+        state.guideEnabled = false;
+        state.guideUsed = false;
+        state.worldGuideDefault = false;
+        state.worldGuideEnabled = false;
+        state.finished = false;
+        state.phase = phaseForState();
+        saveState();
+        renderApp();
+      }
+
+      function skillMastery(dist) {
+        return dist[0] * 0.18 + dist[1] * 0.58 + dist[2] * 0.92;
+      }
+
+      function factorStatus(record) {
+        if (record.evidence < 2) return { label: "Sin evidencia suficiente", kind: "provisional" };
+        if (record.p >= 0.7) return { label: "Probable", kind: "present" };
+        if (record.p <= 0.3) return { label: "No detectado", kind: "absent" };
+        return { label: "Indeterminado", kind: "provisional" };
+      }
+
+      function personFit() {
+        if (state.history.length < 4) return null;
+        var theta = globalTheta();
+        var observed = 0;
+        var expected = 0;
+        var variance = 0;
+        state.history.forEach(function (entry) {
+          var p = clamp(itemProbability(theta, entry.difficulty, 0.04), 0.06, 0.94);
+          var u = entry.result.overall >= 0.72 ? 1 : 0;
+          var logOdds = Math.log(p / (1 - p));
+          observed += u * Math.log(p) + (1 - u) * Math.log(1 - p);
+          expected += p * Math.log(p) + (1 - p) * Math.log(1 - p);
+          variance += p * (1 - p) * logOdds * logOdds;
+        });
+        if (variance <= 1e-8) return null;
+        return (observed - expected) / Math.sqrt(variance);
+      }
+
+      function showReport(finalReport) {
+        els.report.hidden = false;
+        els.reportTitle.textContent = finalReport ? "Informe final" : "Informe de progreso";
+        var reached = scoreReachedForState(state);
+        if (finalReport) {
+          els.reportStatus.textContent = reached
+            ? "Has alcanzado la puntuación máxima. La actividad queda completada."
+            : "Has completado las " + MAX_ITEMS + " situaciones disponibles.";
+        } else {
+          els.reportStatus.textContent = "Resultado acumulado tras " + state.attempt + " situaciones. Puedes seguir practicando hasta alcanzar 10 puntos.";
+        }
+        els.reportScore.textContent = "Puntuación acumulada: " + formatTotalScore(cumulativeScore()) + ". Cada ejercicio aporta hasta " + formatTwoDecimals(POINTS_PER_PERFECT_ITEM) + " puntos.";
+        if (finalReport || reached) syncScorm(true);
+
+        els.skillReport.innerHTML = "";
+        SKILL_IDS.forEach(function (id) {
+          var dist = state.skills[id];
+          var maxP = Math.max.apply(null, dist);
+          var level = LEVEL_NAMES[dist.indexOf(maxP)];
+          var mastery = skillMastery(dist);
+          var row = document.createElement("div");
+          row.className = "fa-skill-row";
+          row.innerHTML = "<span>" + SKILL_LABELS[id] + "</span><span class=\"fa-bar\" aria-label=\"Dominio estimado " + Math.round(mastery * 100) + " por ciento\"><span style=\"width:" + Math.round(mastery * 100) + "%\"></span></span><span class=\"text-small\">" + level + (maxP < 0.8 ? " · provisional" : "") + "</span>";
+          els.skillReport.appendChild(row);
+        });
+
+        els.factorReport.innerHTML = "";
+        Object.keys(FACTOR_DEFS).forEach(function (id) {
+          var def = FACTOR_DEFS[id];
+          var record = state.factors[id];
+          var status = factorStatus(record);
+          var box = document.createElement("div");
+          box.className = "fa-factor";
+          box.innerHTML = "<strong>" + def.label + "</strong><p class=\"text-small\">" + status.label + "</p>";
+          els.factorReport.appendChild(box);
+        });
+
+        var weakest = SKILL_IDS.slice().sort(function (a, b) { return skillMastery(state.skills[a]) - skillMastery(state.skills[b]); })[0];
+        var detected = Object.keys(FACTOR_DEFS).filter(function (id) { return factorStatus(state.factors[id]).kind === "present"; });
+        var recommendation = "Conviene reforzar primero: " + SKILL_LABELS[weakest].toLowerCase() + ".";
+        if (detected.length) recommendation += " Además, " + FACTOR_DEFS[detected[0]].recommendation;
+        els.recommendation.textContent = recommendation;
+
+        var fit = personFit();
+        if (fit == null) els.fitReport.textContent = "Ajuste del patrón: todavía no hay respuestas suficientes para valorarlo.";
+        else if (fit < -2) els.fitReport.textContent = "Ajuste del patrón: irregular. Hay aciertos y fallos poco coherentes con la dificultad; interpreta el diagnóstico con cautela.";
+        else els.fitReport.textContent = "Ajuste del patrón: compatible con la dificultad de las situaciones (índice orientativo " + round(fit, 2) + ").";
+
+        els.reportActions.innerHTML = "";
+        if (!finalReport && !reached && state.attempt < MAX_ITEMS) {
+          var continueButton = document.createElement("button");
+          continueButton.type = "button";
+          continueButton.className = "btn btn-primary";
+          continueButton.textContent = "Continuar practicando";
+          continueButton.addEventListener("click", function () { els.report.hidden = true; });
+          els.reportActions.appendChild(continueButton);
+        } else {
+          var newButton = document.createElement("button");
+          newButton.type = "button";
+          newButton.className = "btn btn-primary";
+          newButton.textContent = "Comenzar una nueva sesión";
+          newButton.addEventListener("click", resetSession);
+          els.reportActions.appendChild(newButton);
+        }
+        els.report.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      function resetSession() {
+        if (state.attempt > 0 && !window.confirm("¿Quieres borrar el progreso de esta sesión y empezar de nuevo?")) return;
+        state = freshState();
+        saveState();
+        syncScorm(false);
+        renderApp();
+      }
+
+      function simulateValidation() {
+        var levels = THETAS.slice();
+        var matrix = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+        var runs = 240;
+        levels.forEach(function (trueTheta, trueIndex) {
+          for (var run = 0; run < runs; run += 1) {
+            var dist = [1 / 3, 1 / 3, 1 / 3];
+            var remaining = TEMPLATES.map(function (template) { return template.difficulty; });
+            for (var step = 0; step < 10; step += 1) {
+              var bestIndex = 0;
+              var bestIG = -1;
+              remaining.forEach(function (difficulty, index) {
+                var ig = expectedInformation(dist, difficulty, 0.04);
+                if (ig > bestIG) { bestIG = ig; bestIndex = index; }
+              });
+              var b = remaining.splice(bestIndex, 1)[0];
+              var correct = Math.random() < itemProbability(trueTheta, b, 0.04) ? 1 : 0;
+              dist = posteriorFor(dist, b, 0.04, correct);
+            }
+            var predicted = dist.indexOf(Math.max.apply(null, dist));
+            matrix[trueIndex][predicted] += 1;
+          }
+        });
+        return { matrix: matrix, runs: runs };
+      }
+
+      function renderValidation() {
+        els.validate.disabled = true;
+        els.validationOutput.textContent = "Simulando…";
+        window.setTimeout(function () {
+          var result = simulateValidation();
+          var totalCorrect = result.matrix.reduce(function (sum, row, index) { return sum + row[index]; }, 0);
+          var total = result.runs * 3;
+          var html = "<p>Exactitud interna estimada: <strong>" + Math.round(totalCorrect / total * 100) + "%</strong>.</p>";
+          html += "<table class=\"fa-matrix\"><thead><tr><th>Nivel simulado</th><th>Inicial</th><th>En desarrollo</th><th>Sólido</th></tr></thead><tbody>";
+          result.matrix.forEach(function (row, index) {
+            html += "<tr><th>" + LEVEL_NAMES[index] + "</th>" + row.map(function (value) { return "<td>" + value + "</td>"; }).join("") + "</tr>";
+          });
+          html += "</tbody></table>";
+          els.validationOutput.innerHTML = html;
+          els.validate.disabled = false;
+        }, 20);
+      }
+
+      els.confirmForces.addEventListener("click", function () {
+        if (!state.selectedForces.length) {
+          els.live.textContent = "Selecciona al menos una fuerza.";
+          return;
+        }
+        state.responseStage = "draw";
+        state.activeForce = state.selectedForces[0];
+        saveState();
+        renderApp();
+      });
+
+      els.backSelection.addEventListener("click", function () {
+        state.responseStage = "select";
+        state.activeForce = null;
+        saveState();
+        renderApp();
+      });
+
+      els.undo.addEventListener("click", function () {
+        if (state.activeForce && state.drawings[state.activeForce]) {
+          delete state.drawings[state.activeForce];
+        } else {
+          var keys = Object.keys(state.drawings);
+          if (keys.length) delete state.drawings[keys[keys.length - 1]];
+        }
+        saveState();
+        renderDrawButtons();
+        renderStudentDrawings("student");
+        updateDrawStatus();
+      });
+
+      els.check.addEventListener("click", function () {
+        if (!Object.keys(state.drawings).length) {
+          updateDrawStatus("Dibuja al menos una flecha antes de comprobar.");
+          return;
+        }
+        var record = registerResponse();
+        drawSceneBase(state.current);
+        renderStudentDrawings("solution");
+        els.drawStep.hidden = true;
+        els.feedback.hidden = false;
+        renderFeedback(record);
+      });
+
+      els.next.addEventListener("click", nextItem);
+      els.viewStudent.addEventListener("click", function () { setFeedbackView("student"); });
+      els.viewSolution.addEventListener("click", function () { setFeedbackView("solution"); });
+
+      els.hintButton.addEventListener("click", function () {
+        if (state.responseStage === "feedback") return;
+        state.hintLevel = Math.min(state.hintLevel + 1, state.current.hints.length);
+        els.hint.hidden = false;
+        els.hint.textContent = state.current.hints[state.hintLevel - 1];
+        els.hintButton.disabled = state.hintLevel >= state.current.hints.length;
+        saveState();
+      });
+
+      els.guideToggle.addEventListener("change", function () {
+        state.guideEnabled = els.guideToggle.checked;
+        if (state.guideEnabled && !state.guideDefault) state.guideUsed = true;
+        saveState();
+        drawSceneBase(state.current);
+        renderStudentDrawings(state.responseStage === "feedback" ? state.feedbackView : "student");
+        updateDrawStatus();
+      });
+
+      els.worldGuideToggle.addEventListener("change", function () {
+        state.worldGuideEnabled = els.worldGuideToggle.checked;
+        if (state.worldGuideEnabled && !state.worldGuideDefault) state.guideUsed = true;
+        saveState();
+        drawSceneBase(state.current);
+        renderStudentDrawings(state.responseStage === "feedback" ? state.feedbackView : "student");
+        updateDrawStatus();
+      });
+
+      els.calculatorButton.addEventListener("click", openCalculator);
+      els.calculatorClose.addEventListener("click", closeCalculator);
+      els.calculator.addEventListener("close", function () {
+        els.calculatorButton.focus();
+      });
+      els.calculator.addEventListener("click", function (event) {
+        var button = event.target.closest ? event.target.closest("button") : null;
+        if (!button || !els.calculator.contains(button)) return;
+        var value = button.getAttribute("data-calc-value");
+        var wrap = button.getAttribute("data-calc-wrap");
+        var action = button.getAttribute("data-calc-action");
+        if (value != null) {
+          insertCalculatorText(value);
+          return;
+        }
+        if (wrap) {
+          wrapCalculatorExpression(wrap);
+          return;
+        }
+        if (action === "clear") {
+          setCalculatorValue("");
+          return;
+        }
+        if (action === "backspace") {
+          var input = els.calculatorDisplay;
+          var start = input.selectionStart == null ? input.value.length : input.selectionStart;
+          var end = input.selectionEnd == null ? start : input.selectionEnd;
+          if (start !== end) {
+            setCalculatorValue(input.value.slice(0, start) + input.value.slice(end), start);
+          } else if (start > 0) {
+            setCalculatorValue(input.value.slice(0, start - 1) + input.value.slice(end), start - 1);
+          }
+          return;
+        }
+        if (action === "square") {
+          squareCalculatorExpression();
+          return;
+        }
+        if (action === "equals") calculateExpression();
+      });
+      els.calculatorDisplay.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          calculateExpression();
+        }
+      });
+
+      els.reportButton.addEventListener("click", function () { showReport(false); });
+      els.closeReport.addEventListener("click", function () { els.report.hidden = true; });
+      els.resetButton.addEventListener("click", resetSession);
+      els.validate.addEventListener("click", renderValidation);
+
+      els.scene.addEventListener("pointerdown", onPointerDown);
+      els.scene.addEventListener("pointermove", onPointerMove);
+      els.scene.addEventListener("pointerup", onPointerUp);
+      els.scene.addEventListener("pointercancel", onPointerUp);
+
+      window.addEventListener("pagehide", function () {
+        syncScorm(state.finished || scoreReachedForState(state) || state.attempt >= MAX_ITEMS);
+        scorm.terminate();
+      }, { once: true });
+
+      saveState();
+      syncScorm(state.finished);
+      renderApp();
+      if (state.finished) showReport(true);
+    }());
+  </script>
+</div>
+<script id="codex-visualization-tooltip">/* oxlint-disable typescript/no-unsafe-argument, typescript/no-unsafe-call, typescript/no-unsafe-return */
+// Runs inside the visualization sandbox, not the host webview.
+(() => {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set(["top", "right", "bottom", "left"]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+
+  const getTrigger = (target) =>
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest("[data-tooltip]")
+      : null;
+  const containsTarget = (trigger, target) =>
+    target?.nodeType != null && trigger.contains(target);
+  const getContent = (trigger) =>
+    trigger.getAttribute("data-tooltip")?.trim() ?? "";
+  const getPlacement = (trigger) => {
+    const placement = trigger.getAttribute("data-tooltip-placement");
+    return tooltipPlacements.has(placement) ? placement : "top";
+  };
+  const getTooltip = () => {
+    if (tooltip == null) {
+      tooltip = document.createElement("div");
+      tooltip.id = tooltipId;
+      tooltip.className = "tooltip";
+      tooltip.setAttribute("role", "tooltip");
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) => {
+    const ids = new Set(
+      (trigger.getAttribute("aria-describedby") ?? "")
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute("aria-describedby");
+    } else {
+      trigger.setAttribute("aria-describedby", [...ids].join(" "));
+    }
+  };
+  const clearOpenTimeout = () => {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) => {
+    clearOpenTimeout();
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) => {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              "--tooltip-available-width",
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              "--tooltip-available-height",
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: "fixed",
+    })
+      .then(({ x, y }) => {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = "visible";
+      })
+      .catch(() => {
+        if (activeTrigger === trigger && request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) => {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = "hidden";
+    floating.style.transform = "translate(0, 0)";
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () => {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) => {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() < skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() => {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) => {
+    if (event.pointerType === "touch") {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handleLeave = (event) => {
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) => {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(":focus-visible")) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) => {
+    if (event.key === "Escape") {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) => {
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () => {
+    closeTooltip(false);
+    document.removeEventListener("pointerover", handlePointerOpen);
+    document.removeEventListener("pointerout", handleLeave);
+    document.removeEventListener("focusin", handleFocusIn);
+    document.removeEventListener("focusout", handleLeave);
+    document.removeEventListener("keydown", handleKeyDown);
+    document.removeEventListener("contextmenu", handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener("pointerover", handlePointerOpen);
+  document.addEventListener("pointerout", handleLeave);
+  document.addEventListener("focusin", handleFocusIn);
+  document.addEventListener("focusout", handleLeave);
+  document.addEventListener("keydown", handleKeyDown);
+  document.addEventListener("contextmenu", handleContextMenu);
+  window.addEventListener("pagehide", destroy, { once: true });
+})();
+</script>
+<script id="codex-visualization-lucide-initialization">(() => {
+  const initialize = () => {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById("codex-visualization-lucide")
+    ?.addEventListener("load", initialize, { once: true });
+})();
+</script>
+</body>
+</html>

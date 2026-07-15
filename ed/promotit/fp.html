@@ -9,32 +9,21 @@
         tailwind.config = { theme: { extend: { colors: { primary: '#2d3748', secondary: '#4a5568', accent: '#3182ce', background: '#f7fafc', card: '#ffffff' }, fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } }
     </script>
     <link rel="stylesheet" href="styles.css">
+    <script src="nav.js" defer></script>
 </head>
 <body class="bg-background text-primary antialiased selection:bg-accent selection:text-white pb-16">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
-        <nav class="mb-10 fade-in-up">
-            <div class="flex flex-wrap gap-2 justify-center">
-                <a href="index.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Índice</a>
-                <a href="eso.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción ESO</a>
-                <a href="titulacion-eso.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Titulación ESO</a>
-                <a href="bachillerato.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción Bachillerato</a>
-                <a href="btopa.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción BTOPA</a>
-                <a href="fp.html" class="px-4 py-2 rounded-full bg-accent text-white text-sm font-semibold shadow-sm">Promoción FP</a>
-                <a href="titulacion-fp.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Titulación FP</a>
-                <a href="espa.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Promoción ESPA</a>
-                <a href="revisiones.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Revisiones</a>
-                <a href="pdc.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Acceso a PDC</a>
-                <a href="fpb.html" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-secondary text-sm font-semibold hover:border-accent hover:text-accent transition-colors">Acceso a FPB</a>
-            </div>
-        </nav>
+       <nav class="mb-10 fade-in-up">
+    <div data-main-nav class="flex flex-wrap gap-2 justify-center"></div>
+</nav>
 
         <header class="text-center mb-14 fade-in-up delay-100">
             <div class="inline-flex items-center justify-center p-4 bg-accent/10 rounded-full mb-6">
                 <svg class="w-10 h-10 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.5 6h3M4 7a2 2 0 0 1 2-2h3l1-2h4l1 2h3a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 13l2.5 2.5L16 10"/></svg>
             </div>
-            <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-6">Promoción en Formación Profesional</h1>
+            <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-6">Promoción y evaluación en Formación Profesional</h1>
             <p class="text-lg md:text-xl text-secondary max-w-2xl mx-auto leading-relaxed border-l-4 border-accent pl-4 text-left italic">
-                Las condiciones de promoción dependen del nivel formativo y de la carga horaria de los módulos no superados.
+                Criterios básicos de evaluación, promoción, convocatorias, matrícula y reconocimiento de módulos en los Grados D y E de Formación Profesional.
             </p>
         </header>
 
@@ -44,11 +33,31 @@
                 <div class="relative z-10">
                     <div class="flex items-center mb-6">
                         <svg class="w-8 h-8 text-accent mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
-                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Criterio común de la nueva normativa</h2>
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Criterios comunes de evaluación</h2>
                     </div>
-                    <p class="text-secondary text-sm md:text-base leading-relaxed">
-                        Tener pendiente la fase de formación en la empresa, con calificación <strong class="text-gray-900">X/PFE</strong>, <strong class="text-gray-900">no impide la promoción</strong> si la calificación numérica obtenida en el centro educativo es igual o superior a <strong class="text-gray-900 text-base">5</strong>.
-                    </p>
+
+                    <div class="grid md:grid-cols-3 gap-5">
+                        <article class="rounded-xl bg-white border border-slate-100 p-5">
+                            <h3 class="font-semibold mb-2 text-gray-900">Asistencia obligatoria</h3>
+                            <p class="text-secondary text-sm leading-relaxed">
+                                La evaluación continua requiere asistencia regular y obligatoria de al menos el <strong class="text-gray-900">80%</strong> de la duración total del módulo, ámbito o proyecto, tanto en el centro docente como en la fase de formación en empresa u organismo equiparado.
+                            </p>
+                        </article>
+
+                        <article class="rounded-xl bg-white border border-slate-100 p-5">
+                            <h3 class="font-semibold mb-2 text-gray-900">Convocatorias</h3>
+                            <p class="text-secondary text-sm leading-relaxed">
+                                En los Grados D, cada módulo, ámbito o proyecto dispone de un máximo de <strong class="text-gray-900">cuatro convocatorias</strong>. En los Grados E, cada módulo dispone de un máximo de <strong class="text-gray-900">dos convocatorias</strong>.
+                            </p>
+                        </article>
+
+                        <article class="rounded-xl bg-white border border-slate-100 p-5">
+                            <h3 class="font-semibold mb-2 text-gray-900">Módulos dualizados</h3>
+                            <p class="text-secondary text-sm leading-relaxed">
+                                En los módulos dualizados, la calificación final integra la valoración de los resultados de aprendizaje desarrollados durante la fase de formación en empresa u organismo equiparado.
+                            </p>
+                        </article>
+                    </div>
                 </div>
             </section>
 
@@ -67,25 +76,43 @@
                     <article class="rounded-xl bg-emerald-50 border border-emerald-100 p-5">
                         <p class="text-3xl font-light text-emerald-300 mb-2">0%</p>
                         <h3 class="font-semibold mb-2 text-gray-900">Todo superado</h3>
-                        <p class="text-secondary text-sm leading-relaxed">Promociona directamente a segundo curso si supera todos los módulos de primero.</p>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Promociona directamente a segundo curso si supera todos los módulos de primero.
+                        </p>
                     </article>
+
                     <article class="rounded-xl bg-rose-50 border border-rose-100 p-5">
                         <p class="text-3xl font-light text-rose-300 mb-2">&gt; 50%</p>
                         <h3 class="font-semibold mb-2 text-gray-900">Carga no superada alta</h3>
-                        <p class="text-secondary text-sm leading-relaxed">Debe repetir únicamente los módulos no superados y no puede matricularse de módulos de segundo.</p>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Debe repetir únicamente los módulos no superados y no puede matricularse de módulos de segundo curso.
+                        </p>
                     </article>
+
                     <article class="rounded-xl bg-blue-50 border border-blue-100 p-5">
                         <p class="text-3xl font-light text-blue-300 mb-2">&le; 50%</p>
                         <h3 class="font-semibold mb-2 text-gray-900">Carga no superada compatible</h3>
-                        <p class="text-secondary text-sm leading-relaxed">Puede repetir los módulos suspensos o ampliar matrícula con módulos de segundo curso.</p>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Debe matricularse de los módulos no superados y puede ampliar matrícula con módulos de segundo curso si se cumplen los límites de carga horaria y compatibilidad.
+                        </p>
                     </article>
                 </div>
 
                 <div class="mt-6 bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
-                    <h3 class="font-semibold text-gray-900 mb-2">Condiciones para adelantar módulos de segundo</h3>
+                    <h3 class="font-semibold text-gray-900 mb-2">Condiciones para ampliar matrícula con módulos de segundo</h3>
                     <ul class="space-y-3">
-                        <li class="flex items-start"><span class="mt-2 mr-3 h-2 w-2 rounded-full bg-accent flex-shrink-0"></span><p class="text-secondary text-sm leading-relaxed">La carga lectiva total, sumando módulos pendientes de 1º y módulos nuevos de 2º, no puede superar <strong class="text-gray-900">1.150 horas lectivas</strong> en ese curso.</p></li>
-                        <li class="flex items-start"><span class="mt-2 mr-3 h-2 w-2 rounded-full bg-accent flex-shrink-0"></span><p class="text-secondary text-sm leading-relaxed">Los horarios deben ser compatibles para permitir la evaluación continua.</p></li>
+                        <li class="flex items-start">
+                            <span class="mt-2 mr-3 h-2 w-2 rounded-full bg-accent flex-shrink-0"></span>
+                            <p class="text-secondary text-sm leading-relaxed">
+                                La carga horaria de todos los módulos y, en su caso, del proyecto intermodular que vaya a cursar no puede ser superior a <strong class="text-gray-900">1.150 horas lectivas</strong> en ese curso escolar.
+                            </p>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="mt-2 mr-3 h-2 w-2 rounded-full bg-accent flex-shrink-0"></span>
+                            <p class="text-secondary text-sm leading-relaxed">
+                                El horario lectivo debe ser compatible, permitiendo la asistencia y la evaluación continua en todos los módulos matriculados.
+                            </p>
+                        </li>
                     </ul>
                 </div>
             </section>
@@ -101,28 +128,130 @@
                 <div class="grid md:grid-cols-2 gap-6">
                     <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
                         <h3 class="font-semibold mb-3 text-gray-900">Promoción general</h3>
-                        <p class="text-secondary text-sm leading-relaxed">Pasa a segundo cuando supera los dos ámbitos no profesionales y los módulos suspensos del ámbito profesional no superan el <strong class="text-gray-900">20% del horario semanal</strong> de este ámbito.</p>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Pasa a segundo cuando supera los dos ámbitos no profesionales y los módulos suspensos del ámbito profesional no superan el <strong class="text-gray-900">20% del horario semanal</strong> de este ámbito.
+                        </p>
                     </article>
+
                     <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
                         <h3 class="font-semibold mb-3 text-gray-900">Promoción excepcional</h3>
-                        <p class="text-secondary text-sm leading-relaxed">El equipo docente puede promocionar si ha superado al menos uno de los dos ámbitos no profesionales, tiene madurez suficiente, expectativas favorables de recuperación y la promoción beneficia su evolución.</p>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            El equipo docente puede promocionar si ha superado al menos uno de los dos ámbitos no profesionales, tiene madurez suficiente, expectativas favorables de recuperación y la promoción beneficia su evolución.
+                        </p>
                     </article>
+
                     <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
                         <h3 class="font-semibold mb-3 text-gray-900">Promociona con pendientes</h3>
-                        <p class="text-secondary text-sm leading-relaxed">Debe matricularse del segundo curso completo y de las materias suspensas de primero. El centro establecerá un programa de refuerzo para superarlas.</p>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Debe matricularse del segundo curso completo y de los ámbitos o módulos no superados de primero. El centro establecerá un programa de refuerzo para su recuperación.
+                        </p>
                     </article>
+
                     <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
                         <h3 class="font-semibold mb-3 text-gray-900">No promociona</h3>
-                        <p class="text-secondary text-sm leading-relaxed">Con 16 años o más puede matricularse solo de lo suspenso o de todo el curso. Si es menor de 16 años, debe matricularse de nuevo del curso completo.</p>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Si es menor de 16 años, debe matricularse de nuevo del curso completo. Si tiene 16 años o más, podrá optar por matricularse tanto de las materias no superadas como de aquellas ya superadas.
+                        </p>
+                    </article>
+                </div>
+
+                <div class="mt-6 bg-blue-50 rounded-xl p-6 border border-blue-100">
+                    <h3 class="font-semibold text-gray-900 mb-2">Alumnado de Grado Básico que repite con 16 años o más</h3>
+                    <p class="text-secondary text-sm leading-relaxed">
+                        Cuando, como consecuencia de los criterios de promoción, repita curso y tenga 16 años o más, podrá optar por una matrícula que incluya tanto las materias no superadas como las ya superadas. El centro deberá recoger en su Proyecto educativo las actividades asignadas a este alumnado durante la jornada lectiva.
+                    </p>
+                </div>
+            </section>
+
+            <section class="bg-slate-50 text-gray-800 rounded-2xl p-8 md:p-10 shadow-sm border border-slate-200 fade-in-up delay-400">
+                <div class="flex items-center mb-6">
+                    <svg class="w-8 h-8 text-accent mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Convocatorias, renuncia y matrícula</h2>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-5">
+                    <article class="rounded-xl bg-white border border-slate-100 p-5">
+                        <h3 class="font-semibold mb-2 text-gray-900">Convocatoria extraordinaria</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Se concede con carácter excepcional y por una sola vez para cada módulo, agrupación de módulos, ámbito o proyecto intermodular, previa solicitud del alumnado y una vez agotadas las convocatorias ordinarias.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-white border border-slate-100 p-5">
+                        <h3 class="font-semibold mb-2 text-gray-900">Solicitud</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Solo puede autorizarse por circunstancias excepcionales debidamente acreditadas, como enfermedad, discapacidad u otras situaciones sobrevenidas que hayan condicionado o impedido el desarrollo ordinario del curso. La solicitud es única por curso escolar y se presenta entre el 1 y el 15 de julio.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-white border border-slate-100 p-5">
+                        <h3 class="font-semibold mb-2 text-gray-900">Renuncia</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            El alumnado o sus representantes legales podrán presentar, una sola vez por curso, la renuncia a las convocatorias de hasta el 50% de los módulos o ámbitos matriculados. También podrán solicitar una sola vez la renuncia a la matrícula.
+                        </p>
+                    </article>
+                </div>
+
+                <div class="mt-6 bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+                    <h3 class="font-semibold text-gray-900 mb-2">Anulación de oficio de matrícula</h3>
+                    <p class="text-secondary text-sm leading-relaxed mb-3">
+                        Los centros sostenidos con fondos públicos iniciarán el procedimiento de anulación de oficio si, una vez iniciadas las actividades lectivas y transcurridos cinco días hábiles, se observa la no incorporación o la inasistencia injustificada y reiterada del alumnado.
+                    </p>
+                    <p class="text-secondary text-sm leading-relaxed mb-3">
+                        En Grado Básico, antes de la anulación deben aplicarse los protocolos de absentismo escolar, incluyendo la comunicación a los servicios municipales y a la Inspección Educativa, así como el intento de comunicación previa a las familias.
+                    </p>
+                    <p class="text-secondary text-sm leading-relaxed">
+                        La anulación de oficio de la matrícula lleva aparejada la pérdida de las convocatorias correspondientes a esa matrícula.
+                    </p>
+                </div>
+            </section>
+
+            <section class="bg-card rounded-2xl shadow-sm border border-gray-100 p-8 fade-in-up delay-500">
+                <div class="flex items-center mb-8">
+                    <div class="bg-blue-50 p-3 rounded-lg mr-4">
+                        <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5h6M9 12h6M9 19h6"/></svg>
+                    </div>
+                    <h2 class="text-2xl font-semibold">Equivalencias, convalidaciones y exenciones</h2>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Reconocimiento de calificación por módulos comunes</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            En módulos comunes a más de un título de Formación Profesional, se reconocerá la calificación del módulo de un ciclo formativo o curso de especialización a otro cuando tengan igual código, denominación, duración, resultados de aprendizaje, criterios de evaluación y contenidos.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-slate-50 border border-slate-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Convalidación</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Los módulos convalidados por otras formaciones se calificarán con la expresión <strong class="text-gray-900">Convalidado</strong>. La convalidación o exención no será efectiva hasta que exista resolución favorable.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-blue-50 border border-blue-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Mientras se resuelve</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Hasta obtener resolución favorable, el alumnado debe asistir a las actividades lectivas y será evaluado del módulo correspondiente.
+                        </p>
+                    </article>
+
+                    <article class="rounded-xl bg-blue-50 border border-blue-100 p-6">
+                        <h3 class="font-semibold mb-3 text-gray-900">Ampliación o evaluación excepcional</h3>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            Si el alumnado de primer curso queda sin materias por evaluar como consecuencia de convalidación, exención o superación previa, podrá ampliar matrícula con módulos de segundo hasta el 15 de octubre, si existen plazas. Si esto sucede en segundo curso, podrá ser evaluado en cualquiera de las evaluaciones excepcionales del curso para certificar o titular.
+                        </p>
                     </article>
                 </div>
             </section>
         </main>
-        <footer class="normative-footer fade-in-up delay-400">
+
+        <footer class="normative-footer fade-in-up delay-500">
             <h2>Normativa de referencia</h2>
             <ul>
-                <li><a href="https://www.boe.es/buscar/act.php?id=BOE-A-2022-5139" target="_blank" rel="noopener">Ley Orgánica 3/2022, de 31 de marzo</a>, de ordenación e integración de la Formación Profesional.</li>
-                <li><a href="https://www.boe.es/buscar/act.php?id=BOE-A-2023-16889" target="_blank" rel="noopener">Real Decreto 659/2023, de 18 de julio</a>, por el que se desarrolla la ordenación del Sistema de Formación Profesional.</li>
+                <li><a href="https://www.juntadeandalucia.es/boja/2025/180/c01/1" target="_blank" rel="noopener">Orden de 18 de septiembre de 2025</a>, por la que se regula la evaluación, certificación, acreditación y titulación académica del alumnado que cursa enseñanzas de los grados D y E del Sistema de Formación Profesional en Andalucía.</li>
+                <li><a href="https://www.juntadeandalucia.es/boja/2025/179/c01/1" target="_blank" rel="noopener">Decreto 147/2025, de 17 de septiembre</a>, por el que se establece la ordenación de las enseñanzas de los grados D y E del Sistema de Formación Profesional en Andalucía.</li>
+                <li><a href="https://www.juntadeandalucia.es/educacion/portales/web/inspeccion-educativa/w/instrucciones-de-20-de-mayo-de-2026-de-la-direccion-general-de-formacion-profesional-y-educacion-permanente-por-la-que-se-establecen-aspectos-relativos-a-la-evaluacion-final-del-alumnado-de-las-ensenanzas-de-los-grados-d-y-e-del-sistema-de-formacion-profe" target="_blank" rel="noopener">Instrucciones de 20 de mayo de 2026</a>, sobre aspectos relativos a la evaluación final del alumnado de los grados D y E para el curso 2025/2026.</li>
             </ul>
         </footer>
     </div>
