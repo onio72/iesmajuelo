@@ -699,13 +699,32 @@ svg {
       --fa-force-applied: var(--viz-series-4);
       --fa-force-tension: var(--viz-series-5);
       --fa-force-motion: var(--viz-series-6);
+      --fa-secondary-text: color-mix(in srgb, var(--foreground) 82%, var(--background));
+      --fa-strong-border: color-mix(in srgb, var(--foreground) 46%, var(--background));
+      --fa-muted-surface: color-mix(in srgb, var(--foreground) 16%, var(--background));
+      --fa-card-surface: color-mix(in srgb, var(--foreground) 8%, var(--background));
+      --muted-foreground: var(--fa-secondary-text);
+      --border: var(--fa-strong-border);
+      --muted: var(--fa-muted-surface);
+      --card: var(--fa-card-surface);
+      --primary: color-mix(in srgb, var(--foreground) 88%, var(--background));
+      --primary-foreground: var(--background);
+      --accent: color-mix(in srgb, var(--foreground) 13%, var(--background));
+      --accent-foreground: var(--foreground);
+      --ring: var(--foreground);
       color: var(--foreground);
       background: transparent;
       width: 100%;
+      line-height: 1.5;
     }
 
     #force-bayes-app * { box-sizing: border-box; }
     #force-bayes-app [hidden] { display: none !important; }
+
+    #force-bayes-app :where(button, input, summary):focus-visible {
+      outline: 3px solid var(--ring);
+      outline-offset: 3px;
+    }
 
     #force-bayes-app .fa-topbar,
     #force-bayes-app .fa-actions,
@@ -723,8 +742,9 @@ svg {
     }
 
     #force-bayes-app .fa-progress-track {
-      height: 0.45rem;
+      height: 0.6rem;
       background: var(--muted);
+      border: 1px solid var(--border);
       border-radius: 999px;
       overflow: hidden;
       margin-bottom: 0.85rem;
@@ -762,8 +782,8 @@ svg {
       width: 100%;
       aspect-ratio: 16 / 10;
       min-height: 15rem;
-      background: color-mix(in srgb, var(--card) 80%, transparent);
-      border: 1px solid var(--border);
+      background: var(--background);
+      border: 2px solid var(--border);
       border-radius: 0.75rem;
       touch-action: none;
       user-select: none;
@@ -802,6 +822,7 @@ svg {
       width: 0.75rem;
       height: 0.75rem;
       border-radius: 999px;
+      border: 1px solid var(--foreground);
       flex: 0 0 auto;
       background: var(--fa-color);
     }
@@ -1107,16 +1128,46 @@ svg {
     #force-bayes-app .fa-svg-muted { fill: var(--muted-foreground); }
     #force-bayes-app .fa-motion-line { stroke: var(--muted-foreground); stroke-width: 3; stroke-dasharray: 8 6; }
     #force-bayes-app .fa-motion-head { fill: var(--muted-foreground); }
+    #force-bayes-app .fa-force-outline { stroke: var(--foreground); stroke-width: 8; stroke-linecap: round; }
     #force-bayes-app .fa-force-line { stroke-width: 5; stroke-linecap: round; }
-    #force-bayes-app .fa-force-head { stroke: none; }
-    #force-bayes-app .fa-force-label { fill: var(--foreground); font-weight: 500; paint-order: stroke; stroke: var(--card); stroke-width: 5; stroke-linejoin: round; }
-    #force-bayes-app .fa-force-label-bg { fill: var(--card); stroke: var(--border); stroke-width: 1; }
+    #force-bayes-app .fa-force-head { stroke: var(--foreground); stroke-width: 1.5; paint-order: stroke fill; }
+    #force-bayes-app .fa-force-label { fill: var(--foreground); font-weight: 500; paint-order: stroke; stroke: var(--background); stroke-width: 6; stroke-linejoin: round; }
+    #force-bayes-app .fa-force-label-bg { fill: var(--background); stroke: var(--foreground); stroke-width: 1.5; }
     #force-bayes-app .fa-label-leader { stroke: var(--muted-foreground); stroke-width: 1.5; }
     #force-bayes-app .fa-expected-line { stroke-dasharray: 8 5; }
     #force-bayes-app .fa-origin-halo { fill: none; stroke: var(--ring); stroke-width: 2; stroke-dasharray: 4 4; }
     #force-bayes-app .fa-guide-line { stroke: var(--ring); stroke-width: 2; stroke-dasharray: 10 7; opacity: 0.72; }
     #force-bayes-app .fa-world-guide-line { stroke-dasharray: 4 7; opacity: 0.62; }
-    #force-bayes-app .fa-guide-label { fill: var(--foreground); font-weight: 500; paint-order: stroke; stroke: var(--card); stroke-width: 5; stroke-linejoin: round; }
+    #force-bayes-app .fa-guide-label { fill: var(--foreground); font-weight: 500; paint-order: stroke; stroke: var(--background); stroke-width: 6; stroke-linejoin: round; }
+
+    @media (prefers-contrast: more) {
+      #force-bayes-app {
+        --fa-secondary-text: var(--foreground);
+        --fa-strong-border: var(--foreground);
+        --fa-muted-surface: color-mix(in srgb, var(--foreground) 24%, var(--background));
+      }
+
+      #force-bayes-app .fa-scene { border-width: 3px; }
+      #force-bayes-app .fa-force-outline { stroke-width: 10; }
+      #force-bayes-app .fa-force-line { stroke-width: 6; }
+    }
+
+    @media (forced-colors: active) {
+      #force-bayes-app .fa-scene,
+      #force-bayes-app .fa-feedback-block,
+      #force-bayes-app .fa-calculator,
+      #force-bayes-app .fa-module-readout {
+        border-color: CanvasText;
+      }
+
+      #force-bayes-app .fa-progress-track { background: Canvas; border-color: CanvasText; }
+      #force-bayes-app .fa-progress-fill { background: Highlight; }
+      #force-bayes-app .fa-force-outline { stroke: CanvasText; }
+      #force-bayes-app .fa-force-label-bg { fill: Canvas; stroke: CanvasText; }
+      #force-bayes-app .fa-force-label,
+      #force-bayes-app .fa-guide-label { fill: CanvasText; stroke: Canvas; }
+      #force-bayes-app .fa-force-swatch { border-color: CanvasText; }
+    }
 
     @media (max-width: 720px) {
       #force-bayes-app .fa-workspace { grid-template-columns: 1fr; }
@@ -2080,7 +2131,7 @@ svg {
       }
 
       function randomMass() {
-        return choose([2, 3, 4, 5, 6, 8, 10]);
+        return 1;
       }
 
       function randomAngle() {
@@ -2127,7 +2178,7 @@ svg {
             var m = randomMass();
             return baseItem(this,
               "Un bloque permanece en reposo sobre una superficie horizontal.",
-              "Masa no especificada · Sin fuerzas horizontales aplicadas.",
+              "Masa: 1 kg · Sin fuerzas horizontales aplicadas.",
               { type: "horizontal", motionAngle: null, accelerationAngle: null, stateLabel: "reposo" },
               horizontalForces(m),
               "El peso y la normal son verticales, de sentidos opuestos y del mismo módulo porque no hay aceleración vertical.",
@@ -2143,7 +2194,7 @@ svg {
             var m = randomMass();
             return baseItem(this,
               "Un bloque se desplaza hacia la derecha con velocidad constante sobre una superficie horizontal sin rozamiento.",
-              "Masa no especificada · No actúa ninguna fuerza horizontal.",
+              "Masa: 1 kg · No actúa ninguna fuerza horizontal.",
               { type: "horizontal", motionAngle: 0, accelerationAngle: null },
               horizontalForces(m),
               "La velocidad constante no necesita una fuerza que la mantenga. Las únicas fuerzas son el peso y la normal, que se equilibran.",
@@ -2161,7 +2212,7 @@ svg {
             var forces = horizontalForces(m).concat([makeForce("applied", 0, force)]);
             return baseItem(this,
               "Sobre un bloque situado en un plano horizontal sin rozamiento se aplica una fuerza hacia la derecha.",
-              "Masa no especificada · La fuerza aplicada es horizontal.",
+              "Masa: 1 kg · La fuerza aplicada es horizontal.",
               { type: "horizontal", motionAngle: 0, accelerationAngle: 0 },
               forces,
               "El peso y la normal se equilibran. La fuerza aplicada es la única fuerza horizontal, por lo que la aceleración apunta hacia la derecha.",
@@ -2180,7 +2231,7 @@ svg {
             var forces = horizontalForces(m).concat([makeForce("friction", 180, mu * weight)]);
             return baseItem(this,
               "Un bloque fue lanzado hacia la derecha y ahora desliza sobre una superficie horizontal rugosa, sin que nadie lo empuje.",
-              "Masa no especificada · Coeficiente de rozamiento: " + mu + ".",
+              "Masa: 1 kg · Coeficiente de rozamiento: " + mu + ".",
               { type: "horizontal", motionAngle: 0, accelerationAngle: 180 },
               forces,
               "El rozamiento se opone al deslizamiento y apunta a la izquierda. No existe una fuerza de movimiento hacia la derecha.",
@@ -2204,7 +2255,7 @@ svg {
             ]);
             return baseItem(this,
               "Un bloque desliza hacia la derecha y aumenta su rapidez mientras una fuerza horizontal tira de él hacia la derecha.",
-              "Masa no especificada · μ = " + mu + " · La fuerza aplicada supera al rozamiento.",
+              "Masa: 1 kg · μ = " + mu + " · La fuerza aplicada supera al rozamiento.",
               { type: "horizontal", motionAngle: 0, accelerationAngle: 0 },
               forces,
               "La fuerza aplicada supera al rozamiento, de modo que la resultante horizontal y la aceleración apuntan a la derecha.",
@@ -2227,7 +2278,7 @@ svg {
             ]);
             return baseItem(this,
               "Un bloque se mueve hacia la derecha con velocidad constante sobre una superficie rugosa mientras se tira de él horizontalmente.",
-              "Masa no especificada · μ = " + mu + " · Movimiento uniforme.",
+              "Masa: 1 kg · μ = " + mu + " · Movimiento uniforme.",
               { type: "horizontal", motionAngle: 0, accelerationAngle: null },
               forces,
               "La fuerza aplicada y el rozamiento tienen el mismo módulo y sentidos opuestos. También se equilibran peso y normal.",
@@ -2248,7 +2299,7 @@ svg {
             ]);
             return baseItem(this,
               "Se empuja un bloque hacia la derecha, pero el bloque permanece en reposo sobre una superficie rugosa.",
-              "Masa no especificada · No se supera el rozamiento estático máximo.",
+              "Masa: 1 kg · No se supera el rozamiento estático máximo.",
               { type: "horizontal", motionAngle: null, accelerationAngle: null, tendencyAngle: 0, stateLabel: "reposo" },
               forces,
               "El rozamiento estático se ajusta al empuje y apunta a la izquierda. Mientras el bloque siga en reposo, ambos módulos son iguales.",
@@ -2270,7 +2321,7 @@ svg {
             ];
             return baseItem(this,
               "Un bloque asciende por un plano inclinado sin rozamiento después de haber sido lanzado. Ya no está en contacto con quien lo lanzó.",
-              "Masa no especificada · Inclinación: " + angle + "°.",
+              "Masa: 1 kg · Inclinación: " + angle + "°.",
               { type: "incline", angle: angle, motionAngle: angle, accelerationAngle: 180 + angle },
               forces,
               "Tras el lanzamiento no queda una fuerza hacia arriba del plano. Actúan el peso y la normal; la componente del peso paralela al plano frena el ascenso.",
@@ -2292,7 +2343,7 @@ svg {
             ];
             return baseItem(this,
               "Un bloque desciende cada vez más rápido por un plano inclinado sin rozamiento.",
-              "Masa no especificada · Inclinación: " + angle + "°.",
+              "Masa: 1 kg · Inclinación: " + angle + "°.",
               { type: "incline", angle: angle, motionAngle: 180 + angle, accelerationAngle: 180 + angle },
               forces,
               "Solo actúan el peso y la normal. La componente del peso paralela al plano produce la aceleración descendente.",
@@ -2316,7 +2367,7 @@ svg {
             ];
             return baseItem(this,
               "Un bloque permanece en reposo sobre un plano inclinado sin rozamiento, sostenido por una cuerda paralela al plano.",
-              "Masa no especificada · Plano: " + angle + "° · Cuerda paralela al plano.",
+              "Masa: 1 kg · Plano: " + angle + "° · Cuerda paralela al plano.",
               { type: "incline", angle: angle, ropeAngle: ropeAngle, ropeShare: 1, motionAngle: null, accelerationAngle: null, stateLabel: "reposo" },
               forces,
               "La tensión es paralela al plano y apunta hacia la parte superior. Equilibra la componente descendente del peso; la normal compensa la componente perpendicular.",
@@ -2344,7 +2395,7 @@ svg {
             ];
             return baseItem(this,
               "Un bloque permanece en reposo sobre un plano inclinado rugoso, sujeto por una cuerda paralela al plano.",
-              "Masa no especificada · Plano: " + angle + "° · Cuerda paralela al plano · T equivale al " + Math.round(share * 100) + " % de P·sin θ · μs = " + muStatic + ".",
+              "Masa: 1 kg · Plano: " + angle + "° · Cuerda paralela al plano · T equivale al " + Math.round(share * 100) + " % de P·sin θ · μs = " + muStatic + ".",
               { type: "incline", angle: angle, ropeAngle: ropeAngle, ropeShare: share, motionAngle: null, accelerationAngle: null, stateLabel: "reposo" },
               forces,
               "La cuerda es paralela al plano. Como la tensión supera la componente descendente del peso, la tendencia sería subir; por eso el rozamiento estático apunta hacia abajo y equilibra el exceso. La normal vale P·cos θ.",
@@ -2368,7 +2419,7 @@ svg {
             ];
             return baseItem(this,
               "Un bloque asciende por un plano inclinado rugoso después de ser lanzado y va perdiendo rapidez.",
-              "Masa no especificada · Inclinación: " + angle + "° · μ = " + mu + ".",
+              "Masa: 1 kg · Inclinación: " + angle + "° · μ = " + mu + ".",
               { type: "incline", angle: angle, motionAngle: angle, accelerationAngle: 180 + angle },
               forces,
               "El rozamiento apunta hacia abajo del plano porque el bloque desliza hacia arriba. El peso también contribuye a frenar mediante su componente paralela.",
@@ -2393,7 +2444,7 @@ svg {
             ];
             return baseItem(this,
               "Un bloque desciende con velocidad constante por un plano inclinado rugoso.",
-              "Masa no especificada · Inclinación: " + angle + "° · μ = " + mu + ".",
+              "Masa: 1 kg · Inclinación: " + angle + "° · μ = " + mu + ".",
               { type: "incline", angle: angle, motionAngle: 180 + angle, accelerationAngle: null },
               forces,
               "El rozamiento apunta hacia arriba del plano y equilibra la componente del peso paralela al plano. La normal equilibra la componente perpendicular.",
@@ -2417,7 +2468,7 @@ svg {
             ];
             return baseItem(this,
               "Un bloque desciende cada vez más rápido por un plano inclinado rugoso.",
-              "Masa no especificada · Inclinación: " + angle + "° · μ = " + mu + ".",
+              "Masa: 1 kg · Inclinación: " + angle + "° · μ = " + mu + ".",
               { type: "incline", angle: angle, motionAngle: 180 + angle, accelerationAngle: 180 + angle },
               forces,
               "El rozamiento apunta hacia arriba del plano, pero es menor que la componente del peso paralela al plano; por eso la resultante es descendente.",
@@ -2442,7 +2493,7 @@ svg {
             ];
             return baseItem(this,
               "Una persona mantiene un bloque en reposo apretándolo horizontalmente contra una pared vertical rugosa.",
-              "Masa no especificada · El bloque permanece en equilibrio.",
+              "Masa: 1 kg · El bloque permanece en equilibrio.",
               { type: "wall", motionAngle: null, accelerationAngle: null, stateLabel: "reposo" },
               forces,
               "La pared ejerce una normal opuesta al empuje. El rozamiento estático apunta hacia arriba y equilibra el peso.",
@@ -2468,7 +2519,7 @@ svg {
             ];
             return baseItem(this,
               "Un bloque desciende por un plano inclinado rugoso y una fuerza paralela al plano tira de él hacia abajo. Su rapidez aumenta.",
-              "Masa no especificada · θ = " + angle + "° · μ = " + mu + ".",
+              "Masa: 1 kg · θ = " + angle + "° · μ = " + mu + ".",
               { type: "incline", angle: angle, motionAngle: 180 + angle, accelerationAngle: 180 + angle },
               forces,
               "La fuerza aplicada y la componente paralela del peso favorecen el descenso; el rozamiento se opone y apunta hacia arriba.",
@@ -2494,7 +2545,7 @@ svg {
             ];
             return baseItem(this,
               "Un bloque se mueve hacia arriba por un plano inclinado rugoso, mientras una fuerza paralela al plano tira de él hacia abajo. El bloque pierde rapidez.",
-              "Masa no especificada · θ = " + angle + "° · μ = " + mu + ".",
+              "Masa: 1 kg · θ = " + angle + "° · μ = " + mu + ".",
               { type: "incline", angle: angle, motionAngle: angle, accelerationAngle: 180 + angle },
               forces,
               "Mientras el bloque sube, tanto el rozamiento como la fuerza aplicada apuntan hacia abajo del plano. La componente paralela del peso también favorece la desaceleración.",
@@ -2521,7 +2572,7 @@ svg {
             ];
             return baseItem(this,
               "Un bloque desciende por un plano inclinado rugoso mientras una fuerza paralela al plano tira de él hacia arriba. Aun así, su rapidez aumenta.",
-              "Masa no especificada · θ = " + angle + "° · μ = " + mu + ".",
+              "Masa: 1 kg · θ = " + angle + "° · μ = " + mu + ".",
               { type: "incline", angle: angle, motionAngle: 180 + angle, accelerationAngle: 180 + angle },
               forces,
               "La fuerza aplicada y el rozamiento apuntan hacia arriba, pero su suma es menor que la componente descendente del peso; la resultante sigue apuntando hacia abajo.",
@@ -2548,7 +2599,7 @@ svg {
             ];
             return baseItem(this,
               "Un bloque asciende cada vez más rápido por un plano inclinado rugoso gracias a una fuerza paralela al plano dirigida hacia arriba.",
-              "Masa no especificada · θ = " + angle + "° · μ = " + mu + ".",
+              "Masa: 1 kg · θ = " + angle + "° · μ = " + mu + ".",
               { type: "incline", angle: angle, motionAngle: angle, accelerationAngle: angle },
               forces,
               "La fuerza aplicada apunta hacia arriba y supera la suma del rozamiento y la componente paralela del peso, ambos dirigidos hacia abajo del plano.",
@@ -2708,6 +2759,15 @@ svg {
         var baseY = end.y - uy * head;
         var px = -uy;
         var py = ux;
+        if (!muted) {
+          group.appendChild(svgEl("line", {
+            x1: origin.x,
+            y1: origin.y,
+            x2: baseX,
+            y2: baseY,
+            "class": "fa-force-outline" + (expected ? " fa-expected-line" : "")
+          }));
+        }
         var line = svgEl("line", {
           x1: origin.x,
           y1: origin.y,
