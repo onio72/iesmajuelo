@@ -54,7 +54,7 @@ En 3.º y 4.º ESO y Bachillerato, pulsa una materia en cada tramo simultáneo. 
 
 Las elecciones se guardan por identificador de horario en este navegador (localStorage); no se envían al centro ni se incluyen en el enlace compartido. **Restablecer elecciones** borra las del horario visible. Un cambio en las opciones de una sesión invalida su elección anterior. Con almacenamiento bloqueado, funcionan durante la visita actual.
 
-El botón de impresión se habilita cuando todos los tramos simultáneos están resueltos. La impresión utiliza A4 horizontal, muestra todos los días y conserva etiquetas, materia, profesor y aula. Si se imprime directamente desde el navegador con elecciones pendientes, esas celdas dicen «Materia pendiente de elegir». FP, 1.º/2.º ESO y educación de adultos mantienen la consulta completa sin selector de materias.
+El botón de impresión se habilita cuando todos los tramos simultáneos están resueltos. La impresión utiliza A4 horizontal, muestra todos los días y conserva materia, profesor y aula; las etiquetas de bloque se muestran solo en pantalla. Si se imprime directamente desde el navegador con elecciones pendientes, esas celdas dicen «Materia pendiente de elegir». FP, 1.º/2.º ESO y educación de adultos mantienen la consulta completa sin selector de materias.
 
 ### Editar `bloques.txt`
 
