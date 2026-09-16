@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#163f3c">
+  <title>Horarios de grupo</title>
+  <link rel="stylesheet" href="estilos.css">
+  <script defer src="datos.js"></script>
+  <script defer src="bloques.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header><div class="brand"><span class="mark" aria-hidden="true">H</span><div><p class="eyebrow">CONSULTA DE HORARIOS</p><p id="centro"></p></div></div><span class="badge">Provisional</span></header>
+  <main>
+    <section class="intro"><p class="eyebrow">TU SEMANA, DE UN VISTAZO</p><h1>Encuentra tu horario.</h1><p>Elige tu enseñanza, grupo y modalidad para consultar las clases de la semana.</p></section>
+    <form class="filters" aria-label="Seleccionar horario" onsubmit="return false">
+      <label>Enseñanza<select id="etapa"></select></label>
+      <label>Curso / ciclo<select id="curso"></select></label>
+      <label>Grupo<select id="grupo"></select></label>
+      <label>Modalidad<select id="variante"></select></label>
+    </form>
+    <section aria-labelledby="titulo">
+      <div class="toolbar"><div><p class="eyebrow">HORARIO SEMANAL</p><h2 id="titulo"></h2><p id="resumen" role="status" aria-live="polite"></p></div><button id="imprimir" type="button">Imprimir / PDF</button></div>
+      <p class="hint" id="ayuda-seleccion"></p>
+      <div id="personalizar" hidden>
+        <div class="selection-tools"><p id="estado-seleccion" role="status" aria-live="polite"></p><button id="restablecer" type="button">Restablecer elecciones</button></div>
+        <p class="hint">Elige las materias y profesores que te ha asignado el centro. Las elecciones se guardan en este navegador y no se envían al centro.</p>
+      </div>
+      <div class="day-picker"><label>Día de la semana<select id="dia"><option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option></select></label></div>
+      <div id="horario"></div>
+    </section>
+    <footer><span id="actualizacion"></span><span>Horario provisional · Sujeto a cambios</span></footer>
+    <noscript>Activa JavaScript para consultar los horarios.</noscript>
+  </main>
+</body>
+</html>
