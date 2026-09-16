@@ -104,3 +104,27 @@ console.log('OK: elecciones, propagación, aislamiento, restablecer, FP y archiv
 const html = fs.readFileSync(`${__dirname}/index.html`, 'utf8');
 assert.ok(!/archivo-bloques|lista-bloques|estado-config|type="file"/.test(html));
 console.log('OK: la interfaz pública no incluye carga de TXT ni los apartados eliminados.');
+
+// Comprueba la carga automática del TXT en la web publicada, sin interfaz de archivos.
+(async () => {
+ const current = context.window.HORARIOS.grupos.find(g => g.id === 'test-pares');
+ current.actividades = current.actividades.filter(a => a.dia !== 2 || a.materiaId === 'A');
+ context.location.protocol = 'https:';
+ context.location.hash = '#grupo=test-pares';
+ context.console = console;
+ const requests = [];
+ context.fetch = async (url, options) => {
+   requests.push({url, options});
+   return {ok: true, text: async () => '4ºESO, L1, B2\n4ºESO, M1, B3'};
+ };
+ vm.runInContext(fs.readFileSync(`${__dirname}/app.js`, 'utf8'), context);
+ await new Promise(resolve => setImmediate(resolve));
+ assert.equal(requests[0].url, 'bloques.txt');
+ const label = code => slots().find(c => c.dataset.slot === code).children.find(e => e.className === 'block-label')?.textContent;
+ assert.equal(label('L1'), 'B2', 'Etiqueta con varias opciones');
+ assert.equal(label('M1'), 'B3', 'Etiqueta con una sola materia');
+ assert.equal(label('X1'), undefined, 'No se inventan etiquetas');
+ findButton(slots().find(c => c.dataset.slot === 'L1')).events.click();
+ assert.equal(label('L1'), 'B2', 'La etiqueta permanece tras elegir');
+ console.log('OK: etiquetas del TXT en tramos múltiples, únicos y seleccionados.');
+})().catch(error => { console.error(error); process.exitCode = 1; });

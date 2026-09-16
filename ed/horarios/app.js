@@ -117,7 +117,7 @@
         const cell = cells.find(c => c.key === `${i + 1}|${slot}`);
         const activities = cell.activities;
         td.dataset.slot = cell.code;
-        if (cell.label && activities.length > 1) td.append(node('strong', cell.label, 'block-label'));
+        if (cell.label) td.append(node('strong', cell.label, 'block-label'));
         if (interactive && activities.length > 1) {
           const chosen = selected(cell);
           if (chosen) {

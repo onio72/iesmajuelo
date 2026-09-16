@@ -71,7 +71,7 @@ Archivo UTF-8, una asignación por línea, separada por comas o punto y coma:
 
 Estos son ejemplos de formato, **no asignaciones oficiales**. Las líneas sin # son las asignaciones activas; revisa que correspondan a la distribución oficial antes de publicar. `#` inicia un comentario. Cursos admitidos: `3ºESO`, `4ºESO`, `1ºBACH`, `2ºBACH` (también sus nombres completos). Días: **L, M, X, J, V**. El número es la posición de la franja lectiva en el horario ordenado por hora de inicio; no se cuenta un recreo sin actividades. `L1` significa lunes a primera hora.
 
-La cuarta columna opcional usa la abreviatura de `datos.js` (por ejemplo `4A`, `4CBi`, `4CDiv`), no solo la letra del grupo. Tiene prioridad sobre la regla general del curso. Una misma etiqueta enlaza sesiones dentro de un horario: usa etiquetas distintas para bloques independientes. No se rotulan las celdas con una sola actividad ni se aplica configuración a FP.
+La cuarta columna opcional usa la abreviatura de `datos.js` (por ejemplo `4A`, `4CBi`, `4CDiv`), no solo la letra del grupo. Tiene prioridad sobre la regla general del curso. Una misma etiqueta enlaza sesiones dentro de un horario: usa etiquetas distintas para bloques independientes. Se rotulan todos los tramos registrados en el TXT, incluso si tienen una sola actividad o ya se ha seleccionado la materia. No se aplica configuración a FP.
 
 La configuración se edita únicamente en el repositorio, mediante `bloques.txt`. La web pública no ofrece carga, descarga ni edición de archivos ni un listado adicional de bloques. Al servir/publicar la carpeta, las etiquetas se cargan automáticamente. Al abrir mediante `file://`, el selector funciona sin las etiquetas de este archivo.
 
