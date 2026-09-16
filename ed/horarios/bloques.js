@@ -9,7 +9,7 @@ window.BloquesHorario = (() => {
       if (!line) return;
       const parts = line.split(/[,;]/).map(s => s.trim());
       const [course, slot, label, group = '*'] = parts;
-      const key = `${normal(course)}|${slot?.toUpperCase()}|${normal(group)}`;
+      const key = `${normal(course)}|${slot?.toUpperCase()}|${normal(group)}|${label}`;
       if (parts.length < 3 || parts.length > 4 || !/^(3ESO|4ESO|1BACH|2BACH)$/.test(normal(course)) || !/^[LMXJV][1-9]\d*$/i.test(slot || '') || !label || label.length > 30 || !group || seen.has(key)) {
         errors.push(`Línea ${i + 1}: revisa curso, tramo, etiqueta y grupo; no repitas una asignación.`);
       } else {
@@ -21,7 +21,8 @@ window.BloquesHorario = (() => {
   const eligible = g => (g.etapa === 'ESO' && /^[34]/.test(g.curso)) || g.etapa === 'Bachillerato';
   function label(rules, g, slot) {
     const found = rules.filter(r => r.course === normal(g.curso) && r.slot === slot && (r.group === '*' || r.group === normal(g.abreviatura)));
-    return (found.find(r => r.group !== '*') || found[0])?.label || '';
+    const specific = found.filter(r => r.group !== '*');
+    return [...new Set((specific.length ? specific : found).map(r => r.label))].join(' · ');
   }
   const option = a => JSON.stringify([a.materiaId, a.profesor]);
   const signature = activities => JSON.stringify(activities.map(option).sort());

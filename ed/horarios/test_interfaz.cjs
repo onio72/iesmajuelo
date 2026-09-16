@@ -76,7 +76,11 @@ assert.equal(parsed.errors.length, 0);
 assert.equal(B.label(parsed.rules, context.window.HORARIOS.grupos.find(g => g.id === '11'), 'L1'), 'B2');
 assert.equal(B.label(parsed.rules, context.window.HORARIOS.grupos.find(g => g.id === '74'), 'L1'), 'B3');
 assert.equal(B.parse('4ºESO, Q1, B1').errors.length, 1);
-assert.equal(B.parse('4ºESO, L1, B1\n4ºESO, L1, B2').errors.length, 1);
+assert.equal(B.parse('4ºESO, L1, B1\n4ºESO, L1, B2').errors.length, 0);
+const actualRules = B.parse(fs.readFileSync(`${__dirname}/bloques.txt`, 'utf8'));
+assert.equal(actualRules.errors.length, 0, 'El TXT publicado debe ser válido');
+const multiple = B.parse('4ºESO, L1, B3\n4ºESO, L1, B1');
+assert.equal(B.label(multiple.rules, context.window.HORARIOS.grupos.find(g => g.id === '11'), 'L1'), 'B3 · B1');
 assert.equal(B.parse('# solo comentarios').rules.length, 0);
 console.log('OK: elecciones, propagación, aislamiento, restablecer, FP y archivo de bloques.');
 (() => {
