@@ -50,3 +50,20 @@
   .block-label.block-badge{background:#154b85;border-color:#154b85;color:#fff}
   .block-label.group-badge{background:#75388b;border-color:#75388b;color:#fff}
 }
+
+.print-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+#horario-bloques{display:none}
+@media(max-width:700px){.toolbar .print-actions button{max-width:none}.print-actions{flex-direction:column;align-items:stretch}}
+@media print{
+  .print-actions{display:none!important}
+  body[data-print-mode="blocks"] #horario{display:none!important}
+  body[data-print-mode="blocks"] #horario-bloques{display:block;border:1px solid #000}
+  body[data-print-mode="blocks"] footer{display:none!important}
+  #horario-bloques table{width:100%;border-collapse:collapse;background:#fff;color:#000}
+  #horario-bloques th,#horario-bloques td{border:1px solid #000;background:#fff!important;color:#000!important;text-align:center;vertical-align:middle;padding:3mm;font-size:14pt}
+  #horario-bloques thead th:first-child{width:40mm}
+  #horario-bloques tbody tr{height:22mm;break-inside:avoid}
+  #horario-bloques td{font-size:18pt;font-weight:700}
+  #horario-bloques .block-time strong,#horario-bloques .block-time span{display:block}
+  #horario-bloques .block-time span{margin-top:2mm;font-size:10pt;font-weight:400}
+}

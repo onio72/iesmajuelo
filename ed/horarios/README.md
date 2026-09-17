@@ -107,3 +107,7 @@ Por indicación del centro, A, B y C ofrecen las cinco materias de cada bloque:
 `bloques.js` reúne las actividades de esos grupos en las sesiones de Física (B2) y Química (B3), sin duplicar materia/profesor/aula ni alterar `datos.js`. Conserva el profesor y el aula de cada sesión. Los demás bloques y las variantes de ESO siguen utilizando sus actividades originales. Al ampliarse las opciones, las elecciones anteriores del bloque afectado quedan pendientes para permitir elegir entre las cinco materias.
 
 Se han retirado los avisos de horario provisional de la cabecera y del pie.
+
+## PDF de bloques y grupos
+
+El botón «PDF de bloques y grupos» abre la impresión del navegador para guardar un segundo PDF en A4 horizontal. Usa el grupo y modalidad seleccionados y muestra la semana completa: días, número y horas de cada tramo, y las etiquetas de `bloques.txt`. Las celdas sin asignación permanecen blancas y vacías. No incluye materias, profesores ni aulas, y no exige completar las elecciones del alumno. Se habilita cuando el horario tiene etiquetas cargadas. El PDF de materias mantiene su botón y comportamiento habitual.

@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#163f3c">
   <title>Horarios de grupo</title>
-  <link rel="stylesheet" href="estilos.css?v=20260917-8">
-  <script defer src="datos.js?v=20260917-8"></script>
-  <script defer src="bloques.js?v=20260917-8"></script>
-  <script defer src="materias.js?v=20260917-8"></script>
-  <script defer src="aulas.js?v=20260917-8"></script>
-  <script defer src="app.js?v=20260917-8"></script>
+  <link rel="stylesheet" href="estilos.css?v=20260917-9">
+  <script defer src="datos.js?v=20260917-9"></script>
+  <script defer src="bloques.js?v=20260917-9"></script>
+  <script defer src="materias.js?v=20260917-9"></script>
+  <script defer src="aulas.js?v=20260917-9"></script>
+  <script defer src="app.js?v=20260917-9"></script>
 </head>
 <body>
   <header><div class="brand"><span class="mark" aria-hidden="true">H</span><div><p class="eyebrow">CONSULTA DE HORARIOS</p><p id="centro"></p></div></div></header>
@@ -23,7 +23,7 @@
       <label>Modalidad<select id="variante"></select></label>
     </form>
     <section aria-labelledby="titulo">
-      <div class="toolbar"><div><p class="eyebrow">HORARIO SEMANAL</p><h2 id="titulo"></h2><p id="resumen" role="status" aria-live="polite"></p></div><button id="imprimir" type="button">Imprimir / PDF</button></div>
+      <div class="toolbar"><div><p class="eyebrow">HORARIO SEMANAL</p><h2 id="titulo"></h2><p id="resumen" role="status" aria-live="polite"></p></div><div class="print-actions"><button id="imprimir" type="button">Imprimir / PDF</button><button id="imprimir-bloques" type="button" disabled>PDF de bloques y grupos</button></div></div>
       <p class="hint" id="ayuda-seleccion"></p>
       <div id="personalizar" hidden>
         <div class="selection-tools"><p id="estado-seleccion" role="status" aria-live="polite"></p><button id="restablecer" type="button">Restablecer elecciones</button></div>
@@ -31,6 +31,7 @@
       </div>
       <div class="day-picker"><label>Día de la semana<select id="dia"><option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option></select></label></div>
       <div id="horario"></div>
+      <div id="horario-bloques" aria-hidden="true"></div>
     </section>
     <footer><span id="actualizacion"></span></footer>
     <noscript>Activa JavaScript para consultar los horarios.</noscript>

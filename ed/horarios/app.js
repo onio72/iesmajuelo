@@ -68,6 +68,29 @@
         cells.push({key: `${i + 1}|${slot}`, code, activities, label: interactive ? B.label(rules, g, code) : ''});
       });
     });
+    const hasBlocks = cells.some(c => c.label);
+    $('imprimir-bloques').disabled = !hasBlocks;
+    $('imprimir-bloques').title = hasBlocks ? 'Imprimir solo las etiquetas de bloques y grupos.' : 'No hay bloques o grupos configurados para este horario.';
+    const blockTable = node('table');
+    const blockHead = node('thead'), blockHeader = node('tr');
+    ['Tramo', ...days].forEach(text => {
+      const th = node('th', text); th.scope = 'col'; blockHeader.append(th);
+    });
+    blockHead.append(blockHeader);
+    const blockBody = node('tbody');
+    slots.forEach((slot, hour) => {
+      const row = node('tr');
+      const time = node('th', undefined, 'block-time'); time.scope = 'row';
+      time.append(node('strong', `${hour + 1}.º`), node('span', slot.replace('|', ' – ')));
+      row.append(time);
+      days.forEach((_, day) => {
+        const cell = cells.find(c => c.code === `${'LMXJV'[day]}${hour + 1}`);
+        row.append(node('td', cell.label));
+      });
+      blockBody.append(row);
+    });
+    blockTable.append(blockHead, blockBody);
+    $('horario-bloques').replaceChildren(blockTable);
     const choices = saved[g.id] || (saved[g.id] = {});
     const selected = cell => {
       const choice = choices[cell.key];
@@ -161,7 +184,13 @@
   }
   fields.forEach((f, i) => $(f).addEventListener('change', () => populate(i + 1)));
   $('dia').addEventListener('change', updateDay);
-  $('imprimir').addEventListener('click', () => { if (!$('imprimir').disabled) window.print(); });
+  function print(mode) {
+    document.body.dataset.printMode = mode;
+    window.print();
+  }
+  $('imprimir').addEventListener('click', () => { if (!$('imprimir').disabled) print('subjects'); });
+  $('imprimir-bloques').addEventListener('click', () => { if (!$('imprimir-bloques').disabled) print('blocks'); });
+  window.addEventListener('afterprint', () => { delete document.body.dataset.printMode; });
   $('restablecer').addEventListener('click', () => { delete saved[selection().id]; persist(); render(); });
   // La configuración del centro se mantiene en el repositorio; no se edita desde la web.
   if (location.protocol !== 'file:') {

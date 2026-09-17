@@ -13,9 +13,9 @@ class Element {
 }
 const descendants = e => e.children.flatMap(c => [c, ...descendants(c)]);
 const elements = {};
-for (const id of ['etapa','curso','grupo','variante','centro','actualizacion','dia','titulo','resumen','horario','imprimir','personalizar','ayuda-seleccion','estado-seleccion','restablecer']) elements[id] = new Element();
+for (const id of ['etapa','curso','grupo','variante','centro','actualizacion','dia','titulo','resumen','horario','imprimir','imprimir-bloques','horario-bloques','personalizar','ayuda-seleccion','estado-seleccion','restablecer']) elements[id] = new Element();
 const events = {};
-const context = {document: {getElementById: id => elements[id], createElement: t => new Element(t), querySelectorAll: () => [], querySelector: () => null},
+const context = {document: {body: new Element(), getElementById: id => elements[id], createElement: t => new Element(t), querySelectorAll: () => [], querySelector: () => null},
   Option: function(text, value) { const e = new Element('option',text); e.value = value; return e; },
   location: {hash: '', protocol: 'file:'}, URLSearchParams, Date, window: {addEventListener: (t,fn) => events[t] = fn, print(){}}};
 vm.createContext(context);
@@ -183,6 +183,40 @@ console.log('OK: B2 completo en A/B/C; sin aviso de horario provisional.');
      assert.ok(badge.className.includes(`${B.kind(rule.label)}-badge`));
    }
  }
+ // El segundo PDF no depende de haber elegido las materias del alumno.
+ let printCalls = 0;
+ context.window.print = () => { printCalls++; };
+ elements.restablecer.events.click();
+ assert.equal(elements.imprimir.disabled, true);
+ assert.equal(elements['imprimir-bloques'].disabled, false);
+ elements['imprimir-bloques'].events.click();
+ assert.equal(printCalls, 1);
+ assert.equal(context.document.body.dataset.printMode, 'blocks');
+ const blockTable = elements['horario-bloques'].children[0];
+ assert.equal(blockTable.children[0].children[0].children.length, 6);
+ const rows = blockTable.children[1].children;
+ assert.equal(rows.length, 6);
+ let labels = 0;
+ rows.forEach((row, hour) => row.children.slice(1).forEach((cell, day) => {
+   const rule = secondRules.find(r => r.slot === `${'LMXJV'[day]}${hour + 1}`);
+   assert.equal(cell.textContent, rule?.label || '');
+   if (cell.textContent) labels++;
+ }));
+ assert.equal(labels, 16);
+ assert.equal(descendants(blockTable).filter(e => e.tagName === 'article').length, 0);
+ events.afterprint();
+ assert.equal(context.document.body.dataset.printMode, undefined);
+ // El PDF de materias vuelve a usar su modo habitual.
+ elements.imprimir.disabled = false;
+ elements.imprimir.events.click();
+ assert.equal(context.document.body.dataset.printMode, 'subjects');
+ events.afterprint();
+ const fpGroup = context.window.HORARIOS.grupos.find(g => g.etapa === 'Formación profesional');
+ context.location.hash = `#grupo=${fpGroup.id}`; events.hashchange();
+ assert.equal(elements['imprimir-bloques'].disabled, true);
+ elements['imprimir-bloques'].events.click();
+ assert.equal(printCalls, 2);
+ console.log('OK: segundo PDF con 16 etiquetas, 14 celdas vacías y semana completa; impresión independiente.');
  console.log('OK: etiquetas del TXT en tramos múltiples, únicos y seleccionados.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
 
