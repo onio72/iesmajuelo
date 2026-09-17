@@ -76,3 +76,7 @@ La cuarta columna opcional usa la abreviatura de `datos.js` (por ejemplo `4A`, `
 La configuración se edita únicamente en el repositorio, mediante `bloques.txt`. La web pública no ofrece carga, descarga ni edición de archivos ni un listado adicional de bloques. Al servir/publicar la carpeta, las etiquetas se cargan automáticamente. Al abrir mediante `file://`, el selector funciona sin las etiquetas de este archivo.
 
 Publica HTML, CSS, `datos.js`, `bloques.js`, `bloques.txt` y `app.js` juntos. Si el archivo de bloques contiene errores, la selección de materias sigue disponible y la consola del navegador informa del problema.
+
+## Aspecto e impresión
+
+En pantalla, cada materia tiene fondo de color y borde marcado. La materia aparece destacada, el aula inmediatamente debajo en una insignia y el profesor en texto secundario. El PDF y la impresión usan fondo blanco y texto y líneas negros, sin colores ni etiquetas de bloque.

@@ -48,9 +48,11 @@
   }
   function card(a) {
     const c = node('article', undefined, 'class-card');
-    const hue = [...a.materiaId].reduce((sum, ch) => (sum * 31 + ch.charCodeAt(0)) >>> 0, 0) % 360;
-    c.style.setProperty('--subject-color', `hsl(${hue} 38% 40%)`);
-    c.append(node('h3', subjectName(a.materia)), node('p', a.profesor, 'teacher'), node('p', `Aula: ${a.aula}`, 'room'));
+    const hash = [...a.materiaId].reduce((sum, ch) => (sum * 31 + ch.charCodeAt(0)) >>> 0, 0);
+    const hue = Math.round(hash * 137.508) % 360;
+    c.style.setProperty('--subject-color', `hsl(${hue} 60% 34%)`);
+    c.style.setProperty('--subject-background', `hsl(${hue} 65% 90%)`);
+    c.append(node('h3', subjectName(a.materia)), node('p', `Aula: ${a.aula}`, 'room'), node('p', a.profesor, 'teacher'));
     return c;
   }
   function render() {
