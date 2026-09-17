@@ -38,7 +38,7 @@ for (const g of context.window.HORARIOS.grupos) {
 // Cambiar enseñanza debe recalcular todos los desplegables dependientes.
 elements.etapa.value = 'ESO'; elements.etapa.events.change();
 assert.ok(elements.curso.children.every(e => e.value.endsWith('ESO')));
-console.log('OK: filtros, modalidades, navegación y clases renderizadas de los 70 horarios.');
+console.log(`OK: filtros, modalidades, navegación y clases renderizadas de los ${context.window.HORARIOS.grupos.length} horarios.`);
 
 // Seleccionar deja una sola materia y propaga sesiones con las mismas opciones.
 context.location.hash = '#grupo=11'; events.hashchange();
