@@ -24,8 +24,28 @@ window.BloquesHorario = (() => {
     const specific = found.filter(r => r.group !== '*');
     return [...new Set((specific.length ? specific : found).map(r => r.label))].join(' · ');
   }
+  // B3 de 2.º Bachillerato es una oferta común, confirmada por el centro.
+  // El XML reparte sus cinco materias entre A, B y C. Se reúnen únicamente
+  // en las sesiones de Química, conservando el profesor y aula de cada día.
+  function activities(g, groups) {
+    if (g.etapa !== 'Bachillerato' || normal(g.curso) !== '2BACH') return g.actividades;
+    const peers = groups.filter(other => other.etapa === g.etapa && other.curso === g.curso);
+    const key = a => JSON.stringify([a.dia, a.inicio, a.fin]);
+    const sharedSlots = new Set(peers.flatMap(other => other.actividades)
+      .filter(a => a.materiaId === '73').map(key));
+    const subjects = new Set(['73', '131', '65', '64', '275']);
+    const result = [...g.actividades];
+    const identity = a => JSON.stringify([a.dia, a.inicio, a.fin, a.materiaId, a.profesor, a.aula]);
+    const seen = new Set(result.map(identity));
+    for (const other of peers) for (const a of other.actividades) {
+      if (sharedSlots.has(key(a)) && subjects.has(a.materiaId) && !seen.has(identity(a))) {
+        result.push(a); seen.add(identity(a));
+      }
+    }
+    return result;
+  }
   const kind = label => /^(?:G\s*\d|Grupo\b)/i.test(label.trim()) ? 'group' : 'block';
   const option = a => JSON.stringify([a.materiaId, a.profesor]);
   const signature = activities => JSON.stringify(activities.map(option).sort());
-  return {parse, eligible, label, kind, option, signature};
+  return {parse, eligible, label, kind, option, signature, activities};
 })();

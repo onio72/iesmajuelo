@@ -33,7 +33,7 @@ for (const g of context.window.HORARIOS.grupos) {
   const table = elements.horario.children[0];
   const body = table.children[2];
   const cards = descendants(body).filter(e => e.tagName === 'article');
-  assert.equal(cards.length, g.actividades.length, g.id);
+  assert.equal(cards.length, g.actividades.length + ({'15': 12, '16': 4, '17': 8}[g.id] || 0), g.id);
 }
 // Cambiar enseñanza debe recalcular todos los desplegables dependientes.
 elements.etapa.value = 'ESO'; elements.etapa.events.change();
@@ -109,6 +109,31 @@ const html = fs.readFileSync(`${__dirname}/index.html`, 'utf8');
 assert.ok(!/archivo-bloques|lista-bloques|estado-config|type="file"/.test(html));
 console.log('OK: la interfaz pública no incluye carga de TXT ni los apartados eliminados.');
 
+// B3 ofrece cinco materias en A, B y C, y conserva el aula de cada sesión.
+for (const id of ['15', '16', '17']) {
+ context.location.hash = `#grupo=${id}`; events.hashchange();
+ elements.restablecer.events.click();
+ for (const code of ['L2', 'M1', 'J4', 'V3']) {
+  const cell = slots().find(c => c.dataset.slot === code);
+  const cards = descendants(cell).filter(e => e.tagName === 'article');
+  assert.equal(cards.length, 5, `${id} ${code}`);
+  const names = cards.map(c => c.children[0].textContent);
+  for (const name of ['Química', 'Tecnología', 'Empresa', 'Geografía', 'Griego'])
+   assert.ok(names.some(n => n.startsWith(name)), `${id} ${code} ${name}`);
+ }
+ const monday = slots().find(c => c.dataset.slot === 'L2');
+ const greek = monday.children.find(e => e.className === 'choose-subject' && descendants(e).some(c => c.tagName === 'h3' && c.textContent.startsWith('Griego')));
+ greek.events.click();
+ for (const [code, room] of [['L2','79'], ['M1','79'], ['J4','86'], ['V3','79']]) {
+  const cell = slots().find(c => c.dataset.slot === code);
+  const cards = descendants(cell).filter(e => e.tagName === 'article');
+  assert.equal(cards.length, 1);
+  assert.ok(cards[0].children[0].textContent.startsWith('Griego'));
+  assert.ok(cards[0].children[1].textContent.includes(room));
+ }
+}
+console.log('OK: cinco materias de B3 en A/B/C; elección de Griego propagada con el aula de cada día.');
+
 // Comprueba la carga automática del TXT en la web publicada, sin interfaz de archivos.
 (async () => {
  const current = context.window.HORARIOS.grupos.find(g => g.id === 'test-pares');
@@ -158,3 +183,4 @@ for (const g of secondYear) {
  for (const r of secondRules) assert.equal(B.label(actualRules.rules, g, r.slot), r.label);
 }
 console.log('OK: 16 etiquetas de 2.º Bachillerato en A, B y C; bloques y grupos con estilos distintos.');
+

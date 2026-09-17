@@ -56,15 +56,14 @@
     $('titulo').textContent = title;
     $('resumen').textContent = g.variante === 'General' ? `${g.etapa} · ${g.curso}` : g.variante;
     document.title = `${title} · ${g.variante} · Horarios`;
-    // Cada registro HORARIO_GRUP contiene su variante completa. No hereda
-    // las actividades del grupo ordinario, ni se mezcla con otras variantes.
-    const slots = [...new Set(g.actividades.map(a => `${a.inicio}|${a.fin}`))].sort(compare);
+    const groupActivities = B.activities(g, data.grupos);
+    const slots = [...new Set(groupActivities.map(a => `${a.inicio}|${a.fin}`))].sort(compare);
     const interactive = B.eligible(g);
     const cells = [];
     slots.forEach((slot, hour) => {
       const [inicio, fin] = slot.split('|');
       days.forEach((_, i) => {
-        const activities = g.actividades.filter(a => a.dia === i + 1 && a.inicio === inicio && a.fin === fin);
+        const activities = groupActivities.filter(a => a.dia === i + 1 && a.inicio === inicio && a.fin === fin);
         const code = `${'LMXJV'[i]}${hour + 1}`;
         cells.push({key: `${i + 1}|${slot}`, code, activities, label: interactive ? B.label(rules, g, code) : ''});
       });
