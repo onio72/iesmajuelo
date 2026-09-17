@@ -114,7 +114,14 @@
         const activities = cell.activities;
         td.dataset.slot = cell.code;
         const slotHeading = node('div', undefined, 'slot-heading');
-        if (cell.label) { slotHeading.append(node('strong', cell.label, 'block-label')); td.append(slotHeading); }
+        if (cell.label) {
+          cell.label.split(' · ').forEach(label => {
+            const badge = node('strong', label, `block-label ${B.kind(label)}-badge`);
+            badge.title = B.kind(label) === 'group' ? 'Grupo de materias' : 'Bloque de materias';
+            slotHeading.append(badge);
+          });
+          td.append(slotHeading);
+        }
         if (interactive && activities.length > 1) {
           const chosen = selected(cell);
           if (chosen) {

@@ -24,7 +24,8 @@ window.BloquesHorario = (() => {
     const specific = found.filter(r => r.group !== '*');
     return [...new Set((specific.length ? specific : found).map(r => r.label))].join(' · ');
   }
+  const kind = label => /^(?:G\s*\d|Grupo\b)/i.test(label.trim()) ? 'group' : 'block';
   const option = a => JSON.stringify([a.materiaId, a.profesor]);
   const signature = activities => JSON.stringify(activities.map(option).sort());
-  return {parse, eligible, label, option, signature};
+  return {parse, eligible, label, kind, option, signature};
 })();

@@ -124,11 +124,37 @@ console.log('OK: la interfaz pública no incluye carga de TXT ni los apartados e
  vm.runInContext(fs.readFileSync(`${__dirname}/app.js`, 'utf8'), context);
  await new Promise(resolve => setImmediate(resolve));
  assert.equal(requests[0].url, 'bloques.txt');
- const label = code => descendants(slots().find(c => c.dataset.slot === code)).find(e => e.className === 'block-label')?.textContent;
+ const label = code => descendants(slots().find(c => c.dataset.slot === code)).find(e => e.className?.split(' ').includes('block-label'))?.textContent;
  assert.equal(label('L1'), 'B2', 'Etiqueta con varias opciones');
  assert.equal(label('M1'), 'B3', 'Etiqueta con una sola materia');
  assert.equal(label('X1'), undefined, 'No se inventan etiquetas');
  findButton(slots().find(c => c.dataset.slot === 'L1')).events.click();
  assert.equal(label('L1'), 'B2', 'La etiqueta permanece tras elegir');
+ context.fetch = async () => ({ok: true, text: async () => fs.readFileSync(`${__dirname}/bloques.txt`, 'utf8')});
+ vm.runInContext(fs.readFileSync(`${__dirname}/app.js`, 'utf8'), context);
+ await new Promise(resolve => setImmediate(resolve));
+ for (const g of secondYear) {
+   context.location.hash = `#grupo=${g.id}`; events.hashchange();
+   for (const rule of secondRules) {
+     const cell = slots().find(c => c.dataset.slot === rule.slot);
+     assert.ok(cell, `${g.id}: existe ${rule.slot}`);
+     const badge = descendants(cell).find(e => e.className?.split(' ').includes('block-label'));
+     assert.equal(badge?.textContent, rule.label);
+     assert.ok(badge.className.includes(`${B.kind(rule.label)}-badge`));
+   }
+ }
  console.log('OK: etiquetas del TXT en tramos múltiples, únicos y seleccionados.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
+
+assert.equal(B.kind('B1'), 'block');
+assert.equal(B.kind('Bloque 2'), 'block');
+assert.equal(B.kind('G2'), 'group');
+assert.equal(B.kind('Grupo 1'), 'group');
+const secondYear = context.window.HORARIOS.grupos.filter(g => g.curso === '2.º Bachillerato');
+assert.equal(secondYear.length, 3);
+const secondRules = actualRules.rules.filter(r => r.course === '2BACH');
+assert.equal(secondRules.length, 16);
+for (const g of secondYear) {
+ for (const r of secondRules) assert.equal(B.label(actualRules.rules, g, r.slot), r.label);
+}
+console.log('OK: 16 etiquetas de 2.º Bachillerato en A, B y C; bloques y grupos con estilos distintos.');

@@ -90,3 +90,5 @@ Las correcciones se aplican en pantalla, en las etiquetas accesibles y en el PDF
 Para comprobar la cobertura del catálogo sobre la exportación actual: `node test_materias.cjs`.
 
 Los nombres de las aulas se corrigen en `aulas.js`: se elimina el prefijo «a.», se reparan letras y tildes y se unifica la escritura. Se aplica a pantalla, lectores de pantalla y PDF sin modificar las aulas originales ni las elecciones guardadas. Incluye `aulas.js` al publicar.
+
+En pantalla, las etiquetas de bloque (`B1`, `Bloque 1`, etc.) son azules y las de grupo (`G1`, `Grupo 1`, etc.) moradas. Si un tramo tiene varias etiquetas se muestran por separado, conservando su color. Ambas se ocultan en el PDF.
