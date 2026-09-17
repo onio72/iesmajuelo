@@ -29,3 +29,14 @@
   .class-card .teacher{font-size:8px;font-weight:400;line-height:1.2;margin:0;color:#000}
   .eyebrow,#resumen,footer,.empty,.time span+span{color:#000!important}
 }
+/* Una sola línea de cabecera deja más espacio para el horario en el PDF. */
+@media print {
+  header,.toolbar .eyebrow{display:none!important}
+  main{padding:0}
+  .toolbar{margin:0 0 5mm;display:block}
+  .toolbar>div{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 8px}
+  .toolbar h2{font-size:14pt;line-height:1.2;margin:0;letter-spacing:0}
+  .toolbar #resumen{font-size:11pt;line-height:1.2;margin:0;color:#000}
+  .toolbar #resumen::before{content:"· ";font-weight:400}
+  .toolbar #resumen::after{content:" · IES El Majuelo";font-weight:700}
+}
