@@ -33,7 +33,7 @@ for (const g of context.window.HORARIOS.grupos) {
   const table = elements.horario.children[0];
   const body = table.children[2];
   const cards = descendants(body).filter(e => e.tagName === 'article');
-  assert.equal(cards.length, g.actividades.length + ({'15': 12, '16': 4, '17': 8}[g.id] || 0), g.id);
+  assert.equal(cards.length, g.actividades.length + ({'15': 24, '16': 4, '17': 16}[g.id] || 0), g.id);
 }
 // Cambiar enseñanza debe recalcular todos los desplegables dependientes.
 elements.etapa.value = 'ESO'; elements.etapa.events.change();
@@ -134,6 +134,21 @@ for (const id of ['15', '16', '17']) {
 }
 console.log('OK: cinco materias de B3 en A/B/C; elección de Griego propagada con el aula de cada día.');
 
+// B2 mantiene cinco opciones en las cuatro sesiones y no incorpora B3.
+for (const id of ['15', '16', '17']) {
+ context.location.hash = `#grupo=${id}`; events.hashchange();
+ elements.restablecer.events.click();
+ for (const code of ['L3', 'M2', 'X5', 'V5']) {
+  const cell = slots().find(c => c.dataset.slot === code);
+  const names = descendants(cell).filter(e => e.tagName === 'h3').map(e => e.textContent);
+  assert.equal(names.length, 5, `${id} ${code}`);
+  for (const name of ['Matemáticas', 'Geografía', 'Biología', 'Historia del arte', 'Física'])
+   assert.ok(names.some(n => n.startsWith(name)), `${id} ${code} ${name}`);
+ }
+}
+assert.ok(!/provisional/i.test(html));
+console.log('OK: B2 completo en A/B/C; sin aviso de horario provisional.');
+
 // Comprueba la carga automática del TXT en la web publicada, sin interfaz de archivos.
 (async () => {
  const current = context.window.HORARIOS.grupos.find(g => g.id === 'test-pares');
@@ -183,4 +198,3 @@ for (const g of secondYear) {
  for (const r of secondRules) assert.equal(B.label(actualRules.rules, g, r.slot), r.label);
 }
 console.log('OK: 16 etiquetas de 2.º Bachillerato en A, B y C; bloques y grupos con estilos distintos.');
-

@@ -97,6 +97,13 @@ En pantalla, las etiquetas de bloque (`B1`, `Bloque 1`, etc.) son azules y las d
 
 Importado `horario20260917.xml` (17/09/2026 21:05:12): 75 horarios de alumnado. Se han actualizado las asignaciones de `bloques.txt` para 4.º ESO y Bachillerato. Las claves de 4.º ESO se deducen de las asignaciones anteriores: B1 Digitalización, B2 Latín y B3 Música. En diversificación las franjas B2 corresponden a ámbitos; la etiqueta general del curso no implica que cursen Latín. Las pruebas específicas de `test_importar.py` siguen referidas a la exportación inicial.
 
-## Oferta completa de B3 de 2.º Bachillerato
+## Oferta completa de B2 y B3 de 2.º Bachillerato
 
-Por indicación del centro, se ofrecen Química, Tecnología e Ingeniería, Empresa y Diseño de Modelos de Negocio, Geografía y Griego en A, B y C. `bloques.js` reúne las actividades de esos grupos en las sesiones de Química, sin duplicar materia/profesor/aula ni alterar `datos.js`. Conserva el aula de cada día. Los demás bloques y las variantes de ESO siguen utilizando sus actividades originales. Al ampliarse las opciones, las elecciones anteriores de B3 quedan pendientes para que el alumno pueda elegir entre las cinco materias.
+Por indicación del centro, A, B y C ofrecen las cinco materias de cada bloque:
+
+- B2: Matemáticas Aplicadas a las Ciencias Sociales, Geografía, Biología, Historia del Arte y Física.
+- B3: Empresa y Diseño de Modelos de Negocio, Geografía, Tecnología e Ingeniería, Química y Griego.
+
+`bloques.js` reúne las actividades de esos grupos en las sesiones de Física (B2) y Química (B3), sin duplicar materia/profesor/aula ni alterar `datos.js`. Conserva el profesor y el aula de cada sesión. Los demás bloques y las variantes de ESO siguen utilizando sus actividades originales. Al ampliarse las opciones, las elecciones anteriores del bloque afectado quedan pendientes para permitir elegir entre las cinco materias.
+
+Se han retirado los avisos de horario provisional de la cabecera y del pie.

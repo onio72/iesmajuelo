@@ -24,21 +24,23 @@ window.BloquesHorario = (() => {
     const specific = found.filter(r => r.group !== '*');
     return [...new Set((specific.length ? specific : found).map(r => r.label))].join(' · ');
   }
-  // B3 de 2.º Bachillerato es una oferta común, confirmada por el centro.
-  // El XML reparte sus cinco materias entre A, B y C. Se reúnen únicamente
-  // en las sesiones de Química, conservando el profesor y aula de cada día.
+  // B2 y B3 de 2.º Bachillerato son ofertas comunes confirmadas por el centro.
+  // Se reúnen por sesión, conservando el profesor y aula de cada día.
   function activities(g, groups) {
     if (g.etapa !== 'Bachillerato' || normal(g.curso) !== '2BACH') return g.actividades;
     const peers = groups.filter(other => other.etapa === g.etapa && other.curso === g.curso);
     const key = a => JSON.stringify([a.dia, a.inicio, a.fin]);
-    const sharedSlots = new Set(peers.flatMap(other => other.actividades)
-      .filter(a => a.materiaId === '73').map(key));
-    const subjects = new Set(['73', '131', '65', '64', '275']);
+    const pool = peers.flatMap(other => other.actividades);
+    const blocks = [
+      {anchor: '71', subjects: ['61', '64', '72', '62', '71']}, // B2: Física
+      {anchor: '73', subjects: ['65', '64', '131', '73', '275']} // B3: Química
+    ].map(block => ({subjects: new Set(block.subjects),
+      slots: new Set(pool.filter(a => a.materiaId === block.anchor).map(key))}));
     const result = [...g.actividades];
     const identity = a => JSON.stringify([a.dia, a.inicio, a.fin, a.materiaId, a.profesor, a.aula]);
     const seen = new Set(result.map(identity));
     for (const other of peers) for (const a of other.actividades) {
-      if (sharedSlots.has(key(a)) && subjects.has(a.materiaId) && !seen.has(identity(a))) {
+      if (blocks.some(block => block.slots.has(key(a)) && block.subjects.has(a.materiaId)) && !seen.has(identity(a))) {
         result.push(a); seen.add(identity(a));
       }
     }
