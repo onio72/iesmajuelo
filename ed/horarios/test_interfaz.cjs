@@ -212,6 +212,28 @@ console.log('OK: B1 completo en A/B/C y selección de Latín en las cuatro sesio
      assert.ok(badge.className.includes(`${B.kind(rule.label)}-badge`));
    }
  }
+ // Diversificación conserva ámbitos, sin B2 en pantalla ni en el PDF.
+ for (const id of ['66', '67']) {
+   context.location.hash = `#grupo=${id}`; events.hashchange();
+   elements.restablecer.events.click();
+   const group = context.window.HORARIOS.grupos.find(g => g.id === id);
+   assert.equal(B.activities(group, context.window.HORARIOS.grupos), group.actividades);
+   for (const [code, row, col] of [['M2',1,2], ['X3',2,3], ['J2',1,4]]) {
+     const cell = slots().find(c => c.dataset.slot === code);
+     assert.equal(descendants(cell).filter(e => e.className?.split(' ').includes('block-label')).length, 0);
+     assert.ok(descendants(cell).some(e => e.tagName === 'h3' && e.textContent.startsWith('Ámbito')));
+     const pdfCell = elements['horario-bloques'].children[0].children[1].children[row].children[col];
+     assert.equal(pdfCell.textContent, '');
+   }
+   for (const [code, label] of [['L4', 'B1'], ['L5', 'B3']])
+     assert.equal(B.label(actualRules.rules, group, code), label);
+ }
+ for (const id of ['11', '74']) {
+   const group = context.window.HORARIOS.grupos.find(g => g.id === id);
+   for (const code of ['M2', 'X3', 'J2']) assert.equal(B.label(actualRules.rules, group, code), 'B2');
+ }
+ context.location.hash = '#grupo=17'; events.hashchange();
+ console.log('OK: diversificación sin B2 en pantalla y PDF; ámbitos, B1/B3 y grupos ordinarios conservados.');
  // El segundo PDF no depende de haber elegido las materias del alumno.
  let printCalls = 0;
  context.window.print = () => { printCalls++; };

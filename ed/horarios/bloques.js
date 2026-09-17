@@ -22,7 +22,11 @@ window.BloquesHorario = (() => {
   function label(rules, g, slot) {
     const found = rules.filter(r => r.course === normal(g.curso) && r.slot === slot && (r.group === '*' || r.group === normal(g.abreviatura)));
     const specific = found.filter(r => r.group !== '*');
-    return [...new Set((specific.length ? specific : found).map(r => r.label))].join(' · ');
+    const labels = (specific.length ? specific : found).map(r => r.label);
+    // Diversificación de 4.º ESO cursa ámbitos en las franjas de B2.
+    // La excepción afecta a la etiqueta y al PDF, nunca a sus actividades.
+    const diversification = normal(g.curso) === '4ESO' && normal(g.variante || '') === 'DIVERSIFICACION';
+    return [...new Set(labels.filter(text => !diversification || !/^(B2|BLOQUE2)$/.test(normal(text))))].join(' · ');
   }
   // B1, B2 y B3 de 2.º Bachillerato son ofertas comunes confirmadas por el centro.
   // Se reúnen por sesión, conservando el profesor y aula de cada día.
