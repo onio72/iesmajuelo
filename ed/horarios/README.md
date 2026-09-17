@@ -80,3 +80,11 @@ Publica HTML, CSS, `datos.js`, `bloques.js`, `bloques.txt` y `app.js` juntos. Si
 ## Aspecto e impresión
 
 En pantalla, cada materia tiene fondo de color y borde marcado. La materia aparece destacada, el aula inmediatamente debajo en una insignia y el profesor en texto secundario. El PDF y la impresión usan fondo blanco y texto y líneas negros, sin colores ni etiquetas de bloque.
+
+## Nombres de materias
+
+`materias.js` reúne los nombres revisados y sus variantes en la exportación. Corrige erratas y tildes, unifica la escritura con mayúscula inicial y desarrolla abreviaturas reconocibles. Conserva las distinciones entre Matemáticas A/B, niveles I/II, primer/segundo idioma, modalidad dual y siglas como STEAM, PEPA y REVA. El curso no se repite en las tarjetas.
+
+Las correcciones se aplican en pantalla, en las etiquetas accesibles y en el PDF. `datos.js`, los identificadores y las elecciones guardadas no cambian. El catálogo permanece al importar otra exportación; los nombres nuevos sin revisar se muestran como vengan del origen. Publica también `materias.js` junto a la web.
+
+Para comprobar la cobertura del catálogo sobre la exportación actual: `node test_materias.cjs`.

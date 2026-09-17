@@ -19,7 +19,7 @@ const context = {document: {getElementById: id => elements[id], createElement: t
   Option: function(text, value) { const e = new Element('option',text); e.value = value; return e; },
   location: {hash: '', protocol: 'file:'}, URLSearchParams, Date, window: {addEventListener: (t,fn) => events[t] = fn, print(){}}};
 vm.createContext(context);
-for (const file of ['datos.js', 'bloques.js', 'app.js']) vm.runInContext(fs.readFileSync(`${__dirname}/${file}`, 'utf8'),context);
+for (const file of ['datos.js', 'bloques.js', 'materias.js', 'app.js']) vm.runInContext(fs.readFileSync(`${__dirname}/${file}`, 'utf8'),context);
 assert.equal(elements.grupo.value, 'C');
 assert.equal(elements.variante.value, 'No bilingüe');
 assert.equal(elements.variante.children.length, 3);

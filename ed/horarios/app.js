@@ -39,13 +39,7 @@
     }
     render();
   }
-  function subjectName(name) {
-    return name
-      .replace(/\s*[1-4]\s*\.?[ºª°]\s*(?:ESO|BACHILLERATO|BACH|BAC)\b/gi, '')
-      .replace(/\s+[1-4]\s*\.?[ºª°]\s*$/g, '')
-      .replace(/^(COMPUTACIÓN Y ROBÓTICA|ORATORIA Y DEBATE)\s+[1-4]$/i, '$1')
-      .trim();
-  }
+  const subjectName = name => window.MateriasHorario.name(name);
   function card(a) {
     const c = node('article', undefined, 'class-card');
     const hash = [...a.materiaId].reduce((sum, ch) => (sum * 31 + ch.charCodeAt(0)) >>> 0, 0);
