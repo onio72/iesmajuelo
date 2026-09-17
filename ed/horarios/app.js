@@ -46,7 +46,7 @@
     const hue = Math.round(hash * 137.508) % 360;
     c.style.setProperty('--subject-color', `hsl(${hue} 60% 34%)`);
     c.style.setProperty('--subject-background', `hsl(${hue} 65% 90%)`);
-    c.append(node('h3', subjectName(a.materia)), node('p', `Aula: ${a.aula}`, 'room'), node('p', a.profesor, 'teacher'));
+    c.append(node('h3', subjectName(a.materia)), node('p', `Aula: ${window.AulasHorario.name(a.aula)}`, 'room'), node('p', a.profesor, 'teacher'));
     return c;
   }
   function render() {
@@ -128,7 +128,7 @@
             if (!cell.label) td.append(slotHeading);
             activities.forEach(a => {
               const button = node('button', undefined, 'choose-subject'); button.type = 'button';
-              button.setAttribute('aria-label', `Elegir ${subjectName(a.materia)}, ${a.profesor}, aula ${a.aula}, ${day} ${inicio}`);
+              button.setAttribute('aria-label', `Elegir ${subjectName(a.materia)}, ${a.profesor}, aula ${window.AulasHorario.name(a.aula)}, ${day} ${inicio}`);
               button.append(card(a)); button.addEventListener('click', () => choose(cell, a)); td.append(button);
             });
             td.append(node('p', 'Materia pendiente de elegir', 'print-pending'));

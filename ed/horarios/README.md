@@ -88,3 +88,5 @@ En pantalla, cada materia tiene fondo de color y borde marcado. La materia apare
 Las correcciones se aplican en pantalla, en las etiquetas accesibles y en el PDF. `datos.js`, los identificadores y las elecciones guardadas no cambian. El catálogo permanece al importar otra exportación; los nombres nuevos sin revisar se muestran como vengan del origen. Publica también `materias.js` junto a la web.
 
 Para comprobar la cobertura del catálogo sobre la exportación actual: `node test_materias.cjs`.
+
+Los nombres de las aulas se corrigen en `aulas.js`: se elimina el prefijo «a.», se reparan letras y tildes y se unifica la escritura. Se aplica a pantalla, lectores de pantalla y PDF sin modificar las aulas originales ni las elecciones guardadas. Incluye `aulas.js` al publicar.
