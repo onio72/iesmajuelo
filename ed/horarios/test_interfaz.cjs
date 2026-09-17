@@ -33,7 +33,7 @@ for (const g of context.window.HORARIOS.grupos) {
   const table = elements.horario.children[0];
   const body = table.children[2];
   const cards = descendants(body).filter(e => e.tagName === 'article');
-  assert.equal(cards.length, g.actividades.length + ({'15': 24, '16': 4, '17': 16}[g.id] || 0), g.id);
+  assert.equal(cards.length, g.actividades.length + ({'15': 32, '16': 4, '17': 20}[g.id] || 0), g.id);
 }
 // Cambiar enseñanza debe recalcular todos los desplegables dependientes.
 elements.etapa.value = 'ESO'; elements.etapa.events.change();
@@ -148,6 +148,35 @@ for (const id of ['15', '16', '17']) {
 }
 assert.ok(!/provisional/i.test(html));
 console.log('OK: B2 completo en A/B/C; sin aviso de horario provisional.');
+
+// B1: las cuatro materias aparecen en cada grupo y sesión, con sus aulas.
+for (const id of ['15', '16', '17']) {
+ context.location.hash = `#grupo=${id}`; events.hashchange();
+ elements.restablecer.events.click();
+ const group = context.window.HORARIOS.grupos.find(g => g.id === id);
+ const enriched = B.activities(group, context.window.HORARIOS.grupos);
+ const times = [[2, '11:30'], [3, '13:30'], [4, '12:30'], [5, '08:00']];
+ for (const [day, start] of times) {
+  const options = enriched.filter(a => a.dia === day && a.inicio === start);
+  assert.deepEqual(Array.from(options, a => a.materiaId).sort(), ['274', '61', '65', '69']);
+  for (const a of options) assert.ok(context.window.HORARIOS.grupos.some(g =>
+   g.curso === group.curso && g.actividades.some(original => JSON.stringify(original) === JSON.stringify(a))));
+ }
+ for (const code of ['M4', 'X6', 'J5', 'V1']) {
+  const names = descendants(slots().find(c => c.dataset.slot === code)).filter(e => e.tagName === 'h3').map(e => e.textContent);
+  assert.equal(names.length, 4);
+  for (const name of ['Matemáticas', 'Matemáticas aplicadas', 'Latín', 'Empresa'])
+   assert.ok(names.some(n => n.toLowerCase().startsWith(name.toLowerCase())), `${id} ${code} ${name}`);
+ }
+ const cell = slots().find(c => c.dataset.slot === 'M4');
+ cell.children.find(e => e.className === 'choose-subject' && descendants(e).some(c => c.tagName === 'h3' && c.textContent.startsWith('Latín'))).events.click();
+ for (const code of ['M4', 'X6', 'J5', 'V1']) {
+  const cards = descendants(slots().find(c => c.dataset.slot === code)).filter(e => e.tagName === 'article');
+  assert.equal(cards.length, 1);
+  assert.ok(cards[0].children[0].textContent.startsWith('Latín'));
+ }
+}
+console.log('OK: B1 completo en A/B/C y selección de Latín en las cuatro sesiones.');
 
 // Comprueba la carga automática del TXT en la web publicada, sin interfaz de archivos.
 (async () => {

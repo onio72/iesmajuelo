@@ -24,7 +24,7 @@ window.BloquesHorario = (() => {
     const specific = found.filter(r => r.group !== '*');
     return [...new Set((specific.length ? specific : found).map(r => r.label))].join(' · ');
   }
-  // B2 y B3 de 2.º Bachillerato son ofertas comunes confirmadas por el centro.
+  // B1, B2 y B3 de 2.º Bachillerato son ofertas comunes confirmadas por el centro.
   // Se reúnen por sesión, conservando el profesor y aula de cada día.
   function activities(g, groups) {
     if (g.etapa !== 'Bachillerato' || normal(g.curso) !== '2BACH') return g.actividades;
@@ -32,6 +32,7 @@ window.BloquesHorario = (() => {
     const key = a => JSON.stringify([a.dia, a.inicio, a.fin]);
     const pool = peers.flatMap(other => other.actividades);
     const blocks = [
+      {anchor: '69', subjects: ['69', '61', '274', '65']}, // B1: Matemáticas
       {anchor: '71', subjects: ['61', '64', '72', '62', '71']}, // B2: Física
       {anchor: '73', subjects: ['65', '64', '131', '73', '275']} // B3: Química
     ].map(block => ({subjects: new Set(block.subjects),
