@@ -124,7 +124,7 @@ console.log('OK: la interfaz pública no incluye carga de TXT ni los apartados e
  vm.runInContext(fs.readFileSync(`${__dirname}/app.js`, 'utf8'), context);
  await new Promise(resolve => setImmediate(resolve));
  assert.equal(requests[0].url, 'bloques.txt');
- const label = code => slots().find(c => c.dataset.slot === code).children.find(e => e.className === 'block-label')?.textContent;
+ const label = code => descendants(slots().find(c => c.dataset.slot === code)).find(e => e.className === 'block-label')?.textContent;
  assert.equal(label('L1'), 'B2', 'Etiqueta con varias opciones');
  assert.equal(label('M1'), 'B3', 'Etiqueta con una sola materia');
  assert.equal(label('X1'), undefined, 'No se inventan etiquetas');

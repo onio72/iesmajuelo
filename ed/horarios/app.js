@@ -119,7 +119,8 @@
         const cell = cells.find(c => c.key === `${i + 1}|${slot}`);
         const activities = cell.activities;
         td.dataset.slot = cell.code;
-        if (cell.label) td.append(node('strong', cell.label, 'block-label'));
+        const slotHeading = node('div', undefined, 'slot-heading');
+        if (cell.label) { slotHeading.append(node('strong', cell.label, 'block-label')); td.append(slotHeading); }
         if (interactive && activities.length > 1) {
           const chosen = selected(cell);
           if (chosen) {
@@ -129,7 +130,8 @@
             td.append(change);
           } else {
             td.classList.add('pending-choice');
-            td.append(node('p', `Elige tu materia · ${activities.length} opciones`, 'options-count'));
+            slotHeading.append(node('p', `Elige tu materia · ${activities.length} opciones`, 'options-count'));
+            if (!cell.label) td.append(slotHeading);
             activities.forEach(a => {
               const button = node('button', undefined, 'choose-subject'); button.type = 'button';
               button.setAttribute('aria-label', `Elegir ${subjectName(a.materia)}, ${a.profesor}, aula ${a.aula}, ${day} ${inicio}`);
