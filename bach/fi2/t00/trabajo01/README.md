@@ -1,24 +1,24 @@
 # Trabajo mecánico con vectores
 
-Actividad SCORM 1.2 de Física de 2.º de Bachillerato. La puntuación se basa en los aciertos del primer intento de los distintos apartados y la actividad conserva el progreso mediante SCORM.
+Actividad SCORM 1.2 de Física de 2.º de Bachillerato. Versión actual: **v14**.
 
-## Archivos del paquete
+La actividad genera datos aleatorios, puntúa los aciertos del primer intento, conserva el progreso mediante SCORM y permite avanzar a un nuevo ejercicio tras completar correctamente el actual. La notación vectorial se renderiza de forma local, sin depender de KaTeX ni de otras CDN.
 
-El ZIP debe contener en su raíz:
+## Archivos de la versión publicada en GitHub
+
+La versión de GitHub Pages usa un cargador comprimido. Para empaquetarla directamente desde esta carpeta, el ZIP debe contener en su raíz:
 
 - `imsmanifest.xml`
 - `index.html`
 - `payload_00.js`
 - `payload_01.js`
-- `payload_02.js`
-- `payload_03.js`
 
-No comprimas la carpeta `trabajo01`; comprime directamente estos archivos.
+No comprimas la carpeta `trabajo01`; comprime directamente esos cuatro archivos.
 
 ### macOS
 
 ```bash
-zip -X trabajo01_scorm.zip imsmanifest.xml index.html payload_00.js payload_01.js payload_02.js payload_03.js
+zip -X trabajo01_scorm.zip imsmanifest.xml index.html payload_00.js payload_01.js
 ```
 
 ## Uso en Moodle
@@ -27,21 +27,21 @@ zip -X trabajo01_scorm.zip imsmanifest.xml index.html payload_00.js payload_01.j
 2. Añade una actividad **Paquete SCORM**.
 3. Sube el ZIP.
 4. Configura intentos, calificación y presentación según el uso didáctico previsto.
-5. Guarda y realiza una prueba completa como alumno.
+5. Haz una prueba completa como alumno: ejercicio 1 → corrección → 5/5 → **Otro ejercicio** → ejercicio 2.
 
 ## Seguimiento SCORM
 
-El recurso se declara como `sco` y está preparado para comunicar con el LMS. La actividad puede registrar puntuación, estado y progreso, permitiendo reanudar el trabajo según la implementación interna de la actividad.
+El recurso se declara como `sco` y comunica con SCORM 1.2. Registra puntuación, estado y progreso y puede reanudar el trabajo mediante `cmi.suspend_data`.
 
 ## Importante al actualizar
 
-`index.html` es un cargador y necesita los cuatro archivos `payload_*.js`. Si se regenera la actividad y cambia el número o nombre de payloads, hay que actualizar simultáneamente:
+`index.html` reconstruye la aplicación a partir de `payload_00.js` y `payload_01.js`. Si se regenera la aplicación y cambia el número o nombre de payloads, hay que actualizar simultáneamente:
 
 - las etiquetas `<script src="...">` de `index.html`;
 - los elementos `<file href="..."/>` de `imsmanifest.xml`;
 - los archivos incluidos en el ZIP.
 
-Si falta uno de los payloads, la actividad no podrá reconstruirse correctamente.
+Si falta uno de los payloads, la actividad no podrá cargarse.
 
 ## GitHub Pages
 
