@@ -1,32 +1,5 @@
-<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Trabajo mecánico: medida gráfica de vectores</title>
-</head>
-<body>
-<p id="loading" style="font-family:system-ui;padding:1rem">Cargando actividad…</p>
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trabajo mecánico: medida gráfica de vectores · v14</title></head><body><script>window.__SCORM_GZ=[];</script>
 <script src="payload_00.js"></script>
 <script src="payload_01.js"></script>
-<script src="payload_02.js"></script>
-<script src="payload_03.js"></script>
-<script>
-(async()=>{
-  try{
-    const bin=atob(window.__v7payload||'');
-    const bytes=new Uint8Array(bin.length);
-    for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-    const ds=new DecompressionStream('gzip');
-    const html=await new Response(new Blob([bytes]).stream().pipeThrough(ds)).text();
-    document.open();
-    document.write(html);
-    document.close();
-  }catch(e){
-    console.error(e);
-    document.body.innerHTML='<p style="font-family:system-ui;padding:1rem;color:#991b1b">No se pudo cargar la actividad. Utiliza un navegador moderno compatible con DecompressionStream.</p>';
-  }
-})();
-</script>
-</body>
-</html>
+<script>(async function(){try{const b64=window.__SCORM_GZ.join('');const bin=atob(b64);const bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);if(!('DecompressionStream' in window))throw new Error('Este navegador no admite descompresión gzip.');const ds=new DecompressionStream('gzip');const html=await new Response(new Blob([bytes]).stream().pipeThrough(ds)).text();document.open();document.write(html);document.close();}catch(e){document.body.innerHTML='<p style="font-family:sans-serif;padding:2rem">No se pudo cargar la actividad: '+String(e.message||e)+'</p>';}})();</script></body></html>
