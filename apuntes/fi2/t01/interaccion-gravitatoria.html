@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>interaccion-gravitatoria – Física 2.º Bachillerato · Tema 1</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-445b8638c3d06994fee0907d791121c4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No se han encontrado resultados",
+    "search-matching-documents-text": "documentos encontrados",
+    "search-copy-link-title": "Copiar el enlace en la búsqueda",
+    "search-hide-matches-text": "Ocultar resultados adicionales",
+    "search-more-match-text": "resultado adicional en este documento",
+    "search-more-matches-text": "resultados adicionales en este documento",
+    "search-clear-button-title": "Borrar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Buscar"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="apuntes.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Física 2.º Bachillerato · Tema 1</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Buscar"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Navegación de palanca" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="./interaccion-gravitatoria.html" aria-current="page"> 
+<span class="menu-text">Interacción gravitatoria</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./problemas-interaccion.html"> 
+<span class="menu-text">Problemas</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">En esta página</h2>
+   
+  <ul>
+  <li><a href="#antecedentes-de-las-leyes-de-kepler-en-el-estudio-del-movimiento-planetario" id="toc-antecedentes-de-las-leyes-de-kepler-en-el-estudio-del-movimiento-planetario" class="nav-link active" data-scroll-target="#antecedentes-de-las-leyes-de-kepler-en-el-estudio-del-movimiento-planetario">1. Antecedentes de las leyes de Kepler en el estudio del movimiento planetario</a></li>
+  <li><a href="#leyes-de-kepler" id="toc-leyes-de-kepler" class="nav-link" data-scroll-target="#leyes-de-kepler">Leyes de Kepler</a></li>
+  <li><a href="#momento-de-una-fuerza-y-momento-angular" id="toc-momento-de-una-fuerza-y-momento-angular" class="nav-link" data-scroll-target="#momento-de-una-fuerza-y-momento-angular">Momento de una fuerza y momento angular</a>
+  <ul class="collapse">
+  <li><a href="#momento-de-una-fuerza-respecto-a-un-punto" id="toc-momento-de-una-fuerza-respecto-a-un-punto" class="nav-link" data-scroll-target="#momento-de-una-fuerza-respecto-a-un-punto">Momento de una fuerza respecto a un punto</a></li>
+  <li><a href="#momento-angular" id="toc-momento-angular" class="nav-link" data-scroll-target="#momento-angular">Momento angular</a></li>
+  </ul></li>
+  <li><a href="#conservación-del-momento-angular" id="toc-conservación-del-momento-angular" class="nav-link" data-scroll-target="#conservación-del-momento-angular">Conservación del momento angular</a>
+  <ul class="collapse">
+  <li><a href="#demostración-de-primera-ley-kepler-con-el-momento-angular" id="toc-demostración-de-primera-ley-kepler-con-el-momento-angular" class="nav-link" data-scroll-target="#demostración-de-primera-ley-kepler-con-el-momento-angular">Demostración de primera ley Kepler con el momento angular</a></li>
+  <li><a href="#demostración-de-segunda-ley-kepler-con-el-momento-angular" id="toc-demostración-de-segunda-ley-kepler-con-el-momento-angular" class="nav-link" data-scroll-target="#demostración-de-segunda-ley-kepler-con-el-momento-angular">Demostración de segunda ley Kepler con el momento angular</a></li>
+  <li><a href="#ley-de-gravitación-universal" id="toc-ley-de-gravitación-universal" class="nav-link" data-scroll-target="#ley-de-gravitación-universal">5. Ley de gravitación universal</a>
+  <ul class="collapse">
+  <li><a href="#características-de-la-interacción-gravitatoria" id="toc-características-de-la-interacción-gravitatoria" class="nav-link" data-scroll-target="#características-de-la-interacción-gravitatoria">Características de la interacción gravitatoria</a></li>
+  <li><a href="#interacción-de-un-conjunto-de-masas-puntuales.-principio-de-superposición" id="toc-interacción-de-un-conjunto-de-masas-puntuales.-principio-de-superposición" class="nav-link" data-scroll-target="#interacción-de-un-conjunto-de-masas-puntuales.-principio-de-superposición">Interacción de un conjunto de masas puntuales. Principio de superposición</a></li>
+  </ul></li>
+  <li><a href="#generalización-del-concepto-de-trabajo-a-una-fuerza-variable" id="toc-generalización-del-concepto-de-trabajo-a-una-fuerza-variable" class="nav-link" data-scroll-target="#generalización-del-concepto-de-trabajo-a-una-fuerza-variable">6. Generalización del concepto de trabajo a una fuerza variable</a>
+  <ul class="collapse">
+  <li><a href="#fuerzas-conservativas" id="toc-fuerzas-conservativas" class="nav-link" data-scroll-target="#fuerzas-conservativas">6.1. Fuerzas conservativas</a></li>
+  <li><a href="#energía-potencial" id="toc-energía-potencial" class="nav-link" data-scroll-target="#energía-potencial">6.2. Energía potencial</a></li>
+  <li><a href="#teorema-de-las-fuerzas-vivas" id="toc-teorema-de-las-fuerzas-vivas" class="nav-link" data-scroll-target="#teorema-de-las-fuerzas-vivas">6.3. Teorema de las fuerzas vivas</a></li>
+  <li><a href="#conservación-de-la-energía-mecánica" id="toc-conservación-de-la-energía-mecánica" class="nav-link" data-scroll-target="#conservación-de-la-energía-mecánica">6.4. Conservación de la energía mecánica</a></li>
+  </ul></li>
+  <li><a href="#fuerzas-centrales" id="toc-fuerzas-centrales" class="nav-link" data-scroll-target="#fuerzas-centrales">7. Fuerzas centrales</a></li>
+  <li><a href="#energía-potencial-gravitatoria-de-una-masa-puntual-en-presencia-de-otra" id="toc-energía-potencial-gravitatoria-de-una-masa-puntual-en-presencia-de-otra" class="nav-link" data-scroll-target="#energía-potencial-gravitatoria-de-una-masa-puntual-en-presencia-de-otra">8. Energía potencial gravitatoria de una masa puntual en presencia de otra</a></li>
+  <li><a href="#energía-potencial-gravitatoria-terrestre" id="toc-energía-potencial-gravitatoria-terrestre" class="nav-link" data-scroll-target="#energía-potencial-gravitatoria-terrestre">8.1. Energía potencial gravitatoria terrestre</a></li>
+  <li><a href="#concepto-de-campo" id="toc-concepto-de-campo" class="nav-link" data-scroll-target="#concepto-de-campo">9. Concepto de campo</a></li>
+  <li><a href="#campo-gravitatorio" id="toc-campo-gravitatorio" class="nav-link" data-scroll-target="#campo-gravitatorio">9.1. Campo gravitatorio</a></li>
+  <li><a href="#líneas-de-campo" id="toc-líneas-de-campo" class="nav-link" data-scroll-target="#líneas-de-campo">9.2. Líneas de campo</a>
+  <ul class="collapse">
+  <li><a href="#potencial-gravitatorio" id="toc-potencial-gravitatorio" class="nav-link" data-scroll-target="#potencial-gravitatorio"><em>9.3. Potencial gravitatorio</em></a></li>
+  <li><a href="#superficies-equipotenciales" id="toc-superficies-equipotenciales" class="nav-link" data-scroll-target="#superficies-equipotenciales"><em>9.4. Superficies equipotenciales</em></a></li>
+  <li><a href="#relación-entre-campo-y-potencial-gravitatorios" id="toc-relación-entre-campo-y-potencial-gravitatorios" class="nav-link" data-scroll-target="#relación-entre-campo-y-potencial-gravitatorios"><em>9.5. Relación entre campo y potencial gravitatorios</em></a></li>
+  <li><a href="#caída-libre" id="toc-caída-libre" class="nav-link" data-scroll-target="#caída-libre">Caída libre</a></li>
+  </ul></li>
+  <li><a href="#satélites" id="toc-satélites" class="nav-link" data-scroll-target="#satélites">10. Satélites</a></li>
+  <li><a href="#energía-de-satelización" id="toc-energía-de-satelización" class="nav-link" data-scroll-target="#energía-de-satelización">10.1. Energía de satelización</a></li>
+  <li><a href="#velocidad-de-escape-desde-la-superficie-terrestre" id="toc-velocidad-de-escape-desde-la-superficie-terrestre" class="nav-link" data-scroll-target="#velocidad-de-escape-desde-la-superficie-terrestre">10.2. Velocidad de escape desde la superficie terrestre</a></li>
+  <li><a href="#cambio-de-órbita-y-trabajo-de-los-motores" id="toc-cambio-de-órbita-y-trabajo-de-los-motores" class="nav-link" data-scroll-target="#cambio-de-órbita-y-trabajo-de-los-motores">10.3. Cambio de órbita y trabajo de los motores</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+
+
+
+
+<section id="antecedentes-de-las-leyes-de-kepler-en-el-estudio-del-movimiento-planetario" class="level1">
+<h1>1. Antecedentes de las leyes de Kepler en el estudio del movimiento planetario</h1>
+<p>Desde la antigüedad el hombre intenta entender el movimiento de los astros, inicialmente con explicaciones ajenas a la validación mediante observación, teológicas. Del movimiento observado de las estrellas surge la idea de esfera celeste y el modelo geocéntrico, modelo que los griegos explican con esferas por ser figuras geométricas perfectas. Ptlomeo realiza modificaciones sobre el modelo geocéntrico de Aristóteles (excentricidad, epiciclos, ecuante) para explicar hechos observados (variación brillo, movimiento retrógrado), pero mantiene el uso de circunferencias. Pasa a ser geoestático.</p>
+<p>El deseo de avanzar en la comprensión fue importante porque motivó observaciones y llevó la primera teoría física, mediante la primera gran revolución científica, la revolución copernicana. Es una revolución porque caen pilares previos que son sustituidos por otros: los pilares previos eran la autoridad de una afirmación (Aristotélicos, dogmas, religión), y con el Renacimiento son sustituidos por el experimento y la observación. Las afirmaciones científicas son repetibles y falsables, se produce una separación de ciencia y religión.</p>
+<p><u>Copérnico:</u> modelo heliocéntrico (helioestático), en el que la Tierra se movía. Tardó en ser aceptado: rompía dogmas (aunque seguía usando esferas) y sólo aportaba exactitud y simplicidad, hacía lo mismo que Ptolomeo. Importante porque con su modelo se adaptó el calendario; al jueves -juliano- 4 de octubre de 1582 le sucede el viernes -gregoriano- 15 de octubre de 1582 (realmente depende del país!)</p>
+<p><u>Galilei:</u> intenta demostrar la realidad física del modelo de Copérnico, que no se aceptaba, solamente se usaba por su precisión. Aporta pruebas heliocéntricas/antigeocéntricas como las fases de Venus, lunas de Júpiter, manchas solares y montañas en la Luna. Fue procesado por la iglesia en 1633 ya que el geocentrismo contradecía la biblia que implicaba Tierra inmóvil y Sol moviéndose en torno a ella.</p>
+<p>Galilei realiza otras importantes aportaciones a la ciencia: pone el foco en la observación y en el experimento controlado que es la base del método científico, aportando leyes de movimiento.</p>
+<p>Globalmente la revolución copernicana supone un paradigma del método científico, siendo una revolución científica donde surge en sí la propia ciencia. El método científico se puede ver en 4 pasos simplificados:</p>
+<ul>
+<li><p>Observación y planteamiento de hipótesis: Copérnico plantea el heliocentrismo con órbitas circulares.</p></li>
+<li><p>Realización de observación y medidas. Galilei aporta observaciones, Tico Brahe aporta medidas.</p></li>
+<li><p>Análisis e interpretación de datos, revisión de hipótesis. Kepler partiendo de los datos de Tico Brahe formula sus tres leyes, que describen la cinemática del movimiento de los planetas. Kepler se declara copernicano, pero ya no usa órbitas circulares, revisa hipótesis.</p></li>
+<li><p>Conclusiones. Formulación de leyes científicas. Newton partiendo de las leyes de Kepler formula la ley de gravitación universal, que describe la dinámica del movimiento de los planetas (publica al tiempo las tres leyes de dinámica). Es universal porque aplica no sólo a los planetas, sino a cualquier cuerpo con masa.</p></li>
+</ul>
+</section>
+<section id="leyes-de-kepler" class="level1">
+<h1>Leyes de Kepler</h1>
+<p>Fueron desarrolladas para planetas orbitando alrededor del Sol, pero son igualmente válidas para objetos orbitando por gravedad respecto a un objeto central (satélites naturales y artificiales)</p>
+<p>1ª. Ley de las órbitas. Los planetas describen órbitas elípticas y el Sol está en uno de los focos.</p>
+<p><img src="images/documento-2627/media/image1.png" class="imagen-centrada" style="width:4.54011in;height:2.80966in"></p>
+<p>2ª. Ley de las áreas. El área barrida por unidad de tiempo (velocidad areolar) por el radio vector que une el Sol y un planeta es constante.</p>
+<p><img src="images/documento-2627/media/image3.png" class="imagen-centrada" style="width:4.98802in;height:3.27811in"></p>
+<p><span class="math inline">\(r_{afelio} \cdot v_{afelio} = r_{perihelio} \cdot v_{perihelio}\)</span></p>
+<p>3ª. Ley de los períodos. Los cuadrados de los períodos son directamente proporcionales a los cubos de los semiejes mayores de las órbitas. (El período es el tiempo asociado a completar una órbita completa)</p>
+<p><span class="math inline">\(\frac{T^{2}}{r^{3}} = cte\)</span></p>
+<p><span class="math inline">\({r_{medio} = \frac{r_{afelio} + r_{perihelio}}{2}}_{}\)</span></p>
+<p>Nota: La elipse es el lugar geométrico de los puntos del plano cuya suma de distancias a dos puntos fijos llamos focos (F, F’) es constante. La circunferencia es un caso particular de elipse en la que a y b toman el mismo valor. La excentricidad de la circunferencia vale 0. Si la excentricidad de la elipse es próxima a cero se puede aproximar a una circunferencia.</p>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p><img src="images/documento-2627/media/image16.png" class="imagen-centrada img-fluid" style="width:100.0%"></p>
+</div><div class="column" style="width:50%;">
+<p><img src="images/documento-2627/media/image23.png" class="imagen-centrada img-fluid" style="width:100.0%"></p>
+</div>
+</div>
+<p>2a eje mayor, 2b eje menor, 2c distancia focal</p>
+<p>h+i=j+k</p>
+<p><span class="math inline">\(b^{2} + c^{2} = a^{2}\)</span></p>
+<p>excentricidad e=c/a</p>
+<p>Área=πab</p>
+<p>Cuanto más separadas están los focos de la elipse mayor es su excentricidad y se parece menos a una circunferencia.</p>
+<p><img src="images/documento-2627/media/image7.png" class="imagen-centrada" style="width:6.27083in;height:2.87831in"></p>
+</section>
+<section id="momento-de-una-fuerza-y-momento-angular" class="level1">
+<h1>Momento de una fuerza y momento angular</h1>
+<section id="momento-de-una-fuerza-respecto-a-un-punto" class="level2">
+<h2 class="anchored" data-anchor-id="momento-de-una-fuerza-respecto-a-un-punto">Momento de una fuerza respecto a un punto</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/diagramas/momento-fuerza-vectores-v3.png" class="imagen-centrada img-fluid figure-img" style="width:4.5in"></p>
+<figcaption>Vectores posición, fuerza y momento respecto de un punto.</figcaption>
+</figure>
+</div>
+<p>El momento de una fuerza respecto de un punto O se define como el producto vectorial del vector de posición del punto de aplicación de la fuerza respecto al punto O por dicha fuerza.</p>
+<p><span class="math inline">\(\overrightarrow{M_{o}} = \overrightarrow{r}\  \times \ \overrightarrow{F}\)</span></p>
+<p>Se trata de una magnitud vectorial y su unidad del momento de una fuerza en el S.I. es Nm.</p>
+<p>El momento de una fuerza depende del sistema de referencia adoptado.</p>
+<p>Ten en cuenta que el producto vectorial de dos vectores da como resultado otro vector perpendicular al plano que los contiene. Por lo tanto el vector momento es perpendicular al plano que definen el vector de posición y la fuerza.</p>
+<p>Su módulo se puede calcular así:</p>
+<p><span class="math inline">\(\left| \overrightarrow{M_o} \right| = \left| \overrightarrow{r} \right| \cdot \left| \overrightarrow{F} \right| \cdot \sin\theta\)</span></p>
+<p>donde <span class="math inline">\(\theta\)</span> es el ángulo que forman la fuerza y el vector de posición.</p>
+<p>Si los vectores de posición y fuerza son paralelos, entonces el momento es nulo.</p>
+<p>Si los vectores de posición y fuerza son perpendiculares el momento es máximo.</p>
+<p>El sentido del momento de una fuerza se determina siguiendo la regla del tornillo o de la mano derecha.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/diagramas/momento-fuerza-mano-derecha.png" class="imagen-centrada img-fluid figure-img" style="width:6.0625in"></p>
+<figcaption>Regla de la mano derecha para determinar el sentido del momento de una fuerza.</figcaption>
+</figure>
+</div>
+<p><a href="http://hyperphysics.phy-astr.gsu.edu/hbasees/tord.html"><u>Imagen retocada de Hyperphysics.</u></a></p>
+<p>Si abates el vector <span class="math inline">\(\overrightarrow{r}\)</span> sobre el vector <span class="math inline">\(\overrightarrow{F}\)</span> por el camino más corto, el momento apunta en dirección positiva si el sentido de giro es contrario a las agujas del reloj.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 49%">
+<col style="width: 49%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"><img src="images/documento-2627/media/image19.png" style="width:3.28125in;height:2.81944in"></th>
+<th style="text-align: left;"><img src="images/diagramas/momento-horario-negativo-v2.png" class="img-fluid" style="width:3.28125in"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Sentido antihorario: positivo</td>
+<td style="text-align: left;">Sentido horario: negativo</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="momento-angular" class="level2">
+<h2 class="anchored" data-anchor-id="momento-angular">Momento angular</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/diagramas/momento-angular-vectores-v2.png" class="imagen-centrada img-fluid figure-img" style="width:4.23438in"></p>
+<figcaption>Vectores posición, cantidad de movimiento y momento angular.</figcaption>
+</figure>
+</div>
+<p>El momento angular de una partícula se define como el producto vectorial de su vector de posición y su vector cantidad de movimiento o momento lineal.</p>
+<p><span class="math inline">\(\overrightarrow{L_{o}} = \overrightarrow{r}\  \times \ \overrightarrow{p} = \overrightarrow{r}\  \times m \cdot \ \overrightarrow{v}\)</span></p>
+<p>Se trata de una magnitud vectorial cuyas unidades en el S.I. son kg·m<sup>2</sup>/s ó J·s.</p>
+<p>El momento angular depende del sistema de referencia adoptado.</p>
+<p>El momento angular es perpendicular al plano definido por el vector de posición y el vector momento lineal.</p>
+<p><sup>Su&nbsp;módulo&nbsp;se&nbsp;puede&nbsp;calcular&nbsp;así:</sup></p>
+<p><span class="math inline">\(\left| \overrightarrow{L_o} \right| = \left| \overrightarrow{r} \right| \cdot m\left| \overrightarrow{v} \right| \cdot \sin\theta\)</span></p>
+<p>donde <span class="math inline">\(\theta\)</span> es el ángulo que forman la fuerza y el vector de momento lineal(o velocidad).</p>
+<p>Si los vectores de posición y momento lineal son paralelos, entonces el momento es nulo.</p>
+<p>Si los vectores de posición y momento lineal son perpendiculares el momento es máximo. Esto ocurre en todos los puntos de las órbitas circulares y en ciertos puntos de otras órbitas.</p>
+</section>
+</section>
+<section id="conservación-del-momento-angular" class="level1">
+<h1>Conservación del momento angular</h1>
+<p><em><strong>Ecuación fundamental de la dinámica de rotación</strong>.</em></p>
+<p><span class="math inline">\(\overrightarrow{M} = \frac{d\ \overrightarrow{L}}{dt}\)</span></p>
+<p>El momento de fuerza total que actúa sobre una partícula provoca un cambio es su momento angular.</p>
+<p>Si el momento de fuerza total sobre una partícula es nulo, su momento angular no cambia.</p>
+<p>Si <span class="math inline">\(\overrightarrow{M} = 0 \Rightarrow \overrightarrow{L} = \overrightarrow{cte}\)</span></p>
+<p>Nota: Observa que si cambias L por p y M por F se obtiene la 2ª ley de Newton. Por este motivo se dice que L juega en la rotación el mismo papel que p en la traslación.</p>
+<section id="demostración-de-primera-ley-kepler-con-el-momento-angular" class="level2">
+<h2 class="anchored" data-anchor-id="demostración-de-primera-ley-kepler-con-el-momento-angular">Demostración de primera ley Kepler con el momento angular</h2>
+<p>Los planetas del Sistema solar están sometidos a la fuerza de atracción del Sol. El vector posición <span class="math inline">\(\overrightarrow{r}\)</span> y el vector fuerza <span class="math inline">\(\overrightarrow{F}\ \)</span> tienen la misma dirección por lo que su producto vectorial es cero.</p>
+<p>Al ser nulo el momento de la fuerza gravitatoria, el momento angular del planeta es constante.</p>
+<p>Como se trata de un vector, para ser constante debe serlo tanto en dirección como en sentido y en módulo.</p>
+<p><span class="math inline">\(\overrightarrow{L_{}} = \overrightarrow{r}\  \times \ \overrightarrow{p} = \overrightarrow{r}\  \times m \cdot \ \overrightarrow{v}\)</span></p>
+<p>Si la dirección es constante, los vectores <span class="math inline">\(\overrightarrow{r}\)</span> y <span class="math inline">\(\overrightarrow{v}\)</span> se encuentran siempre en un mismo plano. Por lo tanto, los planetas se mueven en trayectorias planas.</p>
+<p>Si el sentido es constante, los planetas giran en un sentido u otro pero no pueden cambiar de sentido de giro alrededor del Sol puesto que eso supondría un cambio de sentido del momento angular.</p>
+<p>Nota: no se demuestra que la órbita es una elipse (en general es una cónica), queda fuera bachillerato<em>.</em></p>
+</section>
+<section id="demostración-de-segunda-ley-kepler-con-el-momento-angular" class="level2">
+<h2 class="anchored" data-anchor-id="demostración-de-segunda-ley-kepler-con-el-momento-angular">Demostración de segunda ley Kepler con el momento angular</h2>
+<p>Supongamos que la órbita es elíptica. Supongamos dos posiciones de la trayectoria del planeta separadas por un breve lapso de tiempo <span class="math inline">\(dt\)</span>. Las posiciones del planeta serán <span class="math inline">\(\overrightarrow{r}\)</span> y <span class="math inline">\(\overrightarrow{r} + \overrightarrow{dr}.\)</span> El área barrida por el vector <span class="math inline">\(\overrightarrow{r}\)</span> durante esa fracción pequeña de tiempo <span class="math inline">\(dt\)</span> será la mitad del área del paralelogramo formado por los vectores <span class="math inline">\(\overrightarrow{r}\)</span> y <span class="math inline">\(\overrightarrow{dr}\)</span> .</p>
+<p><span class="math inline">\(dA = \frac{1}{2}\left| \overrightarrow{r} \times \overrightarrow{dr} \right| = \frac{1}{2}\left| \overrightarrow{r} \times \overrightarrow{v}\ dt \right|\)</span></p>
+<p><span class="math inline">\(dA = \frac{1}{2}\left| \overrightarrow{r} \times \overrightarrow{v} \right|dt = \frac{1}{2}\frac{\left| \overrightarrow{L} \right|}{m}dt\)</span></p>
+<p><span class="math inline">\(\frac{dA}{dt} = \frac{1}{2}\frac{\left| \overrightarrow{L} \right|}{m} = cte\)</span></p>
+<p><img src="images/documento-2627/media/image18.png" class="imagen-centrada" style="width:4.26921in;height:2.62465in"></p>
+</section>
+<section id="ley-de-gravitación-universal" class="level2">
+<h2 class="anchored" data-anchor-id="ley-de-gravitación-universal">5. Ley de gravitación universal</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/diagramas/interaccion-gravitatoria-dos-masas.png" class="imagen-centrada img-fluid figure-img" style="width:3.2in"></p>
+<figcaption>Interacción gravitatoria entre dos masas.</figcaption>
+</figure>
+</div>
+<p>Enunciada por Isaac Newton:</p>
+<p>Todos los cuerpos se atraen entre sí con una fuerza que es proporcional al producto de sus masas e inversamente proporcional al cuadrado de la distancia que las separa.</p>
+<p><span class="math inline">\(\overrightarrow{F} = - G\frac{Mm}{r^{2}}{\overrightarrow{u}}_{r}\)</span></p>
+<p><span class="math inline">\(\overrightarrow{F}\)</span> es la fuerza que se ejercen mutuamente los cuerpos de masa M y m.</p>
+<p><em>r</em> es la distancia entre los centros de los dos cuerpos.</p>
+<p><em>G</em> es la constante de gravitación universal. Su valor es <em>6,67·10<sup>-11</sup> N m<sup>2</sup> kg<sup>-2</sup></em>.</p>
+<p><span class="math inline">\({\overrightarrow{u}}_{r}\)</span> es un vector unitario en la dirección que une ambos cuerpos.</p>
+<p>El signo negativo indica que se trata de una fuerza de atracción, es decir, tiene sentido contrario a</p>
+<p><span class="math inline">\({\overrightarrow{u}}_{r}.\)</span></p>
+<section id="características-de-la-interacción-gravitatoria" class="level3">
+<h3 class="anchored" data-anchor-id="características-de-la-interacción-gravitatoria">Características de la interacción gravitatoria</h3>
+<ol type="1">
+<li><p>Se trata de una interacción a distancia. No es necesario ningún medio que transmita la interacción entre los cuerpos.</p></li>
+<li><p>La interacción es independiente del medio en el que se encuentran los cuerpos.</p></li>
+<li><p>La fuerza gravitatoria que ejerce un cuerpo es siempre de atracción.</p></li>
+<li><p>Las fuerzas que ejercen entre sí los cuerpos son iguales y de sentidos contrarios (principio de acción y reacción).</p></li>
+<li><p>Es una fuerza que disminuye rápidamente con la distancia (como <em>r<sup>-2</sup></em>).</p></li>
+<li><p>Su radio de acción es todo el espacio excepto <em>r = 0</em>, es decir, cualquier cuerpo, por muy alejado que esté, experimentará esta fuerza.</p></li>
+<li><p>La intensidad de la fuerza es directamente proporcional a las masas de los dos cuerpos que interaccionan.</p></li>
+<li><p>La interacción se da en la dirección que pasa por los centros de los cuerpos. Además, la única coordenada espacial de la que depende es la distancia entre los centros de los cuerpos (<em>r</em>), por tanto, se trata de una <strong>fuerza central</strong>.</p></li>
+</ol>
+</section>
+<section id="interacción-de-un-conjunto-de-masas-puntuales.-principio-de-superposición" class="level3">
+<h3 class="anchored" data-anchor-id="interacción-de-un-conjunto-de-masas-puntuales.-principio-de-superposición">Interacción de un conjunto de masas puntuales. Principio de superposición</h3>
+<p>Cuando interaccionan más de dos partículas, la fuerza resultante que actúa sobre una de ellas se calcula sumando vectorialmente las fuerzas individuales que ejercen sobre ella cada una de las otras partículas.</p>
+<p>Las fuerzas que ejercen entre sí dos partículas no se ven afectadas por la presencia del resto de partículas. Si se tiene un sistema de <em>N</em> partículas, la fuerza resultante sobre la partícula 1 se calculará de la siguiente forma:</p>
+<p><span class="math inline">\({\overrightarrow{F}}_{1} = {\overrightarrow{F}}_{21} + {\overrightarrow{F}}_{31} + {\overrightarrow{F}}_{41} + \cdots + {\overrightarrow{F}}_{N1}\)</span></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/diagramas/superposicion-fuerzas-gravitatorias.png" class="imagen-centrada img-fluid figure-img" style="width:4.5in"></p>
+<figcaption>Superposición de las fuerzas gravitatorias ejercidas sobre la masa 1.</figcaption>
+</figure>
+</div>
+<p>En donde <span class="math inline">\({\overrightarrow{F}}_{21}\)</span> es la fuerza de atracción que ejerce la partícula 2 sobre la 1, <span class="math inline">\({\overrightarrow{F}}_{31}\)</span> es la fuerza de atracción que ejerce la partícula 3 sobre la 1, etc.</p>
+<p>De forma general, para una partícula <em>i</em> cualquiera, la fuerza resultante sobre ella será la suma de todas las fuerzas individuales:</p>
+<p><span class="math inline">\(\overrightarrow{F_{i}} = \sum_{n = 1\ n \neq i\ }^{N}\overrightarrow{F_{ni}}\)</span></p>
+</section>
+</section>
+<section id="generalización-del-concepto-de-trabajo-a-una-fuerza-variable" class="level2">
+<h2 class="anchored" data-anchor-id="generalización-del-concepto-de-trabajo-a-una-fuerza-variable">6. Generalización del concepto de trabajo a una fuerza variable</h2>
+<p><img src="images/documento-2627/media/image22.png" class="imagen-centrada" style="width:3.88074in;height:2.21217in"></p>
+<p>El trabajo es una magnitud física que sirve para cuantificar el intercambio de energía entre dos sistemas físicos.</p>
+<p>El trabajo, <em>W<sub>AB</sub></em>, realizado por una fuerza constante ejercida sobre un cuerpo que se desplaza de un punto <em>A</em>, a otro punto <em>B</em>, se calcula:</p>
+<p><span class="math inline">\(W_{AB} = \overrightarrow{F} \cdot \Delta\overrightarrow{r} = F\Delta r\cos\theta\)</span></p>
+<p>En el Sistema Internacional, el trabajo se mide en julios (<em>J</em>).</p>
+<div class="ampliacion">
+<p><span class="titulo-ampliacion">Ampliación</span></p>
+<p><img src="images/diagramas/trayectoria-variable.svg" class="imagen-centrada img-fluid" style="width:1.59097in"></p>
+<p>Si la fuerza no es constante, hay que descomponer la trayectoria en sucesivos desplazamientos muy pequeños dentro de los que la fuerza se mantenga aproximadamente constante. A esos sucesivos desplazamientos los llamamos desplazamientos infinitesimales, <span class="math inline">\(d\overrightarrow{r}\)</span>.</p>
+<p>Por tanto, el trabajo realizado por una fuerza variable sobre una partícula que se desplaza de un punto <em>A</em> hasta otro punto <em>B</em>, a lo largo de una trayectoria <em>C</em> se calcula como la suma de los trabajos infinitesimales en cada uno de esos pequeños trayectos. Ese cálculo se denomina cálculo integral y se escapa de vuestros conocimientos matemáticos actuales:</p>
+<p><span class="math inline">\(W_{AB} = {}_{C}\int_{}^{}\overrightarrow{F} \cdot d\overrightarrow{r}\)</span></p>
+</div>
+<section id="fuerzas-conservativas" class="level3">
+<h3 class="anchored" data-anchor-id="fuerzas-conservativas">6.1. Fuerzas conservativas</h3>
+<p><img src="images/diagramas/camino-cerrado.svg" class="imagen-centrada img-fluid" style="width:1.02361in"></p>
+<p>En general, el trabajo realizado por una fuerza, a lo largo de un camino cerrado, <em>C</em>, es distinto de cero:</p>
+<p><span class="math inline">\(W_{C} \neq 0\)</span></p>
+<p>Se denominan <strong>fuerzas conservativas</strong> aquellas para las que el trabajo realizado a lo largo de cualquier camino cerrado, <em>C</em>, es siempre cero:</p>
+<p><span class="math inline">\(W_{C} = 0\)</span></p>
+<p>En este caso, si se toman dos puntos, <em>A</em> y <em>B</em>, de un camino cerrado cualquiera, el trabajo a lo largo del camino será la suma del trabajo desde A hasta B por el camino C<sub>1</sub> y el trabajo desde B hasta A por el camino C<sub>2</sub>.</p>
+<p><img src="images/diagramas/caminos-c1-c2-v2.png" class="imagen-centrada img-fluid" style="width:1.66042in"></p>
+<p><span class="math inline">\(W_{C} = W_{A \rightarrow B}^{C_{1}} + W_{B \rightarrow A}^{C_{2}}\)</span></p>
+<p>Supongamos que recorremos C<sub>2</sub> desde B hasta A. En cada punto la fuerza aplicada <span class="math inline">\(\underline{F}\)</span> y el infinitésimo de camino recorrido <span class="math inline">\(\underline{dr}\)</span> formarán un ángulo 𝛂. Si se recorre el mismo camino C<sub>2</sub> desde A hasta B la fuerza <span class="math inline">\(\underline{F}\)</span> y el desplazamiento infinitesimal <span class="math inline">\(\underline{dr}\)</span> en cada punto formarán el ángulo suplementario 180º-𝛂. El producto escalar calculado en cada punto tendrá un valor si vamos de A a B y el mismo valor cambiado de signo si vamos de B a A.</p>
+<p><span class="math inline">\(W_{C} = W_{A \rightarrow B}^{C_{1}} - W_{A \rightarrow B}^{C_{2}}\)</span></p>
+<p>Como el trabajo en el camino cerrado es nula si la fuerza es conservativa, los trabajos por los caminos C1 y C2 son iguales.</p>
+<p><span class="math inline">\(W_{C} = 0 \Rightarrow W_{A \rightarrow B}^{C_{1}} - W_{A \rightarrow B}^{C_{2}} = 0 \Rightarrow W_{A \rightarrow B}^{C_{1}} = W_{A \rightarrow B}^{C_{2}}\)</span></p>
+<p>Por tanto, el trabajo realizado por una fuerza conservativa para ir de un punto <em>A</em> hasta otro punto <em>B</em> sólo depende de los puntos inicial, <em>A</em>, y final, <em>B</em>.</p>
+</section>
+<section id="energía-potencial" class="level3">
+<h3 class="anchored" data-anchor-id="energía-potencial">6.2. Energía potencial</h3>
+<p>Sea una fuerza conservativa variable. El trabajo calculado a lo largo de un camino cerrado, <em>C</em>, es nulo.</p>
+<p><img src="images/diagramas/referencia-o.svg" class="imagen-centrada img-fluid" style="width:1.56597in"></p>
+<p><span class="math inline">\(W_{C} = 0\)</span></p>
+<p>A, B y O son tres puntos cualesquiera de la curva cerrada <em>C</em>.</p>
+<p>Se define la <strong>energía potencial en un punto <em>A</em></strong>, <em>Ep<sub>A</sub></em>, como el trabajo realizado por una fuerza conservativa para ir del punto <em>A</em> hasta un punto de referencia, <em>O</em>, elegido arbitrariamente y en el que se asigna un valor nulo a la energía potencial:</p>
+<p><span class="math inline">\({Ep}_{A} = W_{A \rightarrow O}^{} = - W_{O \rightarrow A}^{}\)</span></p>
+<p>Así, el trabajo realizado por una fuerza conservativa para desplazar una partícula de un punto, <em>A</em>, a otro punto, <em>B</em>, se puede expresar en función de la variación de la energía potencial entre estos dos puntos:</p>
+<p><span class="math inline">\(W_{A \rightarrow B} = W_{A \rightarrow O} + W_{O \rightarrow B}\  = W_{A \rightarrow O} - W_{B \rightarrow O} = \ {Ep}_{A} - {Ep}_{B}\)</span></p>
+<p><span class="math inline">\(W_{A \rightarrow B} = {- ( - Ep}_{A}) - {Ep}_{B} = - ({Ep}_{B} - {Ep}_{A})\)</span></p>
+<p><span class="math inline">\(W_{A \rightarrow B} = - \Delta Ep\)</span></p>
+<p>El valor de la energía potencial dependerá del punto que se haya tomado como referencia. Así, la energía potencial en un punto <em>A</em> tendrá valores distintos según se elija <em>O<sub>1</sub></em> u <em>O<sub>2</sub></em> como referencia.</p>
+<p><img src="images/diagramas/referencias-o1-o2.svg" class="imagen-centrada img-fluid" style="width:1.67083in"></p>
+<p><span class="math inline">\({Ep}_{A}^{O_{1}} = W_{A \rightarrow O_{1}}^{}\)</span></p>
+<p><span class="math inline">\({Ep}_{A}^{O_{2}} = W_{A \rightarrow O_{2}}^{}\)</span></p>
+<p>Sin embargo, el valor de la diferencia <em>Ep<sub>B</sub></em> – <em>Ep<sub>A</sub></em> será independiente del punto de referencia elegido, ya que, al tratarse de una fuerza conservativa, el trabajo de <em>A</em> hasta <em>B</em> no depende del camino que se recorra y, por tanto, tendrá siempre el mismo valor. <strong>Por ello, lo que tiene realmente sentido físico es la diferencia de energía potencial entre dos puntos y no su valor en un punto</strong>.</p>
+<p><span class="math inline">\({Ep}_{A}^{O_{1}} - {Ep}_{B}^{O_{1}} = W_{A \rightarrow O_{1}}^{} - W_{B \rightarrow O_{1}}^{} = W_{A \rightarrow O_{1}}^{} + W_{O_{1} \rightarrow B}^{} = W_{A \rightarrow B}^{}\)</span></p>
+<p><span class="math inline">\({Ep}_{A}^{O_{2}} - {Ep}_{B}^{O_{2}} = W_{A \rightarrow O_{2}}^{} - W_{B \rightarrow O_{2}}^{} = W_{A \rightarrow O_{2}}^{} + W_{O_{2} \rightarrow B}^{} = W_{A \rightarrow B}^{}\)</span></p>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p><img src="images/diagramas/referencia-o1-trabajos.png" class="imagen-centrada img-fluid" style="width:100.0%"></p>
+</div><div class="column" style="width:50%;">
+<p><img src="images/diagramas/referencia-o2-trabajos.png" class="imagen-centrada img-fluid" style="width:100.0%"></p>
+</div>
+</div>
+</section>
+<section id="teorema-de-las-fuerzas-vivas" class="level3">
+<h3 class="anchored" data-anchor-id="teorema-de-las-fuerzas-vivas">6.3. Teorema de las fuerzas vivas</h3>
+<p>Sea un cuerpo de masa m que se desplaza en línea recta desde un punto A hasta un punto B bajo la acción de una fuerza constante <span class="math inline">\(\overrightarrow{F}\)</span>.</p>
+<p>El trabajo realizado por la fuerza a lo largo del desplazamiento Δx depende únicamente de su componente tangencial Fₜ (en la dirección del movimiento), ya que la componente normal Fₙ es perpendicular al desplazamiento y no realiza trabajo:</p>
+<p><span class="math inline">\(W_{A \rightarrow B} = F \cdot \Delta x\)</span></p>
+<p>Aplicando la <strong>segunda ley de Newton</strong> en la dirección del movimiento (Fₜ = m · a), el trabajo se expresa como:</p>
+<p><span class="math inline">\(W_{A \rightarrow B} = m \cdot a \cdot \Delta x\)</span></p>
+<p>Por la cinemática del movimiento rectilíneo uniformemente acelerado (MRUA), la aceleración y las velocidades en los puntos A y B se relacionan mediante:</p>
+<p><span class="math inline">\({v_{B}}^{2} - {v_{A}}^{2} = 2 \cdot a \cdot \Delta x\  \rightarrow a \cdot \Delta x\  = \frac{1}{2}({v_{B}}^{2} - {v_{A}}^{2})\)</span></p>
+<p>Sustituyendo esta relación en la expresión del trabajo:</p>
+<p><span class="math inline">\(W_{A \rightarrow B} = m \cdot \frac{1}{2}({v_{B}}^{2} - {v_{A}}^{2})\  \rightarrow W_{A \rightarrow B} = \frac{1}{2}m \cdot {v_{B}}^{2} - \frac{1}{2}m \cdot {v_{A}}^{2}\ \)</span></p>
+<p>Definiendo la <strong>energía cinética</strong> como E꜀ = ½ · m · v², se obtiene el <strong>Teorema de las fuerzas vivas</strong>:</p>
+<p><span class="math inline">\(W_{A \rightarrow B} = Ec_{B} - Ec_{A} = \Delta Ec\)</span></p>
+<p><em><strong>Enunciado:</strong> El trabajo total realizado por las fuerzas que actúan sobre un cuerpo es igual a la variación de su energía cinética.</em></p>
+<p>Esta expresión corresponde al <strong>teorema de las fuerzas vivas</strong>. Es una relación general, válida para cualquier tipo de fuerza y para cualquier movimiento.</p>
+</section>
+<section id="conservación-de-la-energía-mecánica" class="level3">
+<h3 class="anchored" data-anchor-id="conservación-de-la-energía-mecánica">6.4. Conservación de la energía mecánica</h3>
+<p>En el caso particular de que se trate de una fuerza conservativa se cumplirá, además del teorema de las fuerzas vivas, la relación: <em>W<sub>AB</sub>=-ΔEp</em>:</p>
+<p><span class="math display">\[
+\left.
+\begin{aligned}
+W_{AB} &amp;= -\Delta E_p \\
+W_{AB} &amp;= \Delta E_c
+\end{aligned}
+\right\}
+\Rightarrow \Delta E_c = -\Delta E_p
+\Rightarrow \Delta E_c + \Delta E_p = 0
+\]</span></p>
+<p>Desarrollando la expresión: <span class="math inline">\(E_{C_{B}} - E_{C_{A}} + {Ep}_{B} - {Ep}_{A} = 0 \Rightarrow \left( E_{C_{B}} + {Ep}_{B} \right) - \left( E_{C_{A}} + {Ep}_{A} \right) = 0\)</span></p>
+<p>Llamando <strong>energía mecánica</strong>, <em>E<sub>m</sub></em>, a la suma de la energía cinética y de la energía potencial que tiene un cuerpo:</p>
+<p><em>E<sub>m</sub> = E<sub>C</sub> + Ep</em></p>
+<p>Se puede escribir:</p>
+<p><span class="math inline">\(\left( E_{C_B} + Ep_B \right) - \left( E_{C_A} + Ep_A \right) = E_{m_B} - E_{m_A} = 0 \Rightarrow \Delta E_m = 0\)</span></p>
+<p>Esta es la expresión de la conservación de la energía mecánica, válida sólo en el caso de que las fuerzas implicadas sean conservativas.</p>
+<p>Si, además, existiesen fuerzas no conservativas, como, por ejemplo, fuerzas de rozamiento, el trabajo total cuando la partícula se desplaza de A hasta B es la suma del trabajo debido a las fuerzas conservativas y al trabajo debido a las fuerzas no conservativas:</p>
+<p><span class="math inline">\(W_{AB} = W_{conservativas} + W_{no\ conservativas}\)</span></p>
+<p>Teniendo en cuenta el teorema de las fuerzas vivas y la relación entre trabajo realizado por fuerzas conservativas y variación de energía potencial:</p>
+<p><span class="math inline">\({\Delta E}_{C_{AB}} = - \Delta{Ep}_{AB} + W_{no\ conservativas} \Rightarrow {\Delta E}_{C_{AB}} + \Delta{Ep}_{AB} = W_{no\ conservativas}\)</span></p>
+<p>De donde se deduce, teniendo en cuenta la definición de energía mecánica:</p>
+<p><span class="math inline">\({\Delta E}_{m_{AB}} = W_{no\ conservativas}\)</span></p>
+</section>
+</section>
+<section id="fuerzas-centrales" class="level2">
+<h2 class="anchored" data-anchor-id="fuerzas-centrales">7. Fuerzas centrales</h2>
+<p><img src="images/documento-2627/media/image2.png" class="imagen-centrada" style="width:4.38646in;height:4.02288in"></p>
+<p>Una <strong>fuerza central</strong> es aquella cuya dirección pasa siempre por un punto fijo (centro de fuerzas) y cuyo módulo depende exclusivamente de la distancia <em>r</em> a dicho punto. Su expresión general es:</p>
+<p><span class="math inline">\(\overrightarrow{F} = f(r)\ {\overrightarrow{u}}_{r}\)</span></p>
+<p>Donde <span class="math inline">\({\overrightarrow{u}}_{r}\)</span> es el vector unitario radial.</p>
+<p><strong>Se puede demostrar con carácter general que las fuerzas centrales son conservativas.</strong></p>
+<p>Las fuerzas elásticas de un muelle y las fuerzas gravitatorias y las eléctricas son casos de fuerzas centrales.</p>
+<div class="ampliacion">
+<p><span class="titulo-ampliacion">Ampliación</span></p>
+<p>Vamos a comprobar que en un camino cerrado el trabajo que realiza una fuerza central es nulo.</p>
+<p><img src="images/documento-2627/media/image8.png" class="imagen-centrada" style="width:5.18646in;height:3.45488in"></p>
+<p>Descomponemos el trayecto AA en cuatro tramos AA’, A’B, BB’ y B’A.</p>
+<ol type="1">
+<li><p>Tramos circulares (a distancia <span class="math inline">\(r\)</span> constante):</p>
+<p>Al moverse en arcos de circunferencia con centro en el foco, la fuerza central es en todo momento perpendicular al desplazamiento (forman un ángulo de 90°).</p>
+<p>Como el producto escalar de dos vectores perpendiculares es cero, el trabajo en estos tramos es nulo (<span class="math inline">\(W_{A'B}=0\)</span> y <span class="math inline">\(W_{B'A}=0\)</span>).</p></li>
+<li><p>Tramos radiales (acercamiento BB’ o alejamiento AA’):</p>
+<p>En estos tramos el cuerpo cambia su distancia <span class="math inline">\(r\)</span> al centro. Como la fuerza varía con la distancia, dividimos el camino radial en una gran cantidad de tramos muy pequeños (<span class="math inline">\(\Delta r\)</span>).</p>
+<p>En cada pequeño intervalo, la fuerza apenas cambia y puede considerarse constante. Además, como la fuerza es central, su valor es exactamente el mismo para cualquier tramo que se encuentre a la misma distancia <span class="math inline">\(r\)</span> del centro.</p>
+<p>El trabajo total del camino radial es la suma de los trabajos realizados en cada uno de esos pequeños tramos.</p>
+<p>Al alejarse del centro, la fuerza y el desplazamiento tienen sentidos opuestos:</p>
+<p><span class="math inline">\(W_i = F(r)\,\Delta r\cos(180°) = -F(r)\,\Delta r\)</span></p>
+<p>Al regresar acercándose al centro, el sentido del desplazamiento se invierte y ambos vectores son paralelos:</p>
+<p><span class="math inline">\(W_i = F(r)\,\Delta r\cos(0°) = F(r)\,\Delta r\)</span></p>
+<p>Como a cada distancia <span class="math inline">\(r\)</span> la fuerza vale exactamente lo mismo, ambos trabajos tienen idéntico valor numérico y signo contrario. Al sumarlos todos, se cancelan dos a dos.</p></li>
+</ol>
+<p>Conclusión:</p>
+<p>Los tramos circulares no realizan trabajo (<span class="math inline">\(W=0\)</span>) y los trabajos de los tramos radiales de ida se compensan exactamente con los de vuelta (<span class="math inline">\(W_{AA'}=-W_{BB'}\)</span>). Por tanto, el trabajo total a lo largo de cualquier camino cerrado es nulo:</p>
+<p><span class="math inline">\(W_{AA}=0\)</span></p>
+</div>
+</section>
+<section id="energía-potencial-gravitatoria-de-una-masa-puntual-en-presencia-de-otra" class="level2">
+<h2 class="anchored" data-anchor-id="energía-potencial-gravitatoria-de-una-masa-puntual-en-presencia-de-otra">8. Energía potencial gravitatoria de una masa puntual en presencia de otra</h2>
+<p><img src="images/documento-2627/media/image20.png" class="imagen-centrada" style="width:4.25631in;height:2.47255in"></p>
+<p>La fuerza de la gravedad es <strong>conservativa</strong>; por tanto, se puede definir una magnitud escalar denominada energía potencial gravitatoria (Eₚ) asociada a la posición que ocupa una partícula de masa m en presencia de otra masa M situada a una distancia r.</p>
+<p>Por ser una fuerza conservativa, el trabajo realizado por la fuerza gravitatoria para trasladar la masa m desde una posición A hasta otra B coincide con la disminución de su energía potencial:</p>
+<p><em>W<sub>A</sub></em><sub>→<em>B</em></sub> = −Δ<em>Ep</em> = <em>Ep<sub>A</sub></em> − <em>Ep<sub>B</sub></em></p>
+<p>Si se elige como punto de referencia <em>O</em>, el infinito, donde la energía potencial será nula:</p>
+<p><em>Ep<sub>A</sub></em> = −<em>W</em><sub>∞→<em>A</em></sub> = <em>W</em><sub>ext</sub></p>
+<p>Por tanto, la expresión de la energía potencial gravitatoria para una partícula de masa m en presencia de otra, de masa M, situada a una distancia r es:</p>
+<p><span class="math inline">\(Ep = - G \cdot \frac{M \cdot m}{r}\)</span></p>
+<p>Si quisiéramos traer la masa desde el infinito hasta el punto <em>A</em> a velocidad constante, un agente exterior debería aplicar una fuerza opuesta a la gravedad (<strong><em>F</em></strong>ₑₓₜ = −<strong><em>F</em></strong>) para contrarrestar la atracción, resultando:</p>
+<p><span class="math inline">\(W_{\infty \rightarrow A}^{ext} = -W_{\infty \rightarrow A}^{grav} = Ep_A\)</span></p>
+<p><img src="images/documento-2627/media/image21.png" class="imagen-centrada" style="width:4.97722in;height:2.91701in"></p>
+<p>Si una partícula de masa <em>m<sub>1</sub></em> está en presencia de otras partículas (<em>m<sub>2</sub></em>, <em>m<sub>3</sub></em>,… <em>m<sub>N</sub></em>), teniendo en cuenta que, según el principio de superposición, la fuerza resultante es la suma vectorial de las fuerzas que cada una de las demás partículas ejercen sobre <em>m<sub>1</sub></em>:</p>
+<p><span class="math inline">\({Ep}_{1} = {Ep}_{12} + {Ep}_{13} + ... + {Ep}_{1N} = - G\frac{m_{1}m_{2}}{r_{21}} - G\frac{m_{1}m_{3}}{r_{31}} - \cdots - G\frac{m_{1}m_{N}}{r_{N1}}\)</span></p>
+</section>
+<section id="energía-potencial-gravitatoria-terrestre" class="level2">
+<h2 class="anchored" data-anchor-id="energía-potencial-gravitatoria-terrestre">8.1. Energía potencial gravitatoria terrestre</h2>
+<p><img src="images/diagramas/energia-potencial-terrestre.png" class="imagen-centrada img-fluid" style="width:2.38438in"></p>
+<p>Para una partícula de masa <em>m</em>, situada en un punto exterior a la superficie de la Tierra, la energía potencial es:</p>
+<p><span class="math inline">\(Ep = - G\frac{M_{T}m}{r} = - G\frac{M_{T}m}{R_{T} + h}\)</span></p>
+<p>En el caso de un punto, <em>A</em>, próximo a la superficie de la Tierra; tomando como punto de referencia, <em>O</em>, el valor <em>r=R<sub>T</sub></em>, en el que el valor de la energía potencial es nulo:</p>
+<p><span class="math inline">\({Ep}_{A} = - {GM}_{T}m\left( \frac{1}{r_{A}} - \frac{1}{r_{O}} \right) = \ \)</span></p>
+<p><span class="math inline">\({Ep}_{A} = - {GM}_{T}m\left( \frac{1}{R_{T} + h} - \frac{1}{R_{T}} \right) = - {GM}_{T}m\left( \frac{R_{T} - R_{T} - h}{\left( R_{T} + h \right)R_{T}} \right) = {GM}_{T}m\left( \frac{h}{\left( R_{T} + h \right)R_{T}} \right)\)</span></p>
+<p>Si el punto, <em>A</em>, está en las proximidades de la superficie terrestre, el valor de la altura, <em>h</em>, es muy pequeño respecto al valor del radio de la Tierra, <em>R<sub>T</sub></em>; por tanto, <em>h</em> puede despreciarse frente al valor del radio de la Tierra: <em>R<sub>T</sub> + h ≈ R<sub>T</sub></em>.</p>
+<p><span class="math inline">\({Ep}_{A} = G\frac{M_{T}}{R_{T}^{2}}mh = g_{0}mh\  \Rightarrow \ {Ep}_{A} = mg_{0}h\)</span></p>
+<p><strong>¿Hasta qué altura es válido utilizar la aproximación Ep = m · g · h?</strong></p>
+<p>La expresión Ep = m · g · h asume que la aceleración de la gravedad g se mantiene constante e igual a su valor en la superficie (g₀ ≈ 9,8 m/s²). Sin embargo, según la ley de gravitación universal, g disminuye con la distancia al centro de la Tierra (r = Rₜ + h), por lo que la fórmula clásica sobreestima la energía potencial real.</p>
+<p>El error relativo cometido al usar m · g · h en lugar de la expresión exacta viene determinado por la relación entre la altura h y el radio terrestre (Rₜ ≈ 6.370 km):</p>
+<p>Error relativo ≈ h / Rₜ</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 29%">
+<col style="width: 11%">
+<col style="width: 46%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Altura (h)</th>
+<th style="text-align: left;">Entorno</th>
+<th style="text-align: left;">Error relativo</th>
+<th style="text-align: left;">Validez del modelo m · g · h</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">h ≤ 10 km</td>
+<td style="text-align: left;">Troposfera (vuelos comerciales, Everest)</td>
+<td style="text-align: left;">&lt; 0,15%</td>
+<td style="text-align: left;">Excelente: Despreciable en problemas habituales y laboratorio.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">h ≈ 64 km</td>
+<td style="text-align: left;">Mesosfera</td>
+<td style="text-align: left;">≈ 1%</td>
+<td style="text-align: left;">Muy buena: Válido para estimaciones rápidas de orden de magnitud.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">h ≈ 100 km</td>
+<td style="text-align: left;">Línea de Kármán (límite del espacio)</td>
+<td style="text-align: left;">≈ 1,5%</td>
+<td style="text-align: left;">Límite práctico: Comienza a ser necesario el modelo general.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">h ≈ 400 km</td>
+<td style="text-align: left;">Órbita de la ISS (espacio cercano)</td>
+<td style="text-align: left;">≈ 6%</td>
+<td style="text-align: left;">Inaceptable: Es obligatorio emplear Ep = −G · (M · m / r).</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">h ≥ 6.370 km</td>
+<td style="text-align: left;">Órbitas medias y altas (h ≥ Rₜ)</td>
+<td style="text-align: left;">≥ 50%</td>
+<td style="text-align: left;">Divergencia total: El modelo lineal pierde cualquier validez.</td>
+</tr>
+</tbody>
+</table>
+<p>Criterio de aplicación:</p>
+<ul>
+<li><p>Para h ≤ 10 km (h ≪ Rₜ): Se puede utilizar con total rigor Ep = m · g · h, considerando g ≈ cte.</p></li>
+<li><p>Para h &gt; 100 km (satélites y escala astronómica): Debe emplearse siempre la expresión general de la gravitación universal:</p></li>
+</ul>
+<p>Ep = −G · [M · m / (Rₜ + h)]</p>
+</section>
+<section id="concepto-de-campo" class="level2">
+<h2 class="anchored" data-anchor-id="concepto-de-campo">9. Concepto de campo</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/diagramas/campo-gravitatorio-masa-puntual.png" class="imagen-centrada img-fluid figure-img" style="width:4in"></p>
+<figcaption>Campo gravitatorio creado por una masa puntual.</figcaption>
+</figure>
+</div>
+<p>La ley de gravitación universal de Newton supone que la interacción entre los cuerpos se produce a distancia, sin necesidad de que exista contacto entre ellas y sin necesidad de que exista un medio que transmita dicha interacción.</p>
+<p>Para salvar el problema de la interacción a distancia se utiliza el concepto de campo:</p>
+<ol type="1">
+<li><p>Una partícula, con una determinada propiedad, modifica el espacio que la rodea.</p></li>
+<li><p>Esta modificación del espacio se dice que es el campo creado por la partícula.</p></li>
+<li><p>Esta partícula no se ve afectada por este cambio en las propiedades del espacio que ella misma produce.</p></li>
+<li><p>La existencia del campo se pone de manifiesto al introducir en él una segunda partícula, que posee la misma propiedad que la que ha creado el campo. Esta segunda partícula, llamada partícula de prueba, experimentará una fuerza.</p></li>
+</ol>
+<p>Los campos pueden ser escalares o vectoriales:</p>
+<ul>
+<li><p><strong>Campo escalar</strong>. A cada punto del espacio en el que está definido el campo se le asigna un escalar.</p></li>
+<li><p><strong>Campo vectorial</strong>. A cada punto del espacio en el que está definido el campo se le asigna un vector.</p></li>
+</ul>
+</section>
+<section id="campo-gravitatorio" class="level2">
+<h2 class="anchored" data-anchor-id="campo-gravitatorio">9.1. Campo gravitatorio</h2>
+<p>Si la propiedad que crea el campo es la masa, este se denomina campo gravitatorio.</p>
+<p>Se define la <strong>intensidad de campo gravitatorio</strong> o <strong>campo gravitatorio</strong> <span class="math inline">\(\overrightarrow{g}\)</span> creado por un cuerpo de masa <em>M</em>, en un punto del espacio situado a una distancia <em>r</em> de él, como la fuerza <span class="math inline">\(\overrightarrow{F}\)</span> que experimenta la unidad de masa colocada en dicho punto:</p>
+<p><span class="math inline">\(\overrightarrow{g} = \frac{\overrightarrow{F}}{m}\)</span></p>
+<p>En el Sistema Internacional, <span class="math inline">\(\overrightarrow{g}\)</span> se mide en <em>N kg<sup>-1</sup></em> o <em>m s<sup>-2</sup></em>.</p>
+<p>Como:</p>
+<p><span class="math inline">\(\overrightarrow{F} = -G\frac{Mm}{r^2}\overrightarrow{u}_r \Rightarrow \overrightarrow{g} = \frac{\overrightarrow{F}}{m} = -G\frac{M}{r^2}\overrightarrow{u}_r\)</span></p>
+<p>Algunas características generales del campo gravitatorio:</p>
+<ol type="1">
+<li><p>Se trata de un campo vectorial.</p></li>
+<li><p>Su valor sólo depende de la masa de la partícula que crea el campo y de la distancia, respecto a dicha partícula, a la que se encuentra el punto donde se crea el campo.</p></li>
+<li><p>El campo está definido para cualquier valor de <em>r</em>, es decir, para todo el espacio, excepto para <em>r = 0</em>.</p></li>
+<li><p>Su módulo disminuye rápidamente con la distancia (como <em>1/r<sup>2</sup></em>).</p></li>
+<li><p>Es un campo central, por tanto es un campo conservativo.</p></li>
+</ol>
+<p><img src="images/documento-2627/media/image4.png" class="imagen-centrada" style="width:5.90522in;height:3.375in"></p>
+<p>Si en vez de una masa <em>M</em> se tiene un conjunto de partículas de masas <em>m<sub>1</sub></em>, <em>m<sub>2</sub></em>, <em>m<sub>3</sub></em>,… <em>m<sub>N</sub></em>, teniendo en cuenta que, según el principio de superposición, la fuerza resultante es la suma vectorial de las fuerzas que cada una de las partículas ejercen sobre la partícula de prueba, entonces, ya que hay una relación de proporcionalidad entre <span class="math inline">\(\overrightarrow{g}\)</span> y <span class="math inline">\(\overrightarrow{F}\)</span>, la intensidad de campo gravitatorio en un punto, debido a un conjunto de partículas, es la suma vectorial de las intensidades de campo en dicho punto debido a cada una de ellas:</p>
+<p><span class="math inline">\(\overrightarrow{g} = \sum_{i = 1}^{N}{\overrightarrow{g}}_{i} = \sum_{i = 1}^{N} - G\frac{m_{i}}{r_{i}^{2}}{\overrightarrow{u}}_{r,i}\)</span></p>
+<p>En donde <em>r<sub>i</sub></em> es la distancia de la partícula de masa <em>m<sub>i</sub></em> al punto donde se quiere hallar el campo total y <span class="math inline">\({\overrightarrow{u}}_{r,i}\)</span> es el vector unitario en la dirección que pasa por el punto donde se encuentra la partícula de masa <em>m<sub>i</sub></em> y por el punto donde se quiere hallar el campo total.</p>
+</section>
+<section id="líneas-de-campo" class="level2">
+<h2 class="anchored" data-anchor-id="líneas-de-campo">9.2. Líneas de campo</h2>
+<p><img src="images/documento-2627/media/image6.png" class="imagen-centrada" style="width:2.29063in;height:2.29063in"></p>
+<p>Son líneas para las que el vector campo es tangente a ellas en todos sus puntos.</p>
+<p>Dos líneas de campo no pueden cortarse ya que, si fuera así, un mismo punto tendría asignado dos vectores intensidad de campo diferentes.</p>
+<p>En el caso del campo gravitatorio creado por una masa puntual, las líneas de campo son rectas que pasan por el punto en el que se encuentra dicha partícula.</p>
+<section id="potencial-gravitatorio" class="level3">
+<h3 class="anchored" data-anchor-id="potencial-gravitatorio"><em>9.3. Potencial gravitatorio</em></h3>
+<p><strong>Para un campo vectorial conservativo se puede definir un campo escalar asociado</strong>. Se define el potencial gravitatorio <em>V</em>, creado por una partícula de masa <em>M</em> en un punto del espacio que se encuentra a una distancia <em>r</em> de dicha partícula, como la energía potencial que tiene la unidad de masa cuando se sitúa en dicho punto:</p>
+<p><span class="math inline">\(V = \frac{Ep}{m}\)</span></p>
+<p>Teniendo en cuenta la expresión de la energía potencial gravitatoria:</p>
+<p><span class="math inline">\(V = \frac{Ep}{m} = \frac{-G\frac{Mm}{r}}{m} = -G\frac{M}{r}\)</span></p>
+<p>En el Sistema Internacional, el potencial gravitatorio se mide en <em>J kg<sup>-1</sup></em>.</p>
+<p>Algunas características del potencial gravitatorio:</p>
+<ol type="1">
+<li><p>Se trata de un campo escalar.</p></li>
+<li><p>Su valor sólo depende de la masa de la partícula que crea el campo y de la distancia, respecto a dicha partícula, a la que se encuentra el punto donde se quiere hallar el valor del potencial.</p></li>
+<li><p>El potencial está definido para cualquier valor de <em>r</em>, es decir, para todo el espacio, excepto para <em>r = 0</em>.</p></li>
+<li><p>Su valor absoluto disminuye rápidamente con la distancia (como <em>1/r</em>).</p></li>
+<li><p>Tiene simetría esférica, ya que su valor es el mismo para cualquier punto que se encuentre a la misma distancia de la partícula que crea el campo.</p></li>
+<li><p>Al igual que la energía potencial, el valor del potencial en un punto es arbitrario ya que depende del punto elegido como referencia para la energía potencial. Por tanto, al igual que para la energía potencial, lo que tiene sentido físico es la diferencia de potencial entre dos puntos.</p></li>
+</ol>
+<p>Si se tiene un conjunto de partículas de masas <em>m<sub>1</sub></em>, <em>m<sub>2</sub></em>, <em>m<sub>3</sub></em>,… <em>m<sub>N</sub></em>, situadas respectivamente a una distancia <em>r<sub>1</sub></em>, <em>r<sub>2</sub></em>, <em>r<sub>3</sub></em>,… <em>r<sub>N</sub></em> de un punto del espacio, el potencial gravitatorio en ese punto debido a estas partículas es, aplicando el principio de superposición, la suma del potencial que crea cada una de ellas en dicho punto:</p>
+<p><span class="math inline">\(V = \sum_{i = 1}^{N}V_{i} = - G\sum_{i = 1}^{N}\frac{m_{i}}{r_{i}}\)</span></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/diagramas/potencial-superposicion.png" class="imagen-centrada img-fluid figure-img" style="width:3.06319in"></p>
+<figcaption>Distancias de varias masas al punto donde se calcula el potencial.</figcaption>
+</figure>
+</div>
+</section>
+<section id="superficies-equipotenciales" class="level3">
+<h3 class="anchored" data-anchor-id="superficies-equipotenciales"><em>9.4. Superficies equipotenciales</em></h3>
+<p>Se llama superficie equipotencial a aquella en la que todos sus puntos tienen el mismo valor de <em>V</em>.</p>
+<p>Si se calcula el trabajo para desplazar una partícula de masa <em>m</em> desde un punto <em>A</em> hasta otro punto <em>B</em>, ambos en la misma superficie equipotencial:</p>
+<p><span class="math inline">\(W_{AB} = - \Delta Ep = - \left( {Ep}_{B} - {Ep}_{A} \right) = - \left( {mV}_{B} - {mV}_{A} \right) = - m\left( V_{B} - V_{A} \right)\)</span></p>
+<p>Como los dos puntos están en la misma superficie equipotencial, entonces <em>V<sub>A</sub>= V<sub>B</sub></em>, por tanto:</p>
+<p>W<sub>AB</sub> = 0</p>
+<p>De aquí se deduce que el vector fuerza <span class="math inline">\(\overrightarrow{F}\)</span> es perpendicular a las superficies equipotenciales, ya que para que el trabajo realizado entre dos puntos cualesquiera de una misma superficie equipotencial sea siempre nulo, <span class="math inline">\(\overrightarrow{F}\)</span> y <span class="math inline">\(d\overrightarrow{r}\)</span> deben ser perpendiculares.</p>
+<p>Como <span class="math inline">\(\overrightarrow{F} = m\overrightarrow{g}\)</span>, el vector <span class="math inline">\(\overrightarrow{g}\)</span> es también perpendicular a las superficies equipotenciales.</p>
+<p>Para una masa puntual, teniendo en cuenta la expresión del potencial gravitatorio:</p>
+<p><span class="math inline">\(V = - G\frac{M}{r}\)</span></p>
+<p>Tanto <em>G</em> como <em>M</em> son constantes. Por tanto, las superficies con el mismo valor de <em>V</em> son aquellas en las que la distancia <em>r</em> de cualquier punto de la superficie al punto donde se encuentra situada la partícula que crea el campo, es la misma. Estas superficies son esferas concéntricas cuyo centro es el punto donde se encuentra la partícula que crea el campo.</p>
+<table class="caption-top table">
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><img src="images/documento-2627/media/image17.png" style="width:3.14583in;height:3.15278in"> <img src="images/documento-2627/media/image10.png" style="width:2.98958in;height:2.98611in"></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="relación-entre-campo-y-potencial-gravitatorios" class="level3">
+<h3 class="anchored" data-anchor-id="relación-entre-campo-y-potencial-gravitatorios"><em>9.5. Relación entre campo y potencial gravitatorios</em></h3>
+<p>Para el campo gravitatorio se tienen las siguientes relaciones:</p>
+<p><span class="math inline">\(\overrightarrow{g} = \frac{\overrightarrow{F}}{m}\ ;\ V = \frac{Ep}{m}\)</span></p>
+<p>Como la gravedad es una fuerza conservativa, el trabajo realizado por el campo para desplazar una partícula de masa m entre dos puntos A y B es:</p>
+<p><span class="math inline">\(W_{AB} = - \Delta Ep = - (Ep_{B} - Ep_{A})\)</span></p>
+<p>Dividiendo entre la masa m, obtenemos el trabajo por unidad de masa:</p>
+<p><span class="math inline">\(\frac{W_{AB}}{m}_{} = - \frac{\Delta Ep}{m}_{} = - (V_{B} - V_{A})\)</span> (I)</p>
+<p>Por la definición general de trabajo mecánico, el trabajo ejercido por la fuerza gravitatoria a lo largo de un pequeño desplazamiento <span class="math inline">\(\overrightarrow{\Delta r}\)</span> entre A y B es:</p>
+<p><span class="math inline">\(W_{AB} = \overrightarrow{F} \cdot \overrightarrow{\Delta r}\)</span></p>
+<p>Dividiendo esta igualdad entre la masa m y aplicando la definición de campo:</p>
+<p><span class="math inline">\(\frac{W_{AB}}{m} = \overrightarrow{g} \cdot \overrightarrow{\Delta r}\)</span> (II)</p>
+<p>Igualando las dos formas de expresar el trabajo por unidad de masa (I y II):</p>
+<p><span class="math inline">\(\overrightarrow{g} \cdot \overrightarrow{\Delta r} = - \Delta V\)</span></p>
+<p>Considerando un desplazamiento puramente radial</p>
+<p><span class="math inline">\(\overrightarrow{\Delta r} = \Delta r\ \overrightarrow{u_{r}}\)</span></p>
+<p>y sabiendo que el campo es atractivo</p>
+<p><span class="math inline">\(\overrightarrow{g} = - g\ \overrightarrow{u_{r}}\)</span></p>
+<p>podemos concluir que:</p>
+<p><span class="math inline">\(- g\ \overrightarrow{u_{r}} \cdot \ \Delta r\ \overrightarrow{u_{r}} = - \Delta V\ \)</span></p>
+<p><span class="math inline">\(- g\ \Delta r\ \overrightarrow{u_{r}} \cdot \ \overrightarrow{u_{r}} = - \Delta V\ \)</span></p>
+<p><span class="math inline">\(g\ \Delta r = \Delta V\ \)</span></p>
+<p><span class="math inline">\(g = \frac{\Delta V}{\Delta r}\)</span></p>
+<p>Para variaciones infinitesimales de distancia:</p>
+<p><span class="math inline">\(g = \frac{dV}{dr}\)</span></p>
+<p>En forma vectorial:</p>
+<p><span class="math inline">\(\overrightarrow{g} = - \frac{dV}{dr}\ \overrightarrow{u_{r}}\)</span></p>
+<p>De forma análoga, para la fuerza y la energía potencial:</p>
+<p><span class="math inline">\(\overrightarrow{F} = - \frac{dEp}{dr}\ \overrightarrow{u_{r}}\)</span></p>
+<ol type="1">
+<li><p>Conclusiones:</p>
+<p>1. Hay que derivar el potencial respecto de r para obtener el módulo del campo gravitatorio, y derivar la energía potencial respecto de r para obtener el módulo de la fuerza gravitatoria.</p>
+<p>2. Como el potencial (V) y la energía potencial (Ep) son magnitudes escalares, al derivarlas respecto de r se obtiene un valor escalar. Para que la igualdad matemática sea vectorial y dimensionalmente correcta, se debe multiplicar por el vector unitario radial (<span class="math inline">\(\overrightarrow{u_{r}}\)</span>).</p>
+<p>3. La fuerza gravitatoria marca la dirección y el sentido en los que se produce el máximo decrecimiento de la energía potencial. Piensa en el caso del campo gravitatorio terrestre. En el suelo la energía potencial es menor que a un metro de altura. La energía potencial disminuye hacia abajo, pues en esa dirección y sentido apunta la fuerza peso.</p>
+<p>4. El campo gravitatorio marca la dirección y el sentido en los que se produce el máximo decrecimiento del potencial.</p></li>
+</ol>
+</section>
+<section id="caída-libre" class="level3">
+<h3 class="anchored" data-anchor-id="caída-libre">Caída libre</h3>
+<p>Los cuerpos que se encuentran sometidos únicamente a la acción de la fuerza de la gravedad se dice de ellos que están en caída libre, independientemente de la trayectoria que sigan (de colisión, elíptica, parabólica o hiperbólica).</p>
+<p>En el caso de que la altura desde la que se deje caer sea muy pequeña frente al radio terrestre, se puede resolver el problema suponiendo que g es constante. Se trata en estos casos de MRUA o tiros parabólicos que sabemos resolver. También se puede aplicar la conservación de la energía mecánica usando la expresión siguiente:</p>
+<p><span class="math inline">\(mgh_{1} + \frac{1}{2}mv_{1}^{2} = mgh_{2} + \frac{1}{2}mv_{2}^{2}\)</span></p>
+<p>Sin embargo, si la altura no es muy pequeña en comparación con el radio terrestre, g variará con la altura y la aceleración no será constante. En estos casos solo podemos aplicar la conservación de la energía mecánica pero usando la expresión más general de la energía potencial gravitatoria:</p>
+<p><span class="math inline">\(- \frac{GMm}{r_{1}} + \frac{1}{2}mv_{1}^{2} = - \frac{GMm}{r_{2}} + \frac{1}{2}mv_{2}^{2}\)</span></p>
+<p><img src="images/documento-2627/media/image11.png" class="imagen-centrada" style="width:2.62396in;height:2.62396in"></p>
+</section>
+</section>
+<section id="satélites" class="level2">
+<h2 class="anchored" data-anchor-id="satélites">10. Satélites</h2>
+<p>En general, cuando un objeto se mueve bajo la acción de un campo gravitatorio central, su trayectoria es una curva cónica (elipse, circunferencia, parábola o hipérbola). Por simplicidad matemática, en este curso nos centraremos en el estudio de las <strong>órbitas circulares</strong>, que constituyen una aproximación excelente para la mayoría de los planetas y satélites artificiales.</p>
+<p>Sea un satélite de masa <em>m</em> que describe una órbita circular, de radio <em>r</em>, alrededor de un planeta de masa <em>M</em>, que ejerce una fuerza de atracción gravitatoria sobre el satélite. Como esta fuerza es central entonces es perpendicular a la trayectoria del satélite en todo momento, por tanto, se trata de una fuerza centrípeta. Según la Ley de Gravitación Universal:</p>
+<p><span class="math inline">\(F = G\frac{Mm}{r^{2}}\)</span></p>
+<p>Y como en este caso <em>F</em> es también una fuerza centrípeta:</p>
+<p><span class="math inline">\(F = {ma}_{n} = m\frac{v^{2}}{r}\)</span></p>
+<p>Igualando:</p>
+<p><span class="math inline">\(G\frac{Mm}{r^{2}} = m\frac{v^{2}}{r} \Rightarrow v^{2} = G\frac{M}{r}\)</span></p>
+<p>Se llama <strong>velocidad orbital</strong> a:</p>
+<p><span class="math inline">\(v_{orb} = \sqrt{\frac{GM}{r}}\)</span></p>
+<p>Como la velocidad es constante, se trata de un movimiento circular uniforme. En este caso, la relación entre la velocidad angular, <em>ω</em>, y la velocidad lineal, <em>v</em>, es: <em>v= ωr</em>, siendo <em>r</em> el radio de la trayectoria. Así:</p>
+<p><span class="math inline">\(\omega r = \sqrt{\frac{GM}{r}} \Rightarrow \omega = \sqrt{\frac{GM}{r^3}}\)</span></p>
+<p>El período, <em>T</em>:</p>
+<p><span class="math inline">\(\omega = \frac{2\pi}{T} \Rightarrow T = \frac{2\pi}{\omega} = 2\pi\sqrt{\frac{r^3}{GM}} \Rightarrow T^2 = \frac{4\pi^2}{GM}r^3\)</span><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<p>La frecuencia orbital, <span class="math inline">\(f\)</span>, es:</p>
+<p><span class="math inline">\(f = \frac{1}{T} = \frac{1}{2\pi}\sqrt{\frac{GM}{r^3}}\)</span></p>
+<p>Usando la expresión de la velocidad de órbita, podemos determinar la energía mecánica que posee el satélite en la órbita:</p>
+<p><span class="math inline">\(Ec_{orb} = \frac{1}{2}mv_{orb}^{2} = \frac{1}{2}\frac{GMm}{r}\)</span></p>
+<p><span class="math inline">\(Ep_{orb} = -\frac{GMm}{r}\)</span></p>
+<p><span class="math inline">\(Em_{orb} = -\frac{1}{2}\frac{GMm}{r}\)</span></p>
+<p>Observaciones sobre la energía del satélite en órbita:</p>
+<ul>
+<li><p>La energía mecánica es negativa (<span class="math inline">\(Em_{orb}\)</span>&lt; 0), lo que indica que el satélite forma un sistema ligado (está atrapado en el campo gravitatorio).</p></li>
+<li><p>La energía mecánica coincide con la mitad de la energía potencial: <span class="math inline">\(Em_{orb} = \frac{1}{2}Ep_{orb}\)</span></p></li>
+<li><p>La energía mecánica coincide con la energía cinética cambiada de signo: <span class="math inline">\(Em_{orb} = - Ec_{orb}\)</span>.</p></li>
+<li><p>Cuanto mayor es el radio de la órbita (r), mayor (menos negativa) es la energía mecánica total.</p></li>
+</ul>
+</section>
+<section id="energía-de-satelización" class="level2">
+<h2 class="anchored" data-anchor-id="energía-de-satelización">10.1. Energía de satelización</h2>
+<p>Se define la energía de satelización (<span class="math inline">\(E_{sat}\)</span>) como el trabajo exterior total que deben realizar los motores de un cohete para situar un satélite de masa m, inicialmente en reposo sobre la superficie de un planeta (r = R), en una órbita circular estable de radio r (r = R + h).</p>
+<p>Energía inicial (satélite en reposo en la superficie): <span class="math inline">\(Em_{inicial} = -G\frac{Mm}{R}\)</span></p>
+<p>Energía final (satélite en órbita circular de radio r): <span class="math inline">\(Em_{orbita} = - \frac{1}{2}G\frac{Mm}{r}\)</span></p>
+<p><span class="math inline">\(E_{sat} = Em_{orbita} - Em_{inicial} = GMm\left(\frac{1}{R} - \frac{1}{2r}\right)\)</span></p>
+<p>Esta energía suministrada por los motores se invierte simultáneamente en elevar el satélite hasta la altura de la órbita, <span class="math inline">\(\Delta Ep\)</span>, y en acelerarlo hasta alcanzar la velocidad orbital requerida, <span class="math inline">\({Ec}_{orb}\)</span>.</p>
+</section>
+<section id="velocidad-de-escape-desde-la-superficie-terrestre" class="level2">
+<h2 class="anchored" data-anchor-id="velocidad-de-escape-desde-la-superficie-terrestre">10.2. Velocidad de escape desde la superficie terrestre</h2>
+<p>La energía mecánica, <em>E<sub>m</sub></em>, de una partícula de masa <em>m</em> en un campo gravitatorio es:</p>
+<p><em>E<sub>m</sub> = E<sub>C</sub> + Ep</em></p>
+<p>Suponiendo que no existen fuerzas no conservativas, la energía mecánica es constante durante todo el movimiento de <em>m</em>. Si se representa gráficamente la energía mecánica, la energía potencial gravitatoria, <em>Ep</em>, y la energía cinética, <em>E<sub>C</sub></em>, de la partícula de masa <em>m</em>:</p>
+<p><img src="images/documento-2627/media/image14.png" class="imagen-centrada" style="width:3.65903in;height:2.68403in"></p>
+<p>Si E<sub>m</sub> &lt; 0, habrá un valor de <em>r</em> (r<sub>máx</sub>), que corresponde al punto de intersección entre la curva de la energía potencial y la recta de la energía mecánica, en el que la partícula no posee energía cinética porque toda la energía mecánica es energía potencial gravitatoria. Este valor de <em>r</em> no puede ser superado por la partícula, ya que si fuera así, <em>Ep &gt; E<sub>m</sub></em> y la energía cinética tendría que ser negativa para que se cumpliera la igualdad <em>E<sub>m</sub> = E<sub>C</sub> + Ep</em>. En este caso la partícula está atrapada por el campo gravitatorio.</p>
+<p>Si <em>E<sub>m</sub> ≥ 0</em>, cualquier valor de <em>r</em> es físicamente posible, lo que significa que la partícula podrá moverse libremente por todo el espacio (podrá estar a cualquier distancia de la partícula que crea el campo).</p>
+<p>Sea una partícula de masa <em>m</em>, inmersa en un campo gravitatorio. Se le imprime un impulso inicial de forma que adquiere cierta velocidad. En el caso límite <em>E<sub>m</sub> = 0</em> se habrá suministrado a la partícula la velocidad mínima necesaria para que pueda tomar cualquier valor de <em>r</em>, es decir, para que pueda moverse libremente o, lo que es lo mismo, poder escapar del campo gravitatorio. Esta velocidad se denomina <strong>velocidad de escape</strong>:</p>
+<p><span class="math inline">\(E_{m} = 0 \Rightarrow E_{C} + Ep = 0 \Rightarrow \frac{1}{2}mv_{e}^{2} - G\frac{Mm}{R} = 0 \Rightarrow \frac{v_{e}^{2}}{2} = \frac{GM}{R}\)</span></p>
+<p><span class="math inline">\(v_e = \sqrt{\frac{2GM}{R}}\)</span> (III)</p>
+<p>En donde <em>R</em> es la posición en la que se encuentra la partícula antes de ser lanzada.</p>
+<p>Para que un cuerpo situado en la superficie de la Tierra pueda escapar al campo gravitatorio de esta sin la ayuda de propulsión, la velocidad de escape que debe adquirir es:</p>
+<p><span class="math inline">\(v_{e,\,Tierra} = \sqrt{\frac{2GM_T}{R_T}} \approx 11200\ \frac{m}{s}\)</span></p>
+<p><strong>Velocidad de escape desde una órbita circular</strong></p>
+<p>Consideremos un satélite de masa <em>m</em> que se encuentra describiendo una órbita circular de radio <em>r</em> (<em>r</em> =<em>R</em> + <em>h</em>) alrededor de un planeta de masa <em>M</em>.</p>
+<p>Para que el satélite venza la atracción gravitatoria y llegue al infinito con velocidad nula, su energía mecánica total al escapar debe ser igual a cero (<em>E_m</em>(∞) = 0).</p>
+<p>Aplicando la conservación de la energía mecánica en el punto de escape (a distancia <em>r</em>):</p>
+<p><span class="math inline">\(\frac{1}{2}mv_e^2 - \frac{GMm}{r} = 0\)</span></p>
+<p><span class="math inline">\(v_e = \sqrt{\frac{2GM}{r}}\)</span> (IV)</p>
+<p>Las expresiones III y IV son muy parecidas pero no son iguales. En el primer caso la distancia R es el radio de la Tierra y en el segundo caso r es el radio de órbita.</p>
+<p>Si comparamos la velocidad que necesita para escapar con la que ya lleva en su órbita :</p>
+<p><span class="math inline">\(v_{e,\,orbita} = \sqrt{\frac{2GM}{r}} = \sqrt{2}\sqrt{\frac{GM}{r}} = \sqrt{2}\,v_{orb}\)</span></p>
+<p>El satélite necesita una velocidad total que sea un 41,4% mayor que su velocidad orbital.</p>
+<p>Como el satélite ya se desplaza a una velocidad <span class="math inline">\(v_{orb}\)</span>, si el impulso se da en la misma dirección y sentido de su movimiento, el cohete solo tiene que aportar la diferencia:</p>
+<p><span class="math inline">\(\Delta v = v_{e,\,orbita} - v_{orb} = (\sqrt{2} - 1)v_{orb}\)</span></p>
+<p>La energía necesaria a aportar por los motores será:</p>
+<p><span class="math inline">\(W_{motores} = Em_{final} - Em_{orbita} = 0 - \left(-\frac{1}{2}\frac{GMm}{r}\right) = \frac{1}{2}\frac{GMm}{r}\)</span></p>
+<p>Esta energía coincide con la energía mecánica del satélite en órbita cambiada de signo.</p>
+</section>
+<section id="cambio-de-órbita-y-trabajo-de-los-motores" class="level2">
+<h2 class="anchored" data-anchor-id="cambio-de-órbita-y-trabajo-de-los-motores">10.3. Cambio de órbita y trabajo de los motores</h2>
+<p>Si tenemos un satélite en una órbita circular de radio <em>r</em>₁ y queremos que pase a otra órbita circular de radio <em>r</em>₂, <strong>la energía mecánica no se conserva</strong>.</p>
+<p>La energía mecánica de un satélite en órbita circular depende exclusivamente del radio:</p>
+<p>En la órbita inicial (<em>r</em>₁): <span class="math inline">\(Em_{1} = - \frac{1}{2}G\frac{Mm}{r_{1}}\)</span></p>
+<p>En la órbita final (<em>r</em>₂): <span class="math inline">\(Em_{2} = - \frac{1}{2}G\frac{Mm}{r_{2}}\)</span></p>
+<p>Dado que <em>r</em>₁ ≠ <em>r</em>₂, se cumple necesariamente que <span class="math inline">\(Em_{1} \neq Em_{2}\)</span>.</p>
+<p>Para modificar la órbita es imprescindible encender los motores del satélite (fuerza no conservativa). Aplicando el teorema conservación generalizado de la energía mecánica:</p>
+<p><span class="math inline">\(W_{FNC} = \Delta E_{m}\)</span></p>
+<p><span class="math inline">\(W_{motores} = Em_{2} - Em_{1}\)</span></p>
+<p><span class="math inline">\(W_{motores} = - \frac{1}{2}G\frac{Mm}{r_{2}} + \frac{1}{2}G\frac{Mm}{r_{1}}\)</span></p>
+<p><span class="math inline">\(W_{motores} = \frac{1}{2}GMm\left(\frac{1}{r_1} - \frac{1}{r_2}\right)\)</span></p>
+<p><strong>Subir a una órbita más alta (<em>r</em>₂ &gt; <em>r</em>₁):</strong> La energía mecánica final es más alta (menos negativa), por lo que <span class="math inline">\(\Delta Em\)</span>&gt; 0 y los motores deben realizar un <strong>trabajo positivo</strong> (consumir combustible para suministrar energía).</p>
+<p><strong>Bajar a una órbita más baja (<em>r</em>₂ &lt; <em>r</em>₁):</strong> La energía mecánica final es menor, por lo que <span class="math inline">\(\Delta Em\)</span> &lt; 0 y los motores deben realizar un <strong>trabajo de frenado</strong> (extraer energía del satélite).</p>
+
+
+</section>
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Notas</h2>
+
+<ol>
+<li id="fn1"><p>Esta relación entre el periodo y la distancia fue propuesta por Johannes Kepler y es conocida como Tercera Ley de Kepler: <em>T<sup>2</sup> = k r<sup>3</sup></em>. Kepler no pudo relacionar el valor de <em>k</em> con la masa que crea el campo y la constante <em>G</em>, que era desconocida en su época.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiado");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiado");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
