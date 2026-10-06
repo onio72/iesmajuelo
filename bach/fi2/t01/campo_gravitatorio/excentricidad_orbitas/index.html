@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Excentricidad y órbitas elípticas</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#667085;--border:#d9e0ea;--accent:#2563eb;--orbit:#2563eb;--focus:#ef4444;--body:#0f9d74;--panel:#f8fafc}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
+main{max-width:1100px;margin:0 auto;padding:20px}.tabs{display:flex;gap:8px;border-bottom:1px solid var(--border);margin-bottom:18px;flex-wrap:wrap}
+.tab{border:0;background:transparent;padding:12px 16px;font-weight:700;color:var(--muted);border-bottom:3px solid transparent;cursor:pointer;font-size:16px}
+.tab.active{color:var(--text);border-bottom-color:var(--accent)}.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,.75fr);gap:16px}.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px}.side{display:grid;gap:16px;align-content:start}
+h1{font-size:clamp(22px,4vw,34px);margin:0 0 10px}.lead{margin:0 0 20px;color:var(--muted)}
+.head{text-align:center;min-height:52px}.head strong{font-size:19px}.small{font-size:14px;color:var(--muted)}
+svg{display:block;width:100%;height:auto}label{font-weight:700}.value{font-size:32px;font-weight:800;margin:4px 0}
+input[type=range]{width:100%;margin:18px 0 6px}button.reset{width:100%;min-height:44px;border:1px solid var(--border);border-radius:12px;background:#fff;font-weight:700;cursor:pointer}
+.stats{display:grid;gap:8px;font-size:15px}.stat{display:flex;justify-content:space-between;gap:16px}.formula{margin-top:14px;background:var(--panel);border-radius:12px;padding:12px;text-align:center}.formula b{font-size:20px}
+select{width:100%;margin-top:7px;padding:11px 12px;border:1px solid var(--border);border-radius:12px;background:#fff;font-size:16px}.hidden{display:none}.center{text-align:center}
+.note{font-size:14px;line-height:1.45}.badge{font-weight:700;margin-top:8px}
+@media(max-width:760px){main{padding:12px}.grid{grid-template-columns:1fr}.card{padding:12px}.tab{flex:1 1 240px}}
+</style>
+</head>
+<body>
+<main>
+<h1>Excentricidad y órbitas elípticas</h1>
+<p class="lead">Visualiza cómo una circunferencia se transforma en una elipse al aumentar la excentricidad y compara después órbitas reales del Sistema Solar.</p>
+
+<div class="tabs" role="tablist">
+<button id="tabGeneral" class="tab active" type="button">1. De circunferencia a elipse</button>
+<button id="tabReal" class="tab" type="button">2. Planetas y satélites</button>
+</div>
+
+<section id="panelGeneral">
+<div class="grid">
+<div class="card">
+<div class="head"><strong id="generalHeadline">Circunferencia: e = 0</strong><div id="generalSubtitle" class="small">El centro y los dos focos coinciden.</div></div>
+<svg viewBox="0 0 760 500" aria-label="Transformación de circunferencia en elipse">
+<line x1="60" y1="250" x2="700" y2="250" stroke="#d9e0ea" stroke-dasharray="5 6"/>
+<line x1="380" y1="20" x2="380" y2="480" stroke="#d9e0ea" stroke-dasharray="5 6"/>
+<ellipse cx="380" cy="250" rx="210" ry="210" fill="none" stroke="#98a2b3" stroke-width="2" stroke-dasharray="7 7" opacity=".45"/>
+<ellipse id="generalOrbit" cx="380" cy="250" rx="210" ry="210" fill="none" stroke="#2563eb" stroke-width="4"/>
+<circle cx="380" cy="250" r="5" fill="#172033"/><text x="366" y="277" font-size="14">Centro</text>
+<circle id="focus1" cx="380" cy="250" r="9" fill="#ef4444"/><circle id="focus2" cx="380" cy="250" r="9" fill="#ef4444"/>
+<text id="f1label" x="392" y="228" font-size="14">F₁</text><text id="f2label" x="345" y="228" font-size="14">F₂</text>
+</svg>
+</div>
+<div class="side">
+<div class="card">
+<label for="generalSlider">Excentricidad, e</label><div id="generalE" class="value">0,00</div>
+<input id="generalSlider" type="range" min="0" max="0.85" step="0.01" value="0">
+<div class="small" style="display:flex;justify-content:space-between"><span>0</span><span>0,85</span></div>
+<button id="generalReset" class="reset" type="button">Volver a e = 0</button>
+</div>
+<div class="card">
+<div class="stats"><div class="stat"><span>Semieje mayor a</span><b>210 u.</b></div><div class="stat"><span>Distancia focal c</span><b id="generalC">0,0 u.</b></div><div class="stat"><span>Semieje menor b</span><b id="generalB">210,0 u.</b></div></div>
+<div class="formula"><b>e = c / a</b><p id="generalExplanation" class="small">Cuando e = 0, c = 0: los focos coinciden con el centro y tenemos una circunferencia.</p></div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="panelReal" class="hidden">
+<div class="grid">
+<div class="card">
+<label for="bodySelect">Selecciona un astro</label>
+<select id="bodySelect">
+<optgroup label="Planetas">
+<option value="mercury">Mercurio</option><option value="venus">Venus</option><option value="earth" selected>Tierra</option><option value="mars">Marte</option><option value="jupiter">Júpiter</option><option value="saturn">Saturno</option><option value="uranus">Urano</option><option value="neptune">Neptuno</option>
+</optgroup>
+<optgroup label="Satélites naturales">
+<option value="moon">Luna — satélite de la Tierra</option><option value="io">Ío — satélite de Júpiter</option><option value="europa">Europa — satélite de Júpiter</option><option value="ganymede">Ganímedes — satélite de Júpiter</option><option value="callisto">Calisto — satélite de Júpiter</option><option value="titan">Titán — satélite de Saturno</option><option value="enceladus">Encélado — satélite de Saturno</option><option value="triton">Tritón — satélite de Neptuno</option>
+</optgroup>
+</select>
+<svg viewBox="0 0 760 500" aria-label="Órbita real normalizada">
+<line x1="60" y1="250" x2="700" y2="250" stroke="#d9e0ea" stroke-dasharray="5 6"/>
+<line x1="380" y1="20" x2="380" y2="480" stroke="#d9e0ea" stroke-dasharray="5 6"/>
+<ellipse cx="380" cy="250" rx="210" ry="210" fill="none" stroke="#98a2b3" stroke-width="2" stroke-dasharray="7 7" opacity=".45"/>
+<ellipse id="realOrbit" cx="380" cy="250" rx="210" ry="209.97" fill="none" stroke="#2563eb" stroke-width="4"/>
+<circle cx="380" cy="250" r="5" fill="#172033"/>
+<circle id="realFocus" cx="383.5" cy="250" r="10" fill="#ef4444"/><text id="realFocusLabel" x="397" y="228" font-size="14">Sol</text>
+<circle id="realBody" cx="590" cy="250" r="8" fill="#0f9d74" stroke="#fff" stroke-width="2"/><text id="realBodyLabel" x="565" y="225" font-size="15" font-weight="700">Tierra</text>
+</svg>
+</div>
+<div class="side">
+<div class="card center"><div class="small">Excentricidad orbital</div><div id="realE" class="value">e = 0,0167</div><div id="parentBody" class="badge"></div><p id="realDescription" class="small"></p></div>
+<div class="card note"><b>Importante:</b> todas las órbitas se representan con el mismo semieje mayor para poder comparar su forma. La escala de distancias reales no se conserva.<p class="small">La línea discontinua muestra la circunferencia de referencia con e = 0.</p></div>
+</div>
+</div>
+</section>
+</main>
+<script>
+const cx=380,cy=250,a=210;
+const $=s=>document.querySelector(s);
+function fmt(n,d=2){return n.toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d})}
+function tab(which){const g=which==='g';$('#panelGeneral').classList.toggle('hidden',!g);$('#panelReal').classList.toggle('hidden',g);$('#tabGeneral').classList.toggle('active',g);$('#tabReal').classList.toggle('active',!g)}
+$('#tabGeneral').addEventListener('click',()=>tab('g'));$('#tabReal').addEventListener('click',()=>tab('r'));
+function renderGeneral(){const e=Number($('#generalSlider').value),c=a*e,b=a*Math.sqrt(1-e*e);$('#generalOrbit').setAttribute('ry',b);$('#focus1').setAttribute('cx',cx+c);$('#focus2').setAttribute('cx',cx-c);$('#f1label').setAttribute('x',cx+c+12);$('#f2label').setAttribute('x',cx-c-35);$('#generalE').textContent=fmt(e,2);$('#generalC').textContent=fmt(c,1)+' u.';$('#generalB').textContent=fmt(b,1)+' u.';$('#generalHeadline').textContent=e===0?'Circunferencia: e = 0':'Elipse: e = '+fmt(e,2);$('#generalSubtitle').textContent=e===0?'El centro y los dos focos coinciden.':'';let t=e===0?'Cuando e = 0, c = 0: los focos coinciden con el centro y tenemos una circunferencia.':e<.15?'Los focos se separan del centro, aunque la figura todavía se parece mucho a una circunferencia.':e<.4?'Al aumentar c, aumenta la excentricidad y la elipse se hace claramente más alargada.':'Con una excentricidad grande, los focos están muy separados y el semieje menor disminuye notablemente.';$('#generalExplanation').textContent=t}
+$('#generalSlider').addEventListener('input',renderGeneral);$('#generalReset').addEventListener('click',()=>{$('#generalSlider').value=0;renderGeneral()});renderGeneral();
+
+const bodies={mercury:{n:'Mercurio',e:.2056,f:'Sol',p:''},venus:{n:'Venus',e:.0068,f:'Sol',p:''},earth:{n:'Tierra',e:.0167,f:'Sol',p:''},mars:{n:'Marte',e:.0934,f:'Sol',p:''},jupiter:{n:'Júpiter',e:.0489,f:'Sol',p:''},saturn:{n:'Saturno',e:.0565,f:'Sol',p:''},uranus:{n:'Urano',e:.0457,f:'Sol',p:''},neptune:{n:'Neptuno',e:.0113,f:'Sol',p:''},moon:{n:'Luna',e:.0549,f:'Tierra',p:'Satélite de la Tierra'},io:{n:'Ío',e:.0041,f:'Júpiter',p:'Satélite de Júpiter'},europa:{n:'Europa',e:.0094,f:'Júpiter',p:'Satélite de Júpiter'},ganymede:{n:'Ganímedes',e:.0013,f:'Júpiter',p:'Satélite de Júpiter'},callisto:{n:'Calisto',e:.0074,f:'Júpiter',p:'Satélite de Júpiter'},titan:{n:'Titán',e:.0288,f:'Saturno',p:'Satélite de Saturno'},enceladus:{n:'Encélado',e:.0047,f:'Saturno',p:'Satélite de Saturno'},triton:{n:'Tritón',e:.000016,f:'Neptuno',p:'Satélite de Neptuno'}};
+function desc(e){if(e<.01)return'Su órbita es tan poco excéntrica que a esta escala resulta prácticamente circular.';if(e<.06)return'La órbita es una elipse muy próxima a una circunferencia.';if(e<.12)return'La forma elíptica comienza a ser apreciable visualmente.';return'La forma elíptica es claramente apreciable frente a la circunferencia de referencia.'}
+function renderReal(){const q=bodies[$('#bodySelect').value],c=a*q.e,b=a*Math.sqrt(1-q.e*q.e);$('#realOrbit').setAttribute('ry',b);$('#realFocus').setAttribute('cx',cx+c);$('#realFocusLabel').setAttribute('x',cx+c+13);$('#realFocusLabel').textContent=q.f;const x=cx+a,y=cy;$('#realBody').setAttribute('cx',x);$('#realBody').setAttribute('cy',y);$('#realBodyLabel').setAttribute('x',x-22);$('#realBodyLabel').setAttribute('y',y-22);$('#realBodyLabel').textContent=q.n;$('#realE').textContent='e = '+q.e.toLocaleString('es-ES',{minimumFractionDigits:q.e<.001?6:4,maximumFractionDigits:q.e<.001?6:4});$('#parentBody').textContent=q.p;$('#realDescription').textContent=desc(q.e)}
+$('#bodySelect').addEventListener('change',renderReal);renderReal();
+</script>
+</body></html>
