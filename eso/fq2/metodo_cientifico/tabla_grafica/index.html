@@ -35,7 +35,7 @@ let ex={a:"Tiempo",au:"s",b:"Posición",bu:"m",x:[0,2,4,6,8,10],y:[0,10,20,30,40
 const cv=$("cv"),ctx=cv.getContext("2d"),fmt=v=>Number.isInteger(v)?v:+v.toFixed(2),num=id=>Number(String($(id).value).replace(",","."));
 function opts(el,a,p){el.innerHTML='<option value="">'+p+'</option>'+a.map(v=>'<option>'+v+'</option>').join("")}
 function paint(){ $("context").textContent=ex.c;$("h1").textContent=ex.a+" ("+ex.au+")";$("h2").textContent=ex.b+" ("+ex.bu+")";$("body").innerHTML=ex.x.map((v,i)=>"<tr><td>"+fmt(v)+"</td><td>"+fmt(ex.y[i])+"</td></tr>").join("")}
-function reset(){ex=gen();paint();pts=[];lines=[];scaled=false;let V=[ex.a,ex.b,"Tiempo","Posición","Temperatura","Masa","Volumen","Distancia","Número de grupos","Cantidad por grupo"].filter((v,i,a)=>a.indexOf(v)==i);opts($("iv"),V,"Magnitud");opts($("dv"),V,"Magnitud");opts($("iu"),U,"Unidad");opts($("du"),U,"Unidad");$("xs").value="";$("ys").value="";$("xd").value="";$("yd").value="";$("st").textContent="Sin graduar.";$("fb").innerHTML="";$("check").disabled=true;resize()}
+function reset(){ex=gen();paint();pts=[];lines=[];scaled=false;let V=[ex.a,ex.b,"Tiempo","Posición","Temperatura","Masa","Volumen","Distancia","Número de grupos","Cantidad por grupo"].filter((v,i,a)=>a.indexOf(v)==i);opts($("iv"),V,"Magnitud");opts($("dv"),V,"Magnitud");opts($("iu"),U,"Unidad");opts($("du"),U,"Unidad");$("xs").value="";$("ys").value="";$("xd").value="";$("yd").value="";$("st").textContent="Sin graduar.";$("fb").innerHTML="";$("check").disabled=false;resize()}
 function preview(){let nx=num("xs")>0?num("xd")/num("xs"):0,ny=num("ys")>0?num("yd")/num("ys"):0;$("xmax").textContent="Divisiones resultantes: "+(nx>0?fmt(nx):"—");$("ymax").textContent="Divisiones resultantes: "+(ny>0?fmt(ny):"—")}
 ["xd","xs","yd","ys"].forEach(i=>$(i).oninput=preview);
 function scaleCheck(max,step,dataMax){if(!(max>0&&step>0))return{ok:false,msg:"indica un máximo y un valor por división mayores que 0"};if(max<dataMax)return{ok:false,msg:"el máximo elegido ("+fmt(max)+") no contiene el dato mayor ("+fmt(dataMax)+")"};let n=max/step;if(Math.abs(n-Math.round(n))>0.0001)return{ok:false,msg:"el máximo debe ser múltiplo del valor por división"};if(n<2)return{ok:false,msg:"necesitas al menos 2 divisiones"};if(n>20)return{ok:false,msg:"hay demasiadas divisiones ("+fmt(n)+"); elige un salto mayor"};return{ok:true,msg:"correcta: "+fmt(n)+" divisiones de "+fmt(step)}} 
@@ -121,7 +121,22 @@ cv.onpointerdown=e=>{if(!scaled)return;let p=pos(e),a=A();if(p.x<a.l||p.x>a.r||p
 cv.onpointermove=e=>{let p=pos(e);if(drawing){cur.push(p);draw()}else if(drag>=0){let v=inv(p.x,p.y);v.x=Math.max(0,Math.min(XM(),v.x));v.y=Math.max(0,Math.min(YM(),v.y));pts[drag]=v;draw()}};
 cv.onpointerup=()=>{if(drawing){drawing=false;if(cur.length>1)lines.push(cur);cur=[];ready();draw()}drag=-1};
 $("point").onclick=()=>{mode="p";$("point").classList.add("on");$("pen").classList.remove("on")};$("pen").onclick=()=>{mode="l";$("pen").classList.add("on");$("point").classList.remove("on")};$("undo").onclick=()=>{mode==="p"?pts.pop():lines.pop();ready();draw()};$("clear").onclick=()=>{lines=[];ready();draw()};
-["iv","iu","dv","du"].forEach(i=>$(i).onchange=()=>{ready();draw()});function ready(){$("check").disabled=!($("iv").value&&$("iu").value&&$("dv").value&&$("du").value&&scaled&&pts.length===6&&lines.length)}
-$("check").onclick=()=>{let c=[["Variable independiente",$("iv").value===ex.a],["Unidad independiente",$("iu").value===ex.au],["Variable dependiente",$("dv").value===ex.b],["Unidad dependiente",$("du").value===ex.bu]];$("fb").innerHTML="<h2>Corrección</h2>"+c.map(v=>'<div class="'+(v[1]?"ok":"bad")+'">'+(v[1]?"✓ ":"✗ ")+v[0]+"</div>").join("")};
+["iv","iu","dv","du"].forEach(i=>$(i).onchange=()=>{ready();draw()});function ready(){$("check").disabled=false;}
+$("check").onclick=()=>{
+ let missing=[];
+ if(!$("iv").value)missing.push("indicar la variable independiente");
+ if(!$("iu").value)missing.push("indicar la unidad de la variable independiente");
+ if(!$("dv").value)missing.push("indicar la variable dependiente");
+ if(!$("du").value)missing.push("indicar la unidad de la variable dependiente");
+ if(!scaled)missing.push("graduar correctamente los dos ejes");
+ if(pts.length<6)missing.push("colocar los 6 puntos de la tabla ("+pts.length+"/6)");
+ if(!lines.length)missing.push("dibujar la recta o curva con el lápiz");
+ if(missing.length){
+   $("fb").innerHTML='<div class="status" style="border:1px solid #d97706;background:#fff7ed;color:#9a3412"><b>⚠ Aún no puedes corregir el ejercicio.</b><br>Falta: '+missing.join("; ")+'.</div>';
+   $("fb").scrollIntoView({behavior:"smooth",block:"nearest"});
+   return;
+ }
+ let c=[["Variable independiente",$("iv").value===ex.a],["Unidad independiente",$("iu").value===ex.au],["Variable dependiente",$("dv").value===ex.b],["Unidad dependiente",$("du").value===ex.bu]];$("fb").innerHTML="<h2>Corrección</h2>"+c.map(v=>'<div class="'+(v[1]?"ok":"bad")+'">'+(v[1]?"✓ ":"✗ ")+v[0]+"</div>").join("")
+};
 $("random").onclick=reset;paint();resize();reset();
 </script></body></html>
