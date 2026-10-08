@@ -1,0 +1,63 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tabla a gráfica 2ESO</title><style>
+*{box-sizing:border-box}body{font-family:system-ui;margin:0;background:#f4f6f9;color:#182033}.page{max-width:1200px;margin:auto;padding:14px}
+.card{background:#fff;border:1px solid #d7dce5;border-radius:14px;padding:15px;margin-bottom:12px}.data{border:3px solid #182033}
+h1{margin:0 0 4px}h2{margin:0 0 10px}.muted{color:#687386;font-size:13px}table{width:100%;border-collapse:collapse;margin-top:12px}
+th,td{border:1px solid #9fa9b9;text-align:center;padding:10px;font-size:17px}th{background:#edf1f6}.layout{display:grid;grid-template-columns:330px 1fr;gap:12px}
+label{display:block;font-size:13px;font-weight:750;margin:8px 0 4px}.row{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+select,input,button{font:inherit;padding:9px;border-radius:8px}select,input{width:100%;border:1px solid #c8cfda;background:#fff}
+button{border:0;background:#e8ecf3;font-weight:800;cursor:pointer}.primary{background:#315efb;color:#fff}.dark{background:#182033;color:#fff}
+canvas{width:100%;height:500px;display:block;background:#fff;touch-action:none}.tools{display:flex;gap:6px;flex-wrap:wrap}.on{outline:3px solid #aab8ff}
+.status{background:#f5f7fa;padding:8px;border-radius:8px;margin-top:8px;font-size:13px}.feedback{margin-top:10px}.ok{color:#157347}.bad{color:#b42318}
+@media(max-width:800px){.layout{grid-template-columns:1fr}canvas{height:430px}}</style></head><body><main class="page">
+<h1>De la tabla a la gráfica</h1><div class="muted">Física y Química · 2.º ESO</div>
+<section class="card data"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div><h2>📋 TABLA DE DATOS · 6 parejas</h2><b id="context">Un móvil avanza de forma regular.</b><div class="muted">Representa gráficamente los datos.</div></div><button id="random">Otra tabla</button></div>
+<table><thead><tr><th id="h1">Tiempo (s)</th><th id="h2">Posición (m)</th></tr></thead><tbody id="body">
+<tr><td>0</td><td>0</td></tr><tr><td>2</td><td>10</td></tr><tr><td>4</td><td>20</td></tr><tr><td>6</td><td>30</td></tr><tr><td>8</td><td>40</td></tr><tr><td>10</td><td>50</td></tr>
+</tbody></table></section>
+<div class="layout"><aside class="card"><h2>1. Interpreta</h2>
+<label>Variable independiente</label><div class="row"><select id="iv"></select><select id="iu"></select></div>
+<label>Variable dependiente</label><div class="row"><select id="dv"></select><select id="du"></select></div>
+<hr><h2>2. Escalas</h2><label>Eje X</label><div class="row"><div><div class="muted">Valor máximo</div><input id="xd" inputmode="decimal" placeholder="Ej. 30"></div><div><div class="muted">Valor por división</div><input id="xs" inputmode="decimal" placeholder="Ej. 5"></div></div><div id="xmax" class="muted">Divisiones resultantes: —</div>
+<label>Eje Y</label><div class="row"><div><div class="muted">Valor máximo</div><input id="yd" inputmode="decimal" placeholder="Ej. 50"></div><div><div class="muted">Valor por división</div><input id="ys" inputmode="decimal" placeholder="Ej. 5"></div></div><div id="ymax" class="muted">Divisiones resultantes: —</div>
+<button id="apply" class="dark" style="width:100%;margin-top:9px">Graduar ejes</button><div id="st" class="status">Sin graduar.</div>
+</aside><section class="card"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><h2>Papel cuadriculado</h2><div class="tools"><button id="point" class="on">● Punto</button><button id="pen">✎ Lápiz</button><button id="undo">↶</button><button id="clear">Borrar línea</button></div></div>
+<canvas id="cv"></canvas><div style="text-align:right"><button id="check" class="primary" disabled>Comprobar</button></div><div id="fb" class="feedback"></div></section></div></main>
+<script>
+"use strict";const $=x=>document.getElementById(x),U=["s","min","m","cm","km","g","kg","cm³","°C","grupos"];const pick=a=>a[Math.floor(Math.random()*a.length)];
+function gen(){let t=Math.floor(Math.random()*5);
+if(t===0){let m=pick([2,3,4,5]),dx=pick([1,2,5]),b=pick([0,5,10]),x=[0,1,2,3,4,5].map(i=>i*dx);return{a:"Tiempo",au:"s",b:"Posición",bu:"m",x,y:x.map(v=>m*v+b),c:"Un móvil avanza de forma regular."}}
+if(t===1){let dx=pick([1,2,5]),x=[0,1,2,3,4,5].map(i=>i*dx),m=pick([2,4]),top=m*x[5]+20;return{a:"Tiempo",au:"min",b:"Temperatura",bu:"°C",x,y:x.map(v=>top-m*v),c:"Una sustancia se enfría de forma regular."}}
+if(t===2){let dx=pick([1,2,5]),x=[0,1,2,3,4,5].map(i=>i*dx),v=pick([10,20,30,40]);return{a:"Tiempo",au:"s",b:"Posición",bu:"m",x,y:x.map(()=>v),c:"Un objeto permanece en la misma posición."}}
+if(t===3){let a=pick([1,2,3]),x=[0,1,2,3,4,5];return{a:"Tiempo",au:"s",b:"Posición",bu:"m",x,y:x.map(v=>a*v*v),c:"Estudiamos un movimiento acelerado."}}
+let z=pick([{k:60,x:[1,2,3,4,5,6]},{k:120,x:[1,2,3,4,5,6]},{k:60,x:[1,2,3,5,6,10]}]);return{a:"Número de grupos",au:"grupos",b:"Cantidad por grupo",bu:"g",x:z.x,y:z.x.map(v=>z.k/v),c:"Repartimos una cantidad fija entre grupos iguales."}}
+let ex={a:"Tiempo",au:"s",b:"Posición",bu:"m",x:[0,2,4,6,8,10],y:[0,10,20,30,40,50],c:"Un móvil avanza de forma regular."},pts=[],lines=[],cur=[],scaled=false,mode="p",drawing=false,drag=-1;
+const cv=$("cv"),ctx=cv.getContext("2d"),fmt=v=>Number.isInteger(v)?v:+v.toFixed(2),num=id=>Number(String($(id).value).replace(",","."));
+function opts(el,a,p){el.innerHTML='<option value="">'+p+'</option>'+a.map(v=>'<option>'+v+'</option>').join("")}
+function paint(){ $("context").textContent=ex.c;$("h1").textContent=ex.a+" ("+ex.au+")";$("h2").textContent=ex.b+" ("+ex.bu+")";$("body").innerHTML=ex.x.map((v,i)=>"<tr><td>"+fmt(v)+"</td><td>"+fmt(ex.y[i])+"</td></tr>").join("")}
+function reset(){ex=gen();paint();pts=[];lines=[];scaled=false;let V=[ex.a,ex.b,"Tiempo","Posición","Temperatura","Masa","Volumen","Distancia","Número de grupos","Cantidad por grupo"].filter((v,i,a)=>a.indexOf(v)==i);opts($("iv"),V,"Magnitud");opts($("dv"),V,"Magnitud");opts($("iu"),U,"Unidad");opts($("du"),U,"Unidad");$("xs").value="";$("ys").value="";$("xd").value="";$("yd").value="";$("st").textContent="Sin graduar.";$("fb").innerHTML="";$("check").disabled=true;resize()}
+function preview(){let nx=num("xs")>0?num("xd")/num("xs"):0,ny=num("ys")>0?num("yd")/num("ys"):0;$("xmax").textContent="Divisiones resultantes: "+(nx>0?fmt(nx):"—");$("ymax").textContent="Divisiones resultantes: "+(ny>0?fmt(ny):"—")}
+["xd","xs","yd","ys"].forEach(i=>$(i).oninput=preview);
+function scaleCheck(max,step,dataMax){if(!(max>0&&step>0))return{ok:false,msg:"indica un máximo y un valor por división mayores que 0"};if(max<dataMax)return{ok:false,msg:"el máximo elegido ("+fmt(max)+") no contiene el dato mayor ("+fmt(dataMax)+")"};let n=max/step;if(Math.abs(n-Math.round(n))>0.0001)return{ok:false,msg:"el máximo debe ser múltiplo del valor por división"};if(n<2)return{ok:false,msg:"necesitas al menos 2 divisiones"};if(n>20)return{ok:false,msg:"hay demasiadas divisiones ("+fmt(n)+"); elige un salto mayor"};return{ok:true,msg:"correcta: "+fmt(n)+" divisiones de "+fmt(step)}} 
+$("apply").onclick=()=>{let qx=scaleCheck(num("xd"),num("xs"),Math.max(...ex.x)),qy=scaleCheck(num("yd"),num("ys"),Math.max(...ex.y));scaled=qx.ok&&qy.ok;$("st").innerHTML="Eje X: <b>"+qx.msg+"</b><br>Eje Y: <b>"+qy.msg+"</b>";ready();draw()};
+function A(){let w=cv.clientWidth,h=cv.clientHeight;return{l:70,t:20,r:w-20,b:h-60,w:w-90,h:h-80}}function XM(){return num("xd")}function YM(){return num("yd")}
+function map(x,y){let a=A();return{x:a.l+x/XM()*a.w,y:a.b-y/YM()*a.h}}function inv(x,y){let a=A();return{x:(x-a.l)/a.w*XM(),y:(a.b-y)/a.h*YM()}}
+function resize(){let r=cv.getBoundingClientRect(),d=devicePixelRatio||1;cv.width=r.width*d;cv.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);draw()}addEventListener("resize",resize);
+function draw(){let w=cv.clientWidth,h=cv.clientHeight,a=A();ctx.clearRect(0,0,w,h);ctx.strokeStyle="#e4e8ef";ctx.lineWidth=1;for(let i=0;i<=20;i++){let x=a.l+a.w*i/20,y=a.t+a.h*i/20;ctx.beginPath();ctx.moveTo(x,a.t);ctx.lineTo(x,a.b);ctx.stroke();ctx.beginPath();ctx.moveTo(a.l,y);ctx.lineTo(a.r,y);ctx.stroke()}ctx.strokeStyle="#182033";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(a.l,a.t);ctx.lineTo(a.l,a.b);ctx.lineTo(a.r,a.b);ctx.stroke();
+if(scaled){let nx=Math.round(num("xd")/num("xs")),ny=Math.round(num("yd")/num("ys"));ctx.fillStyle="#182033";ctx.font="13px system-ui";
+ctx.textAlign="center";ctx.textBaseline="top";
+for(let i=0;i<=nx;i++){let x=a.l+a.w*i/nx;ctx.strokeStyle="#182033";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x,a.b);ctx.lineTo(x,a.b+5);ctx.stroke();ctx.fillText(fmt(i*num("xs")),x,a.b+9)}
+ctx.textAlign="right";ctx.textBaseline="middle";
+for(let i=0;i<=ny;i++){let y=a.b-a.h*i/ny;ctx.strokeStyle="#182033";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(a.l-5,y);ctx.lineTo(a.l,y);ctx.stroke();ctx.fillText(fmt(i*num("ys")),a.l-9,y)}
+ctx.textBaseline="alphabetic"}
+ctx.font="bold 14px system-ui";ctx.textAlign="center";let xv=$("iv").value,xu=$("iu").value,yv=$("dv").value,yu=$("du").value;if(xv)ctx.fillText(xv+" ("+xu+")",a.l+a.w/2,h-10);if(yv){ctx.save();ctx.translate(16,a.t+a.h/2);ctx.rotate(-Math.PI/2);ctx.fillText(yv+" ("+yu+")",0,0);ctx.restore()}
+if(scaled)pts.forEach(p=>{let z=map(p.x,p.y);ctx.fillStyle="#315efb";ctx.beginPath();ctx.arc(z.x,z.y,6,0,7);ctx.fill()});ctx.strokeStyle="#182033";ctx.lineWidth=2;[...lines,cur].forEach(s=>{if(s.length<2)return;ctx.beginPath();ctx.moveTo(s[0].x,s[0].y);s.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke()})}
+function pos(e){let r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+cv.onpointerdown=e=>{if(!scaled)return;let p=pos(e),a=A();if(p.x<a.l||p.x>a.r||p.y<a.t||p.y>a.b)return;if(mode==="l"){drawing=true;cur=[p];cv.setPointerCapture(e.pointerId);return}let j=pts.findIndex(q=>{let z=map(q.x,q.y);return Math.hypot(z.x-p.x,z.y-p.y)<15});if(j>=0){drag=j;cv.setPointerCapture(e.pointerId)}else if(pts.length<6){pts.push(inv(p.x,p.y));ready();draw()}};
+cv.onpointermove=e=>{let p=pos(e);if(drawing){cur.push(p);draw()}else if(drag>=0){let v=inv(p.x,p.y);v.x=Math.max(0,Math.min(XM(),v.x));v.y=Math.max(0,Math.min(YM(),v.y));pts[drag]=v;draw()}};
+cv.onpointerup=()=>{if(drawing){drawing=false;if(cur.length>1)lines.push(cur);cur=[];ready();draw()}drag=-1};
+$("point").onclick=()=>{mode="p";$("point").classList.add("on");$("pen").classList.remove("on")};$("pen").onclick=()=>{mode="l";$("pen").classList.add("on");$("point").classList.remove("on")};$("undo").onclick=()=>{mode==="p"?pts.pop():lines.pop();ready();draw()};$("clear").onclick=()=>{lines=[];ready();draw()};
+["iv","iu","dv","du"].forEach(i=>$(i).onchange=()=>{ready();draw()});function ready(){$("check").disabled=!($("iv").value&&$("iu").value&&$("dv").value&&$("du").value&&scaled&&pts.length===6&&lines.length)}
+$("check").onclick=()=>{let c=[["Variable independiente",$("iv").value===ex.a],["Unidad independiente",$("iu").value===ex.au],["Variable dependiente",$("dv").value===ex.b],["Unidad dependiente",$("du").value===ex.bu]];$("fb").innerHTML="<h2>Corrección</h2>"+c.map(v=>'<div class="'+(v[1]?"ok":"bad")+'">'+(v[1]?"✓ ":"✗ ")+v[0]+"</div>").join("")};
+$("random").onclick=reset;paint();resize();reset();
+</script></body></html>
