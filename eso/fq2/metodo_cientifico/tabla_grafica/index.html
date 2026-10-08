@@ -47,44 +47,83 @@ function draw(){
  let w=cv.clientWidth,h=cv.clientHeight,a=A();
  ctx.clearRect(0,0,w,h);
 
- // Las posiciones de cuadrícula, marcas y números salen de EXACTAMENTE
- // la misma lista de coordenadas. Así nunca pueden desplazarse entre sí.
- let nx=scaled?Math.round(XM()/num("xs")):10;
- let ny=scaled?Math.round(YM()/num("ys")):10;
- let xPos=Array.from({length:nx+1},(_,i)=>a.l+a.w*i/nx);
- let yPos=Array.from({length:ny+1},(_,i)=>a.b-a.h*i/ny);
+ // Papel cuadriculado fino, independiente de la escala.
+ ctx.strokeStyle="#edf0f5";ctx.lineWidth=1;
+ for(let i=0;i<=20;i++){
+   let x=a.l+a.w*i/20;
+   ctx.beginPath();ctx.moveTo(x,a.t);ctx.lineTo(x,a.b);ctx.stroke();
+ }
+ for(let i=0;i<=20;i++){
+   let y=a.t+a.h*i/20;
+   ctx.beginPath();ctx.moveTo(a.l,y);ctx.lineTo(a.r,y);ctx.stroke();
+ }
 
- // Cuadrícula principal: una línea por cada división real del eje.
- ctx.strokeStyle="#dfe5ee";ctx.lineWidth=1;
- xPos.forEach(x=>{ctx.beginPath();ctx.moveTo(x,a.t);ctx.lineTo(x,a.b);ctx.stroke()});
- yPos.forEach(y=>{ctx.beginPath();ctx.moveTo(a.l,y);ctx.lineTo(a.r,y);ctx.stroke()});
+ if(scaled){
+   let nx=Math.round(XM()/num("xs"));
+   let ny=Math.round(YM()/num("ys"));
 
- // Ejes.
+   // Líneas PRINCIPALES: exactamente donde están las etiquetas.
+   // X: 0, stepX, 2*stepX... maxX
+   ctx.strokeStyle="#c3cad6";ctx.lineWidth=1.35;
+   for(let i=0;i<=nx;i++){
+     let x=a.l+a.w*i/nx;
+     ctx.beginPath();ctx.moveTo(x,a.t);ctx.lineTo(x,a.b);ctx.stroke();
+   }
+   // Y: 0, stepY, 2*stepY... maxY
+   for(let i=0;i<=ny;i++){
+     let y=a.b-a.h*i/ny;
+     ctx.beginPath();ctx.moveTo(a.l,y);ctx.lineTo(a.r,y);ctx.stroke();
+   }
+ }
+
+ // Ejes sobre la cuadrícula.
  ctx.strokeStyle="#182033";ctx.lineWidth=2;
  ctx.beginPath();ctx.moveTo(a.l,a.t);ctx.lineTo(a.l,a.b);ctx.lineTo(a.r,a.b);ctx.stroke();
 
  if(scaled){
+   let nx=Math.round(XM()/num("xs"));
+   let ny=Math.round(YM()/num("ys"));
    ctx.fillStyle="#182033";ctx.font="13px system-ui";
 
-   // Eje X: línea, marca y etiqueta comparten xPos[i].
    ctx.textAlign="center";ctx.textBaseline="top";
-   xPos.forEach((x,i)=>{
+   for(let i=0;i<=nx;i++){
+     let x=a.l+a.w*i/nx;
      ctx.strokeStyle="#182033";ctx.lineWidth=1.5;
      ctx.beginPath();ctx.moveTo(x,a.b);ctx.lineTo(x,a.b+5);ctx.stroke();
      ctx.fillText(fmt(i*num("xs")),x,a.b+9);
-   });
+   }
 
-   // Eje Y: línea, marca y etiqueta comparten yPos[i].
    ctx.textAlign="right";ctx.textBaseline="middle";
-   yPos.forEach((y,i)=>{
+   for(let i=0;i<=ny;i++){
+     let y=a.b-a.h*i/ny;
      ctx.strokeStyle="#182033";ctx.lineWidth=1.5;
      ctx.beginPath();ctx.moveTo(a.l-5,y);ctx.lineTo(a.l,y);ctx.stroke();
      ctx.fillText(fmt(i*num("ys")),a.l-9,y);
-   });
+   }
    ctx.textBaseline="alphabetic";
  }
-ctx.font="bold 14px system-ui";ctx.textAlign="center";let xv=$("iv").value,xu=$("iu").value,yv=$("dv").value,yu=$("du").value;if(xv)ctx.fillText(xv+" ("+xu+")",a.l+a.w/2,h-10);if(yv){ctx.save();ctx.translate(16,a.t+a.h/2);ctx.rotate(-Math.PI/2);ctx.fillText(yv+" ("+yu+")",0,0);ctx.restore()}
-if(scaled)pts.forEach(p=>{let z=map(p.x,p.y);ctx.fillStyle="#315efb";ctx.beginPath();ctx.arc(z.x,z.y,6,0,7);ctx.fill()});ctx.strokeStyle="#182033";ctx.lineWidth=2;[...lines,cur].forEach(s=>{if(s.length<2)return;ctx.beginPath();ctx.moveTo(s[0].x,s[0].y);s.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke()})}
+
+ // Nombres de ejes.
+ ctx.fillStyle="#182033";ctx.font="bold 14px system-ui";ctx.textAlign="center";
+ let xv=$("iv").value,xu=$("iu").value,yv=$("dv").value,yu=$("du").value;
+ if(xv)ctx.fillText(xv+" ("+xu+")",a.l+a.w/2,h-10);
+ if(yv){
+   ctx.save();ctx.translate(16,a.t+a.h/2);ctx.rotate(-Math.PI/2);
+   ctx.fillText(yv+" ("+yu+")",0,0);ctx.restore();
+ }
+
+ if(scaled)pts.forEach(p=>{
+   let z=map(p.x,p.y);ctx.fillStyle="#315efb";
+   ctx.beginPath();ctx.arc(z.x,z.y,6,0,7);ctx.fill();
+ });
+
+ ctx.strokeStyle="#182033";ctx.lineWidth=2;
+ [...lines,cur].forEach(line=>{
+   if(line.length<2)return;
+   ctx.beginPath();ctx.moveTo(line[0].x,line[0].y);
+   line.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();
+ });
+}
 function pos(e){let r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
 cv.onpointerdown=e=>{if(!scaled)return;let p=pos(e),a=A();if(p.x<a.l||p.x>a.r||p.y<a.t||p.y>a.b)return;if(mode==="l"){drawing=true;cur=[p];cv.setPointerCapture(e.pointerId);return}let j=pts.findIndex(q=>{let z=map(q.x,q.y);return Math.hypot(z.x-p.x,z.y-p.y)<15});if(j>=0){drag=j;cv.setPointerCapture(e.pointerId)}else if(pts.length<6){pts.push(inv(p.x,p.y));ready();draw()}};
 cv.onpointermove=e=>{let p=pos(e);if(drawing){cur.push(p);draw()}else if(drag>=0){let v=inv(p.x,p.y);v.x=Math.max(0,Math.min(XM(),v.x));v.y=Math.max(0,Math.min(YM(),v.y));pts[drag]=v;draw()}};
