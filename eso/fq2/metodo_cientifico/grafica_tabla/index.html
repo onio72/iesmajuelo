@@ -22,6 +22,8 @@ button{font:inherit;font-weight:750;border:0;border-radius:10px;padding:12px 16p
 <section class="card"><form id="form">
 <div class="q"><label for="ind">Variable independiente</label><select id="ind"></select></div>
 <div class="q"><label for="dep">Variable dependiente</label><select id="dep"></select></div>
+<div class="q"><label for="tind">La variable independiente es una magnitud…</label><select id="tind"><option value="">Sin responder</option><option value="Fundamental">Fundamental</option><option value="Derivada">Derivada</option></select></div>
+<div class="q"><label for="tdep">La variable dependiente es una magnitud…</label><select id="tdep"><option value="">Sin responder</option><option value="Fundamental">Fundamental</option><option value="Derivada">Derivada</option></select></div>
 <div class="q"><label for="uind">Unidad de la variable independiente</label><select id="uind"></select></div>
 <div class="q"><label for="udep">Unidad de la variable dependiente</label><select id="udep"></select></div>
 <div class="q"><label>Completa los huecos leyendo los puntos de la gráfica</label><div style="overflow-x:auto"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div></div>
@@ -39,6 +41,8 @@ const cases=[
 ];
 const vars=['Tiempo','Distancia','Temperatura','Masa','Volumen','Velocidad','Longitud'];
 const units=['s','min','m','cm','g','kg','L','cm³','°C','m/s'];
+const fundamental=new Set(['Tiempo','Distancia','Temperatura','Masa','Longitud']);
+const tipo=m=>fundamental.has(m)?'Fundamental':'Derivada';
 let c,holes=[],perfect=0,round=1,firstCheck=true,last=-1;
 const $=id=>document.getElementById(id), shuffle=a=>a.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
 function setOpts(id,correct,pool){const el=$(id);const a=shuffle([correct,...shuffle(pool.filter(v=>v!==correct)).slice(0,3)]);el.innerHTML='<option value="">Sin responder</option>'+a.map(v=>'<option value="'+v+'">'+v+'</option>').join('')}
@@ -49,9 +53,10 @@ ctx.strokeStyle='#172033';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(L,T);ctx.li
 ctx.strokeStyle='#2457d6';ctx.fillStyle='#2457d6';ctx.lineWidth=3;ctx.beginPath();c.xs.forEach((v,i)=>{let x=L+v/maxX*w,y=T+h-(c.ys[i]-minY)/(maxY-minY)*h;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();c.xs.forEach((v,i)=>{let x=L+v/maxX*w,y=T+h-(c.ys[i]-minY)/(maxY-minY)*h;ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fill()});
 ctx.fillStyle='#172033';ctx.font='bold 16px system-ui';ctx.textAlign='center';ctx.fillText(c.x+' ('+c.xu+')',L+w/2,H-16);ctx.save();ctx.translate(20,T+h/2);ctx.rotate(-Math.PI/2);ctx.fillText(c.y+' ('+c.yu+')',0,0);ctx.restore()}
 function makeTable(){const n=c.xs.length;holes=shuffle([...Array(n*2).keys()]).slice(0,4);$('thead').innerHTML='<tr><th>Magnitud</th>'+c.xs.map((_,i)=>'<th>P'+(i+1)+'</th>').join('')+'</tr>';$('tbody').innerHTML=[[c.x,c.xu,c.xs],[c.y,c.yu,c.ys]].map((r,ri)=>'<tr><th>'+r[0]+' ('+r[1]+')</th>'+r[2].map((v,i)=>{const k=ri*n+i;return '<td>'+(holes.includes(k)?'<input data-k="'+k+'" inputmode="decimal" aria-label="Dato que falta">':v)+'</td>'}).join('')+'</tr>').join('')}
-function fresh(){let ix;do{ix=Math.floor(Math.random()*cases.length)}while(ix===last&&cases.length>1);last=ix;c=cases[ix];firstCheck=true;$('feedback').classList.add('hidden');$('next').classList.add('hidden');$('round').textContent='Intento '+round;['ind','dep','uind','udep'].forEach(id=>$(id).className='');setOpts('ind',c.x,vars);setOpts('dep',c.y,vars);setOpts('uind',c.xu,units);setOpts('udep',c.yu,units);makeTable();draw()}
+function fresh(){let ix;do{ix=Math.floor(Math.random()*cases.length)}while(ix===last&&cases.length>1);last=ix;c=cases[ix];firstCheck=true;$('feedback').classList.add('hidden');$('next').classList.add('hidden');$('round').textContent='Intento '+round;['ind','dep','tind','tdep','uind','udep'].forEach(id=>$(id).className='');
+$('tind').value='';$('tdep').value='';setOpts('ind',c.x,vars);setOpts('dep',c.y,vars);setOpts('uind',c.xu,units);setOpts('udep',c.yu,units);makeTable();draw()}
 function mark(el,ok){el.classList.remove('ok','ko');el.classList.add(ok?'ok':'ko')}
-$('form').addEventListener('submit',e=>{e.preventDefault();const checks=[['ind',c.x],['dep',c.y],['uind',c.xu],['udep',c.yu]];let good=0,total=checks.length+holes.length;checks.forEach(([id,ans])=>{const ok=$(id).value===ans;mark($(id),ok);if(ok)good++});document.querySelectorAll('input[data-k]').forEach(inp=>{const k=+inp.dataset.k,n=c.xs.length,ans=k<n?c.xs[k]:c.ys[k-n],val=Number(inp.value.trim().replace(',','.')),ok=inp.value.trim()!==''&&val===ans;mark(inp,ok);if(ok)good++});
+$('form').addEventListener('submit',e=>{e.preventDefault();const checks=[['ind',c.x],['dep',c.y],['tind',tipo(c.x)],['tdep',tipo(c.y)],['uind',c.xu],['udep',c.yu]];let good=0,total=checks.length+holes.length;checks.forEach(([id,ans])=>{const ok=$(id).value===ans;mark($(id),ok);if(ok)good++});document.querySelectorAll('input[data-k]').forEach(inp=>{const k=+inp.dataset.k,n=c.xs.length,ans=k<n?c.xs[k]:c.ys[k-n],val=Number(inp.value.trim().replace(',','.')),ok=inp.value.trim()!==''&&val===ans;mark(inp,ok);if(ok)good++});
 const all=good===total,fb=$('feedback');fb.classList.remove('hidden');if(all){if(firstCheck){perfect++;$('score').textContent=(perfect*2.5).toFixed(1).replace('.',',');$('perfects').textContent=perfect+' / 4 perfectos';fb.innerHTML='<b>¡Perfecto!</b> '+good+' de '+total+' respuestas correctas. Este intento suma 2,5 puntos.'}else fb.innerHTML='<b>¡Ya está todo correcto!</b> Este intento no suma como perfecto porque hubo algún error en la primera comprobación.';$('next').classList.remove('hidden');if(perfect>=4){fb.innerHTML='<b>¡10 conseguido!</b> Has completado cuatro ejercicios perfectos.';$('next').classList.add('hidden')}}else{firstCheck=false;fb.innerHTML='Has acertado <b>'+good+' de '+total+'</b>. Los aciertos están en verde y los errores en rojo. Corrige solo lo necesario y vuelve a pulsar <b>Comprobar</b>.'}});
 $('next').addEventListener('click',()=>{round++;fresh()});fresh();
 })();
