@@ -43,13 +43,46 @@ $("apply").onclick=()=>{let qx=scaleCheck(num("xd"),num("xs"),Math.max(...ex.x))
 function A(){let w=cv.clientWidth,h=cv.clientHeight;return{l:70,t:20,r:w-20,b:h-60,w:w-90,h:h-80}}function XM(){return num("xd")}function YM(){return num("yd")}
 function map(x,y){let a=A();return{x:a.l+x/XM()*a.w,y:a.b-y/YM()*a.h}}function inv(x,y){let a=A();return{x:(x-a.l)/a.w*XM(),y:(a.b-y)/a.h*YM()}}
 function resize(){let r=cv.getBoundingClientRect(),d=devicePixelRatio||1;cv.width=r.width*d;cv.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);draw()}addEventListener("resize",resize);
-function draw(){let w=cv.clientWidth,h=cv.clientHeight,a=A();ctx.clearRect(0,0,w,h);ctx.strokeStyle="#e4e8ef";ctx.lineWidth=1;let gx=scaled?Math.round(num("xd")/num("xs")):10,gy=scaled?Math.round(num("yd")/num("ys")):10;for(let i=0;i<=gx;i++){let x=a.l+a.w*i/gx;ctx.beginPath();ctx.moveTo(x,a.t);ctx.lineTo(x,a.b);ctx.stroke()}for(let i=0;i<=gy;i++){let y=a.b-a.h*i/gy;ctx.beginPath();ctx.moveTo(a.l,y);ctx.lineTo(a.r,y);ctx.stroke()}ctx.strokeStyle="#182033";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(a.l,a.t);ctx.lineTo(a.l,a.b);ctx.lineTo(a.r,a.b);ctx.stroke();
-if(scaled){let nx=Math.round(num("xd")/num("xs")),ny=Math.round(num("yd")/num("ys"));ctx.fillStyle="#182033";ctx.font="13px system-ui";
-ctx.textAlign="center";ctx.textBaseline="top";
-for(let i=0;i<=nx;i++){let x=a.l+a.w*i/nx;ctx.strokeStyle="#182033";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x,a.b);ctx.lineTo(x,a.b+5);ctx.stroke();ctx.fillText(fmt(i*num("xs")),x,a.b+9)}
-ctx.textAlign="right";ctx.textBaseline="middle";
-for(let i=0;i<=ny;i++){let y=a.b-a.h*i/ny;ctx.strokeStyle="#182033";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(a.l-5,y);ctx.lineTo(a.l,y);ctx.stroke();ctx.fillText(fmt(i*num("ys")),a.l-9,y)}
-ctx.textBaseline="alphabetic"}
+function draw(){
+ let w=cv.clientWidth,h=cv.clientHeight,a=A();
+ ctx.clearRect(0,0,w,h);
+
+ // Las posiciones de cuadrícula, marcas y números salen de EXACTAMENTE
+ // la misma lista de coordenadas. Así nunca pueden desplazarse entre sí.
+ let nx=scaled?Math.round(XM()/num("xs")):10;
+ let ny=scaled?Math.round(YM()/num("ys")):10;
+ let xPos=Array.from({length:nx+1},(_,i)=>a.l+a.w*i/nx);
+ let yPos=Array.from({length:ny+1},(_,i)=>a.b-a.h*i/ny);
+
+ // Cuadrícula principal: una línea por cada división real del eje.
+ ctx.strokeStyle="#dfe5ee";ctx.lineWidth=1;
+ xPos.forEach(x=>{ctx.beginPath();ctx.moveTo(x,a.t);ctx.lineTo(x,a.b);ctx.stroke()});
+ yPos.forEach(y=>{ctx.beginPath();ctx.moveTo(a.l,y);ctx.lineTo(a.r,y);ctx.stroke()});
+
+ // Ejes.
+ ctx.strokeStyle="#182033";ctx.lineWidth=2;
+ ctx.beginPath();ctx.moveTo(a.l,a.t);ctx.lineTo(a.l,a.b);ctx.lineTo(a.r,a.b);ctx.stroke();
+
+ if(scaled){
+   ctx.fillStyle="#182033";ctx.font="13px system-ui";
+
+   // Eje X: línea, marca y etiqueta comparten xPos[i].
+   ctx.textAlign="center";ctx.textBaseline="top";
+   xPos.forEach((x,i)=>{
+     ctx.strokeStyle="#182033";ctx.lineWidth=1.5;
+     ctx.beginPath();ctx.moveTo(x,a.b);ctx.lineTo(x,a.b+5);ctx.stroke();
+     ctx.fillText(fmt(i*num("xs")),x,a.b+9);
+   });
+
+   // Eje Y: línea, marca y etiqueta comparten yPos[i].
+   ctx.textAlign="right";ctx.textBaseline="middle";
+   yPos.forEach((y,i)=>{
+     ctx.strokeStyle="#182033";ctx.lineWidth=1.5;
+     ctx.beginPath();ctx.moveTo(a.l-5,y);ctx.lineTo(a.l,y);ctx.stroke();
+     ctx.fillText(fmt(i*num("ys")),a.l-9,y);
+   });
+   ctx.textBaseline="alphabetic";
+ }
 ctx.font="bold 14px system-ui";ctx.textAlign="center";let xv=$("iv").value,xu=$("iu").value,yv=$("dv").value,yu=$("du").value;if(xv)ctx.fillText(xv+" ("+xu+")",a.l+a.w/2,h-10);if(yv){ctx.save();ctx.translate(16,a.t+a.h/2);ctx.rotate(-Math.PI/2);ctx.fillText(yv+" ("+yu+")",0,0);ctx.restore()}
 if(scaled)pts.forEach(p=>{let z=map(p.x,p.y);ctx.fillStyle="#315efb";ctx.beginPath();ctx.arc(z.x,z.y,6,0,7);ctx.fill()});ctx.strokeStyle="#182033";ctx.lineWidth=2;[...lines,cur].forEach(s=>{if(s.length<2)return;ctx.beginPath();ctx.moveTo(s[0].x,s[0].y);s.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke()})}
 function pos(e){let r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
