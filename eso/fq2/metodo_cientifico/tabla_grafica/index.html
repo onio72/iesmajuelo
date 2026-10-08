@@ -38,8 +38,24 @@ function paint(){ $("context").textContent=ex.c;$("h1").textContent=ex.a+" ("+ex
 function reset(){ex=gen();paint();pts=[];lines=[];scaled=false;let V=[ex.a,ex.b,"Tiempo","Posición","Temperatura","Masa","Volumen","Distancia","Número de grupos","Cantidad por grupo"].filter((v,i,a)=>a.indexOf(v)==i);opts($("iv"),V,"Magnitud");opts($("dv"),V,"Magnitud");opts($("iu"),U,"Unidad");opts($("du"),U,"Unidad");$("xs").value="";$("ys").value="";$("xd").value="";$("yd").value="";$("st").textContent="Sin graduar.";$("fb").innerHTML="";$("check").disabled=false;resize()}
 function preview(){let nx=num("xs")>0?num("xd")/num("xs"):0,ny=num("ys")>0?num("yd")/num("ys"):0;$("xmax").textContent="Divisiones resultantes: "+(nx>0?fmt(nx):"—");$("ymax").textContent="Divisiones resultantes: "+(ny>0?fmt(ny):"—")}
 ["xd","xs","yd","ys"].forEach(i=>$(i).oninput=preview);
-function scaleCheck(max,step,dataMax){if(!(max>0&&step>0))return{ok:false,msg:"indica un máximo y un valor por división mayores que 0"};if(max<dataMax)return{ok:false,msg:"el máximo elegido ("+fmt(max)+") no contiene el dato mayor ("+fmt(dataMax)+")"};let n=max/step;if(Math.abs(n-Math.round(n))>0.0001)return{ok:false,msg:"el máximo debe ser múltiplo del valor por división"};if(n<2)return{ok:false,msg:"necesitas al menos 2 divisiones"};if(n>20)return{ok:false,msg:"hay demasiadas divisiones ("+fmt(n)+"); elige un salto mayor"};return{ok:true,msg:"correcta: "+fmt(n)+" divisiones de "+fmt(step)}} 
-$("apply").onclick=()=>{let qx=scaleCheck(num("xd"),num("xs"),Math.max(...ex.x)),qy=scaleCheck(num("yd"),num("ys"),Math.max(...ex.y));scaled=qx.ok&&qy.ok;$("st").innerHTML="Eje X: <b>"+qx.msg+"</b><br>Eje Y: <b>"+qy.msg+"</b>";ready();draw()};
+function scaleCheck(max,step,dataMax){
+ if(!(max>0&&step>0))return{ok:false,quality:"bad",msg:"indica un máximo y un valor por división mayores que 0"};
+ if(max<dataMax)return{ok:false,quality:"bad",msg:"el máximo elegido ("+fmt(max)+") no contiene el dato mayor ("+fmt(dataMax)+")"};
+ let n=max/step;
+ if(Math.abs(n-Math.round(n))>0.0001)return{ok:false,quality:"bad",msg:"el máximo debe ser múltiplo del valor por división"};
+ if(n<2)return{ok:false,quality:"bad",msg:"necesitas al menos 2 divisiones"};
+ if(n>20)return{ok:false,quality:"bad",msg:"hay demasiadas divisiones ("+fmt(n)+"); elige un salto mayor"};
+ let ratio=max/dataMax;
+ if(dataMax>0&&ratio>1.5)return{ok:true,quality:"waste",msg:"válida, pero el máximo "+fmt(max)+" es demasiado grande para un dato máximo de "+fmt(dataMax)+". Reduce el máximo para aprovechar mejor el papel"};
+ return{ok:true,quality:"good",msg:"buena escala: "+fmt(n)+" divisiones de "+fmt(step)};
+}
+$("apply").onclick=()=>{
+ let qx=scaleCheck(num("xd"),num("xs"),Math.max(...ex.x)),qy=scaleCheck(num("yd"),num("ys"),Math.max(...ex.y));
+ scaled=qx.ok&&qy.ok;
+ let fx=qx.quality==="waste"?"⚠ ":"",fy=qy.quality==="waste"?"⚠ ":"";
+ $("st").innerHTML="Eje X: <b>"+fx+qx.msg+"</b><br>Eje Y: <b>"+fy+qy.msg+"</b>";
+ ready();draw();
+};
 function A(){let w=cv.clientWidth,h=cv.clientHeight;return{l:70,t:20,r:w-20,b:h-60,w:w-90,h:h-80}}function XM(){return num("xd")}function YM(){return num("yd")}
 function map(x,y){let a=A();return{x:a.l+x/XM()*a.w,y:a.b-y/YM()*a.h}}function inv(x,y){let a=A();return{x:(x-a.l)/a.w*XM(),y:(a.b-y)/a.h*YM()}}
 function resize(){let r=cv.getBoundingClientRect(),d=devicePixelRatio||1;cv.width=r.width*d;cv.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);draw()}addEventListener("resize",resize);
