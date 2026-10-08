@@ -47,17 +47,9 @@ function draw(){
  let w=cv.clientWidth,h=cv.clientHeight,a=A();
  ctx.clearRect(0,0,w,h);
 
- // Papel cuadriculado fino, independiente de la escala.
- ctx.strokeStyle="#edf0f5";ctx.lineWidth=1;
- for(let i=0;i<=20;i++){
-   let x=a.l+a.w*i/20;
-   ctx.beginPath();ctx.moveTo(x,a.t);ctx.lineTo(x,a.b);ctx.stroke();
- }
- for(let i=0;i<=20;i++){
-   let y=a.t+a.h*i/20;
-   ctx.beginPath();ctx.moveTo(a.l,y);ctx.lineTo(a.r,y);ctx.stroke();
- }
-
+ // No se dibuja ninguna cuadrícula hasta que el alumno gradúa ambos ejes.
+ // Una vez graduados, la única cuadrícula visible es la que corresponde
+ // exactamente a las divisiones elegidas por el alumno.
  if(scaled){
    let nx=Math.round(XM()/num("xs"));
    let ny=Math.round(YM()/num("ys"));
