@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Operaciones con enteros · 2.º ESO</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#173344;background:#f3f7f7}*{box-sizing:border-box}body{margin:0}main{max-width:940px;margin:auto;padding:18px 14px 50px}.top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}h1{font-size:clamp(1.45rem,4vw,2.1rem);margin:8px 0}h2{font-size:1.2rem;margin:0 0 12px}.muted{color:#58717a}button,select,input{font:inherit}button{cursor:pointer;border-radius:10px;border:1px solid #b7cbd0;background:white;padding:11px 14px;color:#173344;font-weight:600}button.primary{background:#166c73;color:white;border-color:#166c73}button:disabled{opacity:.45;cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #f3b544;outline-offset:2px}.panel{background:white;border:1px solid #d8e3e5;border-radius:17px;padding:20px;margin-top:16px;box-shadow:0 3px 16px #0b3c4910}.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end}.controls label{display:grid;gap:5px;flex:1;min-width:155px;font-size:.9rem;font-weight:600}select,input{border:1px solid #a9bfc4;border-radius:9px;padding:11px;width:100%;background:white;color:#183841}input{max-width:260px} .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:16px}.stat{background:#e9f2f1;padding:12px;border-radius:12px;text-align:center}.stat strong{display:block;font-size:1.3rem} .bar{height:10px;background:#d9e9e9;border-radius:20px;overflow:hidden;margin-top:12px}.bar>div{height:100%;background:#14837f;transition:width .2s}.exercise{display:flex;flex-direction:column;align-items:center;gap:16px;background:#f5f9fa;border-radius:15px;padding:28px 15px;margin:15px 0}.expression{font-size:clamp(1.35rem,4vw,2rem);font-weight:650;letter-spacing:.015em;line-height:1.6;text-align:center;overflow-wrap:anywhere}.answerline{display:flex;gap:9px;align-items:center;justify-content:center;flex-wrap:wrap;width:100%}.feedback{padding:14px;border-radius:12px;margin-top:14px}.good{background:#e3f5e9;border:1px solid #68b783;color:#15572f}.bad{background:#fde8e6;border:1px solid #d98d87;color:#882922}.warn{background:#fff0d7;border:1px solid #e8b456;color:#75500b}.steps{background:#f4f8fa;border-radius:11px;padding:14px 18px;margin-top:12px;line-height:1.9}.steps li{padding:3px 0}.buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.tag{background:#e2eff0;border-radius:30px;padding:5px 12px;font-size:.85rem}.hidden{display:none!important}.history{display:flex;gap:6px;flex-wrap:wrap}.chip{display:inline-flex;background:#e9f3f6;border-radius:20px;padding:6px 10px;font-weight:600}.chip.ok{background:#d7f2df;color:#176536}.chip.ko{background:#fbe0dd;color:#9b312b}.hint{border-left:4px solid #bf9b43;padding:11px 14px;background:#fff8e7;margin-top:12px}.footer{font-size:.88rem;color:#5d737a;margin-top:22px}details summary{cursor:pointer;font-weight:600} @media(max-width:560px){.panel{padding:15px}.stats{gap:5px}.stat{padding:9px 4px}.expression{font-size:1.4rem}.answerline input{max-width:none}.answerline button{width:100%}.buttons button{flex:1}}
+</style></head><body><main>
+<header class="top"><div><div class="muted">Matemáticas · 2.º de ESO</div><h1>Operaciones con números enteros</h1><div class="muted">Practica con signos, paréntesis, corchetes y jerarquía de operaciones.</div></div><span class="tag">Tema 1 · Entrenamiento</span></header>
+<section class="panel"><h2>Configura la práctica</h2><div class="controls"><label>Tipo de operaciones<select id="topic"><option value="mix">Mezcla de operaciones</option><option value="add">Sumas y restas</option><option value="mul">Multiplicaciones y divisiones</option><option value="combined">Operaciones combinadas</option></select></label><label>Dificultad<select id="level"><option value="1">Nivel 1 · Básico</option><option value="2" selected>Nivel 2 · Intermedio</option><option value="3">Nivel 3 · Nivel de examen</option><option value="4">Nivel 4 · Desafío</option></select></label><label>Modo<select id="mode"><option value="normal">Resultado final</option><option value="guided">Resolución por pasos</option></select></label><button id="restart" type="button">Reiniciar sesión</button></div><div class="stats"><div class="stat"><strong id="done">0</strong><small>Respondidos</small></div><div class="stat"><strong id="hits">0</strong><small>Aciertos</small></div><div class="stat"><strong id="percent">—</strong><small>Porcentaje</small></div></div><div class="bar" role="progressbar" aria-label="Progreso de la sesión de diez ejercicios" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" id="progress"><div id="fill" style="width:0%"></div></div><p class="muted" id="target">Objetivo: completar 10 ejercicios. Los errores se repasarán.</p></section>
+<section class="panel" id="work"><div class="top"><h2 id="questionTitle">Ejercicio 1 de 10</h2><span id="kind" class="tag">Operaciones</span></div><div class="exercise"><div class="expression" id="expression" aria-live="polite"></div><div class="muted" id="instruction">Calcula el resultado:</div><form class="answerline" id="answerForm"><input id="answer" type="text" inputmode="numeric" autocomplete="off" placeholder="Escribe un número entero" aria-label="Tu respuesta"><button class="primary" type="button" id="verify">Comprobar</button></form></div><div id="feedback" class="hidden" role="status" aria-live="polite"></div><div id="explanation" class="hidden"></div><div class="buttons"><button id="hint" type="button">Ver una pista</button><button id="skip" type="button">No lo sé</button><button class="primary hidden" id="next" type="button">Siguiente ejercicio →</button></div><div id="hintText" class="hint hidden"></div></section>
+<section class="panel"><h2>Historial de esta sesión</h2><div id="history" class="history muted">Todavía no hay respuestas.</div><details style="margin-top:16px"><summary>Cómo funciona la corrección</summary><p>En <strong>resultado final</strong>, escribe el valor de toda la expresión. En <strong>resolución por pasos</strong>, resuelve una operación en cada turno y comprueba su resultado antes de continuar. Una equivocación cuenta una sola vez por ejercicio; puedes volver a intentarlo en la etapa en que hayas fallado. Los ejercicios fallados se recuperan para repasar.</p><p>Si el ejercicio tiene varias operaciones, la explicación presenta una secuencia válida respetando la jerarquía: paréntesis y corchetes, después multiplicaciones y divisiones, y por último sumas y restas.</p></details></section><div class="footer">Material de práctica generado a partir del bloque de operaciones con enteros del cuaderno de clase (páginas 3–10). Funciona sin conexión y conserva el progreso mientras permanece abierta esta página.</div>
+</main><script>
+'use strict';
+const $=id=>document.getElementById(id);
+const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a, pick=a=>a[rand(0,a.length-1)], nonzero=(a,b)=>{let x;do{x=rand(a,b)}while(x===0);return x};
+const fmt=n=>n<0?`(${n})`:String(n);
+const token=(n,context=false)=>context&&n<0?`(${n})`:String(n);
+const variable=(n)=>String(n).replaceAll('-','−');
+const entries=[];let question=null,stepIndex=0,wasWrong=false,answered=false,sessionCount=0,correct=0,retryQueue=[],lastKey='',revealed=false;
+const node=(value,display,steps=[],priority=0)=>({value,display,steps,priority});
+const leaf=n=>node(n,fmt(n));
+function binary(a,b,op){let v,meaning,display;if(op==='+'){v=a.value+b.value;meaning='Suma';display=`${a.display} + ${b.display}`}
+else if(op==='−'){v=a.value-b.value;meaning='Resta';display=`${a.display} − ${b.display}`}
+else if(op==='×'){v=a.value*b.value;meaning='Multiplicación';display=`${a.display} · ${b.display}`}
+else {if(!b.value||a.value%b.value!==0)throw Error('División no exacta');v=a.value/b.value;meaning='División';display=`${a.display} : ${b.display}`}
+return node(v,display,[...a.steps,...b.steps,{label:`${meaning}: ${variable(a.value)} ${op} ${variable(b.value)} = ?`,answer:v,note:op==='−'&&b.value<0?'Restar un número negativo equivale a sumar su opuesto.':op==='×'||op===':'?'Los signos iguales dan positivo y los diferentes dan negativo.':'Suma los enteros teniendo en cuenta sus signos.'}])}
+function enclosed(a,square=false){return node(a.value,`${square?'[':'('}${a.display}${square?']':')'}`,a.steps)}
+function generate(topic,level){
+const m=level===1?8:level===2?15:level===3?18:25;
+const cat=topic==='mix'?pick(level===1?['add','mul','combined']:['add','mul','combined','combined','combined']):topic;
+const number=(limit=m)=>leaf(nonzero(-limit,limit));
+const plusminus=()=>pick(['+','−']);
+const sum=(n)=>{let x=number();for(let i=1;i<n;i++)x=binary(x,number(),plusminus());return x};
+const product=(n)=>{let x=number(9);for(let i=1;i<n;i++){
+  const d=number(7);const divide=Math.random()<.35;
+  if(divide){const divisor=number(7), quotient=number(7);x=binary(x,group(binary(leaf(divisor.value*quotient.value),divisor,':')),'×')}else x=binary(x,d,'×');
+}return x};
+const quotient=()=>{const b=number(9),q=number(9);return binary(leaf(b.value*q.value),b,':')};
+const group=(x,square=false)=>enclosed(x,square);
+let root;
+if(cat==='add')root=sum(level===1?2:level===2?3:level===3?5:7);
+else if(cat==='mul')root=product(level===1?2:level===2?3:level===3?4:5);
+else if(level===1){const a=number(8),b=number(7),c=number(6);const mult=binary(b,c,'×');root=binary(a,group(mult),plusminus());}
+else if(level===2){const a=number(),b=number(9),c=number(8),d=number(7);
+  const inner=binary(b,c,plusminus());
+  root=binary(group(binary(a,group(inner),'−')),d,pick(['+','×']));
+}
+else{
+  // Cada expresión reúne sumas/restas, productos y al menos una división exacta,
+  // además de paréntesis y corchetes. Las agrupaciones son explícitas y evaluables.
+  const t=rand(0,4);
+  const pair=()=>binary(number(12),number(10),plusminus());
+  const multPair=()=>binary(number(9),number(8),'×');
+  const q=()=>quotient();
+  if(t===0){
+    const left=binary(group(pair()),group(multPair()),'−');
+    const right=binary(group(q()),number(9),'+');
+    root=binary(group(left,true),group(right),'−');
+  }else if(t===1){
+    const left=binary(group(pair()),number(7),'×');
+    const right=binary(group(binary(number(9),q(),'+')),number(6),'−');
+    root=binary(group(left,true),group(right),'+');
+  }else if(t===2){
+    const first=binary(group(q()),group(pair()),'+');
+    const second=binary(number(8),group(multPair()),'−');
+    root=binary(group(first,true),group(second),'−');
+  }else if(t===3){
+    const first=binary(group(binary(number(8),number(9),'×')),group(q()),'−');
+    const second=binary(group(pair()),number(7),'×');
+    root=binary(group(first,true),group(second),'+');
+  }else{
+    const first=binary(group(pair()),group(q()),'−');
+    const second=binary(group(multPair()),number(8),'+');
+    root=binary(group(first,true),group(second),'−');
+  }
+  if(level===4){
+    const extra=binary(group(pair()),group(quotient()),'−');
+    root=binary(group(root,true),group(extra,true),pick(['+','−']));
+  }
+}
+return {cat,root,level,display:root.display,steps:root.steps.length?root.steps:[{label:`Calcula: ${root.display}`,answer:root.value,note:'Aplica la regla de los signos.'}]};
+}
+function newQuestion(){if(sessionCount>=10){showSummary();return}let t=$('topic').value,l=Number($('level').value);question=null;
+if(retryQueue.length&&Math.random()<.38){const index=rand(0,retryQueue.length-1);const type=retryQueue.splice(index,1)[0];question=generate(t==='mix'?type:t,l)}else question=generate(t,l);
+let guard=0;while(question.display===lastKey&&guard++<15)question=generate(t,l);lastKey=question.display;
+stepIndex=0;wasWrong=false;answered=false;revealed=false;$('answer').value='';$('answer').disabled=false;$('verify').disabled=false;$('answerForm').classList.remove('hidden');$('feedback').className='hidden';$('explanation').className='hidden';$('next').classList.add('hidden');$('hint').classList.remove('hidden');$('skip').classList.remove('hidden');$('hintText').classList.add('hidden');$('questionTitle').textContent=`Ejercicio ${sessionCount+1} de 10`;$('kind').textContent={add:'Sumas y restas',mul:'Multiplicar y dividir',combined:'Operaciones combinadas'}[question.cat];$('expression').textContent=question.display;$('instruction').textContent=$('mode').value==='guided'?`Paso 1 de ${question.steps.length}: ${question.steps[0].label}`:'Calcula el resultado de toda la expresión:';$('answer').focus();}
+function record(success){sessionCount++;if(success)correct++;else retryQueue.push(question.cat);entries.push({expr:question.display,success});$('done').textContent=sessionCount;$('hits').textContent=correct;$('percent').textContent=Math.round(100*correct/sessionCount)+' %';$('fill').style.width=(10*sessionCount)+'%';$('progress').setAttribute('aria-valuenow',sessionCount);$('history').innerHTML='';for(const e of entries){const span=document.createElement('span');span.className='chip '+(e.success?'ok':'ko');span.textContent=(e.success?'✓ ':'✗ ')+e.expr;$('history').append(span)}$('target').textContent=`${10-sessionCount} ejercicios por completar · ${retryQueue.length} tipos pendientes de repaso.`;}
+function finish(correctResult){answered=true;record(correctResult);$('answerForm').classList.add('hidden');$('hint').classList.add('hidden');$('skip').classList.add('hidden');$('next').classList.remove('hidden');$('next').textContent=sessionCount===10?'Ver resultados':'Siguiente ejercicio →';const f=$('feedback');f.className='feedback '+(correctResult?'good':'bad');f.textContent=correctResult?'✓ ¡Correcto! Has completado el ejercicio.':`✗ La respuesta correcta es ${question.root.value}. Vamos a revisar el procedimiento.`;showExplanation();$('feedback').scrollIntoView({block:'nearest',behavior:'smooth'});}
+function showExplanation(){const exp=$('explanation');exp.classList.remove('hidden');exp.innerHTML='';const title=document.createElement('strong');title.textContent='Resolución paso a paso:';exp.append(title);const ol=document.createElement('ol');ol.className='steps';question.steps.forEach(s=>{const li=document.createElement('li');li.textContent=s.label.replace('= ?',`= ${s.answer}`);ol.append(li)});exp.append(ol)}
+function submit(){if(answered)return;const raw=$('answer').value.trim().replace(/−/g,'-');if(!/^[+-]?\d+$/.test(raw)){const f=$('feedback');f.className='feedback warn';f.textContent=raw?'Introduce un número entero válido (sin decimales ni otros símbolos).':'Escribe tu respuesta antes de comprobar.';f.scrollIntoView({block:'nearest',behavior:'smooth'});return}const v=Number(raw);const guided=$('mode').value==='guided';const expected=guided?question.steps[stepIndex].answer:question.root.value;if(v!==expected){wasWrong=true;const f=$('feedback');f.className='feedback bad';f.textContent='No es correcto. Revisa los signos y el orden de las operaciones. Puedes volver a intentarlo.';f.scrollIntoView({block:'nearest',behavior:'smooth'});$('answer').select();return}
+if(guided&&stepIndex<question.steps.length-1){const f=$('feedback');f.className='feedback good';f.textContent=`✓ Paso correcto: ${expected}`;stepIndex++;$('instruction').textContent=`Paso ${stepIndex+1} de ${question.steps.length}: ${question.steps[stepIndex].label}`;$('answer').value='';$('hintText').classList.add('hidden');$('answer').focus();return}finish(!wasWrong)}
+function showSummary(){ $('questionTitle').textContent='Sesión finalizada';$('kind').textContent='Resultados';$('expression').textContent=`${correct} de 10 ejercicios correctos a la primera`;$('instruction').textContent=`Has logrado ${correct*10} de 100 puntos. Selecciona «Reiniciar sesión» para practicar otra vez.`;$('answerForm').classList.add('hidden');$('feedback').className='feedback '+(correct>=8?'good':'warn');$('feedback').textContent=correct>=8?'Buen resultado. Prueba el siguiente nivel de dificultad.':'Conviene repetir los ejercicios, especialmente los tipos que han dado problemas.';$('explanation').classList.add('hidden');$('next').classList.add('hidden');$('hint').classList.add('hidden');$('skip').classList.add('hidden')}
+function restart(){sessionCount=0;correct=0;retryQueue=[];entries.length=0;lastKey='';$('done').textContent='0';$('hits').textContent='0';$('percent').textContent='—';$('history').textContent='Todavía no hay respuestas.';$('fill').style.width='0%';$('progress').setAttribute('aria-valuenow','0');$('target').textContent='Objetivo: completar 10 ejercicios. Los errores se repasarán.';newQuestion()}
+$('answerForm').addEventListener('submit',e=>{e.preventDefault();submit()});$('verify').addEventListener('click',submit);$('next').addEventListener('click',newQuestion);$('restart').addEventListener('click',restart);$('topic').addEventListener('change',restart);$('level').addEventListener('change',restart);$('mode').addEventListener('change',restart);$('skip').addEventListener('click',()=>{if(!answered)finish(false)});$('hint').addEventListener('click',()=>{const current=$('mode').value==='guided'?question.steps[stepIndex]:question.steps[0];$('hintText').textContent=current.note+' Recuerda respetar la jerarquía de las operaciones.';$('hintText').classList.remove('hidden')});restart();
+</script></body></html>
