@@ -345,7 +345,8 @@
         eso: { 
             title: "ESO", 
             items: [
-                { id: 'fq2', title: 'FQ 2º ESO', icon: '🧪', desc: 'Física y Química' }, 
+                { id: 'fq2', title: 'FQ 2º ESO', icon: '🧪', desc: 'Física y Química' },
+                { id: 'mat2', title: 'Matemáticas 2º ESO', icon: '📐', desc: 'Matemáticas' }, 
                 { id: 'fq3', title: 'FQ 3º ESO', icon: '⚗️', desc: 'Física y Química' }, 
                 { id: 'fq4', title: 'FQ 4º ESO', icon: '⚛️', desc: 'Física y Química' }
             ] 
@@ -357,6 +358,13 @@
                 { id: 'fi2', title: 'Física 2º Bach', icon: '🌌', desc: 'Preparación PAU/EBAU' },
                 { url: 'https://onio72.github.io/iesmajuelo/apuntes/fi2/index.html', title: 'Apuntes FI2', icon: '📝', desc: 'Temas 1 al 5' }
             ] 
+        },
+        mat2: {
+            title: "Matemáticas 2º ESO",
+            groups: [{ name: "Tema 01 · Números enteros, potencias y raíces", links: [
+                { name: "Operaciones con números enteros", url: "https://onio72.github.io/iesmajuelo/eso/mat2/t01/" },
+                { name: "Potencias y sus propiedades", url: "https://onio72.github.io/iesmajuelo/eso/mat2/t01/potencias/" }
+            ]}]
         },
         fq2: { 
             title: "FQ 2º ESO", 
@@ -504,12 +512,12 @@
 
     const ROOT_PATH = '/iesmajuelo/';
     const SECTION_PATHS = {
-        root: '', eso:'eso', bach:'bach', fq2:'eso/fq2', fq3:'eso/fq3',
+        root: '', eso:'eso', bach:'bach', mat2:'eso/mat2', fq2:'eso/fq2', fq3:'eso/fq3',
         fq4:'eso/fq4', fq1:'bach/fq1', fi2:'bach/fi2',
         fpb2:'fpb2', tools:'tools', cdd:'cdd', equipo:'equipo',
         departamento:'departamento', otros:'otros'
     };
-    const PARENT = {eso:'root',bach:'root',fq2:'eso',fq3:'eso',fq4:'eso',
+    const PARENT = {eso:'root',bach:'root',mat2:'eso',fq2:'eso',fq3:'eso',fq4:'eso',
         fq1:'bach',fi2:'bach',fpb2:'root',tools:'root',cdd:'root',
         equipo:'root',departamento:'root',otros:'root'};
     let navigationStack = ['root'];
