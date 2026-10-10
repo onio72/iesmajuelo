@@ -51,12 +51,12 @@ function question(type,level){let a,b,c,d,ans,text,solution,hint,format='Escribe
   solution=`Folios semanales = ${sheets} · ${days} = ${ans} folios. El coste no interviene en este cálculo.`;
   hint='No uses datos que no sean necesarios para responder a la pregunta.';
   source='Boletín: primera pregunta del problema 24';
- } else if(kind===4){ // Boletín 24 segunda pregunta
-  const daily=level===1?1500:rnd(8,20)*100,days=5,price=level===1?360:rnd(3,9)*60;
-  ans=price;
-  text=`Un instituto gasta ${daily} folios al día y ${price} € por semana. Si una semana tiene ${days} días lectivos, ¿cuánto dinero gasta en folios durante esa semana?`;
-  solution=`El enunciado indica directamente el gasto semanal: ${price} €. Los folios diarios son un dato no necesario.`;
-  hint='Observa si el dato que te piden ya aparece en el enunciado.';
+ } else if(kind===4){ // Boletín 24 segunda pregunta: febrero
+  const daily=level===1?1500:rnd(8,20)*100,days=level===1?20:pick([18,20,22]),pack=500,packPrice=level===1?6:pick([4,5,6,8,10]);
+  const total=daily*days;ans=total/pack*packPrice;
+  text=`Un instituto consume ${daily} folios cada día lectivo. En febrero hubo ${days} días de clase. Si cada paquete contiene ${pack} folios y cuesta ${packPrice} €, ¿cuánto dinero se gastó en folios durante febrero?`;
+  solution=`Folios de febrero: ${daily} · ${days} = ${total}. Paquetes: ${total} : ${pack} = ${total/pack}. Coste: ${total/pack} · ${packPrice} = ${ans} €.`;
+  hint='Calcula los folios del mes, divídelos por los folios de cada paquete y multiplica por el precio.';
   source='Boletín: segunda pregunta del problema 24';
  } else if(kind===5){ // Boletín 25
   const residents=13500,perOak=90,perPine=120,pines=4,developments=level===1?120:pick([12,20,40,120]);
