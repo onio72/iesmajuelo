@@ -1,0 +1,63 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Raíces · Matemáticas 2.º ESO</title><style>
+:root{font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:#173344;background:#f2f7f8}*{box-sizing:border-box}body{margin:0}main{max-width:880px;margin:0 auto;padding:22px 15px 60px}header{display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap}.muted{color:#536a77}.panel{background:white;border:1px solid #d9e5e7;border-radius:16px;padding:20px;margin-top:17px;box-shadow:0 3px 15px #153c4a0d}h1{margin:5px 0;font-size:clamp(1.6rem,4vw,2.3rem)}h2{margin:0 0 12px;font-size:1.15rem}label{font-weight:650;font-size:.91rem;display:block;margin:0 0 6px}select,input{font:inherit;min-height:44px;border:1px solid #aabec7;border-radius:9px;padding:9px 11px;background:white;color:#183846;max-width:100%;width:100%}input:focus,select:focus{outline:3px solid #b1e0da}button{font:inherit;font-weight:700;cursor:pointer;border:0;border-radius:9px;padding:11px 17px;background:#126f74;color:white;min-height:44px}button.secondary{background:#e7f2f3;color:#13565c}button:disabled{opacity:.5;cursor:not-allowed}.settings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}.heading{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;align-items:center}.expression{text-align:center;font-size:clamp(2rem,7vw,3.3rem);font-weight:650;min-height:110px;display:flex;justify-content:center;align-items:center;gap:3px;overflow-x:auto}.radical{display:inline-flex;align-items:flex-start;white-space:nowrap}.radical .idx{font-size:.36em;line-height:1;transform:translate(5px,8px)}.radical .root{font-size:1.17em}.radical .radicand{border-top:3px solid currentColor;padding:0 5px;line-height:1.12;margin-top:6px}.answer{display:flex;gap:10px;align-items:end}.answer .field{flex:1;min-width:0}.feedback{margin-top:14px;border-radius:11px;padding:14px;line-height:1.55}.feedback.good{background:#e4f7eb;color:#145f34}.feedback.bad{background:#ffebea;color:#8c2323}.feedback.warn{background:#fff1d8;color:#805000}.explain{background:#edf5f8;color:#1c4a5e;margin-top:11px;border-radius:10px;padding:13px;white-space:pre-line}.hidden{display:none}.small{font-size:.86rem}.progress{height:10px;background:#dce9eb;border-radius:20px;overflow:hidden;margin:12px 0}.bar{height:100%;background:#147b78;transition:width .2s}footer{margin-top:18px;font-size:.82rem;color:#5a6b72}.hint{margin:10px 0;color:#4c6370}@media(max-width:560px){.settings{grid-template-columns:1fr}.answer{flex-direction:column;align-items:stretch}.answer .field{width:100%}.toolbar button{flex:1}}
+</style></head><body><main><header><div><div class="muted small">MATEMÁTICAS · 2.º ESO · TEMA 01</div><h1>Raíces de números enteros</h1><div class="muted">Entrena, comprueba y entiende cada resultado.</div></div><a href="https://onio72.github.io/iesmajuelo/eso/" class="muted">← Índice de ESO</a></header>
+<section class="panel"><h2>Configura tu práctica</h2><div class="settings"><div><label for="level">Nivel</label><select id="level"><option value="1">1 · Raíces cuadradas exactas</option><option value="2">2 · Índices y números negativos</option><option value="3" selected>3 · Nivel de examen</option><option value="4">4 · Desafío</option></select></div><div><label for="mode">Tipo de ejercicio</label><select id="mode"><option value="all">Mezcla de todos</option><option value="calc">Calcula raíces</option><option value="exist">¿Existe raíz entera?</option><option value="reduce">Reduce una raíz</option><option value="complete">Completa el radicando</option></select></div></div><div class="toolbar"><button id="restart" class="secondary" type="button">Iniciar nueva sesión</button><button id="help" class="secondary" type="button">Ver pista</button></div></section>
+<section class="panel" aria-live="polite"><div class="heading"><b id="count">Ejercicio 1 de 10</b><span class="muted" id="score">0 aciertos a la primera</span></div><div class="progress"><div class="bar" id="bar" style="width:0%"></div></div><p class="muted" id="instruction"></p><div class="expression" id="expression"></div><p class="hint small" id="format"></p><div class="answer"><div class="field"><label for="response">Tu respuesta</label><input id="response" inputmode="text" autocomplete="off" spellcheck="false" placeholder="Escribe tu respuesta"></div><button id="check" type="button">Comprobar</button><button id="next" type="button" class="secondary hidden">Siguiente →</button></div><div id="feedback" role="status" aria-live="polite"></div><div id="explanation" class="explain hidden"></div></section><footer>Se aceptan respuestas numéricas y, cuando corresponda, «no existe». Las raíces se trabajan en números enteros, según el tipo de ejercicio. Los radicandos positivos con índice par tienen también una solución negativa de la ecuación xⁿ = a, aunque el símbolo √ indica la raíz principal no negativa.</footer></main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[rnd(0,a.length-1)];
+const sup=n=>String(n).replace(/-/g,'⁻').replace(/\d/g,d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]);
+const rootHTML=(n,v)=>`<span class="radical"><span class="idx">${n===2?'':n}</span><span class="root">√</span><span class="radicand">${v}</span></span>`;
+const powHTML=(a,b)=>`${a<0?'('+a+')':a}<sup>${b}</sup>`;
+const power=(a,n)=>Math.pow(a,n);
+let q=null,step=0,hits=0,attempted=false,finished=false;
+function create(){
+ const level=+$('level').value; let mode=$('mode').value;
+ const supported=level===1?['calc','complete']:level===2?['calc','exist','complete']:['calc','exist','reduce','complete'];
+ if(mode==='all'||!supported.includes(mode))mode=pick(supported);
+ const max=level===1?13:level===2?9:level===3?8:10;
+ const indices=level===1?[2]:level===2?[2,3,4,5]:level===3?[2,3,4,5]:[2,3,4,5,6];
+ const n=pick(indices);
+ if(mode==='calc'){
+  let a=rnd(2,max);if(n>=5)a=rnd(2,Math.min(5,max));else if(n===4)a=rnd(2,Math.min(7,max));
+  let neg=level>=2 && rnd(0,1)===1 && n%2===1;
+  const result=neg?-a:a, rad=power(result,n);
+  return {html:rootHTML(n,rad),instruction:'Calcula la raíz exacta.',format:'Introduce un número entero.',answer:result,explain:`Buscamos un número que elevado a ${n} dé ${rad}.\n${result}${sup(n)} = ${rad}.\nPor tanto, la raíz es ${result}.`,hint:`Piensa en qué número elevado a ${n} produce el radicando.`};
+ }
+ if(mode==='exist'){
+  let a=rnd(2,level===4?7:5), rad,answer,reason;
+  const kind=rnd(0,2);
+  if(kind===0){rad=-power(a,n);answer=n%2?'si':'no';reason=n%2?`Como el índice ${n} es impar, la raíz entera existe y vale ${-a}.`:`El índice ${n} es par: ninguna potencia de exponente par es negativa.`;}
+  else if(kind===1){rad=power(a,n);answer='si';reason=`${a}${sup(n)} = ${rad}; la raíz entera existe.`;}
+  else{rad=power(a,n)+1;answer='no';reason=`${rad} no es una potencia ${n}-ésima exacta de un número entero.`;}
+  return {html:rootHTML(n,rad),instruction:'¿Tiene esta expresión una raíz entera exacta?',format:'Escribe «sí» o «no».',answer,explain:reason,hint:'Comprueba el signo, la paridad del índice y si el radicando es una potencia exacta.'};
+ }
+ if(mode==='reduce'){
+  const base=rnd(2,level===4?7:5),factor=rnd(2,level===4?5:3),exp=n*factor;
+  // Reducir raíz de una potencia literal: índices pares producen valor absoluto si factor es impar.
+  const varname='a';const answer=(n%2===0&&factor%2===1)?`|a|^${factor}`:`a^${factor}`;
+  const expl=(n%2===0&&factor%2===1)?`El índice es par. Para a real, la raíz principal requiere valor absoluto: |a|${sup(factor)}.`:`El exponente ${exp} es múltiplo del índice ${n}. Dividimos ${exp} entre ${n} y obtenemos ${factor}.`;
+  return {html:rootHTML(n,`a<sup>${exp}</sup>`),instruction:'Reduce a una potencia. Considera que a es un número entero cualquiera.',format:'Escribe a^k o |a|^k, según corresponda.',answer,explain:expl,hint:`Divide el exponente entre el índice. Si el índice es par, recuerda que la raíz principal es no negativa.`};
+ }
+ // Completar radicando
+ const a=rnd(2,Math.min(max,n>=5?5:9));const signed=level>=2&&n%2===1&&rnd(0,1)===1?-a:a;
+ return {html:`${rootHTML(n,'?')} = ${signed}`,instruction:'¿Qué número debe ir dentro de la raíz?',format:'Escribe el radicando (número entero).',answer:power(signed,n),explain:`Elevamos ${signed} a ${n}: ${powHTML(signed,n)} = ${power(signed,n)}.`,hint:`Si la raíz vale ${signed}, eleva ese número al índice ${n}.`};
+}
+function normalized(v){return v.trim().toLowerCase().replace(/\s+/g,'').replaceAll('−','-').replaceAll('sí','si').replaceAll('**','^').replaceAll('⁰','0').replaceAll('¹','1').replaceAll('²','2').replaceAll('³','3').replaceAll('⁴','4').replaceAll('⁵','5');}
+function isCorrect(value,answer){let v=normalized(value);if(typeof answer==='number')return /^[-+]?\d+$/.test(v)&&Number(v)===answer;if(answer==='si'||answer==='no')return v===answer;return v===answer||v===answer.replace('^','**');}
+function displayAnswer(a){return typeof a==='number'?String(a):a==='si'?'Sí':a==='no'?'No':a;}
+function render(){
+ if(step>=10){finished=true;$('count').textContent='Sesión terminada';$('instruction').textContent=`Has acertado ${hits} de 10 ejercicios a la primera (${hits*10}%).`;$('expression').textContent='¡Buen trabajo!';$('format').textContent='Inicia otra sesión para seguir practicando.';$('response').disabled=true;$('check').classList.add('hidden');$('next').classList.add('hidden');$('explanation').classList.add('hidden');$('feedback').className='feedback good';$('feedback').textContent='Puedes repetir el mismo nivel o cambiar la dificultad.';return;}
+ finished=false;attempted=false;q=create();$('count').textContent=`Ejercicio ${step+1} de 10`;$('score').textContent=`${hits} aciertos a la primera`;$('bar').style.width=`${step*10}%`;$('instruction').textContent=q.instruction;$('expression').innerHTML=q.html;$('format').textContent=q.format;$('response').value='';$('response').disabled=false;$('check').classList.remove('hidden');$('next').classList.add('hidden');$('feedback').textContent='';$('feedback').className='';$('explanation').textContent='';$('explanation').classList.add('hidden');$('response').focus();
+}
+function check(){if(finished||!q)return;const value=$('response').value.trim();if(!value){$('feedback').className='feedback warn';$('feedback').textContent='Escribe una respuesta antes de comprobar.';return;}
+ const correct=isCorrect(value,q.answer);if(correct){if(!attempted)hits++;$('score').textContent=`${hits} aciertos a la primera`;$('feedback').className='feedback good';$('feedback').textContent=attempted?'¡Correcto! Lo has conseguido después de revisar la respuesta.':'¡Correcto a la primera!';$('explanation').textContent=q.explain;$('explanation').classList.remove('hidden');$('response').disabled=true;$('check').classList.add('hidden');$('next').classList.remove('hidden');}
+ else{attempted=true;$('feedback').className='feedback bad';$('feedback').textContent='Aún no es correcto. Revisa el índice, el signo y la potencia correspondiente. Puedes intentarlo otra vez.';}
+}
+$('check').addEventListener('click',check);$('response').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(!$('next').classList.contains('hidden'))next();else check();}});
+function next(){step++;render();}$('next').addEventListener('click',next);
+$('restart').addEventListener('click',()=>{step=0;hits=0;render();});$('level').addEventListener('change',()=>{step=0;hits=0;render();});$('mode').addEventListener('change',()=>{step=0;hits=0;render();});
+$('help').addEventListener('click',()=>{if(!q||finished)return;$('explanation').textContent='Pista: '+q.hint;$('explanation').classList.remove('hidden');});render();
+</script></body></html>
