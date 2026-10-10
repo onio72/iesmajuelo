@@ -10,7 +10,7 @@ const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
 const pick=a=>a[rnd(0,a.length-1)];
 const sup=n=>String(n).replace(/-/g,'⁻').replace(/\d/g,d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]);
 const rootHTML=(n,v)=>`<span class="radical"><span class="idx">${n===2?'':n}</span><span class="root">√</span><span class="radicand">${v}</span></span>`;
-const powHTML=(a,b)=>`${a<0?'('+a+')':a}<sup>${b}</sup>`;
+const powHTML=(a,b)=>`${a<0?'('+a+')':a}${sup(b)}`;
 const power=(a,n)=>Math.pow(a,n);
 let q=null,step=0,hits=0,attempted=false,finished=false;
 function create(){
