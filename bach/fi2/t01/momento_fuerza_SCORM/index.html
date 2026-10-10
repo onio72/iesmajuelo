@@ -62,19 +62,27 @@ function labelAt(t,x,y,col='#27364b',size=19,priority=false){
  for(let [dx,dy] of shifts){let xx=x+dx,yy=y+dy,box=[xx-5,yy-size-5,xx+w,yy+7];if(box[0]<8||box[2]>672||box[1]<8||box[3]>535)continue;if(!labelBoxes.some(r=>box[0]<r[2]+5&&box[2]>r[0]-5&&box[1]<r[3]+5&&box[3]>r[1]-5)){pos=[xx,yy,box];break}}
  if(!pos){let xx=Math.max(8,Math.min(660-w,x)),yy=Math.max(size+8,Math.min(529,y));pos=[xx,yy,[xx-5,yy-size-5,xx+w,yy+7]]}
  labelBoxes.push(pos[2]);let el=element('text',{x:pos[0],y:pos[1],fill:col,'font-size':size,'font-weight':priority?800:650,'paint-order':'stroke',stroke:'#fafdff','stroke-width':5,'stroke-linejoin':'round'});el.textContent=t;
+ if(['r','F','M'].includes(t)){
+  const yy=pos[1]-size*.97, start=pos[0]+1, end=start+size*.72;
+  element('line',{x1:start,y1:yy,x2:end,y2:yy,stroke:col,'stroke-width':2.2,'stroke-linecap':'round'});
+  element('polygon',{points:`${end},${yy} ${end-5},${yy-3.2} ${end-5},${yy+3.2}`,fill:col});
+ }
 }
 function arrow(a,b,color,width=6,label='',opt={}){
- let p=project(a),q=project(b);let dx=q[0]-p[0],dy=q[1]-p[1],length=Math.hypot(dx,dy)||1;
- let nx=dx/length,ny=dy/length,shift=opt.shift||0;
- // Una fuerza colineal se desplaza solo visualmente para poder distinguir las dos flechas.
- let sx=-ny*shift,sy=nx*shift;p=[p[0]+sx,p[1]+sy];q=[q[0]+sx,q[1]+sy];
- if(shift){let base=project(a);element('line',{x1:base[0],y1:base[1],x2:p[0],y2:p[1],stroke:color,'stroke-width':1.5,'stroke-dasharray':'3 3',opacity:.65})}
- let head=Math.min(opt.axis?12:18,length*.33),half=opt.axis?5:8;
- // El asta termina en la base de la punta, sin atravesarla.
- let bx=q[0]-nx*head,by=q[1]-ny*head;
- element('line',{x1:p[0],y1:p[1],x2:bx,y2:by,stroke:color,'stroke-width':width,'stroke-linecap':'round',opacity:opt.opacity??1});
- element('polygon',{points:`${q[0]},${q[1]} ${bx-ny*half},${by+nx*half} ${bx+ny*half},${by-nx*half}`,fill:color,opacity:opt.opacity??1});
- if(label){let fraction=opt.axis?.82:.60;let lx=p[0]+dx*fraction-ny*(opt.axis?12:22),ly=p[1]+dy*fraction+nx*(opt.axis?12:22);labelAt(label,lx,ly,color,opt.axis?15:21,!opt.axis)}
+ let p=project(a),q=project(b),dx=q[0]-p[0],dy=q[1]-p[1],length=Math.hypot(dx,dy);
+ if(length<0.01)return;
+ const nx=dx/length,ny=dy/length,shift=opt.shift||0;
+ if(shift){
+  const sx=-ny*shift,sy=nx*shift,base=[...p];
+  p=[p[0]+sx,p[1]+sy];q=[q[0]+sx,q[1]+sy];
+  element('line',{x1:base[0],y1:base[1],x2:p[0],y2:p[1],stroke:color,'stroke-width':1.5,'stroke-dasharray':'3 3',opacity:.65});
+ }
+ const head=Math.min(opt.axis?15:24,length*.40),half=opt.axis?6:11;
+ const bx=q[0]-nx*head,by=q[1]-ny*head;
+ // Extremo del asta y punta triangular: sin que el asta tape el triángulo.
+ element('line',{x1:p[0],y1:p[1],x2:bx,y2:by,stroke:color,'stroke-width':width,'stroke-linecap':'butt',opacity:opt.opacity??1});
+ element('polygon',{points:`${q[0]},${q[1]} ${bx-ny*half},${by+nx*half} ${bx+ny*half},${by-nx*half}`,fill:color,stroke:color,'stroke-width':opt.axis?.5:1,'stroke-linejoin':'round',opacity:opt.opacity??1});
+ if(label){let fraction=opt.axis?.82:.60,lx=p[0]+(q[0]-p[0])*fraction-ny*(opt.axis?12:25),ly=p[1]+(q[1]-p[1])*fraction+nx*(opt.axis?12:25);labelAt(label,lx,ly,color,opt.axis?15:21,!opt.axis)}
 }
 function draw(){
  svg.replaceChildren();labelBoxes=[];element('rect',{x:0,y:0,width:680,height:545,rx:12,fill:'#fafdff'});
