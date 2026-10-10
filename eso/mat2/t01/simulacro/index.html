@@ -1,10 +1,10 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Problemas y simulacro · Matemáticas 2.º ESO</title><style>
 :root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#173443;background:#f3f7f8}*{box-sizing:border-box}body{margin:0}main{max-width:940px;margin:auto;padding:20px 15px 55px}header{display:flex;justify-content:space-between;align-items:start;gap:12px;flex-wrap:wrap}h1{margin:4px 0;font-size:clamp(1.55rem,4vw,2.3rem)}a{color:#136c73}.sub{color:#5a6e78}.panel{border:1px solid #d9e5e8;border-radius:15px;background:white;margin-top:17px;padding:20px;box-shadow:0 3px 16px #143b4b09}h2{font-size:1.15rem;margin:0 0 13px}.config{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}label{display:block;font-size:.9rem;font-weight:650;margin-bottom:6px}input,select{width:100%;max-width:100%;border:1px solid #acbfc8;border-radius:9px;padding:10px 11px;min-height:46px;font:inherit;background:white;color:#173443}input:focus,select:focus,button:focus-visible{outline:3px solid #acdcd8;outline-offset:1px}button{cursor:pointer;font:inherit;font-weight:700;min-height:44px;border:0;border-radius:9px;background:#13747a;color:white;padding:10px 16px}button.secondary{background:#e5f1f2;color:#145d63}button:disabled{opacity:.5;cursor:not-allowed}.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-top:15px}.head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.bar{height:10px;background:#e1eaed;border-radius:15px;overflow:hidden;margin:15px 0}.fill{background:#148680;height:100%;width:0;transition:width .2s}.tag{display:inline-block;border:1px solid #ccdee0;background:#f1f8f7;color:#315c61;border-radius:20px;padding:4px 10px;font-size:.8rem;font-weight:700}.problem{font-size:clamp(1.1rem,3vw,1.4rem);line-height:1.65;margin:19px 0;white-space:pre-line}.math{font-weight:650;font-size:clamp(1.3rem,3vw,1.8rem);letter-spacing:.015em}.field{max-width:460px}.hintline{font-size:.86rem;color:#647780;margin-top:9px}.result{margin-top:15px;border-radius:11px;padding:15px;line-height:1.55;white-space:pre-line}.result.good{background:#e1f7e9;color:#145d36}.result.bad{background:#ffebea;color:#852c26}.result.warn{background:#fff2d9;color:#805500}.solution{background:#eaf4f6;border-radius:11px;padding:15px;margin-top:11px;white-space:pre-line;line-height:1.7}.hidden{display:none!important}.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}.metric{padding:15px;border-radius:11px;background:#eaf3f4;text-align:center}.metric strong{display:block;font-size:1.9rem}.review{display:grid;gap:10px}.review article{padding:13px;border:1px solid #dae6e8;border-radius:11px}.review article.ok{border-left:5px solid #248859}.review article.ko{border-left:5px solid #c54b3d}.review p{margin:5px 0}.muted{color:#63767e;font-size:.89rem}footer{color:#657982;font-size:.85rem;margin-top:20px}@media(max-width:670px){.config{grid-template-columns:1fr}.summary-grid{grid-template-columns:1fr 1fr}.panel{padding:16px}.toolbar button{flex:1}} </style></head><body><main>
 <header><div><div class="sub">MATEMÁTICAS · 2.º ESO · TEMA 01</div><h1>Problemas y simulacro de examen</h1><div class="sub">Números enteros, operaciones combinadas, potencias y raíces</div></div><a href="https://onio72.github.io/iesmajuelo/eso/">← Índice de ESO</a></header>
-<section class="panel"><h2>Configura la sesión</h2><div class="config"><div><label for="mode">Modalidad</label><select id="mode"><option value="exam">Simulacro de examen</option><option value="practice">Entrenamiento con corrección</option></select></div><div><label for="level">Dificultad</label><select id="level"><option value="1">1 · Refuerzo</option><option value="2" selected>2 · Nivel de examen</option><option value="3">3 · Desafío</option></select></div><div><label for="topic">Contenidos</label><select id="topic"><option value="all">Todo el tema</option><option value="concept">Números enteros</option><option value="op">Operaciones combinadas</option><option value="power">Potencias</option><option value="root">Raíces</option><option value="problem">Problemas contextualizados</option></select></div></div><div class="toolbar"><button id="start" type="button">Nueva sesión</button><button id="hint" class="secondary" type="button">Mostrar pista</button></div><div class="hintline">Simulacro: 10 ejercicios, un punto por ejercicio y corrección completa al terminar. Entrenamiento: corrección después de cada respuesta.</div></section>
+<section class="panel"><h2>Configura la sesión</h2><div class="config"><div><label for="mode">Modalidad</label><select id="mode"><option value="exam">Simulacro de examen</option><option value="practice">Entrenamiento con corrección</option></select></div><div><label for="level">Dificultad</label><select id="level"><option value="1">1 · Refuerzo</option><option value="2" selected>2 · Nivel de examen</option><option value="3">3 · Desafío</option></select></div><div><label for="topic">Contenidos</label><select id="topic"><option value="all">Todo el tema</option><option value="concept">Números enteros</option><option value="op">Operaciones combinadas</option><option value="power">Potencias</option><option value="root">Raíces</option><option value="problem">Problemas del boletín (solo)</option></select></div></div><div class="toolbar"><button id="start" type="button">Nueva sesión</button><button id="hint" class="secondary" type="button">Mostrar pista</button></div><div class="hintline">Simulacro: 10 ejercicios, un punto por ejercicio y corrección completa al terminar. Entrenamiento: corrección después de cada respuesta.</div></section>
 <section id="exercise" class="panel"><div class="head"><strong id="counter">Ejercicio 1 de 10</strong><span id="done" class="sub">0 respuestas registradas</span></div><div class="bar"><div class="fill" id="fill"></div></div><span class="tag" id="category">Operaciones</span><div class="problem" id="statement"></div><div class="field"><label for="answer">Respuesta</label><input id="answer" type="text" inputmode="text" autocomplete="off" placeholder="Escribe tu respuesta"><div class="hintline" id="format"></div></div><div id="feedback" aria-live="polite"></div><div id="solution" class="solution hidden"></div><div class="toolbar"><button id="confirm" type="button">Comprobar y continuar</button><button id="skip" type="button" class="secondary">Dejar sin responder</button></div></section>
 <section id="summary" class="panel hidden"><h2>Resultados de la sesión</h2><div class="summary-grid"><div class="metric"><strong id="grade">0/10</strong><span>Nota</span></div><div class="metric"><strong id="correct">0</strong><span>Aciertos</span></div><div class="metric"><strong id="errors">0</strong><span>Errores / sin responder</span></div></div><h2>Corrección y explicación</h2><div class="review" id="review"></div><div class="toolbar"><button id="redo" type="button">Practicar de nuevo</button><button id="retry" type="button" class="secondary">Repasar tipos fallados</button></div></section>
-<footer>Los ejercicios son generados para practicar los contenidos observados en el cuaderno; no reproducen literalmente los problemas 20, 21, 23, 24, 25 y 26 de la página 41 del libro, cuyos enunciados no se han facilitado. Para raíces, se especifica cuándo se pide un resultado entero.</footer>
+<footer>Los problemas se basan en el boletín de dos páginas aportado: se incluyen modelos de los ejercicios 20, 21, 23, 24, 25 y 26 y variantes numéricas. Los demás apartados repasan el tema completo.</footer>
 </main><script>
 'use strict';
 const $=id=>document.getElementById(id),rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a,pick=a=>a[rnd(0,a.length-1)];
@@ -17,9 +17,102 @@ function question(type,level){let a,b,c,d,ans,text,solution,hint,format='Escribe
  else if(type==='op'){const kind=level===1?rnd(0,1):rnd(0,3);a=rnd(-m,m);b=rnd(-m,m);c=rnd(2,Math.min(9,m));d=rnd(-m,m);if(kind===0){ans=a-b+c;text=`${parent(a)} − ${parent(b)} + ${parent(c)}`;solution=`Restar un número equivale a sumar su opuesto.\n${a} − (${b}) + (${c}) = ${ans}.`;hint='Resuelve de izquierda a derecha las sumas y restas.';}else if(kind===1){ans=(a+b)*c;text=`[${a} + ${parent(b)}] · ${c}`;solution=`Primero: ${a} + (${b}) = ${a+b}.\nDespués: ${a+b} · ${c} = ${ans}.`;hint='Primero el corchete y después la multiplicación.';}else if(kind===2){ans=a+(b-c)*d;text=`${parent(a)} + [${parent(b)} − ${c}] · ${parent(d)}`;solution=`Dentro del corchete: ${b} − ${c} = ${b-c}.\nMultiplicación: (${b-c}) · (${d}) = ${(b-c)*d}.\nSuma final: ${ans}.`;hint='Corchetes, multiplicaciones y finalmente sumas.';}else{const quotient=rnd(-7,7)||3,den=rnd(2,7);a=quotient*den;c=rnd(-m,m);d=rnd(2,6);ans=quotient-c*d;text=`[${a} : ${den}] − ${parent(c)} · ${d}`;solution=`Primero división y multiplicación: ${a} : ${den} = ${quotient}; ${c} · ${d} = ${c*d}.\nDespués: ${quotient} − (${c*d}) = ${ans}.`;hint='División y multiplicación antes que la resta.';}}
  else if(type==='power'){const kind=rnd(0,3);a=rnd(2,level===3?7:5);b=rnd(2,4);if(kind===0){c=rnd(2,level===3?6:4);const neg=rnd(0,1)===1;const base=neg?-a:a;ans=base**c;text=`Calcula: ${parent(base)}${supers(c)}`;solution=`Se multiplica la base ${c} veces.\n${parent(base)}${supers(c)} = ${ans}.`;hint='Con base negativa: exponente par da positivo; impar da negativo.';}else if(kind===1){c=rnd(1,4);ans=a**(b+c);text=`Simplifica y calcula: ${a}${supers(b)} · ${a}${supers(c)}`;solution=`Misma base: se suman exponentes.\n${a}${supers(b)} · ${a}${supers(c)} = ${a}${supers(b+c)} = ${ans}.`;hint='Multiplicar potencias de igual base implica sumar exponentes.';}else if(kind===2){c=rnd(1,3);ans=a**(b);text=`Calcula: (${a*c})${supers(b)} : ${c}${supers(b)}`;solution=`Mismo exponente: se dividen las bases.\n(${a*c} : ${c})${supers(b)} = ${a}${supers(b)} = ${ans}.`;hint='Divide las bases cuando los exponentes sean iguales.';}else{c=rnd(2,3);ans=a**(b*c);text=`Calcula: (${a}${supers(b)})${supers(c)}`;solution=`Potencia de una potencia: multiplicamos exponentes.\n(${a}${supers(b)})${supers(c)} = ${a}${supers(b*c)} = ${ans}.`;hint='Multiplica los dos exponentes.';}}
  else if(type==='root'){const n=pick(level===1?[2,3]:[2,3,4,5]);a=rnd(2,n>=4?4:level===3?8:6);const neg=n%2===1&&rnd(0,1)===1;const x=neg?-a:a,rad=x**n;const kind=rnd(0,2);if(kind===0){ans=x;text=`Calcula la raíz de índice ${n} del número ${rad}.`;solution=`Buscamos un número que elevado a ${n} sea ${rad}.\n${parent(x)}${supers(n)} = ${rad}. Por tanto, el resultado es ${x}.`;hint='¿Qué número, elevado al índice indicado, produce el radicando?';}else if(kind===1){ans=rad;text=`Completa: la raíz de índice ${n} de ____ es ${x}. ¿Qué número falta bajo el radical?`;solution=`Hay que elevar ${x} a ${n}: ${parent(x)}${supers(n)} = ${rad}.`;hint='Eleva el resultado al índice de la raíz.';}else{const candidate=a**n+1;ans='no';format='Escribe sí o no.';text=`¿La raíz de índice ${n} de ${candidate} tiene resultado entero?`;solution=`No. ${candidate} no es una potencia ${n}-ésima exacta de un entero. Esto NO significa necesariamente que la raíz no exista como número real.`;hint='Comprueba si el radicando es una potencia exacta.';}}
- else {const kind=rnd(0,5);if(kind===0){a=rnd(-9,4);b=rnd(4,12);c=rnd(3,8);ans=a+b-c;text=`A las 8:00, la temperatura es de ${a} °C. Sube ${b} °C durante la mañana y baja ${c} °C por la noche. ¿Cuál es la temperatura final?`;solution=`Temperatura final = ${a} + ${b} − ${c} = ${ans} °C.`;hint='Subir suma; bajar resta.';format='Escribe solo el número de grados.';}else if(kind===1){a=rnd(-3,4);b=rnd(3,9);ans=a-b;text=`Un ascensor está en la planta ${a}. Desciende ${b} plantas. ¿En qué planta termina?`;solution=`Planta final = ${a} − ${b} = ${ans}.`;hint='Descender plantas equivale a restar.';}else if(kind===2){a=rnd(-12,3);b=rnd(2,6);c=rnd(2,5);ans=a+b*c;text=`Un buceador está a ${Math.abs(a)} m bajo la superficie del mar${a>0?' (dato de referencia positivo)':''}. Realiza ${c} ascensos de ${b} m cada uno. ¿A qué altura respecto de la superficie termina?`; if(a>0){a=-a;ans=a+b*c;text=`Un buceador está a ${Math.abs(a)} m bajo la superficie del mar. Realiza ${c} ascensos de ${b} m cada uno. ¿A qué altura respecto de la superficie termina?`;}solution=`Partimos de ${a} m. Los ascensos suman ${c} · ${b} = ${c*b} m.\n${a} + ${c*b} = ${ans} m.`;hint='Bajo el nivel del mar es negativo; ascender suma.';}else if(kind===3){a=rnd(3,12);b=rnd(2,8);ans=a*b;text=`En una biblioteca hay ${a} estanterías con ${b} libros de matemáticas en cada una. ¿Cuántos libros hay en total?`;solution=`${a} · ${b} = ${ans} libros.`;hint='Es un producto de dos cantidades positivas.';}else if(kind===4){a=rnd(2,7);b=rnd(2,5);ans=a**b;text=`Una figura tiene ${a} opciones independientes en cada una de sus ${b} etapas. ¿Cuántas combinaciones diferentes pueden formarse?`;solution=`Hay ${a} opciones en cada etapa: ${a}${supers(b)} = ${ans} combinaciones.`;hint='Multiplica el mismo número por sí mismo tantas veces como etapas.';}else{a=rnd(3,9);b=a*a;ans=a;text=`Un patio cuadrado tiene una superficie de ${b} m². ¿Cuántos metros mide cada lado?`;solution=`Lado = raíz cuadrada de ${b} = ${a} m.`;hint='En un cuadrado, área = lado · lado.';}}
+
+ else {
+ const kind=rnd(0,11);
+ format='Escribe el resultado numérico, sin unidades.';
+ let source='';
+ if(kind===0){ // Boletín 20
+  const weekly=level===1?5:rnd(5,15),spend=level===1?3:rnd(1,weekly-1),weeks=level===1?5:rnd(4,9),gift=level===1?25:rnd(2,10)*5;
+  ans=(weekly-spend)*weeks+gift;
+  text=`Cada semana recibes ${weekly} € de paga y gastas ${spend} €. ¿Cuánto dinero acumulas en ${weeks} semanas si además recibes ${gift} € como regalo de cumpleaños una sola vez?`;
+  solution=`Ahorro semanal: ${weekly} − ${spend} = ${weekly-spend} €. En ${weeks} semanas: ${weekly-spend} · ${weeks} = ${(weekly-spend)*weeks} €. Regalo: +${gift} €. Total: ${ans} €.`;
+  hint='Calcula primero cuánto ahorras cada semana. El regalo se suma solo una vez.';
+  source='Boletín: modelo del problema 20';
+ } else if(kind===1){ // Boletín 21, operación inversa
+  const movements=level===1?[5,-3,5,-8,10,5,-6]:Array.from({length:level===2?6:8},()=>pick([-1,1])*rnd(2,8));
+  const startFloor=level===1?-1:rnd(-4,5),delta=movements.reduce((a,b)=>a+b,0),finish=startFloor+delta;
+  ans=startFloor;
+  text=`Un ascensor realiza, por este orden, los siguientes movimientos: ${movements.map(n=>n>0?'sube '+n:'baja '+(-n)).join(', ')} plantas. Al finalizar está en la planta ${finish}. ¿En qué planta empezó?`;
+  solution=`Variación de plantas: ${movements.map(n=>n<0?'('+n+')':'+'+n).join(' ')} = ${delta}. Planta inicial = planta final − variación = ${finish} − (${delta}) = ${ans}.`;
+  hint='Es un problema inverso: resta a la planta final el desplazamiento total.';
+  source='Boletín: modelo del problema 21';
+ } else if(kind===2){ // Boletín 23
+  const decrease=level===1?9:rnd(3,9),segment=level===1?300:pick([100,200,300,400]),ground=level===1?27:rnd(14,32),blocks=level===1?12:rnd(5,14),upper=ground-blocks*decrease;
+  ans=blocks*segment;
+  text=`La temperatura desciende ${decrease} °C por cada ${segment} m que asciendes. En tierra hace ${ground} °C y el avión registra ${upper} °C. ¿A qué altura sobre tierra está?`;
+  solution=`Diferencia térmica: ${ground} − (${upper}) = ${ground-upper} °C. Tramos: ${ground-upper} : ${decrease} = ${blocks}. Altura: ${blocks} · ${segment} = ${ans} m.`;
+  hint='Primero calcula cuántos grados ha descendido la temperatura y después el número de tramos de altura.';
+  source='Boletín: modelo del problema 23';
+ } else if(kind===3){ // Boletín 24
+  const sheets=level===1?1500:rnd(8,20)*100,days=5,cost=level===1?360:rnd(2,8)*60;
+  ans=sheets*days;
+  text=`Un instituto utiliza ${sheets} folios al día. ¿Cuántos folios consume en una semana de ${days} días lectivos? (El coste semanal de los folios es ${cost} €, pero aquí solo se pregunta por su cantidad).`;
+  solution=`Folios semanales = ${sheets} · ${days} = ${ans} folios. El coste no interviene en este cálculo.`;
+  hint='No uses datos que no sean necesarios para responder a la pregunta.';
+  source='Boletín: primera pregunta del problema 24';
+ } else if(kind===4){ // Boletín 24 segunda pregunta
+  const daily=level===1?1500:rnd(8,20)*100,days=5,price=level===1?360:rnd(3,9)*60;
+  ans=price;
+  text=`Un instituto gasta ${daily} folios al día y ${price} € por semana. Si una semana tiene ${days} días lectivos, ¿cuánto dinero gasta en folios durante esa semana?`;
+  solution=`El enunciado indica directamente el gasto semanal: ${price} €. Los folios diarios son un dato no necesario.`;
+  hint='Observa si el dato que te piden ya aparece en el enunciado.';
+  source='Boletín: segunda pregunta del problema 24';
+ } else if(kind===5){ // Boletín 25
+  const residents=13500,perOak=90,perPine=120,pines=4,developments=level===1?120:pick([12,20,40,120]);
+  const oaks=residents/perOak,pineTrees=(residents/perPine)*pines;
+  ans=(oaks+pineTrees)*developments;
+  text=`En una urbanización de ${residents} personas hay un roble por cada ${perOak} habitantes y ${pines} pinos por cada ${perPine} habitantes. ¿Cuántos árboles hay en ${developments} urbanizaciones idénticas?`;
+  solution=`Robles: ${residents} : ${perOak} = ${oaks}. Pinos: (${residents} : ${perPine}) · ${pines} = ${pineTrees}. Por urbanización: ${oaks+pineTrees}. Total: ${oaks+pineTrees} · ${developments} = ${ans} árboles.`;
+  hint='Calcula por separado robles y pinos; luego suma y multiplica por el número de urbanizaciones.';
+  source='Boletín: problema 25';
+ } else if(kind===6){ // Boletín 26
+  const extra=level===1?2:rnd(2,6),difference=level===1?64:extra*rnd(12,40),hours=difference/extra,lowRate=level===1?12:rnd(9,17);
+  ans=hours;
+  text=`Rosa gana ${extra} € por hora más que Lucía. Ambas han trabajado el mismo número de horas y Rosa ha cobrado ${difference} € más. ¿Cuántas horas han trabajado?`;
+  solution=`La diferencia de sueldo por cada hora es ${extra} €. Horas = diferencia total : diferencia por hora = ${difference} : ${extra} = ${ans} h.`;
+  hint='La diferencia total se obtiene multiplicando la diferencia por hora por el número de horas.';
+  source='Boletín: primera pregunta del problema 26';
+ } else if(kind===7){ // Boletín 26 segunda pregunta
+  const extra=2,difference=64,hours=difference/extra,baseRate=level===1?12:rnd(9,17);
+  ans=(baseRate+extra)*hours;
+  text=`Rosa cobra ${extra} € por hora más que Lucía, que cobra ${baseRate} €/h. Ambas trabajan las mismas horas y Rosa gana ${difference} € más en total. ¿Cuánto ha cobrado Rosa?`;
+  solution=`Horas: ${difference} : ${extra} = ${hours}. Tarifa de Rosa: ${baseRate} + ${extra} = ${baseRate+extra} €/h. Sueldo de Rosa: ${hours} · ${baseRate+extra} = ${ans} €.`;
+  hint='Primero halla las horas; después calcula la tarifa de Rosa.';
+  source='Boletín: variante de la segunda pregunta del problema 26';
+ } else if(kind===8){ // temperaturas sucesivas 14
+  const startTemp=rnd(-8,4),increase=rnd(5,12),rise2=rnd(2,6),fall=rnd(3,9);
+  ans=startTemp+increase+rise2-fall;
+  text=`Por la mañana hay ${startTemp} °C. Al mediodía la temperatura sube ${increase} °C, por la tarde aumenta ${rise2} °C y durante la noche desciende ${fall} °C. ¿Qué temperatura marca el termómetro al final?`;
+  solution=`${startTemp} + ${increase} + ${rise2} − ${fall} = ${ans} °C.`;
+  hint='Cada subida suma y cada descenso resta.';
+  source='Boletín: modelo de los problemas 12 y 14';
+ } else if(kind===9){ // depósito 15
+  const initial=rnd(5,12)*100,inflow=rnd(15,30),outflow=rnd(20,40),minutes=rnd(10,20);
+  ans=initial+(inflow-outflow)*minutes;
+  text=`Un depósito contiene ${initial} litros. Entran ${inflow} litros por minuto y salen ${outflow} litros por minuto. ¿Cuántos litros habrá después de ${minutes} minutos?`;
+  solution=`Cambio cada minuto: ${inflow} − ${outflow} = ${inflow-outflow} L. Cambio total: ${inflow-outflow} · ${minutes} = ${(inflow-outflow)*minutes} L. Cantidad final: ${initial} + (${(inflow-outflow)*minutes}) = ${ans} L.`;
+  hint='Hay entradas y salidas simultáneas: primero calcula la variación por minuto.';
+  source='Boletín: modelo del problema 15';
+ } else if(kind===10){ // edificio 18
+  const basement=level===1?4:rnd(2,5),floors=level===1?11:rnd(7,14),ground=rnd(3,5),height=ground+(floors-1)*(ground+1);
+  ans=basement+(floors-1); 
+  text=`Un edificio tiene ${basement} sótanos y ${floors} plantas sobre rasante. ¿Cuántos niveles hay en total, contando sótanos y plantas?`;
+  ans=basement+floors;solution=`${basement} + ${floors} = ${ans} niveles.`;hint='Cuenta por separado las plantas superiores y los sótanos y suma ambas cantidades.';
+  source='Boletín: variante del problema 18';
+ } else { // cambios de temperatura/submarino
+  const below=rnd(100,900),ascent=rnd(50,250),descent=rnd(50,250);
+  ans=-below+ascent-descent;
+  text=`Un submarino está a ${below} m bajo el nivel del mar. Asciende ${ascent} m y luego desciende ${descent} m. ¿A qué altura respecto al nivel del mar se encuentra?`;
+  solution=`Altura inicial: −${below} m. Después: −${below} + ${ascent} − ${descent} = ${ans} m.`;
+  hint='Bajo el nivel del mar es negativo; ascender suma y descender resta.';
+  source='Boletín: modelo de los problemas 7 y 32';
+ }
+ if(source)text='['+source+']\n'+text;
+ }
+
  return {type,category:labels[type],text,ans,solution,hint,format};}
-function makeSession(types){const level=Number($('level').value),topic=$('topic').value;if(types?.length){return Array.from({length:10},(_,i)=>question(types[i%types.length],level));}const schedule=topic==='all'?['concept','op','op','power','root','problem','op','power','root','problem']:Array(10).fill(topic);for(let i=schedule.length-1;i>0;i--){const j=rnd(0,i);[schedule[i],schedule[j]]=[schedule[j],schedule[i]]}return schedule.map(t=>question(t,level));}
+function makeSession(types){const level=Number($('level').value),topic=$('topic').value;if(types?.length){return Array.from({length:10},(_,i)=>question(types[i%types.length],level));}const schedule=topic==='all'?['concept','op','power','root','problem','problem','problem','problem','op','root']:Array(10).fill(topic);for(let i=schedule.length-1;i>0;i--){const j=rnd(0,i);[schedule[i],schedule[j]]=[schedule[j],schedule[i]]}return schedule.map(t=>question(t,level));}
 function normalize(v){return v.trim().toLowerCase().replaceAll('−','-').replaceAll('sí','si').replaceAll(' ','').replace(',','.');}
 function isCorrect(v,answer){const n=normalize(v);if(typeof answer==='number')return /^[-+]?\d+(\.0+)?$/.test(n)&&Number(n)===answer;return n===answer;}
 function showQuestion(){if(index>=10){showSummary();return;}const q=qs[index];$('exercise').classList.remove('hidden');$('summary').classList.add('hidden');$('counter').textContent=`Ejercicio ${index+1} de 10`;$('done').textContent=`${answers.length} respuestas registradas`;$('fill').style.width=`${index*10}%`;$('category').textContent=q.category;$('statement').textContent=q.text;$('answer').value='';$('answer').disabled=false;$('format').textContent=q.format;$('feedback').className='';$('feedback').textContent='';$('solution').classList.add('hidden');$('solution').textContent='';$('confirm').disabled=false;$('skip').disabled=false;$('confirm').textContent=mode==='exam'?'Guardar y continuar':'Comprobar';$('answer').focus();}
