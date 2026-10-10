@@ -52,7 +52,7 @@ function question(type,level){let a,b,c,d,ans,text,solution,hint,format='Escribe
   hint='No uses datos que no sean necesarios para responder a la pregunta.';
   source='Boletín: primera pregunta del problema 24';
  } else if(kind===4){ // Boletín 24 segunda pregunta: febrero
-  const daily=level===1?1500:rnd(8,20)*100,days=level===1?20:pick([18,20,22]),pack=500,packPrice=level===1?6:pick([4,5,6,8,10]);
+  const daily=level===1?1500:500*rnd(2,4),days=20,pack=500,packPrice=level===1?6:pick([4,5,6,8,10]);
   const total=daily*days;ans=total/pack*packPrice;
   text=`Un instituto consume ${daily} folios cada día lectivo. En febrero hubo ${days} días de clase. Si cada paquete contiene ${pack} folios y cuesta ${packPrice} €, ¿cuánto dinero se gastó en folios durante febrero?`;
   solution=`Folios de febrero: ${daily} · ${days} = ${total}. Paquetes: ${total} : ${pack} = ${total/pack}. Coste: ${total/pack} · ${packPrice} = ${ans} €.`;
