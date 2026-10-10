@@ -521,8 +521,10 @@
         return stack;
     }
     function readSectionFromUrl() {
-        const path=decodeURIComponent(location.pathname).replace(/\\/+$/,'');
-        const relative=path.replace(/^\\/iesmajuelo(?:\\/|$)/,'').replace(/^\\/|\\/$/g,'');
+        const path=decodeURIComponent(location.pathname);
+        const parts=path.split('/').filter(Boolean);
+        if(parts[0]!=='iesmajuelo') return 'root';
+        const relative=parts.slice(1).join('/');
         return Object.keys(SECTION_PATHS).find(id=>SECTION_PATHS[id]===relative) || 'root';
     }
     function setSection(id, mode='push') {
