@@ -29,10 +29,10 @@ function create(){
  if(mode==='exist'){
   let a=rnd(2,level===4?7:5), rad,answer,reason;
   const kind=rnd(0,2);
-  if(kind===0){rad=-power(a,n);answer=n%2?'si':'no';reason=n%2?`Como el índice ${n} es impar, la raíz entera existe y vale ${-a}.`:`El índice ${n} es par: ninguna potencia de exponente par es negativa.`;}
+  if(kind===0){rad=-power(a,n);answer=n%2?'si':'no';reason=n%2?`El índice ${n} es impar y la raíz es el número entero ${-a}.`:`El índice ${n} es par y el radicando es negativo: no existe raíz real.`;}
   else if(kind===1){rad=power(a,n);answer='si';reason=`${a}${sup(n)} = ${rad}; la raíz entera existe.`;}
-  else{rad=power(a,n)+1;answer='no';reason=`${rad} no es una potencia ${n}-ésima exacta de un número entero.`;}
-  return {html:rootHTML(n,rad),instruction:'¿Tiene esta expresión una raíz entera exacta?',format:'Escribe «sí» o «no».',answer,explain:reason,hint:'Comprueba el signo, la paridad del índice y si el radicando es una potencia exacta.'};
+  else{rad=power(a,n)+1;answer='no';reason=`La raíz existe como número real, pero su resultado no es un número entero: ${rad} no es una potencia de exponente ${n} de un entero.`;}
+  return {html:rootHTML(n,rad),instruction:'¿El resultado de esta raíz es un número entero?',format:'Responde «sí» solo si la raíz es un número entero. Una raíz puede existir sin ser entera.',answer,explain:reason,hint:'Comprueba si el radicando tiene raíz real y si el resultado es entero.'};
  }
  if(mode==='reduce'){
   const factor=rnd(2,level===4?5:3),exp=n*factor;
