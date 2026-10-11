@@ -34,7 +34,8 @@
         
         .text-init { color: #2563eb; } /* Blue 600 - Inicial */
         .text-mod { color: #dc2626; }  /* Red 600 - Modificado */
-    </style>
+    .calc-float{position:fixed;z-index:90;right:18px;top:95px;width:min(320px,calc(100vw - 22px));background:#fff;border:1px solid #a8c0d0;border-radius:15px;box-shadow:0 12px 45px #10283d44;display:none;overflow:hidden}.calc-float.open{display:block}.calc-head{display:flex;justify-content:space-between;align-items:center;background:#173753;color:#fff;padding:10px 13px;touch-action:none;cursor:move}.calc-head button{font-size:24px;background:none;border:0;color:white;cursor:pointer}.calc-body{padding:13px}.calc-display{width:100%;text-align:right;padding:12px;font:500 22px ui-monospace,monospace;border:1px solid #abbcca;border-radius:8px;margin-bottom:11px}.calc-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.calc-grid button{border:1px solid #d2dfeb;border-radius:8px;padding:12px 4px;font-size:16px;font-weight:650;background:#edf4fa;color:#173753;cursor:pointer}.calc-grid button.operator{background:#d6e6f6}.calc-grid button.equals{background:#1d588d;color:white}.calc-help{font-size:12px;color:#536778;line-height:1.4;margin:10px 1px 0}@media(max-width:500px){.calc-float{right:10px;top:65px}}
+</style>
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col items-center p-4 text-slate-800">
 
@@ -453,5 +454,26 @@
             game = new Game();
         };
     </script>
+<button type="button" id="calc-open" style="position:fixed;right:18px;bottom:20px;z-index:80;background:#1d588d;color:#fff;border:0;border-radius:14px;padding:13px 18px;font-weight:700;box-shadow:0 5px 18px #10283d55;cursor:pointer">▦ Calculadora</button>
+<aside id="calculator" class="calc-float" aria-label="Calculadora científica auxiliar"><div class="calc-head" id="calc-drag"><strong>Calculadora científica</strong><button id="calc-close" type="button" aria-label="Cerrar calculadora">×</button></div><div class="calc-body"><input class="calc-display" id="calc-display" type="text" autocomplete="off" aria-label="Expresión matemática" placeholder="0"><div id="calc-keys" class="calc-grid"></div><p class="calc-help">EXP introduce potencias de diez (por ejemplo, 2.5 EXP − 8). 1/x calcula el inverso. Puedes arrastrar esta ventana.</p></div></aside>
+<script>
+// Calculadora flotante independiente de la evaluación SCORM.
+(function(){
+const el=id=>document.getElementById(id), display=el('calc-display'), box=el('calculator');
+const keys=['7','8','9','÷','4','5','6','×','1','2','3','−','0','.','EXP','+','(',')','√','^','1/x','C','⌫','='];
+el('calc-keys').innerHTML=keys.map(k=>`<button type="button" data-key="${k}" class="${k==='='?'equals':'+−×÷^EXP1/x'.includes(k)?'operator':''}">${k}</button>`).join('');
+function evaluate(){
+ let expr=display.value.replace(/,/g,'.').replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-').replace(/\s+/g,'').replace(/\^/g,'**').replace(/√\(/g,'Math.sqrt(').replace(/√(\d+(?:\.\d+)?)/g,'Math.sqrt($1)');
+ if(!/^[0-9+*/().eE\-Mathsqrt]+$/.test(expr)||/Math(?!\.sqrt\()/i.test(expr)||/\*{3,}/.test(expr))throw new Error('Expresión no válida');
+ const n=Function('"use strict";return ('+expr+')')();if(!Number.isFinite(n))throw new Error('Resultado no válido');return n;
+}
+function format(n){return n!==0&&(Math.abs(n)<1e-4||Math.abs(n)>=1e7)?Number(n.toPrecision(10)).toExponential(9).replace(/\.?0+e/,'e'):String(Number(n.toPrecision(12)));}
+el('calc-keys').addEventListener('click',event=>{const key=event.target.closest('button')?.dataset.key;if(!key)return;try{
+ if(key==='C')display.value='';else if(key==='⌫')display.value=display.value.slice(0,-1);else if(key==='=')display.value=format(evaluate());else if(key==='1/x'){const n=evaluate();if(n===0)throw Error();display.value=format(1/n)}else display.value+=key==='EXP'?'e':key;display.focus();
+}catch(e){display.value='Error';}});
+el('calc-open').addEventListener('click',()=>box.classList.toggle('open'));el('calc-close').addEventListener('click',()=>box.classList.remove('open'));
+let drag=null;const head=el('calc-drag');head.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const r=box.getBoundingClientRect();drag={x:e.clientX-r.left,y:e.clientY-r.top};head.setPointerCapture(e.pointerId)});head.addEventListener('pointermove',e=>{if(!drag)return;box.style.left=Math.max(0,Math.min(window.innerWidth-box.offsetWidth,e.clientX-drag.x))+'px';box.style.top=Math.max(0,Math.min(window.innerHeight-45,e.clientY-drag.y))+'px';box.style.right='auto'});head.addEventListener('pointerup',()=>drag=null);head.addEventListener('pointercancel',()=>drag=null);
+})();
+</script>
 </body>
 </html>
