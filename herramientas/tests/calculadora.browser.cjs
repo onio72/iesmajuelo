@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const repo = path.resolve(__dirname, '../..');
 const cases = {
+  'bach/fi2/t01/cuestteor02/':{statement:'#question-text',fields:'#options-container button',count:4,open:'#calc-open-header',check:'#options-container button:first-child',feedback:'#explanation-content',next:'#next-btn',external:true},
   'bach/fi2/t01/fuerza_grav_plano/':{statement:'#statement',fields:'#fields input',count:8,input:'#v_dx',open:'#calcopen',check:'#check',feedback:'#feedback',next:'#next'},
   'bach/fi2/t01/energia_potencial_grav_plano/':{statement:'#enunciado',fields:'#campos input',count:4,input:'#dx',open:'#calc',check:'#corregir',feedback:'#resultado',next:'#nueva'},
   'bach/fi2/t01/fuerza_grav_nula/':{statement:'#statement',fields:'#region option',count:5,input:'#xinput',open:'#calcopen',check:'#check',feedback:'#feedback',next:'#next',region:'#region'},
@@ -28,23 +29,30 @@ const server = http.createServer((req,res) => {
       const page = await browser.newPage({viewport:{width,height:900},hasTouch:width<500});
       const errors = []; page.on('pageerror',e=>errors.push(e.message));
       page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
-      await page.route('**/*',route=>route.request().url().startsWith('http://127.0.0.1:')?route.continue():route.abort());
       const resource = process.argv[2] || 'bach/fi2/t01/fuerza_grav_plano/';
       const config = cases[resource]; assert.ok(config,'Falta configurar el recorrido de esta app');
+      await page.route('**/*',route=>config.external || route.request().url().startsWith('http://127.0.0.1:')?route.continue():route.abort());
       await page.goto(`http://127.0.0.1:${server.address().port}/iesmajuelo/${resource}`);
       await page.locator('[data-calculadora-comun]').waitFor({state:'attached'});
       const statement = page.locator(config.statement);
       assert.ok((await statement.innerText()).length>30);
       assert.equal(await page.locator(config.fields).count(),config.count);
-      await page.locator(config.input).focus();
+      assert.ok(await statement.isVisible());
+      if(config.external) {
+        await page.waitForFunction(()=>document.querySelector('#question-text mjx-container'));
+        assert.ok(await page.locator(config.fields).first().isVisible());
+      }
+      if(config.input)await page.locator(config.input).focus();
       await page.locator(config.open).click();
       const calc = page.locator('[data-calculadora-comun]');
       await calc.locator('input').fill('2,5e-8');
       await calc.getByRole('button',{name:'Calcular resultado',exact:true}).click();
       assert.equal(await calc.locator('input').inputValue(),'2.5e-8');
-      await calc.getByRole('button',{name:'Copiar resultado al campo',exact:true}).click();
-      assert.equal(await page.locator(config.input).inputValue(),'2.5e-8');
-      await page.locator(config.open).click();
+      if(config.input) {
+        await calc.getByRole('button',{name:'Copiar resultado al campo',exact:true}).click();
+        assert.equal(await page.locator(config.input).inputValue(),'2.5e-8');
+        await page.locator(config.open).click();
+      }
       await calc.locator('input').fill('1/0');
       await calc.locator('input').press('Enter');
       assert.match(await calc.getByRole('status').innerText(),/cero/);
@@ -65,9 +73,16 @@ const server = http.createServer((req,res) => {
       await page.locator(config.check).click();
       assert.ok((await page.locator(config.feedback).innerText()).length>5);
       await page.locator(config.next).click();
-      assert.equal(await page.locator(config.input).inputValue(),'');
+      if(config.input)assert.equal(await page.locator(config.input).inputValue(),'');
+      else {
+        assert.equal(await page.locator(config.fields).count(),config.count);
+        assert.equal(await page.locator(config.fields+':disabled').count(),0);
+        await page.locator('[data-calculadora-comun] .launcher').click();
+        assert.ok(await calc.locator('input').isVisible());
+        await calc.locator('input').press('Escape');
+      }
       assert.deepEqual(errors,[]);
-      console.log(`PASS ${resource} ${width}px: enunciado, respuestas, cálculo, EXP, copia, error, movimiento, Escape y nuevo ejercicio`);
+      console.log(`PASS ${resource} ${width}px: enunciado, respuestas, cálculo, EXP, ${config.input?'copia, ':''}error, movimiento, Escape y nuevo ejercicio`);
       await page.close();
     }
   } finally {if(browser)await browser.close();server.close();}

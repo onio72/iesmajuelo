@@ -1,5 +1,19 @@
 # Migraciones de calculadora
 
+## 12 de octubre de 2026 — Física de Satélites (análisis proporcional)
+
+- Sustituida la calculadora incrustada por el componente común v1.0.0.
+- Conservados preguntas, cuatro opciones, puntuación y explicación razonada.
+- Botones de apertura en cabecera y flotante. Sin copia a respuestas, porque
+  el ejercicio se responde seleccionando una opción.
+- Chrome a 1280, 390 y 320 px: enunciado y opciones visibles, fórmulas MathJax
+  renderizadas, coma decimal, EXP, división por cero, movimiento con teclado,
+  arrastre en escritorio, Escape, corrección y siguiente pregunta aprobados.
+  Sin errores de consola. La app conserva sus dependencias Tailwind y MathJax
+  remotas; la calculadora es local.
+- URL: https://onio72.github.io/iesmajuelo/bach/fi2/t01/cuestteor02/
+
+
 ## 12 de octubre de 2026 — Fuerza gravitatoria nula (práctica)
 
 - Sustituida la calculadora incrustada por el componente común v1.0.0.
