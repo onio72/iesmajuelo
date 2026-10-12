@@ -47,14 +47,14 @@
     <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <!-- Columna Izquierda: Visualización e Instrucciones -->
-        <div class="lg:col-span-4 space-y-6">
+        <div class="lg:col-span-6 space-y-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <h1 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
                     <span class="w-2 h-6 bg-indigo-500 rounded-full"></span>
                     Visualización
                 </h1>
                 <div class="canvas-container bg-white border-2 border-slate-200 rounded-2xl overflow-hidden mx-auto shadow-inner">
-                    <canvas id="electroCanvas" width="400" height="400"></canvas>
+                    <canvas id="electroCanvas" width="400" height="400" style="display:block;width:100%;height:auto"></canvas>
                 </div>
                 <div id="charge-info" class="mt-4 p-4 bg-slate-50 rounded-xl text-sm text-slate-700 space-y-3 border border-slate-100">
                     <div id="q1-data">Cargando datos de $q_1$...</div>
@@ -70,6 +70,11 @@
                     <li class="flex gap-2"><span class="font-bold text-indigo-500">3.</span> Determina el unitario $\hat{u}_{12} = \vec{r}_{12} / |\vec{r}_{12}|$.</li>
                     <li class="flex gap-2"><span class="font-bold text-indigo-500">4.</span> Calcula la fuerza vectorial $\vec{F}_{12}$ con dos decimales en la mantisa si usas notación científica.</li>
                 </ul>
+                <div class="mt-6 p-3 bg-indigo-50 rounded-xl text-[10px] text-indigo-700 leading-relaxed border border-indigo-100">
+                    <span class="font-bold block mb-1">RECORDATORIO:</span>
+                    $k = 8.99 \times 10^9 \, \text{N}\cdot\text{m}^2/\text{C}^2$<br>
+                    $1 \, \mu C = 10^{-6} \, C$
+                </div>
                 <div class="mt-6 pt-6 border-t border-slate-100 flex justify-between items-center">
                     <div>
                         <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Puntuación</span>
@@ -81,7 +86,7 @@
         </div>
 
         <!-- Columna Central: Formulario de Respuestas -->
-        <div class="lg:col-span-5 space-y-6">
+        <div class="lg:col-span-6 space-y-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-full">
                 <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
                     <span class="w-2 h-6 bg-emerald-500 rounded-full"></span>
@@ -140,20 +145,6 @@
             </div>
         </div>
 
-        <!-- Columna Derecha: Calculadora Clara -->
-        <div class="lg:col-span-3">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 sticky top-4">
-                <h2 class="text-slate-800 font-bold mb-4 flex items-center gap-2 text-xs uppercase tracking-widest">
-                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                    Calculadora
-                </h2>
-                <div class="mt-6 p-3 bg-indigo-50 rounded-xl text-[10px] text-indigo-700 leading-relaxed border border-indigo-100">
-                    <span class="font-bold block mb-1">RECORDATORIO:</span>
-                    $k = 8.99 \times 10^9 \, \text{N}\cdot\text{m}^2/\text{C}^2$<br>
-                    $1 \, \mu C = 10^{-6} \, C$
-                </div>
-            </div>
-        </div>
     </main>
 
     <script>
