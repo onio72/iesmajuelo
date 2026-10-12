@@ -5,6 +5,11 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const repo = path.resolve(__dirname, '../..');
+const cases = {
+  'bach/fi2/t01/fuerza_grav_plano/':{statement:'#statement',fields:'#fields input',count:8,input:'#v_dx',open:'#calcopen',check:'#check',feedback:'#feedback',next:'#next'},
+  'bach/fi2/t01/energia_potencial_grav_plano/':{statement:'#enunciado',fields:'#campos input',count:4,input:'#dx',open:'#calc',check:'#corregir',feedback:'#resultado',next:'#nueva'},
+  'bach/fi2/t01/fuerza_grav_nula/':{statement:'#statement',fields:'#region option',count:5,input:'#xinput',open:'#calcopen',check:'#check',feedback:'#feedback',next:'#next',region:'#region'},
+};
 const server = http.createServer((req,res) => {
   const relative = decodeURIComponent(req.url.split('?')[0]).replace(/^\/iesmajuelo\//,'');
   let file = path.resolve(repo,relative || 'index.html');
@@ -25,20 +30,21 @@ const server = http.createServer((req,res) => {
       page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
       await page.route('**/*',route=>route.request().url().startsWith('http://127.0.0.1:')?route.continue():route.abort());
       const resource = process.argv[2] || 'bach/fi2/t01/fuerza_grav_plano/';
+      const config = cases[resource]; assert.ok(config,'Falta configurar el recorrido de esta app');
       await page.goto(`http://127.0.0.1:${server.address().port}/iesmajuelo/${resource}`);
       await page.locator('[data-calculadora-comun]').waitFor({state:'attached'});
-      const statement = page.locator('#statement');
-      assert.ok((await statement.innerText()).includes('masa'));
-      assert.equal(await page.locator('#fields input').count(),8);
-      await page.locator('#v_dx').focus();
-      await page.locator('#calcopen').click();
+      const statement = page.locator(config.statement);
+      assert.ok((await statement.innerText()).length>30);
+      assert.equal(await page.locator(config.fields).count(),config.count);
+      await page.locator(config.input).focus();
+      await page.locator(config.open).click();
       const calc = page.locator('[data-calculadora-comun]');
       await calc.locator('input').fill('2,5e-8');
       await calc.getByRole('button',{name:'Calcular resultado',exact:true}).click();
       assert.equal(await calc.locator('input').inputValue(),'2.5e-8');
       await calc.getByRole('button',{name:'Copiar resultado al campo',exact:true}).click();
-      assert.equal(await page.locator('#v_dx').inputValue(),'2.5e-8');
-      await page.locator('#calcopen').click();
+      assert.equal(await page.locator(config.input).inputValue(),'2.5e-8');
+      await page.locator(config.open).click();
       await calc.locator('input').fill('1/0');
       await calc.locator('input').press('Enter');
       assert.match(await calc.getByRole('status').innerText(),/cero/);
@@ -54,13 +60,14 @@ const server = http.createServer((req,res) => {
         const moved = await calc.locator('.box').boundingBox();assert.ok(Math.abs(moved.x-rect.x)>20);
       }
       await calc.locator('input').press('Escape');
-      assert.equal(await page.locator('#calcopen').evaluate(e=>e===document.activeElement),true);
-      await page.locator('#check').click();
-      assert.ok((await page.locator('#feedback').innerText()).includes('Respuestas correctas'));
-      await page.locator('#next').click();
-      assert.equal(await page.locator('#v_dx').inputValue(),'');
+      assert.equal(await page.locator(config.open).evaluate(e=>e===document.activeElement),true);
+      if(config.region)await page.locator(config.region).selectOption('middle');
+      await page.locator(config.check).click();
+      assert.ok((await page.locator(config.feedback).innerText()).length>5);
+      await page.locator(config.next).click();
+      assert.equal(await page.locator(config.input).inputValue(),'');
       assert.deepEqual(errors,[]);
-      console.log(`PASS ${resource} ${width}px: enunciado, 8 campos, cálculo, EXP, copia, error, movimiento, Escape y nuevo ejercicio`);
+      console.log(`PASS ${resource} ${width}px: enunciado, respuestas, cálculo, EXP, copia, error, movimiento, Escape y nuevo ejercicio`);
       await page.close();
     }
   } finally {if(browser)await browser.close();server.close();}

@@ -11,4 +11,14 @@
   cero, movimiento por teclado y arrastre en escritorio, Escape, corrección y
   nuevo ejercicio; sin errores de consola, sin recursos de red.
 - URL conservada: https://onio72.github.io/iesmajuelo/bach/fi2/t01/fuerza_grav_plano/
+- GitHub Pages confirmó publicación del commit d47d70d.
+
+## 12 de octubre de 2026 — Energía potencial gravitatoria (práctica)
+
+- Sustituida la calculadora por el mismo componente v1.0.0, sin cambiar la
+  generación, el gráfico, los cuatro apartados ni la resolución razonada.
+- Chrome a 1280, 390 y 320 px: enunciado y respuestas, cálculo, EXP por teclas,
+  copia, errores, movimiento, Escape, corrección y nuevo ejercicio aprobados.
+  Recursos locales y consola sin errores.
+- URL: https://onio72.github.io/iesmajuelo/bach/fi2/t01/energia_potencial_grav_plano/
 - Publicación pendiente de confirmación de GitHub Pages.
