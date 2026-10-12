@@ -1,5 +1,18 @@
 # Migraciones de calculadora
 
+## 12 de octubre de 2026 — Momento angular de una partícula (práctica)
+
+- Añadida calculadora común v1.0.0 con botón en cabecera y botón flotante.
+- Conservados gráfico 3D, opciones, corrección, puntuación y nuevos ejercicios.
+- Sin copia a respuestas: se responde mediante opciones de selección.
+- Chrome a 1280, 390 y 320 px: enunciado y siete opciones, gráfico con flechas,
+  giro y restablecimiento, cálculo, coma decimal, EXP, división por cero,
+  movimiento por teclado, arrastre de calculadora en escritorio, Escape,
+  corrección y nuevo ejercicio aprobados. Consola sin errores, sin recursos remotos.
+- Sintaxis de scripts comprobada con Node.
+- URL: https://onio72.github.io/iesmajuelo/bach/fi2/t01/momento_angular_vectores/
+
+
 ## 12 de octubre de 2026 — Momento de una fuerza en el espacio (práctica)
 
 - Añadida calculadora común v1.0.0 con botón en cabecera y botón flotante.

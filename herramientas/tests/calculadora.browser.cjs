@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const repo = path.resolve(__dirname, '../..');
 const cases = {
+  'bach/fi2/t01/momento_angular_vectores/':{statement:'header .sub',fields:'.choice',count:7,open:'#calc-open-header',check:'#check',feedback:'#feedback',next:'#new',radios:true},
   'bach/fi2/t01/momento_fuerza/':{statement:'header .sub',fields:'.choice',count:7,open:'#calc-open-header',check:'#check',feedback:'#feedback',next:'#new',radios:true},
   'bach/fi2/t01/cuestteor01/':{statement:'#question-text',fields:'#options-container button',count:4,open:'#calc-open-header',check:'#options-container button:first-child',feedback:'#explanation-content',next:'#next-btn',external:true},
   'bach/fi2/t01/cuestteor02/':{statement:'#question-text',fields:'#options-container button',count:4,open:'#calc-open-header',check:'#options-container button:first-child',feedback:'#explanation-content',next:'#next-btn',external:true},
@@ -79,9 +80,9 @@ const server = http.createServer((req,res) => {
         await page.locator('#left').click();
         assert.notEqual(await page.locator('#scene').innerHTML(),before);
         await page.locator('#reset').click();
-        await page.locator('#exists label').filter({hasText:'Sí'}).click();
-        await page.locator('#axis label').first().click();
-        await page.locator('#sense label').first().click();
+        await page.locator('label').filter({has:page.locator('input[name="exists"][value="si"]')}).click();
+        await page.locator('label').filter({has:page.locator('input[name="axis"]')}).first().click();
+        await page.locator('label').filter({has:page.locator('input[name="sense"]')}).first().click();
       }
       await page.locator(config.check).click();
       assert.ok((await page.locator(config.feedback).innerText()).length>5);
