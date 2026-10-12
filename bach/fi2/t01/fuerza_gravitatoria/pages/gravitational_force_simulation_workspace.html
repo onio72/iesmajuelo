@@ -60,7 +60,7 @@
         <div class="w-full mb-6">
             <div class="card">
                 <div class="h-full flex flex-col">
-                    <div class="flex items-center justify-between mb-4">
+                    <div class="flex flex-wrap gap-3 items-center justify-between mb-4">
                         <h2 class="text-lg font-semibold text-text-primary">Cuadrícula Interactiva</h2>
                         <div class="flex items-center space-x-4 text-sm text-secondary-600">
                             <span>Arrastra masas para moverlas</span>
@@ -308,9 +308,10 @@
         <!-- Panel de Cálculos -->
         <div class="w-full">
             <div class="card">
-                <div class="flex items-center justify-between mb-4">
+                <div class="flex flex-wrap gap-3 items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-text-primary">Cálculos Matemáticos</h2>
                     <div class="flex items-center space-x-2">
+                        <button type="button" id="calc-open" class="btn-secondary text-sm">Abrir calculadora científica</button>
                         <button id="toggleCalculations" class="btn-secondary text-sm">
                             <i class="fas fa-chevron-up"></i>
                             <span class="hidden sm:inline ml-2">Contraer</span>
@@ -390,7 +391,7 @@
     <div id="instructionsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-surface rounded-xl shadow-medium max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <div class="p-6">
-                <div class="flex items-center justify-between mb-4">
+                <div class="flex flex-wrap gap-3 items-center justify-between mb-4">
                     <h2 class="text-xl font-semibold text-text-primary">Instrucciones de Uso</h2>
                     <button id="closeInstructions" class="text-secondary-600 hover:text-text-primary">
                         <i class="fas fa-times text-xl"></i>
@@ -949,5 +950,9 @@
         });
     });
     </script>
+<script src="../../../../../herramientas/calculadora/v1/calculadora.js"></script>
+<script>
+CalculadoraCientifica.mount({triggers: [document.getElementById('calc-open')]});
+</script>
 </body>
 </html>

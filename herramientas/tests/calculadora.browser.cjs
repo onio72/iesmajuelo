@@ -6,6 +6,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const repo = path.resolve(__dirname, '../..');
 const cases = {
+  'bach/fi2/t01/fuerza_gravitatoria/':{statement:'h1',fields:'input[type="number"]',count:9,input:'#q1Value',open:'#calc-open',external:true,workspace:'#fTotalMagnitude'},
+  'bach/fi2/t01/campo_gravitatorio/':{statement:'h1',fields:'input[type="number"]',count:8,input:'#q1Value',open:'#calc-open',external:true,workspace:'#gTotalMagnitude'},
+  'bach/fi2/t01/energia_potencial/':{statement:'h1',fields:'input[type="number"]',count:9,input:'#q1Value',open:'#calc-open',external:true,workspace:'#UTotalValue'},
+  'bach/fi2/t01/potencial_gravitatorio/':{statement:'h1',fields:'input[type="number"]',count:8,input:'#q1Value',open:'#calc-open',external:true,workspace:'#VTotalValue'},
+  'bach/fi2/t01/trabajo/':{statement:'h1',fields:'input[type="number"]',count:11,input:'#q1Value',open:'#calc-open',external:true,workspace:'#UTotalInitialValue'},
   'bach/fi2/t03/coulomb02/':{statement:'#chargeLabels',fields:'input[id^="input"]',count:5,input:'#inputDist',open:'#calc-open',check:'#btnCheck',feedback:'#feedback',next:'#btnNew',external:true,mathSelector:'#chargeLabels mjx-container'},
   'bach/fi2/t03/coulomb03/':{statement:'#charge-info',fields:'input[id^="ans-"]',count:7,input:'#ans-fx',open:'#calc-open',check:'#btn-verify',feedback:'#feedback-msg',next:'button[onclick="window.generateProblem()"]',external:true,mathSelector:'#charge-info mjx-container'},
   'bach/fi2/t01/momento_angular/':{statement:'header p',fields:'.control input',count:3,open:'#calc-open-header',simulation:true},
@@ -34,17 +39,22 @@ const server = http.createServer((req,res) => {
     for (const width of [1280,390,320]) {
       const page = await browser.newPage({viewport:{width,height:900},hasTouch:width<500});
       const errors = []; page.on('pageerror',e=>errors.push(e.message));
-      page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+      page.on('console',m=>{if(m.type()==='error')errors.push(m.text()+' '+m.location().url);});
       const resource = process.argv[2] || 'bach/fi2/t01/fuerza_grav_plano/';
       const config = cases[resource]; assert.ok(config,'Falta configurar el recorrido de esta app');
-      await page.route('**/*',route=>config.external || route.request().url().startsWith('http://127.0.0.1:')?route.continue():route.abort());
+      await page.route('**/*',route=> {
+        const url=route.request().url();
+        // Rocket telemetry does not participate in simulation or calculator behavior.
+        if(config.workspace && /rocket\.new|\/public\/dhws-data-injector\.js/.test(url))return route.fulfill({status:200,contentType:'text/javascript',body:''});
+        return config.external || url.startsWith('http://127.0.0.1:')?route.continue():route.abort();
+      });
       await page.goto(`http://127.0.0.1:${server.address().port}/iesmajuelo/${resource}`);
       await page.locator('[data-calculadora-comun]').waitFor({state:'attached'});
       const statement = page.locator(config.statement);
       assert.ok((await statement.innerText()).length>30);
       assert.equal(await page.locator(config.fields).count(),config.count);
       assert.ok(await statement.isVisible());
-      if(config.external) {
+      if(config.external && !config.workspace) {
         await page.locator(config.mathSelector || '#question-text mjx-container').first().waitFor();
         assert.ok(await page.locator(config.fields).first().isVisible());
       }
@@ -75,6 +85,18 @@ const server = http.createServer((req,res) => {
       }
       await calc.locator('input').press('Escape');
       assert.equal(await page.locator(config.open).evaluate(e=>e===document.activeElement),true);
+      if(config.workspace) {
+        await page.locator('#q1Value').fill('5');
+        await page.locator('#q1Value').dispatchEvent('change');
+        await page.locator('#autoPlace').click();
+        const result=await page.locator(config.workspace).innerText();
+        assert.ok(result.length>0 && !/No calculado|NaN|Infinity/.test(result),result);
+        await page.locator('#clearAll').click();
+        assert.deepEqual(errors,[]);
+        console.log(`PASS ${resource} ${width}px: campos, calculadora, EXP, copia, errores, movimiento, Escape, auto y limpiar`);
+        await page.close();
+        continue;
+      }
       if(config.simulation) {
         assert.ok(await page.locator('#scene').isVisible());
         assert.ok(await page.locator('#scene').evaluate(c=>c.getContext('2d').getImageData(0,0,c.width,c.height).data.some(v=>v!==0)));

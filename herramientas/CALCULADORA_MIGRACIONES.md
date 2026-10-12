@@ -1,5 +1,20 @@
 # Migraciones de calculadora
 
+## 12 de octubre de 2026 — Cinco simulaciones de Campo gravitatorio
+
+- Incorporada calculadora común v1.0.0 en Fuerza gravitatoria, Campo gravitatorio,
+  Energía potencial, Potencial gravitatorio y Trabajo gravitatorio.
+- Botón en el panel de cálculos y botón flotante; copia al campo editable seleccionado.
+- Conservadas URLs y redirecciones a pages, generadores y cálculos físicos.
+- Cada app probada en Chrome a 1280, 390 y 320 px: campos visibles, cálculo,
+  coma decimal, EXP, copia, división por cero, movimiento por teclado y arrastre
+  en escritorio, Escape, colocación automática con resultados y limpieza.
+- Sintaxis de todos los scripts comprobada con Node.
+- Pruebas sin errores de aplicación; scripts de telemetría Rocket y el injector
+  de las páginas de entrada aislados en el navegador de pruebas porque generan
+  errores de red/CORS ajenos a los cálculos. Conservadas dependencias existentes.
+
+
 ## 12 de octubre de 2026 — Cargas y Vectores Posición (coulomb02, web)
 
 - Sustituida calculadora antigua por común v1.0.0; copia al campo seleccionado.
