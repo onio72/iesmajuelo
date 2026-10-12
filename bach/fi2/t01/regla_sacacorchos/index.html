@@ -113,7 +113,7 @@ function syncUI(){phaseRange.value=Math.round(phase*100); const [s,tt,dd]=stepIn
 function stop(){playing=false; targetPhase=null; playBtn.innerHTML='<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 5 11 7-11 7z"/></svg>';playBtn.setAttribute('aria-label','Reproducir');}
 function animate(ts){ if(!lastTime) lastTime=ts; const dt=(ts-lastTime)/1000; lastTime=ts; if(playing){ phase+=dt*0.55; if(phase>=3){ phase=3; stop(); } syncUI(); } else if(targetPhase!==null){ const diff=targetPhase-phase; const stepSize=Math.sign(diff)*Math.min(Math.abs(diff), dt*1.7); phase+=stepSize; if(Math.abs(targetPhase-phase)<0.01){ phase=targetPhase; targetPhase=null; } syncUI(); } requestAnimationFrame(animate); }
 phaseRange.addEventListener('input',()=>{stop(); phase=+phaseRange.value/100; syncUI();});
-sense.addEventListener('change',()=>{sign=+sense.value; syncUI();});
+sense.addEventListener('change',()=>{stop(); sign=+sense.value; phase=0; phaseRange.value=0; syncUI();});
 document.getElementById('play').addEventListener('click',()=>{ if(playing){ stop(); syncUI(); return; } if(phase>=3) phase=0; playing=true; targetPhase=null; syncUI(); });
 document.getElementById('first').addEventListener('click',()=>{stop(); targetPhase=0;});
 document.getElementById('prev').addEventListener('click',()=>{stop(); targetPhase=Math.max(0,Math.floor(phase-.001)-1<0?0:Math.floor(phase-.001));});
