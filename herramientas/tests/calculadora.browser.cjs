@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const repo = path.resolve(__dirname, '../..');
 const cases = {
+  'bach/fi2/t01/momento_fuerza/':{statement:'header .sub',fields:'.choice',count:7,open:'#calc-open-header',check:'#check',feedback:'#feedback',next:'#new',radios:true},
   'bach/fi2/t01/cuestteor01/':{statement:'#question-text',fields:'#options-container button',count:4,open:'#calc-open-header',check:'#options-container button:first-child',feedback:'#explanation-content',next:'#next-btn',external:true},
   'bach/fi2/t01/cuestteor02/':{statement:'#question-text',fields:'#options-container button',count:4,open:'#calc-open-header',check:'#options-container button:first-child',feedback:'#explanation-content',next:'#next-btn',external:true},
   'bach/fi2/t01/fuerza_grav_plano/':{statement:'#statement',fields:'#fields input',count:8,input:'#v_dx',open:'#calcopen',check:'#check',feedback:'#feedback',next:'#next'},
@@ -71,13 +72,28 @@ const server = http.createServer((req,res) => {
       await calc.locator('input').press('Escape');
       assert.equal(await page.locator(config.open).evaluate(e=>e===document.activeElement),true);
       if(config.region)await page.locator(config.region).selectOption('middle');
+      if(config.radios) {
+        assert.ok(await page.locator('#scene').isVisible());
+        assert.ok(await page.locator('#scene polygon').count()>0);
+        const before=await page.locator('#scene').innerHTML();
+        await page.locator('#left').click();
+        assert.notEqual(await page.locator('#scene').innerHTML(),before);
+        await page.locator('#reset').click();
+        await page.locator('#exists label').filter({hasText:'Sí'}).click();
+        await page.locator('#axis label').first().click();
+        await page.locator('#sense label').first().click();
+      }
       await page.locator(config.check).click();
       assert.ok((await page.locator(config.feedback).innerText()).length>5);
       await page.locator(config.next).click();
       if(config.input)assert.equal(await page.locator(config.input).inputValue(),'');
       else {
         assert.equal(await page.locator(config.fields).count(),config.count);
-        assert.equal(await page.locator(config.fields+':disabled').count(),0);
+        if(config.radios) {
+          assert.equal(await page.locator('input[type=radio]:checked').count(),0);
+          assert.equal(await page.locator('#counter').innerText(),'Ejercicio 2');
+          assert.equal(await page.locator(config.feedback).innerText(),'');
+        } else assert.equal(await page.locator(config.fields+':disabled').count(),0);
         await page.locator('[data-calculadora-comun] .launcher').click();
         assert.ok(await calc.locator('input').isVisible());
         await calc.locator('input').press('Escape');
