@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const repo = path.resolve(__dirname, '../..');
 const cases = {
+  'bach/fi2/t01/cuestteor01/':{statement:'#question-text',fields:'#options-container button',count:4,open:'#calc-open-header',check:'#options-container button:first-child',feedback:'#explanation-content',next:'#next-btn',external:true},
   'bach/fi2/t01/cuestteor02/':{statement:'#question-text',fields:'#options-container button',count:4,open:'#calc-open-header',check:'#options-container button:first-child',feedback:'#explanation-content',next:'#next-btn',external:true},
   'bach/fi2/t01/fuerza_grav_plano/':{statement:'#statement',fields:'#fields input',count:8,input:'#v_dx',open:'#calcopen',check:'#check',feedback:'#feedback',next:'#next'},
   'bach/fi2/t01/energia_potencial_grav_plano/':{statement:'#enunciado',fields:'#campos input',count:4,input:'#dx',open:'#calc',check:'#corregir',feedback:'#resultado',next:'#nueva'},

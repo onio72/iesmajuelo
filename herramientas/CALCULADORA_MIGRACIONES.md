@@ -1,5 +1,18 @@
 # Migraciones de calculadora
 
+## 12 de octubre de 2026 — Misión Gravitatoria (análisis proporcional)
+
+- Añadida la calculadora común v1.0.0 con apertura desde cabecera y botón flotante.
+- Conservados preguntas, cuatro opciones, puntuación y explicación razonada.
+- Sin copia a respuestas: se responde seleccionando una opción.
+- Chrome a 1280, 390 y 320 px: enunciado y opciones visibles, fórmulas MathJax
+  renderizadas, coma decimal, EXP, división por cero, movimiento con teclado,
+  arrastre en escritorio, Escape, corrección y siguiente pregunta aprobados.
+  Sin errores de consola. Se conservan Tailwind y MathJax remotos.
+- Sintaxis de los scripts comprobada con Node.
+- URL: https://onio72.github.io/iesmajuelo/bach/fi2/t01/cuestteor01/
+
+
 ## 12 de octubre de 2026 — Física de Satélites (análisis proporcional)
 
 - Sustituida la calculadora incrustada por el componente común v1.0.0.
