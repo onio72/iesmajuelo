@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const repo = path.resolve(__dirname, '../..');
 const cases = {
+  'bach/fi2/t01/momento_angular/':{statement:'header p',fields:'.control input',count:3,open:'#calc-open-header',simulation:true},
   'bach/fi2/t01/momento_angular_vectores/':{statement:'header .sub',fields:'.choice',count:7,open:'#calc-open-header',check:'#check',feedback:'#feedback',next:'#new',radios:true},
   'bach/fi2/t01/momento_fuerza/':{statement:'header .sub',fields:'.choice',count:7,open:'#calc-open-header',check:'#check',feedback:'#feedback',next:'#new',radios:true},
   'bach/fi2/t01/cuestteor01/':{statement:'#question-text',fields:'#options-container button',count:4,open:'#calc-open-header',check:'#options-container button:first-child',feedback:'#explanation-content',next:'#next-btn',external:true},
@@ -72,6 +73,31 @@ const server = http.createServer((req,res) => {
       }
       await calc.locator('input').press('Escape');
       assert.equal(await page.locator(config.open).evaluate(e=>e===document.activeElement),true);
+      if(config.simulation) {
+        assert.ok(await page.locator('#scene').isVisible());
+        assert.ok(await page.locator('#scene').evaluate(c=>c.getContext('2d').getImageData(0,0,c.width,c.height).data.some(v=>v!==0)));
+        assert.equal(await page.locator('#lval').innerText(),'12,00 kg·m²/s');
+        await page.locator('#pause').click();
+        assert.match(await page.locator('#pause').innerText(),/Reanudar/);
+        await page.locator('#w').fill('-2');
+        assert.equal(await page.locator('#lval').innerText(),'-16,00 kg·m²/s');
+        assert.equal(await page.locator('#sense').innerText(),'Horario');
+        await page.locator('#m').fill('3');
+        await page.locator('#r').fill('1');
+        assert.equal(await page.locator('#ival').innerText(),'3,00 kg·m²');
+        assert.equal(await page.locator('#lval').innerText(),'-6,00 kg·m²/s');
+        await page.locator('#w').fill('0');
+        assert.equal(await page.locator('#sense').innerText(),'Sin giro');
+        await page.locator('#extras').uncheck();
+        await page.locator('#reset').click();
+        assert.equal(await page.locator('#lval').innerText(),'12,00 kg·m²/s');
+        assert.ok(await page.locator('#extras').isChecked());
+        assert.match(await page.locator('#pause').innerText(),/Pausar/);
+        assert.deepEqual(errors,[]);
+        console.log(`PASS ${resource} ${width}px: calculadora, EXP, errores, teclado, simulación, parámetros, pausa y reinicio`);
+        await page.close();
+        continue;
+      }
       if(config.region)await page.locator(config.region).selectOption('middle');
       if(config.radios) {
         assert.ok(await page.locator('#scene').isVisible());

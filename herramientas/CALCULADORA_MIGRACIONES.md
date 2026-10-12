@@ -1,5 +1,17 @@
 # Migraciones de calculadora
 
+## 12 de octubre de 2026 — Momento angular en movimiento circular
+
+- Añadida calculadora común v1.0.0 con apertura en cabecera y botón flotante.
+- Conservados animación y controles de masa, radio y velocidad angular.
+- Sin copia a los controles deslizantes.
+- Chrome a 1280, 390 y 320 px: texto y controles, canvas dibujado, cálculo,
+  coma decimal, EXP, división por cero, movimiento, Escape, pausa y reinicio
+  aprobados. Verificados I y L al modificar parámetros, giro horario y sin giro.
+  Consola sin errores y sin recursos remotos. Sintaxis comprobada con Node.
+- URL: https://onio72.github.io/iesmajuelo/bach/fi2/t01/momento_angular/
+
+
 ## 12 de octubre de 2026 — Momento angular de una partícula (práctica)
 
 - Añadida calculadora común v1.0.0 con botón en cabecera y botón flotante.
