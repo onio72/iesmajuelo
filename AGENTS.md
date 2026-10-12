@@ -20,6 +20,15 @@ Este repositorio aloja recursos educativos públicos. El objetivo es desarrollar
 - Ejes y cuadrículas legibles. Las etiquetas no deben solaparse con las masas.
 - Calculadora auxiliar común: operaciones +, −, ×, ÷, paréntesis, raíz, potencias, 1/x, EXP; ventana flotante desplazable y botón visible.
 
+## Hoja de estilos obligatoria
+- Antes de crear una app o rediseñar una existente, leer `herramientas/estilos/GUIA_ESTILOS.md` y elegir **una** hoja de entrada versionada: `cuestiones.css`, `practica.css` o `laboratorio.css`, en `herramientas/estilos/v1/`.
+- Documentar la elección y el motivo en el README de la app. Si no existe, crearlo con esa información. Seleccionar según el uso principal; resolver elecciones rutinarias sin pedir aprobación adicional.
+- Estética elegante, moderna, minimalista y rigurosa: evitar trofeos, emojis decorativos, rangos, nombres de misión y adornos infantiles. La puntuación académica sí se mantiene cuando corresponda.
+- Preservar colores didácticos de magnitudes iniciales/modificadas, masas y vectores, también en fórmulas. No sustituirlos por el color del tema. Acompañarlos de etiquetas y leyendas.
+- Usar componentes y variables de la hoja elegida. El CSS específico se limita a gráficos, disposición propia e interacciones; no crear otra paleta o sistema de botones, campos y paneles.
+- Las apps existentes se migran solo dentro del alcance solicitado y tras pruebas de escritorio/móvil; estas reglas no autorizan rediseños masivos. Las primeras adopciones de v1 son pilotos pendientes de revisión visual.
+- Para SCORM, copiar la hoja elegida **y `base.css` de la misma versión** dentro del paquete, declarar ambas en el manifiesto y comprobar rutas. El modo de evaluación no determina una cuarta hoja.
+
 ## Ejercicios de práctica
 - Permitir nuevos ejercicios, feedback inmediato y resolución razonada cuando se solicite.
 - Mantener preguntas sin pistas que revelen directamente la operación matemática, salvo solicitud didáctica específica.
