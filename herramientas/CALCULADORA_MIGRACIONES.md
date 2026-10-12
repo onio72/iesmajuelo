@@ -1,5 +1,18 @@
 # Migraciones de calculadora
 
+## 12 de octubre de 2026 — Fuerza eléctrica (coulomb03, web)
+
+- Sustituida la calculadora antigua por la común v1.0.0; copia al último campo
+  editable seleccionado. Enter en la calculadora no corrige el ejercicio.
+- Chrome a 1280, 390 y 320 px: datos, siete campos, fórmulas MathJax, cálculo,
+  coma decimal, EXP, copia, división por cero, movimiento, Escape, corrección
+  y nuevo reto aprobados; consola sin errores. Tailwind y MathJax siguen remotos.
+- Conservados el generador, la corrección y el adaptador SCORM existente.
+  Validación web únicamente: no se ha probado Moodle ni actualizado un ZIP.
+- Sintaxis de scripts comprobada con Node.
+- URL: https://onio72.github.io/iesmajuelo/bach/fi2/t03/coulomb03/
+
+
 ## 12 de octubre de 2026 — Momento angular en movimiento circular
 
 - Añadida calculadora común v1.0.0 con apertura en cabecera y botón flotante.

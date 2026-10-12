@@ -146,34 +146,7 @@
                     <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                     Calculadora
                 </h2>
-                <div class="calculator">
-                    <div id="calc-display" class="bg-slate-50 text-slate-800 p-4 rounded-xl mb-4 text-right calculator-screen text-xl h-16 overflow-hidden flex items-center justify-end border border-slate-100 font-mono shadow-inner">0</div>
-                    <div class="grid grid-cols-4 gap-2">
-                        <button onclick="window.calcClear()" class="btn-calc btn-calc-action">C</button>
-                        <button onclick="window.calcOp('sqrt')" class="btn-calc btn-calc-op">√</button>
-                        <button onclick="window.calcNum('e')" class="btn-calc btn-calc-op">exp</button>
-                        <button onclick="window.calcOp('/')" class="btn-calc btn-calc-op">÷</button>
-                        
-                        <button onclick="window.calcNum('7')" class="btn-calc">7</button>
-                        <button onclick="window.calcNum('8')" class="btn-calc">8</button>
-                        <button onclick="window.calcNum('9')" class="btn-calc">9</button>
-                        <button onclick="window.calcOp('*')" class="btn-calc btn-calc-op">×</button>
-                        
-                        <button onclick="window.calcNum('4')" class="btn-calc">4</button>
-                        <button onclick="window.calcNum('5')" class="btn-calc">5</button>
-                        <button onclick="window.calcNum('6')" class="btn-calc">6</button>
-                        <button onclick="window.calcOp('-')" class="btn-calc btn-calc-op">-</button>
-                        
-                        <button onclick="window.calcNum('1')" class="btn-calc">1</button>
-                        <button onclick="window.calcNum('2')" class="btn-calc">2</button>
-                        <button onclick="window.calcNum('3')" class="btn-calc">3</button>
-                        <button onclick="window.calcOp('+')" class="btn-calc btn-calc-op">+</button>
-                        
-                        <button onclick="window.calcNum('0')" class="btn-calc col-span-2">0</button>
-                        <button onclick="window.calcNum('.')" class="btn-calc">.</button>
-                        <button onclick="window.calcEnter()" class="btn-calc bg-indigo-600 text-white border-none hover:bg-indigo-700">=</button>
-                    </div>
-                </div>
+                <button type="button" id="calc-open" class="bg-indigo-600 text-white px-5 py-3 rounded-xl font-bold">Abrir calculadora científica</button>
                 <div class="mt-6 p-3 bg-indigo-50 rounded-xl text-[10px] text-indigo-700 leading-relaxed border border-indigo-100">
                     <span class="font-bold block mb-1">RECORDATORIO:</span>
                     $k = 8.99 \times 10^9 \, \text{N}\cdot\text{m}^2/\text{C}^2$<br>
@@ -428,27 +401,6 @@
                 });
             }
 
-            // --- CALCULADORA ---
-            let calcBuffer = "0";
-            function updateCalc() { document.getElementById('calc-display').innerText = calcBuffer; }
-            
-            window.calcNum = function(n) { calcBuffer = (calcBuffer === "0") ? n : calcBuffer + n; updateCalc(); };
-            window.calcClear = function() { calcBuffer = "0"; updateCalc(); };
-            window.calcOp = function(op) {
-                if (op === 'sqrt') {
-                    try { calcBuffer = Math.sqrt(eval(calcBuffer)).toString(); } catch(e) { calcBuffer = "Error"; }
-                } else { calcBuffer += op; }
-                updateCalc();
-            };
-            window.calcEnter = function() {
-                try { 
-                    let res = eval(calcBuffer);
-                    if (isNaN(res)) throw "Err";
-                    calcBuffer = (Math.abs(res) < 0.01 || Math.abs(res) > 9999) ? res.toExponential(2) : parseFloat(res.toFixed(4)).toString();
-                } catch(e) { calcBuffer = "Error"; }
-                updateCalc();
-            };
-
             function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
             // Init
@@ -458,7 +410,7 @@
                 const verifyBtn = document.getElementById('btn-verify');
                 if (verifyBtn) verifyBtn.onclick = checkAnswers;
                 window.addEventListener('keydown', (e) => { 
-                    if (e.key === 'Enter' && !document.activeElement.closest('.calculator')) checkAnswers(); 
+                    if (e.key === 'Enter' && !e.composedPath().some(el => el instanceof Element && el.matches('[data-calculadora-comun]'))) checkAnswers();
                 });
             });
 
@@ -470,5 +422,9 @@
 
         })();
     </script>
+<script src="../../../../herramientas/calculadora/v1/calculadora.js"></script>
+<script>
+CalculadoraCientifica.mount({triggers: [document.getElementById('calc-open')]});
+</script>
 </body>
 </html>

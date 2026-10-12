@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const repo = path.resolve(__dirname, '../..');
 const cases = {
+  'bach/fi2/t03/coulomb03/':{statement:'#charge-info',fields:'input[id^="ans-"]',count:7,input:'#ans-fx',open:'#calc-open',check:'#btn-verify',feedback:'#feedback-msg',next:'button[onclick="window.generateProblem()"]',external:true,mathSelector:'#charge-info mjx-container'},
   'bach/fi2/t01/momento_angular/':{statement:'header p',fields:'.control input',count:3,open:'#calc-open-header',simulation:true},
   'bach/fi2/t01/momento_angular_vectores/':{statement:'header .sub',fields:'.choice',count:7,open:'#calc-open-header',check:'#check',feedback:'#feedback',next:'#new',radios:true},
   'bach/fi2/t01/momento_fuerza/':{statement:'header .sub',fields:'.choice',count:7,open:'#calc-open-header',check:'#check',feedback:'#feedback',next:'#new',radios:true},
@@ -43,7 +44,7 @@ const server = http.createServer((req,res) => {
       assert.equal(await page.locator(config.fields).count(),config.count);
       assert.ok(await statement.isVisible());
       if(config.external) {
-        await page.waitForFunction(()=>document.querySelector('#question-text mjx-container'));
+        await page.locator(config.mathSelector || '#question-text mjx-container').first().waitFor();
         assert.ok(await page.locator(config.fields).first().isVisible());
       }
       if(config.input)await page.locator(config.input).focus();
@@ -111,6 +112,7 @@ const server = http.createServer((req,res) => {
         await page.locator('label').filter({has:page.locator('input[name="sense"]')}).first().click();
       }
       await page.locator(config.check).click();
+      assert.deepEqual(errors,[]);
       assert.ok((await page.locator(config.feedback).innerText()).length>5);
       await page.locator(config.next).click();
       if(config.input)assert.equal(await page.locator(config.input).inputValue(),'');
