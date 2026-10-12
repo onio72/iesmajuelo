@@ -1,5 +1,17 @@
 # Migraciones de calculadora
 
+## 12 de octubre de 2026 — Cargas y Vectores Posición (coulomb02, web)
+
+- Sustituida calculadora antigua por común v1.0.0; copia al campo seleccionado.
+- Dos columnas amplias, botón junto a respuestas y canvas adaptable.
+- Chrome a 1280, 390 y 320 px: datos, cinco campos, fórmulas MathJax, cálculo,
+  coma decimal, EXP, copia, división por cero, movimiento, Escape, corrección
+  y nuevo ejercicio aprobados; consola sin errores. Tailwind y MathJax remotos.
+- Conservados generador, corrección y adaptador SCORM. Validación web únicamente;
+  no se ha probado Moodle ni actualizado un ZIP. Sintaxis comprobada con Node.
+- URL: https://onio72.github.io/iesmajuelo/bach/fi2/t03/coulomb02/
+
+
 ## 12 de octubre de 2026 — Fuerza eléctrica (coulomb03, web)
 
 - Sustituida la calculadora antigua por la común v1.0.0; copia al último campo

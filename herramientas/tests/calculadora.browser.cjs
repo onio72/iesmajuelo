@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const repo = path.resolve(__dirname, '../..');
 const cases = {
+  'bach/fi2/t03/coulomb02/':{statement:'#chargeLabels',fields:'input[id^="input"]',count:5,input:'#inputDist',open:'#calc-open',check:'#btnCheck',feedback:'#feedback',next:'#btnNew',external:true,mathSelector:'#chargeLabels mjx-container'},
   'bach/fi2/t03/coulomb03/':{statement:'#charge-info',fields:'input[id^="ans-"]',count:7,input:'#ans-fx',open:'#calc-open',check:'#btn-verify',feedback:'#feedback-msg',next:'button[onclick="window.generateProblem()"]',external:true,mathSelector:'#charge-info mjx-container'},
   'bach/fi2/t01/momento_angular/':{statement:'header p',fields:'.control input',count:3,open:'#calc-open-header',simulation:true},
   'bach/fi2/t01/momento_angular_vectores/':{statement:'header .sub',fields:'.choice',count:7,open:'#calc-open-header',check:'#check',feedback:'#feedback',next:'#new',radios:true},
