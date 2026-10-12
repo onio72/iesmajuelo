@@ -1,5 +1,17 @@
 # Migraciones de calculadora
 
+## 12 de octubre de 2026 — Fuerza gravitatoria nula (práctica)
+
+- Sustituida la calculadora incrustada por el componente común v1.0.0.
+- Conservados enunciado, opciones, gráfico, corrección y resolución razonada.
+- Copia al campo de coordenada permitida únicamente antes de corregir.
+- Cuatro pruebas del motor aprobadas. Chrome a 1280, 390 y 320 px:
+  enunciado y opciones visibles, cálculo, EXP, coma decimal, copia, error de
+  división por cero, movimiento, Escape, corrección y nuevo ejercicio aprobados.
+  Sin errores de consola ni dependencias remotas durante las pruebas.
+- URL: https://onio72.github.io/iesmajuelo/bach/fi2/t01/fuerza_grav_nula/
+
+
 ## 12 de octubre de 2026 — Fuerza gravitatoria en el plano (práctica)
 
 - Sustituida la calculadora incrustada por el componente común v1.0.0.

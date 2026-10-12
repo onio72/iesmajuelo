@@ -1,6 +1,6 @@
 /* PLAYWRIGHT_MODULE can point to an existing Playwright installation. */
 const assert = require('node:assert/strict');
-const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const {chromium} = require(process.env.PLAYWRIGHT_MODULE || process.argv[3] || 'playwright');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
