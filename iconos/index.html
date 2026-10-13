@@ -8,9 +8,10 @@
 <script>
 let iconos=[];
 const grid=document.querySelector('#grid'),estado=document.querySelector('#estado'),buscar=document.querySelector('#buscar');
+function normalizar(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');}
 function pintar(){
- const q=buscar.value.toLocaleLowerCase('es').trim();grid.replaceChildren();
- const lista=iconos.filter(x=>[x.nombre,x.categoria,x.descripcion].join(' ').toLocaleLowerCase('es').includes(q));
+ const q=normalizar(buscar.value).trim();grid.replaceChildren();
+ const lista=iconos.filter(x=>normalizar([x.nombre,x.categoria,x.descripcion,x.id,x.archivo,'icono iconos'].join(' ')).includes(q));
  estado.textContent=lista.length?lista.length+' iconos disponibles':'Aún no hay iconos publicados para esta búsqueda.';
  for(const x of lista){
   const card=document.createElement('article');card.className='card';
