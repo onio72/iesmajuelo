@@ -8,20 +8,28 @@
 <script>
 let iconos=[];
 const grid=document.querySelector('#grid'),estado=document.querySelector('#estado'),buscar=document.querySelector('#buscar');
-function normalizar(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');}
+const normalizar=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 function pintar(){
- const q=normalizar(buscar.value).trim();grid.replaceChildren();
- const lista=iconos.filter(x=>normalizar([x.nombre,x.categoria,x.descripcion,x.id,x.archivo,'icono iconos'].join(' ')).includes(q));
- estado.textContent=lista.length?lista.length+' iconos disponibles':'Aún no hay iconos publicados para esta búsqueda.';
+ const q=normalizar(buscar.value).trim(),palabras=q.split(/\s+/).filter(Boolean);
+ grid.replaceChildren();
+ const lista=iconos.filter(x=>{
+  const texto=normalizar([x.nombre,x.categoria,x.descripcion,x.id,x.archivo,'icono iconos'].join(' '));
+  return palabras.every(p=>texto.includes(p));
+ });
+ estado.textContent=lista.length+' de '+iconos.length+' iconos registrados';
  for(const x of lista){
   const card=document.createElement('article');card.className='card';
-  const img=document.createElement('img');img.src=x.archivo;img.alt=x.nombre;img.loading='lazy';
+  const img=document.createElement('img');img.src=encodeURI(x.archivo);img.alt=x.nombre;img.loading='lazy';
+  img.onerror=()=>{img.remove();const aviso=document.createElement('p');aviso.textContent='Imagen no encontrada en GitHub';aviso.style.color='#b42318';card.prepend(aviso);};
   const h=document.createElement('h2');h.textContent=x.nombre;
   const desc=document.createElement('p');desc.textContent=x.descripcion||x.categoria;
-  const a=document.createElement('a');a.href=x.archivo;a.download='';a.textContent='Descargar';
+  const a=document.createElement('a');a.href=encodeURI(x.archivo);a.download='';a.textContent='Descargar imagen';
   card.append(img,h,desc,a);grid.append(card);
  }
 }
 buscar.addEventListener('input',pintar);
-fetch('./catalogo.json?v=20261013-2',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('No se ha podido leer el catálogo');return r.json()}).then(d=>{iconos=(d.iconos||[]).filter(x=>x.estado==='aprobado');pintar()}).catch(e=>{estado.textContent='Error al cargar el catálogo: '+e.message+'. Recarga la página.';});
+fetch('./catalogo.json?v=20261013-2',{cache:'no-store'})
+.then(r=>{if(!r.ok)throw Error('Error HTTP '+r.status+' al cargar el catálogo');return r.json()})
+.then(d=>{iconos=(d.iconos||[]).filter(x=>x.estado==='aprobado');pintar()})
+.catch(e=>{estado.textContent='No se pudo cargar el catálogo: '+e.message;});
 </script></body></html>
