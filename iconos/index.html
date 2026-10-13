@@ -4,7 +4,7 @@
 <style>body{margin:0;background:#f4f7fb;color:#123047;font:16px system-ui,Arial,sans-serif}header{background:#123d69;color:white;padding:2.4rem max(1rem,calc((100vw - 1050px)/2))}main{max-width:1050px;margin:auto;padding:2rem 1rem}h1{margin:.1rem 0}p{line-height:1.5}input{border:1px solid #c6d4e0;border-radius:10px;padding:.8rem;width:min(100%,360px);font:inherit}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1rem;margin-top:1.4rem}.card{background:white;padding:1rem;border-radius:14px;box-shadow:0 2px 10px #123d6915}.card img{width:100%;aspect-ratio:1;object-fit:contain}.card h2{font-size:1rem}.card p{color:#536a7b;font-size:.85rem}.card a{color:#125787}small{color:#64748b}</style></head>
 <body><header><h1>Biblioteca de iconos</h1><p>IES El Majuelo · Recursos gráficos institucionales</p></header>
 <main><label for="buscar">Buscar iconos</label> <input id="buscar" placeholder="Concepto o categoría…" autocomplete="off">
-<p id="estado" role="status"></p><div id="grid" class="grid"></div></main>
+<p id="estado" role="status">Cargando catálogo…</p><div id="grid" class="grid"></div></main>
 <script>
 let iconos=[];
 const grid=document.querySelector('#grid'),estado=document.querySelector('#estado'),buscar=document.querySelector('#buscar');
@@ -23,5 +23,5 @@ function pintar(){
  }
 }
 buscar.addEventListener('input',pintar);
-fetch('./catalogo.json').then(r=>{if(!r.ok)throw Error('No se ha podido leer el catálogo');return r.json()}).then(d=>{iconos=(d.iconos||[]).filter(x=>x.estado==='aprobado');pintar()}).catch(e=>estado.textContent=e.message);
+fetch('./catalogo.json?v=20261013-2',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('No se ha podido leer el catálogo');return r.json()}).then(d=>{iconos=(d.iconos||[]).filter(x=>x.estado==='aprobado');pintar()}).catch(e=>{estado.textContent='Error al cargar el catálogo: '+e.message+'. Recarga la página.';});
 </script></body></html>
