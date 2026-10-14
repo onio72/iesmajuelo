@@ -85,11 +85,12 @@ function updateScene(){
   rpArrow.visible=phase>=.3;if(rpArrow.visible){const origin=new THREE.Vector3(2*trans,0,.05);if(turn>0)origin.set(2,0,.05);setArrow(rpArrow,origin,new THREE.Vector3(Math.cos(angle),Math.sin(angle),0),2)}
   updateArc(turn);mArrow.visible=moment>0;if(mArrow.visible)setArrow(mArrow,new THREE.Vector3(),new THREE.Vector3(0,0,sign),2.25*moment);
   if(hand){
-    // Orientación anatómica de partida: palma vertical, borde del meñique abajo,
-    // cuatro dedos en planos paralelos a xy y pulgar hacia +z. El giro qz hace
-    // que todos los dedos acompañen el arco de r′ sin inclinar la mano.
+    // Postura de «puño con pulgar arriba»: palma vertical y visible, meñique
+    // abajo, cuatro dedos cerrados juntos y pulgar hacia +z. El giro de 180°
+    // se hace alrededor de y para no volver la palma ni descomponer el puño.
+    // Después qz acompaña el arco de r′ sin inclinar la mano.
     const qz=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),angle);
-    const anatomicalBase=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),sign>0?Math.PI:0);
+    const anatomicalBase=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),sign>0?Math.PI:0);
     hand.quaternion.copy(qz).multiply(anatomicalBase);
     hand.position.z=sign*(turn-.5)*.45;
   }
