@@ -67,14 +67,29 @@ setArrow(rArrow,new THREE.Vector3(),new THREE.Vector3(1,0,0),2);setArrow(fArrow,
 const arcMat=new THREE.LineBasicMaterial({color:C.arc});let arc=new THREE.Line(new THREE.BufferGeometry(),arcMat);scene.add(arc);arc.visible=false;
 
 const handPivot=new THREE.Group();scene.add(handPivot);handPivot.position.set(-1.45,-.15,0);
-let hand=null,baseAlign=new THREE.Quaternion();
+let hand=null;
 new GLTFLoader().load('./mano-derecha-regla.glb',g=>{
   hand=g.scene;hand.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.material=o.material.clone();o.material.roughness=.68}});
   hand.scale.setScalar(.16);
-  // En el modelo, el eje anatómico del pulgar apunta aproximadamente en esta dirección.
-  const thumbDirection=new THREE.Vector3(.1670376,.4881135,-.8566467).normalize();
-  baseAlign.setFromUnitVectors(thumbDirection,new THREE.Vector3(0,0,1));
-  hand.quaternion.copy(baseAlign);handPivot.add(hand);document.getElementById('loading').remove();updateScene();
+  handPivot.add(hand);
+
+  // Los cuatro dedos ya se curvan en el plano xy. Solo se corrige el pulgar
+  // desde su articulación basal para que su falange distal apunte exactamente
+  // hacia +z, sin inclinar el plano de los demás dedos.
+  let thumbRoot=null,thumbDist=null;
+  hand.traverse(o=>{if(o.name==='thumb_trapez')thumbRoot=o;if(o.name==='thumb_dist')thumbDist=o});
+  if(thumbRoot&&thumbDist&&thumbRoot.parent){
+    hand.updateMatrixWorld(true);
+    const distalWorld=thumbDist.getWorldQuaternion(new THREE.Quaternion());
+    const currentDirection=new THREE.Vector3(0,1,0).applyQuaternion(distalWorld).normalize();
+    const correction=new THREE.Quaternion().setFromUnitVectors(currentDirection,new THREE.Vector3(0,0,1));
+    const rootWorld=thumbRoot.getWorldQuaternion(new THREE.Quaternion());
+    const desiredWorld=correction.multiply(rootWorld);
+    const parentInverse=thumbRoot.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
+    thumbRoot.quaternion.copy(parentInverse.multiply(desiredWorld));
+    hand.updateMatrixWorld(true);
+  }
+  document.getElementById('loading').remove();updateScene();
 },undefined,e=>{document.getElementById('loading').textContent='No se ha podido cargar el modelo 3D.';console.error(e)});
 
 let phase=0,sign=1,playing=false,target=null,last=0;
@@ -86,7 +101,7 @@ function updateScene(){
   setArrow(fArrow,new THREE.Vector3(2,0,0),new THREE.Vector3(0,sign,0),2.7);
   rpArrow.visible=phase>=.3;if(rpArrow.visible){const origin=new THREE.Vector3(2*trans,0,.05);if(turn>0)origin.set(2,0,.05);setArrow(rpArrow,origin,new THREE.Vector3(Math.cos(angle),Math.sin(angle),0),2)}
   updateArc(turn);mArrow.visible=moment>0;if(mArrow.visible)setArrow(mArrow,new THREE.Vector3(),new THREE.Vector3(0,0,sign),2.25*moment);
-  if(hand){const qz=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),angle);const flip=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),sign<0?Math.PI:0);hand.quaternion.copy(qz).multiply(flip).multiply(baseAlign);hand.position.z=sign*(turn-.5)*.45}
+  if(hand){const qz=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),angle);const flip=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),sign<0?Math.PI:0);hand.quaternion.copy(qz).multiply(flip);hand.position.z=sign*(turn-.5)*.45}
   syncText();
 }
 function info(){if(phase<.3)return[0,'0 · Situación inicial','Desde O se dibuja el vector posición r hasta P, donde se aplica la fuerza F.'];if(phase<1.35)return[1,'1 · Traslación de r′','Una copia de r se traslada hasta P sin cambiar su módulo ni su dirección.'];if(phase<2.3)return[2,'2 · Giro de r′ hacia F',sign>0?'r′ gira hacia F en sentido antihorario. Los dedos de la mano derecha acompañan el giro.':'r′ gira hacia F en sentido horario. Los dedos de la mano derecha acompañan el giro.'];return[3,'3 · Dirección del momento','El pulgar extendido indica que M apunta en el sentido '+(sign>0?'+z.':'−z.') ]}
