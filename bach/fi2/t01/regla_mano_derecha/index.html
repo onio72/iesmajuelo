@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Regla de la mano derecha · Momento de una fuerza</title>
+  <style>
+    :root{--bg:#f2f6f8;--panel:#fff;--ink:#213746;--muted:#5d7584;--brand:#0f6171;--brand2:#0a4d59;--border:#d7e3e8}
+    *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+    header{padding:16px 22px;background:linear-gradient(135deg,var(--brand2),var(--brand));color:#fff}header h1{margin:0 0 4px;font-size:1.3rem}header small{color:#d6ecef}
+    .wrap{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;padding:16px;max-width:1460px;margin:auto}
+    .view{background:var(--panel);border-radius:16px;overflow:hidden;position:relative;min-height:620px;box-shadow:0 10px 30px #0a1f2610}#scene{height:620px}
+    #note{position:absolute;left:16px;top:16px;background:#fffffff2;padding:12px 14px;border-radius:14px;max-width:420px;box-shadow:0 4px 18px #00000014;pointer-events:none}#note strong{display:block;color:var(--brand2);margin-bottom:4px}
+    #loading{position:absolute;inset:0;display:grid;place-items:center;background:#ffffffd9;color:var(--brand2);font-weight:700;z-index:5}
+    aside{background:var(--panel);border-radius:16px;padding:20px;align-self:start;box-shadow:0 10px 30px #0a1f2610}aside h2{font-size:1.04rem;margin:0 0 8px}
+    button,select{border:1px solid #bfd1d7;border-radius:10px;background:white;padding:10px;font:inherit;cursor:pointer}button:hover,select:hover{background:#f6fbfc}button.primary{background:var(--brand);color:white;border-color:var(--brand)}
+    .buttons{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0 14px}.buttons button{padding:9px 2px;min-height:42px;font-size:1.15rem}
+    label{display:block;font-weight:650;font-size:.93rem;margin:16px 0 6px}input[type=range]{width:100%;accent-color:var(--brand)}
+    .key{margin-top:16px;display:grid;gap:8px;font-size:.88rem}.dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px}.small{font-size:.82rem;color:var(--muted);line-height:1.5}
+    .formula{background:#eef6f7;border-radius:10px;padding:12px;margin:14px 0 8px}.vec{font-style:italic;font-weight:650}.foot{margin:6px auto 26px;color:var(--muted);font-size:.84rem;max-width:1460px;padding:0 16px}
+    canvas{display:block;touch-action:none}@media(max-width:900px){.wrap{grid-template-columns:1fr}.view{min-height:430px}#scene{height:430px}#note{max-width:310px;font-size:.83rem}}
+  </style>
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+</head>
+<body>
+<header>
+  <h1>Momento de una fuerza · Regla de la mano derecha</h1>
+  <small>Producto vectorial <b><span class="vec">M</span> = <span class="vec">r</span> × <span class="vec">F</span></b> · Arrastra para girar la vista · Rueda para ampliar</small>
+</header>
+<main class="wrap">
+  <section class="view">
+    <div id="scene"></div><div id="loading">Cargando la mano 3D…</div>
+    <div id="note"><strong id="stepTitle">0 · Situación inicial</strong><span id="stepDesc">Desde O se dibuja el vector posición r hasta P, donde se aplica la fuerza F.</span></div>
+  </section>
+  <aside>
+    <h2>Controles</h2>
+    <label for="phase">Animación: <span id="stepNumber">Paso 0 · 0%</span></label>
+    <input id="phase" type="range" min="0" max="300" step="1" value="0">
+    <div class="buttons"><button id="first" title="Inicio">⏮</button><button id="prev" title="Paso atrás">◀</button><button id="play" class="primary" title="Reproducir">▶</button><button id="next" title="Paso adelante">▶|</button><button id="resetView" title="Restablecer vista">↻</button></div>
+    <label for="sense">Sentido del momento</label>
+    <select id="sense" style="width:100%"><option value="1">Opción 1</option><option value="-1">Opción 2</option></select>
+    <div class="formula"><strong>Momento respecto de O</strong><div style="margin-top:6px"><span class="vec">M</span> = <span class="vec">r</span> × <span class="vec">F</span></div><div id="result" style="margin-top:9px"></div></div>
+    <div class="key"><div><span class="dot" style="background:#df6247"></span>Vector posición r</div><div><span class="dot" style="background:#277fcb"></span>Fuerza F</div><div><span class="dot" style="background:#169a74"></span>Momento M</div><div><span class="dot" style="background:#e4ab38"></span>Vector r′ trasladado</div><div><span class="dot" style="background:#8a56ae"></span>Giro de r′ hacia F</div></div>
+    <p class="small">Los dedos curvados de la mano derecha acompañan el giro de <b>r′</b> hacia <b>F</b>. El pulgar extendido indica la dirección y el sentido del momento <b>M</b>.</p>
+  </aside>
+</main>
+<div class="foot">Convención: el sentido de giro se interpreta mirando el plano xy desde el semieje positivo z.</div>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+
+const host=document.getElementById('scene');
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0xffffff);
+const camera=new THREE.PerspectiveCamera(42,1,.1,100); camera.position.set(6,-8,6); camera.up.set(0,0,1);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.shadowMap.enabled=true; host.appendChild(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement); controls.target.set(.4,0,.2); controls.enableDamping=true;
+scene.add(new THREE.HemisphereLight(0xffffff,0x72808a,2.1)); const sun=new THREE.DirectionalLight(0xffffff,2.5);sun.position.set(4,-5,8);sun.castShadow=true;scene.add(sun);
+const grid=new THREE.GridHelper(7,14,0xc8d4da,0xe5ecef);grid.rotation.x=Math.PI/2;scene.add(grid);
+const axes=new THREE.AxesHelper(3.4);scene.add(axes);
+
+const C={r:0xdf6247,F:0x277fcb,M:0x169a74,rp:0xe4ab38,arc:0x8a56ae};
+function arrow(color){const a=new THREE.ArrowHelper(new THREE.Vector3(1,0,0),new THREE.Vector3(),1,color,.22,.12);a.line.material.linewidth=3;scene.add(a);return a}
+const rArrow=arrow(C.r),fArrow=arrow(C.F),rpArrow=arrow(C.rp),mArrow=arrow(C.M);mArrow.visible=false;rpArrow.visible=false;
+function setArrow(a,origin,dir,length){a.position.copy(origin);a.setDirection(dir.clone().normalize());a.setLength(length,.23,.13)}
+setArrow(rArrow,new THREE.Vector3(),new THREE.Vector3(1,0,0),2);setArrow(fArrow,new THREE.Vector3(2,0,0),new THREE.Vector3(0,1,0),2.7);
+const arcMat=new THREE.LineBasicMaterial({color:C.arc});let arc=new THREE.Line(new THREE.BufferGeometry(),arcMat);scene.add(arc);arc.visible=false;
+
+const handPivot=new THREE.Group();scene.add(handPivot);handPivot.position.set(-1.45,-.15,0);
+let hand=null,baseAlign=new THREE.Quaternion();
+new GLTFLoader().load('./mano-derecha-regla.glb',g=>{
+  hand=g.scene;hand.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.material=o.material.clone();o.material.roughness=.68}});
+  hand.scale.setScalar(.16);
+  // En el modelo, el eje anatómico del pulgar apunta aproximadamente en esta dirección.
+  const thumbDirection=new THREE.Vector3(.1670376,.4881135,-.8566467).normalize();
+  baseAlign.setFromUnitVectors(thumbDirection,new THREE.Vector3(0,0,1));
+  hand.quaternion.copy(baseAlign);handPivot.add(hand);document.getElementById('loading').remove();updateScene();
+},undefined,e=>{document.getElementById('loading').textContent='No se ha podido cargar el modelo 3D.';console.error(e)});
+
+let phase=0,sign=1,playing=false,target=null,last=0;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),smooth=t=>t*t*(3-2*t),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const phaseEl=document.getElementById('phase'),playEl=document.getElementById('play');
+function updateArc(t){if(t<=0){arc.visible=false;return}const pts=[];for(let i=0;i<=36;i++){const a=sign*Math.PI/2*(i/36)*t;pts.push(new THREE.Vector3(2+.78*Math.cos(a),.78*Math.sin(a),.08))}arc.geometry.dispose();arc.geometry=new THREE.BufferGeometry().setFromPoints(pts);arc.visible=true}
+function updateScene(){
+  const trans=smooth(clamp((phase-.3)/1.05,0,1));const turn=smooth(clamp((phase-1.35)/1.3,0,1));const moment=ease(clamp((phase-2.3)/.7,0,1));const angle=sign*Math.PI/2*turn;
+  setArrow(fArrow,new THREE.Vector3(2,0,0),new THREE.Vector3(0,sign,0),2.7);
+  rpArrow.visible=phase>=.3;if(rpArrow.visible){const origin=new THREE.Vector3(2*trans,0,.05);if(turn>0)origin.set(2,0,.05);setArrow(rpArrow,origin,new THREE.Vector3(Math.cos(angle),Math.sin(angle),0),2)}
+  updateArc(turn);mArrow.visible=moment>0;if(mArrow.visible)setArrow(mArrow,new THREE.Vector3(),new THREE.Vector3(0,0,sign),2.25*moment);
+  if(hand){const qz=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),angle);const flip=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),sign<0?Math.PI:0);hand.quaternion.copy(qz).multiply(flip).multiply(baseAlign);hand.position.z=sign*(turn-.5)*.45}
+  syncText();
+}
+function info(){if(phase<.3)return[0,'0 · Situación inicial','Desde O se dibuja el vector posición r hasta P, donde se aplica la fuerza F.'];if(phase<1.35)return[1,'1 · Traslación de r′','Una copia de r se traslada hasta P sin cambiar su módulo ni su dirección.'];if(phase<2.3)return[2,'2 · Giro de r′ hacia F',sign>0?'r′ gira hacia F en sentido antihorario. Los dedos de la mano derecha acompañan el giro.':'r′ gira hacia F en sentido horario. Los dedos de la mano derecha acompañan el giro.'];return[3,'3 · Dirección del momento','El pulgar extendido indica que M apunta en el sentido '+(sign>0?'+z.':'−z.') ]}
+function syncText(){const [n,t,d]=info();document.getElementById('stepTitle').textContent=t;document.getElementById('stepDesc').textContent=d;document.getElementById('stepNumber').textContent='Paso '+n+' · '+Math.round((phase%1)*100)+'%';document.getElementById('result').innerHTML='r = (2, 0, 0), F = (0, '+(2.7*sign).toFixed(1)+', 0)<br>M = (0, 0, '+(5.4*sign).toFixed(1)+')';phaseEl.value=Math.round(phase*100);playEl.textContent=playing?'⏸':'▶'}
+function stop(){playing=false;target=null;syncText()}
+function tick(t){const dt=last?(t-last)/1000:0;last=t;if(playing){phase+=dt*.55;if(phase>=3){phase=3;stop()}updateScene()}else if(target!==null){const d=target-phase;phase+=Math.sign(d)*Math.min(Math.abs(d),dt*1.7);if(Math.abs(d)<.01){phase=target;target=null}updateScene()}controls.update();renderer.render(scene,camera);requestAnimationFrame(tick)}
+phaseEl.addEventListener('input',()=>{stop();phase=+phaseEl.value/100;updateScene()});document.getElementById('sense').addEventListener('change',e=>{stop();sign=+e.target.value;phase=0;updateScene()});
+playEl.addEventListener('click',()=>{if(playing){stop()}else{if(phase>=3)phase=0;playing=true;syncText()}});document.getElementById('first').onclick=()=>{stop();target=0};document.getElementById('prev').onclick=()=>{stop();target=Math.max(0,Math.ceil(phase-.01)-1)};document.getElementById('next').onclick=()=>{stop();target=Math.min(3,Math.floor(phase+.01)+1)};document.getElementById('resetView').onclick=()=>{camera.position.set(6,-8,6);controls.target.set(.4,0,.2);controls.update()};
+function resize(){const w=host.clientWidth,h=host.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)}new ResizeObserver(resize).observe(host);resize();updateScene();requestAnimationFrame(tick);
+</script>
+</body></html>
