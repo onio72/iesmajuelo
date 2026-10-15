@@ -67,14 +67,15 @@ setArrow(rArrow,new THREE.Vector3(),new THREE.Vector3(1,0,0),2);setArrow(fArrow,
 const arcMat=new THREE.LineBasicMaterial({color:C.arc});let arc=new THREE.Line(new THREE.BufferGeometry(),arcMat);scene.add(arc);arc.visible=false;
 
 const handPivot=new THREE.Group();scene.add(handPivot);
-handPivot.position.set(-1.45,-.15,0);
+handPivot.position.set(-1.6,1.05,-.15);
 let hand=null;
 const POSTURA={
-  index_prox:[0,0,68],index_midd:[0,0,81],index_dist:[0,0,49],
-  midd_prox:[0,0,68],midd_midd:[0,0,81],midd_dist:[0,0,49],
-  ring_prox:[0,0,68],ring_midd:[0,0,81],ring_dist:[0,0,49],
-  pinky_prox:[0,0,68],pinky_midd:[0,0,81],pinky_dist:[0,0,49],
-  thumb_trapez:[-10,-35,0],thumb_meta:[0,0,-12],thumb_prox:[0,0,-8]
+  index_prox:[12,-2,68], index_midd:[0,0,81], index_dist:[0,0,49],
+  midd_prox:[-5,-2,70], midd_midd:[4,-7,93], midd_dist:[0,0,49],
+  ring_prox:[-2,-7,68], ring_midd:[0,0,81], ring_dist:[0,0,49],
+  pinky_prox:[2,-9,76], pinky_midd:[0,0,81], pinky_dist:[0,0,49],
+  thumb_trapez:[-17,-35,0], thumb_meta:[-20,0,-12], thumb_prox:[-20,0,-8],
+  thumb_dist:[-7,0,0]
 };
 const globalRotation=new THREE.Quaternion().setFromEuler(
   new THREE.Euler(Math.PI,0,0,'XYZ')
@@ -140,7 +141,7 @@ function updateScene(){
     );
     // Orientación global exportada: (180°,0°,0°), sin giro anatómico extra.
     hand.quaternion.copy(qz).multiply(reverse).multiply(globalRotation);
-    hand.position.set(0,0,-.15+sign*turn*.45);
+    hand.position.set(0,0,sign*turn*.45);
   }
   syncText();
 }
