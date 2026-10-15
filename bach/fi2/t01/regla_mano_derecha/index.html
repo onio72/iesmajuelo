@@ -52,9 +52,9 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 
 const host=document.getElementById('scene');
 const scene=new THREE.Scene(); scene.background=new THREE.Color(0xffffff);
-const camera=new THREE.PerspectiveCamera(38,1,.1,100); camera.position.set(4,-5.4,4.3); camera.up.set(0,0,1);
+const camera=new THREE.PerspectiveCamera(38,1,.1,100); camera.position.set(.2,-7,1.8); camera.up.set(0,0,1);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.shadowMap.enabled=true; host.appendChild(renderer.domElement);
-const controls=new OrbitControls(camera,renderer.domElement); controls.target.set(.6,0,.05); controls.enableDamping=true;
+const controls=new OrbitControls(camera,renderer.domElement); controls.target.set(.15,.25,.1); controls.enableDamping=true;
 scene.add(new THREE.HemisphereLight(0xffffff,0x72808a,2.1)); const sun=new THREE.DirectionalLight(0xffffff,2.5);sun.position.set(4,-5,8);sun.castShadow=true;scene.add(sun);
 const grid=new THREE.GridHelper(6,12,0xc8d4da,0xe5ecef);grid.rotation.x=Math.PI/2;scene.add(grid);
 const axes=new THREE.AxesHelper(3.1);scene.add(axes);
@@ -136,7 +136,7 @@ function syncText(){const [n,t,d]=info();document.getElementById('stepTitle').te
 function stop(){playing=false;target=null;syncText()}
 function tick(t){const dt=last?(t-last)/1000:0;last=t;if(playing){phase+=dt*.55;if(phase>=3){phase=3;stop()}updateScene()}else if(target!==null){const d=target-phase;phase+=Math.sign(d)*Math.min(Math.abs(d),dt*1.7);if(Math.abs(d)<.01){phase=target;target=null}updateScene()}controls.update();renderer.render(scene,camera);requestAnimationFrame(tick)}
 phaseEl.addEventListener('input',()=>{stop();phase=+phaseEl.value/100;updateScene()});document.getElementById('sense').addEventListener('change',e=>{stop();sign=+e.target.value;phase=0;updateScene()});
-playEl.addEventListener('click',()=>{if(playing){stop()}else{if(phase>=3)phase=0;playing=true;syncText()}});document.getElementById('first').onclick=()=>{stop();target=0};document.getElementById('prev').onclick=()=>{stop();target=Math.max(0,Math.ceil(phase-.01)-1)};document.getElementById('next').onclick=()=>{stop();target=Math.min(3,Math.floor(phase+.01)+1)};document.getElementById('resetView').onclick=()=>{camera.position.set(4,-5.4,4.3);controls.target.set(.4,0,.2);controls.update()};
+playEl.addEventListener('click',()=>{if(playing){stop()}else{if(phase>=3)phase=0;playing=true;syncText()}});document.getElementById('first').onclick=()=>{stop();target=0};document.getElementById('prev').onclick=()=>{stop();target=Math.max(0,Math.ceil(phase-.01)-1)};document.getElementById('next').onclick=()=>{stop();target=Math.min(3,Math.floor(phase+.01)+1)};document.getElementById('resetView').onclick=()=>{camera.position.set(.2,-7,1.8);controls.target.set(.4,0,.2);controls.update()};
 function resize(){const w=host.clientWidth,h=host.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)}new ResizeObserver(resize).observe(host);resize();updateScene();requestAnimationFrame(tick);
 </script>
 </body></html>
