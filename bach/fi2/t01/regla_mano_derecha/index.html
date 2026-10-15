@@ -66,49 +66,32 @@ function setArrow(a,origin,dir,length){a.position.copy(origin);a.setDirection(di
 setArrow(rArrow,new THREE.Vector3(),new THREE.Vector3(1,0,0),2);setArrow(fArrow,new THREE.Vector3(2,0,0),new THREE.Vector3(0,1,0),2.7);
 const arcMat=new THREE.LineBasicMaterial({color:C.arc});let arc=new THREE.Line(new THREE.BufferGeometry(),arcMat);scene.add(arc);arc.visible=false;
 
-const handPivot=new THREE.Group();scene.add(handPivot);
-handPivot.position.set(-1.6,1.05,-.15);
+// La postura, escala, posicion y orientacion originales estan ya horneadas
+// en el archivo GLB exportado: no volver a girar huesos ni escalar la malla.
+const handPivot=new THREE.Group();
+scene.add(handPivot);
+const handAnchor=new THREE.Group();
+handPivot.add(handAnchor);
 let hand=null;
-const POSTURA={
-  index_prox:[12,-2,68], index_midd:[0,0,81], index_dist:[0,0,49],
-  midd_prox:[-5,-2,70], midd_midd:[4,-7,93], midd_dist:[0,0,49],
-  ring_prox:[-2,-7,68], ring_midd:[0,0,81], ring_dist:[0,0,49],
-  pinky_prox:[2,-9,76], pinky_midd:[0,0,81], pinky_dist:[0,0,49],
-  thumb_trapez:[-17,-35,0], thumb_meta:[-20,0,-12], thumb_prox:[-20,0,-8],
-  thumb_dist:[-7,0,0]
-};
-const globalRotation=new THREE.Quaternion().setFromEuler(
-  new THREE.Euler(Math.PI,0,0,'XYZ')
-);
-new GLTFLoader().load('./mano-derecha.glb',g=>{
+new GLTFLoader().load('./mano-derecha-postura.glb',g=>{
   hand=g.scene;
-  const bones={};
   hand.traverse(o=>{
-    if(o.isBone) bones[o.name]=o;
     if(o.isMesh){
-      o.castShadow=true;o.receiveShadow=true;
+      o.castShadow=true;
+      o.receiveShadow=true;
       if(o.material){
         o.material=o.material.clone();
         o.material.roughness=.68;
       }
     }
   });
-  const missing=[];
-  for(const [name,angles] of Object.entries(POSTURA)){
-    if(!bones[name]){missing.push(name);continue}
-    // Ángulos absolutos Euler XYZ respecto al padre del hueso, en grados.
-    bones[name].rotation.set(...angles.map(THREE.MathUtils.degToRad),'XYZ');
-  }
-  if(missing.length)console.warn('Huesos no encontrados:',missing);
-  // Conservar las rotaciones articulares definidas en POSTURA.
-  // No aplicar ajustes automaticos adicionales al pulgar.
-  hand.scale.setScalar(.16);
-  handPivot.add(hand);
+  handAnchor.add(hand);
   document.getElementById('loading').remove();
   updateScene();
 },undefined,e=>{
-  document.getElementById('loading').textContent='No se ha podido cargar el modelo 3D.';
-  console.error(e);
+  document.getElementById('loading').textContent=
+    'Falta mano-derecha-postura.glb. Sube el archivo a esta carpeta.';
+  console.error('No se puede cargar la postura definitiva:',e);
 });
 
 let phase=0,sign=1,playing=false,target=null,last=0;
@@ -121,13 +104,14 @@ function updateScene(){
   rpArrow.visible=phase>=.3;if(rpArrow.visible){const origin=new THREE.Vector3(2*trans,0,.05);if(turn>0)origin.set(2,0,.05);setArrow(rpArrow,origin,new THREE.Vector3(Math.cos(angle),Math.sin(angle),0),2)}
   updateArc(turn);mArrow.visible=moment>0;if(mArrow.visible)setArrow(mArrow,new THREE.Vector3(),new THREE.Vector3(0,0,sign),2.25*moment);
   if(hand){
-    const qz=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),angle);
-    const reverse=new THREE.Quaternion().setFromAxisAngle(
-      new THREE.Vector3(1,0,0),sign<0?Math.PI:0
-    );
-    // Orientación global exportada: (180°,0°,0°), sin giro anatómico extra.
-    hand.quaternion.copy(qz).multiply(reverse).multiply(globalRotation);
-    hand.position.set(0,0,sign*turn*.45);
+    // Se anima el grupo externo. El esqueleto exportado nunca se altera.
+    // La rotacion alrededor de z coincide exactamente con la de r'.
+    // Ambas opciones parten de 0 rad y terminan en +/- pi/2.
+    handPivot.rotation.set(0,0,angle);
+    handPivot.position.set(0,0,0);
+    // La opcion 2 invierte el sentido del pulgar sin cambiar la postura.
+    // Giramos alrededor del eje local X del conjunto ANTES del giro z.
+    handAnchor.rotation.set(sign<0?Math.PI:0,0,0);
   }
   syncText();
 }
