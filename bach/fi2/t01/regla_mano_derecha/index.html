@@ -100,22 +100,8 @@ new GLTFLoader().load('./mano-derecha.glb',g=>{
     bones[name].rotation.set(...angles.map(THREE.MathUtils.degToRad),'XYZ');
   }
   if(missing.length)console.warn('Huesos no encontrados:',missing);
-  // Enderezar el pulgar como conjunto: su eje apunta a -Z en el modelo
-  // antes de rotar 180 grados alrededor de X (+Z en la opción 1).
-  const base=bones.thumb_trapez, tip=bones.thumb_dist;
-  if(base&&tip&&base.parent){
-    hand.updateMatrixWorld(true);
-    const start=base.getWorldPosition(new THREE.Vector3());
-    const end=tip.getWorldPosition(new THREE.Vector3());
-    const direction=end.sub(start).normalize();
-    const desired=new THREE.Vector3(0,0,-1);
-    if(direction.lengthSq()>.5){
-      const correction=new THREE.Quaternion().setFromUnitVectors(direction,desired);
-      const world=base.getWorldQuaternion(new THREE.Quaternion());
-      const parentInv=base.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
-      base.quaternion.copy(parentInv.multiply(correction.multiply(world)));
-    }
-  }
+  // Conservar las rotaciones articulares definidas en POSTURA.
+  // No aplicar ajustes automaticos adicionales al pulgar.
   hand.scale.setScalar(.16);
   handPivot.add(hand);
   document.getElementById('loading').remove();
