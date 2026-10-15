@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Editor 3D de postura de la mano</title>
+<style>
+:root{--bg:#eef3f5;--panel:#fff;--ink:#203642;--muted:#607783;--brand:#0f6573;--brand2:#084a55;--line:#d4e1e5;--accent:#e8f4f5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}header{background:linear-gradient(135deg,var(--brand2),var(--brand));color:#fff;padding:14px 20px}header h1{font-size:1.25rem;margin:0 0 3px}header p{margin:0;color:#d8edf0;font-size:.86rem}.app{display:grid;grid-template-columns:minmax(480px,1fr) 390px;gap:14px;padding:14px;max-width:1600px;margin:auto}.viewer{height:calc(100vh - 110px);min-height:600px;background:#fff;border-radius:16px;overflow:hidden;position:relative;box-shadow:0 8px 26px #0a26300f}.viewer canvas{display:block;touch-action:none}.badge{position:absolute;left:14px;top:14px;background:#ffffffee;border:1px solid var(--line);border-radius:11px;padding:9px 11px;font-size:.83rem;pointer-events:none}.loading{position:absolute;inset:0;display:grid;place-items:center;background:#ffffffdd;color:var(--brand);font-weight:700;z-index:4}.panel{height:calc(100vh - 110px);min-height:600px;overflow:auto;background:#fff;border-radius:16px;padding:17px;box-shadow:0 8px 26px #0a26300f}.panel h2{font-size:1rem;margin:0 0 10px}.section{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}label.title{display:block;font-weight:700;font-size:.84rem;margin:9px 0 5px}select,button,input,textarea{font:inherit}select,button{border:1px solid #bcd0d6;background:#fff;color:var(--ink);border-radius:9px;padding:9px}button{cursor:pointer}button:hover{background:#f2f8f9}button.primary{background:var(--brand);border-color:var(--brand);color:#fff}.slider{display:grid;grid-template-columns:22px 1fr 58px;align-items:center;gap:7px;margin:8px 0}.slider b{font-size:.86rem}.slider output{font:700 .79rem ui-monospace,SFMono-Regular,Menlo,monospace;text-align:right;background:#f2f6f7;border-radius:6px;padding:4px}.slider input{width:100%;accent-color:var(--brand)}.check{display:flex;gap:8px;align-items:flex-start;font-size:.84rem;margin-top:10px}.check input{margin-top:3px}.bone{background:var(--accent);border-radius:9px;padding:8px 10px;font:700 .8rem ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--brand2)}.buttons{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.buttons.three{grid-template-columns:repeat(3,1fr)}textarea{width:100%;min-height:140px;border:1px solid var(--line);border-radius:9px;padding:9px;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;resize:vertical}.hint{font-size:.78rem;color:var(--muted);line-height:1.45}.status{min-height:20px;font-size:.78rem;color:var(--brand);margin-top:7px}@media(max-width:900px){.app{grid-template-columns:1fr}.viewer{height:56vh;min-height:420px}.panel{height:auto;min-height:0}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+</head>
+<body>
+<header><h1>Editor 3D de postura de la mano</h1><p>Ajusta cada articulación con respecto a su postura original y exporta los valores.</p></header>
+<main class="app">
+<section class="viewer" id="viewer"><div class="loading" id="loading">Cargando modelos 3D…</div><div class="badge">Arrastra para girar · Rueda para ampliar<br><b id="selectedBadge">Sin selección</b></div></section>
+<aside class="panel">
+  <h2>Modelo</h2>
+  <div class="row"><select id="hand"><option value="right">Mano derecha</option><option value="left">Mano izquierda</option></select><button id="resetView">Restablecer vista</button></div>
+
+  <div class="section"><h2>Articulación</h2>
+    <div class="row"><div><label class="title" for="finger">Dedo</label><select id="finger" style="width:100%"><option value="thumb">Pulgar</option><option value="index">Índice</option><option value="midd">Corazón</option><option value="ring">Anular</option><option value="pinky">Meñique</option></select></div><div><label class="title" for="joint">Articulación</label><select id="joint" style="width:100%"></select></div></div>
+    <label class="check"><input id="linkFingers" type="checkbox"><span>Mover conjuntamente índice, corazón, anular y meñique en esta articulación.</span></label>
+    <label class="check"><input id="showAxes" type="checkbox" checked><span>Mostrar los ejes locales del hueso seleccionado.</span></label>
+    <p class="bone" id="boneName">—</p>
+    <div class="slider"><b>X</b><input id="rx" type="range" min="-180" max="180" value="0"><output id="orx">0°</output></div>
+    <div class="slider"><b>Y</b><input id="ry" type="range" min="-180" max="180" value="0"><output id="ory">0°</output></div>
+    <div class="slider"><b>Z</b><input id="rz" type="range" min="-180" max="180" value="0"><output id="orz">0°</output></div>
+    <p class="hint">X, Y y Z son los ejes locales de la articulación. Los valores son correcciones respecto a la postura original del modelo.</p>
+  </div>
+
+  <div class="section"><h2>Transformación de la mano completa</h2>
+    <label class="title">Rotación global</label>
+    <div class="slider"><b>X</b><input id="gx" type="range" min="-180" max="180" value="0"><output id="ogx">0°</output></div>
+    <div class="slider"><b>Y</b><input id="gy" type="range" min="-180" max="180" value="0"><output id="ogy">0°</output></div>
+    <div class="slider"><b>Z</b><input id="gz" type="range" min="-180" max="180" value="0"><output id="ogz">0°</output></div>
+    <label class="title">Posición</label>
+    <div class="slider"><b>X</b><input id="px" type="range" min="-5" max="5" step=".05" value="0"><output id="opx">0.00</output></div>
+    <div class="slider"><b>Y</b><input id="py" type="range" min="-5" max="5" step=".05" value="0"><output id="opy">0.00</output></div>
+    <div class="slider"><b>Z</b><input id="pz" type="range" min="-5" max="5" step=".05" value="0"><output id="opz">0.00</output></div>
+    <div class="slider"><b>S</b><input id="scale" type="range" min=".05" max=".5" step=".01" value=".16"><output id="oscale">0.16</output></div>
+  </div>
+
+  <div class="section"><h2>Posturas y edición</h2>
+    <div class="buttons three"><button id="openPose">Mano abierta</button><button id="fistPose">Puño</button><button id="thumbPose">Pulgar arriba</button></div>
+    <div class="buttons" style="margin-top:7px"><button id="undo">Deshacer</button><button id="resetPose">Restablecer todo</button></div>
+  </div>
+
+  <div class="section"><h2>Configuración</h2>
+    <textarea id="json" spellcheck="false" placeholder="Aquí aparecerá la configuración JSON"></textarea>
+    <div class="buttons three" style="margin-top:7px"><button id="generate">Generar JSON</button><button id="apply">Aplicar JSON</button><button id="download" class="primary">Descargar</button></div>
+    <div class="status" id="status"></div>
+  </div>
+</aside>
+</main>
+<script type="module">
+import * as THREE from 'three';import{OrbitControls}from'three/addons/controls/OrbitControls.js';import{GLTFLoader}from'three/addons/loaders/GLTFLoader.js';
+const $=id=>document.getElementById(id),deg=Math.PI/180,rad=180/Math.PI;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xffffff);const camera=new THREE.PerspectiveCamera(42,1,.1,100);camera.position.set(5,-8,4.8);camera.up.set(0,0,1);const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=true;$('viewer').prepend(renderer.domElement);const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,1.5,0);controls.enableDamping=true;scene.add(new THREE.HemisphereLight(0xffffff,0x73818a,2));const light=new THREE.DirectionalLight(0xffffff,2.5);light.position.set(5,-5,8);scene.add(light);const grid=new THREE.GridHelper(12,24,0xb7c7cd,0xe4ebed);grid.rotation.x=Math.PI/2;scene.add(grid);scene.add(new THREE.AxesHelper(3));
+const files={right:'./mano-derecha.glb',left:'./mano-izquierda.glb'},hands={},states={right:null,left:null};let active='right',axesHelper=null,history=[];
+const fingers=['index','midd','ring','pinky'];const joints={thumb:[['Base','trapez'],['Metacarpiano','meta'],['Proximal','prox'],['Distal','dist']],other:[['Nudillo','prox'],['Media','midd'],['Distal','dist']]};
+const emptyState=()=>({bones:{},global:{rotation:[0,0,0],position:[0,0,0],scale:.16}});
+function boneKey(){const f=$('finger').value,j=$('joint').value;return`${f}_${j}`}
+function setJoints(){const f=$('finger').value,old=$('joint').value;$('joint').innerHTML='';for(const[n,v]of joints[f==='thumb'?'thumb':'other']){const o=document.createElement('option');o.value=v;o.textContent=n;$('joint').append(o)}if([...$('joint').options].some(o=>o.value===old))$('joint').value=old;syncBoneUI()}
+function modelData(){return hands[active]}
+function applyBone(name){const d=modelData(),bone=d?.bones[name],v=states[active].bones[name]||[0,0,0];if(!bone)return;const delta=new THREE.Quaternion().setFromEuler(new THREE.Euler(v[0]*deg,v[1]*deg,v[2]*deg,'XYZ'));bone.quaternion.copy(d.rest[name]).multiply(delta)}
+function applyAll(){const d=modelData(),s=states[active];if(!d)return;for(const name of Object.keys(d.bones))applyBone(name);d.root.rotation.set(...s.global.rotation.map(v=>v*deg),'XYZ');d.root.position.set(...s.global.position);d.root.scale.setScalar(s.global.scale);syncBoneUI();syncGlobalUI();saveLocal()}
+function selectAxes(){if(axesHelper?.parent)axesHelper.parent.remove(axesHelper);axesHelper=null;const b=modelData()?.bones[boneKey()];if(b&&$('showAxes').checked){axesHelper=new THREE.AxesHelper(1.2);b.add(axesHelper)}$('selectedBadge').textContent=boneKey();$('boneName').textContent=boneKey()}
+function syncBoneUI(){const v=states[active]?.bones[boneKey()]||[0,0,0];['x','y','z'].forEach((a,i)=>{$('r'+a).value=v[i];$('or'+a).textContent=Math.round(v[i])+'°'});selectAxes()}
+function syncGlobalUI(){const s=states[active];if(!s)return;['x','y','z'].forEach((a,i)=>{$('g'+a).value=s.global.rotation[i];$('og'+a).textContent=Math.round(s.global.rotation[i])+'°';$('p'+a).value=s.global.position[i];$('op'+a).textContent=Number(s.global.position[i]).toFixed(2)});$('scale').value=s.global.scale;$('oscale').textContent=Number(s.global.scale).toFixed(2)}
+function snapshot(){history.push(JSON.stringify(states[active]));if(history.length>40)history.shift()}
+function setBoneAxis(axis,value){snapshot();const name=boneKey(),idx={x:0,y:1,z:2}[axis],targets=$('linkFingers').checked&&fingers.includes($('finger').value)?fingers.map(f=>`${f}_${$('joint').value}`):[name];for(const n of targets){states[active].bones[n]??=[0,0,0];states[active].bones[n][idx]=value;applyBone(n)}syncBoneUI();saveLocal()}
+function preset(kind){snapshot();states[active].bones={};if(kind==='fist'||kind==='thumb'){for(const f of fingers){states[active].bones[`${f}_prox`]=[0,0,68];states[active].bones[`${f}_midd`]=[0,0,81];states[active].bones[`${f}_dist`]=[0,0,49]}}if(kind==='thumb'){states[active].bones.thumb_trapez=[0,-35,0];states[active].bones.thumb_meta=[0,0,-12];states[active].bones.thumb_prox=[0,0,-8]}applyAll()}
+function exportState(){return{version:1,hand:active,bones:states[active].bones,global:states[active].global}}
+function saveLocal(){localStorage.setItem('editor-mano-3d',JSON.stringify(states))}
+function activate(which){if(hands[active])hands[active].root.visible=false;active=which;hands[active].root.visible=true;history=[];applyAll();setJoints()}
+async function loadHand(which){return new Promise((resolve,reject)=>new GLTFLoader().load(files[which],g=>{const root=g.scene,bones={},rest={};root.traverse(o=>{if(o.isBone){bones[o.name]=o;rest[o.name]=o.quaternion.clone()}if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});root.visible=which===active;scene.add(root);hands[which]={root,bones,rest};resolve()},undefined,reject))}
+try{const saved=JSON.parse(localStorage.getItem('editor-mano-3d')||'null');states.right=saved?.right||emptyState();states.left=saved?.left||emptyState();await Promise.all([loadHand('right'),loadHand('left')]);$('loading').remove();activate('right')}catch(e){$('loading').textContent='No se pudieron cargar los modelos 3D.';console.error(e)}
+$('hand').onchange=e=>activate(e.target.value);$('finger').onchange=setJoints;$('joint').onchange=syncBoneUI;$('showAxes').onchange=selectAxes;for(const a of['x','y','z'])$('r'+a).oninput=e=>setBoneAxis(a,+e.target.value);
+for(const a of['x','y','z']){$('g'+a).oninput=e=>{states[active].global.rotation[{x:0,y:1,z:2}[a]]=+e.target.value;applyAll()};$('p'+a).oninput=e=>{states[active].global.position[{x:0,y:1,z:2}[a]]=+e.target.value;applyAll()}}$('scale').oninput=e=>{states[active].global.scale=+e.target.value;applyAll()};
+$('openPose').onclick=()=>preset('open');$('fistPose').onclick=()=>preset('fist');$('thumbPose').onclick=()=>preset('thumb');$('undo').onclick=()=>{if(!history.length)return;states[active]=JSON.parse(history.pop());applyAll()};$('resetPose').onclick=()=>{snapshot();states[active]=emptyState();applyAll()};$('resetView').onclick=()=>{camera.position.set(5,-8,4.8);controls.target.set(0,1.5,0);controls.update()};
+$('generate').onclick=()=>{$('json').value=JSON.stringify(exportState(),null,2);$('status').textContent='Configuración generada.'};$('apply').onclick=()=>{try{const x=JSON.parse($('json').value);snapshot();if(x.hand&&x.hand!==active){$('hand').value=x.hand;activate(x.hand)}states[active].bones=x.bones||{};states[active].global=x.global||emptyState().global;applyAll();$('status').textContent='Configuración aplicada.'}catch(e){$('status').textContent='El JSON no es válido.'}};$('download').onclick=()=>{const data=JSON.stringify(exportState(),null,2),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=`postura-${active==='right'?'mano-derecha':'mano-izquierda'}.json`;a.click();URL.revokeObjectURL(a.href);$('json').value=data};
+function resize(){const v=$('viewer'),w=v.clientWidth,h=v.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)}new ResizeObserver(resize).observe($('viewer'));resize();(function loop(){controls.update();renderer.render(scene,camera);requestAnimationFrame(loop)})();
+</script></body></html>
