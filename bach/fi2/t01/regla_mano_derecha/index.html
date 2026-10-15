@@ -92,9 +92,30 @@ lbl.P.position.set(2,-.2,-.15);lbl.r.position.set(1,0,.27);
 lbl.F.position.set(2,1.5,.24);
 
 const C={r:0xdf6247,F:0x277fcb,M:0x169a74,rp:0xe4ab38,arc:0x8a56ae};
-function arrow(color){const a=new THREE.ArrowHelper(new THREE.Vector3(1,0,0),new THREE.Vector3(),1,color,.28,.15);a.line.material.linewidth=3;scene.add(a);return a}
-const rArrow=arrow(C.r),fArrow=arrow(C.F),rpArrow=arrow(C.rp),mArrow=arrow(C.M);mArrow.visible=false;rpArrow.visible=false;
-function setArrow(a,origin,dir,length){a.position.copy(origin);a.setDirection(dir.clone().normalize());a.setLength(length,.30,.15)}
+// Flechas volumetricas con grosor visible, imitando el trazo de 5-6 px
+// y la punta triangular ancha de la animacion del sacacorchos.
+function arrow(color){
+  const group=new THREE.Group();
+  const mat=new THREE.MeshBasicMaterial({color,transparent:true,opacity:1,depthTest:true});
+  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.026,.026,1,12),mat);
+  const tip=new THREE.Mesh(new THREE.ConeGeometry(.135,.31,16),mat);
+  group.add(shaft,tip);scene.add(group);
+  group.userData={shaft,tip};return group;
+}
+const rArrow=arrow(C.r),fArrow=arrow(C.F),rpArrow=arrow(C.rp),mArrow=arrow(C.M);
+mArrow.visible=false;rpArrow.visible=false;
+const up=new THREE.Vector3(0,1,0);
+function setArrow(a,origin,dir,length){
+  const v=dir.clone().normalize(),head=Math.min(.31,length*.36);
+  const shaftLength=Math.max(.001,length-head*.75);
+  a.position.copy(origin);
+  a.quaternion.setFromUnitVectors(up,v);
+  a.userData.shaft.scale.set(1,shaftLength,1);
+  a.userData.shaft.position.y=shaftLength/2;
+  a.userData.tip.scale.setScalar(1);
+  a.userData.tip.position.y=length-head/2;
+}
+
 setArrow(rArrow,new THREE.Vector3(),new THREE.Vector3(1,0,0),2);setArrow(fArrow,new THREE.Vector3(2,0,0),new THREE.Vector3(0,1,0),2.7);
 const arcMat=new THREE.LineBasicMaterial({color:C.arc});let arc=new THREE.Line(new THREE.BufferGeometry(),arcMat);scene.add(arc);arc.visible=false;
 
