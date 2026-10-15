@@ -68,18 +68,23 @@ const zNeg=new THREE.Line(new THREE.BufferGeometry().setFromPoints([
 ]),new THREE.LineBasicMaterial({color:axisColor}));scene.add(zNeg);
 // Etiquetas legibles frente a cualquier fondo y que miran siempre a la camara.
 function makeLabel(text,color='#24333c',vector=false){
- const cv=document.createElement('canvas');cv.width=256;cv.height=104;
- const ctx=cv.getContext('2d');ctx.fillStyle='rgba(255,255,255,.92)';
- ctx.beginPath();ctx.roundRect(6,6,244,92,18);ctx.fill();
- ctx.font='bold 55px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
- ctx.fillStyle=color;ctx.fillText(text,128,vector?63:52);
- if(vector){let w=ctx.measureText(text).width;let x=128-w/2,y=20;
-  ctx.strokeStyle=color;ctx.lineWidth=4;ctx.lineCap='round';
-  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+w,y);
-  ctx.lineTo(x+w-10,y-7);ctx.moveTo(x+w,y);ctx.lineTo(x+w-10,y+7);ctx.stroke();}
+ const cv=document.createElement('canvas');cv.width=256;cv.height=128;
+ const ctx=cv.getContext('2d');
+ // Textura totalmente transparente: sin tarjeta, borde ni sombra.
+ ctx.clearRect(0,0,cv.width,cv.height);
+ ctx.font='bold 66px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+ ctx.fillStyle=color;ctx.fillText(text,128,vector?79:66);
+ if(vector){
+   const w=ctx.measureText(text).width,x=128-w/2,y=34;
+   ctx.strokeStyle=color;ctx.lineWidth=5;ctx.lineCap='round';
+   ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+w,y);
+   ctx.lineTo(x+w-11,y-8);ctx.moveTo(x+w,y);ctx.lineTo(x+w-11,y+8);ctx.stroke();
+ }
  const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;
- const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false}));
- sprite.scale.set(0.56,0.23,1);scene.add(sprite);return sprite;
+ const sprite=new THREE.Sprite(new THREE.SpriteMaterial({
+   map:tex,transparent:true,depthTest:true,depthWrite:false,alphaTest:.08
+ }));
+ sprite.scale.set(.39,.195,1);scene.add(sprite);return sprite;
 }
 const lbl={
  x:makeLabel('x'),y:makeLabel('y'),z:makeLabel('z'),O:makeLabel('O'),P:makeLabel('P'),
@@ -88,8 +93,8 @@ const lbl={
 };
 lbl.x.position.set(3.42,0,.06);lbl.y.position.set(0,3.29,.06);
 lbl.z.position.set(0,0,3);lbl.O.position.set(-.23,-.14,.10);
-lbl.P.position.set(2,-.2,-.15);lbl.r.position.set(1,0,.27);
-lbl.F.position.set(2,1.5,.24);
+lbl.P.position.set(2,-.2,-.15);lbl.r.position.set(.9,-.24,.28);
+lbl.F.position.set(2.25,1.4,.24);
 
 const C={r:0xdf6247,F:0x277fcb,M:0x169a74,rp:0xe4ab38,arc:0x8a56ae};
 // Flechas volumetricas con grosor visible, imitando el trazo de 5-6 px
@@ -154,10 +159,10 @@ function updateArc(t){if(t<=0){arc.visible=false;return}const pts=[];for(let i=0
 function updateScene(){
   const trans=smooth(clamp((phase-.3)/1.05,0,1));const turn=smooth(clamp((phase-1.35)/1.3,0,1));const moment=ease(clamp((phase-2.3)/.7,0,1));const angle=sign*Math.PI/2*turn;
   setArrow(fArrow,new THREE.Vector3(2,0,0),new THREE.Vector3(0,sign,0),2.7);
-  lbl.F.position.set(2,sign*1.5,.24);
+  lbl.F.position.set(2.25,sign*1.4,.24);
   rpArrow.visible=phase>=.3;if(rpArrow.visible){const origin=new THREE.Vector3(2*trans,0,.05);if(turn>0)origin.set(2,0,.05);setArrow(rpArrow,origin,new THREE.Vector3(Math.cos(angle),Math.sin(angle),0),2)}
   lbl.rp.visible=rpArrow.visible;
-  if(rpArrow.visible)lbl.rp.position.set(rpArrow.position.x+Math.cos(angle),rpArrow.position.y+Math.sin(angle),.28);
+  if(rpArrow.visible)lbl.rp.position.set(rpArrow.position.x+.85*Math.cos(angle)-.22*Math.sin(angle),rpArrow.position.y+.85*Math.sin(angle)+.22*Math.cos(angle),.28);
   updateArc(turn);mArrow.visible=moment>0;
   lbl.M.visible=mArrow.visible;
   if(mArrow.visible){setArrow(mArrow,new THREE.Vector3(),new THREE.Vector3(0,0,sign),2.25*moment);
