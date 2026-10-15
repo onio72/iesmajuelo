@@ -8,17 +8,17 @@
     :root{--bg:#f2f6f8;--panel:#fff;--ink:#213746;--muted:#5d7584;--brand:#0f6171;--brand2:#0a4d59;--border:#d7e3e8}
     *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
     header{padding:16px 22px;background:linear-gradient(135deg,var(--brand2),var(--brand));color:#fff}header h1{margin:0 0 4px;font-size:1.3rem}header small{color:#d6ecef}
-    .wrap{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:12px;padding:12px;max-width:none;margin:auto}
+    .wrap{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:12px;padding:12px;max-width:none;margin:auto}
     .view{background:var(--panel);border-radius:16px;overflow:hidden;position:relative;min-height:calc(100dvh - 130px);box-shadow:0 10px 30px #0a1f2610}#scene{height:calc(100dvh - 130px);min-height:620px}
-    #note{position:absolute;left:16px;top:16px;background:#fffffff2;padding:12px 14px;border-radius:14px;max-width:420px;box-shadow:0 4px 18px #00000014;pointer-events:none}#note strong{display:block;color:var(--brand2);margin-bottom:4px}
+    #note{position:absolute;left:16px;top:16px;background:#fffffff2;padding:12px 14px;border-radius:14px;max-width:510px;font-size:1.07rem;line-height:1.5;box-shadow:0 4px 18px #00000014;pointer-events:none}#note strong{display:block;color:var(--brand2);margin-bottom:4px}
     #loading{position:absolute;inset:0;display:grid;place-items:center;background:#ffffffd9;color:var(--brand2);font-weight:700;z-index:5}
-    aside{background:var(--panel);border-radius:16px;padding:20px;align-self:start;box-shadow:0 10px 30px #0a1f2610}aside h2{font-size:1.04rem;margin:0 0 8px}
+    aside{background:var(--panel);border-radius:16px;padding:24px;align-self:start;box-shadow:0 10px 30px #0a1f2610;font-size:1.08rem}aside h2{font-size:1.25rem;margin:0 0 8px}
     button,select{border:1px solid #bfd1d7;border-radius:10px;background:white;padding:10px;font:inherit;cursor:pointer}button:hover,select:hover{background:#f6fbfc}button.primary{background:var(--brand);color:white;border-color:var(--brand)}
     .buttons{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0 14px}.buttons button{padding:9px 2px;min-height:42px;font-size:1.15rem}
-    label{display:block;font-weight:650;font-size:.93rem;margin:16px 0 6px}input[type=range]{width:100%;accent-color:var(--brand)}
-    .key{margin-top:16px;display:grid;gap:8px;font-size:.88rem}.dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px}.small{font-size:.82rem;color:var(--muted);line-height:1.5}
-    .formula{background:#eef6f7;border-radius:10px;padding:12px;margin:14px 0 8px}.vec{position:relative;display:inline-block;font-style:italic;font-weight:650;line-height:1.25;padding-top:.11em;margin:0 .03em}.vec::before{content:'→';position:absolute;left:50%;transform:translateX(-50%);top:-.31em;font-size:.75em;line-height:1;font-style:normal;font-weight:700;color:currentColor}.foot{margin:6px auto 26px;color:var(--muted);font-size:.84rem;max-width:1460px;padding:0 16px}
-    canvas{display:block;touch-action:none}@media(max-width:900px){.wrap{grid-template-columns:1fr}.view{min-height:480px}#scene{height:65dvh;min-height:480px}#note{max-width:310px;font-size:.83rem}}
+    label{display:block;font-weight:650;font-size:1.08rem;margin:18px 0 8px}input[type=range]{width:100%;accent-color:var(--brand)}
+    .key{margin-top:16px;display:grid;gap:10px;font-size:1.03rem}.dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px} .small{font-size:1rem;color:var(--muted);line-height:1.5}
+    .formula{background:#eef6f7;border-radius:10px;padding:15px;margin:16px 0 10px;font-size:1.09rem}.vec{position:relative;display:inline-block;font-style:italic;font-weight:650;line-height:1.25;padding-top:.11em;margin:0 .03em}.vec::before{content:'→';position:absolute;left:50%;transform:translateX(-50%);top:-.31em;font-size:.75em;line-height:1;font-style:normal;font-weight:700;color:currentColor}.foot{margin:6px auto 26px;color:var(--muted);font-size:.84rem;max-width:1460px;padding:0 16px}
+    canvas{display:block;touch-action:none}@media(max-width:900px){.wrap{grid-template-columns:1fr}.view{min-height:480px}#scene{height:65dvh;min-height:480px}#note{max-width:310px;font-size:.95rem}}
   </style>
   <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
 </head>
@@ -84,7 +84,7 @@ function makeLabel(text,color='#24333c',vector=false){
  const sprite=new THREE.Sprite(new THREE.SpriteMaterial({
    map:tex,transparent:true,depthTest:true,depthWrite:false,alphaTest:.08
  }));
- sprite.scale.set(.39,.195,1);scene.add(sprite);return sprite;
+ sprite.scale.set(.48,.24,1);scene.add(sprite);return sprite;
 }
 const lbl={
  x:makeLabel('x'),y:makeLabel('y'),z:makeLabel('z'),O:makeLabel('O'),P:makeLabel('P'),
