@@ -68,56 +68,37 @@ const arcMat=new THREE.LineBasicMaterial({color:C.arc});let arc=new THREE.Line(n
 
 const handPivot=new THREE.Group();scene.add(handPivot);handPivot.position.set(-1.45,-.15,0);
 let hand=null;
-new GLTFLoader().load('./mano-derecha.glb',g=>{
-  hand=g.scene;hand.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.material=o.material.clone();o.material.roughness=.68}});
-  hand.scale.setScalar(.16);
+const loader=new GLTFLoader();
+function prepararMano(g, posturaExportada){
+  hand=g.scene;
+  hand.traverse(o=>{
+    if(o.isMesh){
+      o.castShadow=true;
+      o.receiveShadow=true;
+      if(o.material){o.material=o.material.clone();o.material.roughness=.68;}
+    }
+  });
+  // El GLB nuevo ya incorpora escala, reflejo de la mano derecha y postura.
+  // No se aplican flexiones a sus huesos ni se reescala por segunda vez.
+  if(!posturaExportada) hand.scale.setScalar(.16);
   handPivot.add(hand);
-
-  // La postura se crea desde el modelo derecho original, sin reutilizar las
-  // rotaciones de versiones anteriores.
-  const bones={};
-  hand.traverse(o=>{if(o.isBone)bones[o.name]=o});
-
-  // Orienta un hueso completo desde su base hacia una dirección global. No
-  // cambia longitudes, posiciones ni escalas de la malla.
-  const aimBone=(rootName,endName,target)=>{
-    const root=bones[rootName],end=bones[endName];
-    if(!root||!end||!root.parent)return;
-    hand.updateMatrixWorld(true);
-    const start=root.getWorldPosition(new THREE.Vector3());
-    const finish=end.getWorldPosition(new THREE.Vector3());
-    const current=finish.sub(start).normalize();
-    const correction=new THREE.Quaternion().setFromUnitVectors(current,target.clone().normalize());
-    const rootWorld=root.getWorldQuaternion(new THREE.Quaternion());
-    const desiredWorld=correction.multiply(rootWorld);
-    const parentInverse=root.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
-    root.quaternion.copy(parentInverse.multiply(desiredWorld));
-    hand.updateMatrixWorld(true);
-  };
-
-  // Antes de cerrar el puño, índice, corazón, anular y meñique se colocan
-  // paralelos. Esto elimina la separación en abanico de la postura abierta.
-  const forward=new THREE.Vector3(1,0,0);
-  for(const finger of ['index','midd','ring','pinky']){
-    aimBone(`${finger}_prox`,`${finger}_dist`,forward);
+  document.getElementById('loading').remove();
+  updateScene();
+}
+loader.load('./mano-derecha-postura.glb',
+  g=>prepararMano(g,true),
+  undefined,
+  err=>{
+    console.warn('No se encuentra la nueva postura; usando el modelo anterior.',err);
+    loader.load('./mano-derecha.glb',g=>{
+      // Compatibilidad hasta que se suba el GLB de la postura definitiva.
+      prepararMano(g,false);
+    },undefined,e=>{
+      document.getElementById('loading').textContent='No se ha podido cargar el modelo 3D.';
+      console.error(e);
+    });
   }
-
-  // Los cuatro dedos reciben la misma flexión para que permanezcan juntos y
-  // describan un arco común. Los valores están en radianes.
-  const fist={prox:1.18,midd:1.42,dist:.86};
-  for(const finger of ['index','midd','ring','pinky']){
-    bones[`${finger}_prox`]?.rotateZ(fist.prox);
-    bones[`${finger}_midd`]?.rotateZ(fist.midd);
-    bones[`${finger}_dist`]?.rotateZ(fist.dist);
-  }
-
-  // El pulgar no se endereza articulación por articulación. Se conserva su
-  // curvatura original y se orienta el conjunto desde la base. Tras el giro
-  // anatómico de la mano, esta dirección -z se convierte en +z.
-  aimBone('thumb_trapez','thumb_dist',new THREE.Vector3(0,0,-1));
-  hand.updateMatrixWorld(true);
-  document.getElementById('loading').remove();updateScene();
-},undefined,e=>{document.getElementById('loading').textContent='No se ha podido cargar el modelo 3D.';console.error(e)});
+);
 
 let phase=0,sign=1,playing=false,target=null,last=0;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),smooth=t=>t*t*(3-2*t),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
@@ -134,7 +115,11 @@ function updateScene(){
     // se hace alrededor de y para no volver la palma ni descomponer el puño.
     // Después qz acompaña el arco de r′ sin inclinar la mano.
     const qz=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),angle);
-    const anatomicalBase=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),sign>0?Math.PI:0);
+    // El modelo exportado contiene su orientación anatómica definitiva.
+    // El giro del producto vectorial se aplica al conjunto, sin deformar dedos.
+    const anatomicalBase=new THREE.Quaternion().setFromAxisAngle(
+      new THREE.Vector3(0,1,0),sign>0?Math.PI:0
+    );
     hand.quaternion.copy(qz).multiply(anatomicalBase);
     hand.position.z=sign*(turn-.5)*.45;
   }
