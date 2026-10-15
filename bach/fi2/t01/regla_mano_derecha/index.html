@@ -8,8 +8,8 @@
     :root{--bg:#f2f6f8;--panel:#fff;--ink:#213746;--muted:#5d7584;--brand:#0f6171;--brand2:#0a4d59;--border:#d7e3e8}
     *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
     header{padding:16px 22px;background:linear-gradient(135deg,var(--brand2),var(--brand));color:#fff}header h1{margin:0 0 4px;font-size:1.3rem}header small{color:#d6ecef}
-    .wrap{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;padding:16px;max-width:1460px;margin:auto}
-    .view{background:var(--panel);border-radius:16px;overflow:hidden;position:relative;min-height:620px;box-shadow:0 10px 30px #0a1f2610}#scene{height:620px}
+    .wrap{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:12px;padding:12px;max-width:none;margin:auto}
+    .view{background:var(--panel);border-radius:16px;overflow:hidden;position:relative;min-height:calc(100dvh - 130px);box-shadow:0 10px 30px #0a1f2610}#scene{height:calc(100dvh - 130px);min-height:620px}
     #note{position:absolute;left:16px;top:16px;background:#fffffff2;padding:12px 14px;border-radius:14px;max-width:420px;box-shadow:0 4px 18px #00000014;pointer-events:none}#note strong{display:block;color:var(--brand2);margin-bottom:4px}
     #loading{position:absolute;inset:0;display:grid;place-items:center;background:#ffffffd9;color:var(--brand2);font-weight:700;z-index:5}
     aside{background:var(--panel);border-radius:16px;padding:20px;align-self:start;box-shadow:0 10px 30px #0a1f2610}aside h2{font-size:1.04rem;margin:0 0 8px}
@@ -18,7 +18,7 @@
     label{display:block;font-weight:650;font-size:.93rem;margin:16px 0 6px}input[type=range]{width:100%;accent-color:var(--brand)}
     .key{margin-top:16px;display:grid;gap:8px;font-size:.88rem}.dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px}.small{font-size:.82rem;color:var(--muted);line-height:1.5}
     .formula{background:#eef6f7;border-radius:10px;padding:12px;margin:14px 0 8px}.vec{font-style:italic;font-weight:650}.foot{margin:6px auto 26px;color:var(--muted);font-size:.84rem;max-width:1460px;padding:0 16px}
-    canvas{display:block;touch-action:none}@media(max-width:900px){.wrap{grid-template-columns:1fr}.view{min-height:430px}#scene{height:430px}#note{max-width:310px;font-size:.83rem}}
+    canvas{display:block;touch-action:none}@media(max-width:900px){.wrap{grid-template-columns:1fr}.view{min-height:480px}#scene{height:65dvh;min-height:480px}#note{max-width:310px;font-size:.83rem}}
   </style>
   <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
 </head>
@@ -52,12 +52,12 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 
 const host=document.getElementById('scene');
 const scene=new THREE.Scene(); scene.background=new THREE.Color(0xffffff);
-const camera=new THREE.PerspectiveCamera(42,1,.1,100); camera.position.set(6,-8,6); camera.up.set(0,0,1);
+const camera=new THREE.PerspectiveCamera(38,1,.1,100); camera.position.set(4,-5.4,4.3); camera.up.set(0,0,1);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.shadowMap.enabled=true; host.appendChild(renderer.domElement);
-const controls=new OrbitControls(camera,renderer.domElement); controls.target.set(.4,0,.2); controls.enableDamping=true;
+const controls=new OrbitControls(camera,renderer.domElement); controls.target.set(.6,0,.05); controls.enableDamping=true;
 scene.add(new THREE.HemisphereLight(0xffffff,0x72808a,2.1)); const sun=new THREE.DirectionalLight(0xffffff,2.5);sun.position.set(4,-5,8);sun.castShadow=true;scene.add(sun);
-const grid=new THREE.GridHelper(7,14,0xc8d4da,0xe5ecef);grid.rotation.x=Math.PI/2;scene.add(grid);
-const axes=new THREE.AxesHelper(3.4);scene.add(axes);
+const grid=new THREE.GridHelper(6,12,0xc8d4da,0xe5ecef);grid.rotation.x=Math.PI/2;scene.add(grid);
+const axes=new THREE.AxesHelper(3.1);scene.add(axes);
 
 const C={r:0xdf6247,F:0x277fcb,M:0x169a74,rp:0xe4ab38,arc:0x8a56ae};
 function arrow(color){const a=new THREE.ArrowHelper(new THREE.Vector3(1,0,0),new THREE.Vector3(),1,color,.22,.12);a.line.material.linewidth=3;scene.add(a);return a}
@@ -99,6 +99,22 @@ new GLTFLoader().load('./mano-derecha.glb',g=>{
     bones[name].rotation.set(...angles.map(THREE.MathUtils.degToRad),'XYZ');
   }
   if(missing.length)console.warn('Huesos no encontrados:',missing);
+  // Enderezar el pulgar como conjunto: su eje apunta a -Z en el modelo
+  // antes de rotar 180 grados alrededor de X (+Z en la opción 1).
+  const base=bones.thumb_trapez, tip=bones.thumb_dist;
+  if(base&&tip&&base.parent){
+    hand.updateMatrixWorld(true);
+    const start=base.getWorldPosition(new THREE.Vector3());
+    const end=tip.getWorldPosition(new THREE.Vector3());
+    const direction=end.sub(start).normalize();
+    const desired=new THREE.Vector3(0,0,-1);
+    if(direction.lengthSq()>.5){
+      const correction=new THREE.Quaternion().setFromUnitVectors(direction,desired);
+      const world=base.getWorldQuaternion(new THREE.Quaternion());
+      const parentInv=base.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
+      base.quaternion.copy(parentInv.multiply(correction.multiply(world)));
+    }
+  }
   hand.scale.setScalar(.16);
   handPivot.add(hand);
   document.getElementById('loading').remove();
@@ -120,7 +136,7 @@ function updateScene(){
   if(hand){
     const qz=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),angle);
     const reverse=new THREE.Quaternion().setFromAxisAngle(
-      new THREE.Vector3(0,1,0),sign<0?Math.PI:0
+      new THREE.Vector3(1,0,0),sign<0?Math.PI:0
     );
     // Orientación global exportada: (180°,0°,0°), sin giro anatómico extra.
     hand.quaternion.copy(qz).multiply(reverse).multiply(globalRotation);
@@ -133,7 +149,7 @@ function syncText(){const [n,t,d]=info();document.getElementById('stepTitle').te
 function stop(){playing=false;target=null;syncText()}
 function tick(t){const dt=last?(t-last)/1000:0;last=t;if(playing){phase+=dt*.55;if(phase>=3){phase=3;stop()}updateScene()}else if(target!==null){const d=target-phase;phase+=Math.sign(d)*Math.min(Math.abs(d),dt*1.7);if(Math.abs(d)<.01){phase=target;target=null}updateScene()}controls.update();renderer.render(scene,camera);requestAnimationFrame(tick)}
 phaseEl.addEventListener('input',()=>{stop();phase=+phaseEl.value/100;updateScene()});document.getElementById('sense').addEventListener('change',e=>{stop();sign=+e.target.value;phase=0;updateScene()});
-playEl.addEventListener('click',()=>{if(playing){stop()}else{if(phase>=3)phase=0;playing=true;syncText()}});document.getElementById('first').onclick=()=>{stop();target=0};document.getElementById('prev').onclick=()=>{stop();target=Math.max(0,Math.ceil(phase-.01)-1)};document.getElementById('next').onclick=()=>{stop();target=Math.min(3,Math.floor(phase+.01)+1)};document.getElementById('resetView').onclick=()=>{camera.position.set(6,-8,6);controls.target.set(.4,0,.2);controls.update()};
+playEl.addEventListener('click',()=>{if(playing){stop()}else{if(phase>=3)phase=0;playing=true;syncText()}});document.getElementById('first').onclick=()=>{stop();target=0};document.getElementById('prev').onclick=()=>{stop();target=Math.max(0,Math.ceil(phase-.01)-1)};document.getElementById('next').onclick=()=>{stop();target=Math.min(3,Math.floor(phase+.01)+1)};document.getElementById('resetView').onclick=()=>{camera.position.set(4,-5.4,4.3);controls.target.set(.4,0,.2);controls.update()};
 function resize(){const w=host.clientWidth,h=host.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)}new ResizeObserver(resize).observe(host);resize();updateScene();requestAnimationFrame(tick);
 </script>
 </body></html>
