@@ -47,13 +47,14 @@
 
   <div class="section"><h2>Configuración</h2>
     <textarea id="json" spellcheck="false" placeholder="Aquí aparecerá la configuración JSON"></textarea>
-    <div class="buttons three" style="margin-top:7px"><button id="generate">Generar JSON</button><button id="apply">Aplicar JSON</button><button id="download" class="primary">Descargar</button></div>
+    <div class="buttons three" style="margin-top:7px"><button id="generate">Generar JSON</button><button id="apply">Aplicar JSON</button><button id="download">Descargar JSON</button></div>
+    <button id="downloadGlb" class="primary" style="width:100%;margin-top:8px">Descargar modelo 3D (.glb)</button>
     <div class="status" id="status"></div>
   </div>
 </aside>
 </main>
 <script type="module">
-import * as THREE from 'three';import{OrbitControls}from'three/addons/controls/OrbitControls.js';import{GLTFLoader}from'three/addons/loaders/GLTFLoader.js';
+import * as THREE from 'three';import{OrbitControls}from'three/addons/controls/OrbitControls.js';import{GLTFLoader}from'three/addons/loaders/GLTFLoader.js';import{GLTFExporter}from'three/addons/exporters/GLTFExporter.js';
 const $=id=>document.getElementById(id),deg=Math.PI/180,rad=180/Math.PI;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0xffffff);const camera=new THREE.PerspectiveCamera(42,1,.1,100);camera.position.set(5,-8,4.8);camera.up.set(0,0,1);const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=true;$('viewer').prepend(renderer.domElement);const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,1.5,0);controls.enableDamping=true;scene.add(new THREE.HemisphereLight(0xffffff,0x73818a,2));const light=new THREE.DirectionalLight(0xffffff,2.5);light.position.set(5,-5,8);scene.add(light);const grid=new THREE.GridHelper(12,24,0xb7c7cd,0xe4ebed);grid.rotation.x=Math.PI/2;scene.add(grid);scene.add(new THREE.AxesHelper(3));
 const files={right:'./mano-derecha.glb',left:'./mano-izquierda.glb'},hands={},states={right:null,left:null};let active='right',axesHelper=null,history=[];
@@ -79,5 +80,24 @@ $('hand').onchange=e=>activate(e.target.value);$('finger').onchange=setJoints;$(
 for(const a of['x','y','z']){$('g'+a).oninput=e=>{states[active].global.rotation[{x:0,y:1,z:2}[a]]=+e.target.value;applyAll()};$('p'+a).oninput=e=>{states[active].global.position[{x:0,y:1,z:2}[a]]=+e.target.value;applyAll()}}$('scale').oninput=e=>{states[active].global.scale=+e.target.value;applyAll()};
 $('openPose').onclick=()=>preset('open');$('fistPose').onclick=()=>preset('fist');$('thumbPose').onclick=()=>preset('thumb');$('undo').onclick=()=>{if(!history.length)return;states[active]=JSON.parse(history.pop());applyAll()};$('resetPose').onclick=()=>{snapshot();states[active]=emptyState();applyAll()};$('resetView').onclick=()=>{camera.position.set(5,-8,4.8);controls.target.set(0,1.5,0);controls.update()};
 $('generate').onclick=()=>{$('json').value=JSON.stringify(exportState(),null,2);$('status').textContent='Configuración generada.'};$('apply').onclick=()=>{try{const x=JSON.parse($('json').value);snapshot();if(x.hand&&x.hand!==active){$('hand').value=x.hand;activate(x.hand)}states[active].bones=x.bones||{};states[active].global=x.global||emptyState().global;applyAll();$('status').textContent='Configuración aplicada.'}catch(e){$('status').textContent='El JSON no es válido.'}};$('download').onclick=()=>{const data=JSON.stringify(exportState(),null,2),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=`postura-${active==='right'?'mano-derecha':'mano-izquierda'}.json`;a.click();URL.revokeObjectURL(a.href);$('json').value=data};
+$('downloadGlb').onclick=()=>{
+  const data=modelData();if(!data)return;
+  $('status').textContent='Preparando el modelo 3D…';
+  // El gizmo de ejes es una ayuda del editor y no debe formar parte del GLB.
+  const selectedBone=axesHelper?.parent||null;
+  if(selectedBone&&axesHelper)selectedBone.remove(axesHelper);
+  data.root.updateMatrixWorld(true);
+  new GLTFExporter().parse(data.root,result=>{
+    const blob=new Blob([result],{type:'model/gltf-binary'}),a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=active==='right'?'mano-derecha-postura.glb':'mano-izquierda-postura.glb';
+    a.click();URL.revokeObjectURL(a.href);
+    if(selectedBone&&axesHelper)selectedBone.add(axesHelper);
+    $('status').textContent='Modelo GLB descargado con la postura actual.';
+  },error=>{
+    if(selectedBone&&axesHelper)selectedBone.add(axesHelper);
+    $('status').textContent='No se pudo generar el modelo GLB.';console.error(error);
+  },{binary:true,trs:true,onlyVisible:true,animations:[]});
+};
 function resize(){const v=$('viewer'),w=v.clientWidth,h=v.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)}new ResizeObserver(resize).observe($('viewer'));resize();(function loop(){controls.update();renderer.render(scene,camera);requestAnimationFrame(loop)})();
 </script></body></html>
