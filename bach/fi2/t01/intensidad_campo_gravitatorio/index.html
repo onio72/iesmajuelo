@@ -30,7 +30,7 @@ footer{text-align:center;font-size:12px;color:#62768b;padding:12px}
 <div class="control"><label for="distance">Distancia r <output id="distanceout"></output></label><input id="distance" type="range" min="1" max="9" step="0.1" value="5"></div>
 <div class="control"><label for="angle">Ángulo θ respecto a +X <output id="angleout"></output></label><input id="angle" type="range" min="0" max="359" step="1" value="35"></div><small>También puedes arrastrar la masa amarilla en el plano. La escala espacial es ilustrativa.</small></section>
 <section class="panel section"><h2>3. Vectores visibles</h2><div class="buttons"><button id="force" aria-pressed="true">Fuerza F</button><button id="field" aria-pressed="true">Campo g</button><button id="reset">Reiniciar</button></div>
-<p style="font-size:12px;color:#617185;margin-bottom:0">Los dos vectores nacen en m₂ y apuntan hacia M₁. La longitud de las flechas se normaliza para su lectura: no es una escala absoluta de N o N/kg.</p></section>
+<p style="font-size:12px;color:#617185;margin-bottom:0">Los dos vectores nacen en m₂ y apuntan hacia M₁. La longitud visual de ambas flechas disminuye al aumentar r y aumenta al disminuir r. Se usa una escala didáctica no lineal para que el efecto se aprecie; los cálculos siguen exactamente la ley 1/r².</p></section>
 <section class="panel section wide"><h2>Valores calculados</h2><div class="values">
 <div class="value"><small>Distancia</small><strong id="rvalue"></strong></div><div class="value"><small>Orientación</small><strong id="thetavalue"></strong></div>
 <div class="value"><small>Fuerza |F|</small><strong id="fvalue"></strong></div><div class="value"><small>Intensidad |g|</small><strong id="gvalue"></strong></div>
@@ -72,9 +72,14 @@ for(let j=-yMax;j<=yMax;j++){if(j&&j%2===0&&cy-j*scale>12&&cy-j*scale<h-10)ctx.f
 const p=pos(),px=cx+p.x*scale,py=cy-p.y*scale;
 ctx.setLineDash([6,5]);ctx.lineWidth=1.5;ctx.strokeStyle='#97a9bd';ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(px,py);ctx.stroke();ctx.setLineDash([]);
 let a=Math.atan2(cy-py,cx-px),vx=Math.cos(a),vy=Math.sin(a);
-const L=Math.max(28,Math.min(115,state.m*23+25)); 
+// Escala visual didáctica: referencia fija en r=1 m y decaimiento inverso cuadrático.
+const strength=1/(state.r*state.r);
+const scaleLen=Math.min(155,Math.max(36,Math.min(w,h)*0.29));
+const visibleLength=value=>Math.max(4,scaleLen*Math.sqrt(value)); // raíz solo en la representación visual para hacer perceptibles los valores pequeños
+const L=visibleLength(strength*state.m); 
+const Lg=visibleLength(strength); 
 // Flechas desplazadas perpendicularmente para mantener visibles ambos vectores.
-if(state.F&&state.g){arrow(px,py,vx*L,vy*L,'#e05655','F',-6);arrow(px,py,vx*76,vy*76,'#1673dc','g',6)}
+if(state.F&&state.g){arrow(px,py,vx*L,vy*L,'#e05655','F',-6);arrow(px,py,vx*Lg,vy*Lg,'#1673dc','g',6)}
 else if(state.F)arrow(px,py,vx*L,vy*L,'#e05655','F',0);
 else if(state.g)arrow(px,py,vx*76,vy*76,'#1673dc','g',0);
 ctx.fillStyle='#283a4c';ctx.beginPath();ctx.arc(cx,cy,15,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillText('M₁',cx,cy+5);ctx.textAlign='left';
