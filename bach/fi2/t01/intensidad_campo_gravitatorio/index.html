@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intensidad del campo gravitatorio | Física 2.º Bachillerato</title>
+<style>
+:root{color-scheme:light;--ink:#142638;--blue:#1673dc;--red:#e05655;--green:#178a70;--bg:#f3f6fb;--line:#dce5ef}
+*{box-sizing:border-box}body{margin:0;font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:#12293e;color:white;padding:15px 22px}header h1{font-size:clamp(19px,2vw,27px);margin:0}header p{margin:3px 0 0;color:#c9dce9}
+main{padding:14px;max-width:1620px;margin:auto}.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(285px,345px);gap:14px;align-items:start}
+.panel{background:white;border:1px solid var(--line);border-radius:14px;box-shadow:0 3px 16px #233c5510;overflow:hidden}.plotHead{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--line)}.plotHead strong{font-size:17px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+canvas{display:block;width:100%;height:min(65vh,690px);min-height:360px;touch-action:none;cursor:crosshair}
+.side{display:grid;gap:12px}.section{padding:16px}.section h2{font-size:16px;margin:0 0 12px}.control{margin:0 0 15px}.control:last-child{margin-bottom:0}.control label{display:flex;justify-content:space-between;gap:10px;font-weight:600;margin-bottom:4px}.control output{color:#175f9b;font-variant-numeric:tabular-nums}input[type=range]{width:100%;accent-color:#1c79c3}
+.buttons{display:flex;gap:8px;flex-wrap:wrap}button{background:#eef5fc;border:1px solid #c6dced;color:#16456d;border-radius:9px;padding:9px 12px;font-weight:650;cursor:pointer}button[aria-pressed=true]{background:#1673dc;color:white}.values{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.value{background:#f2f6fb;border-radius:9px;padding:9px;min-width:0}.value small{display:block;color:#526777}.value strong{display:block;font-size:16px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.note{background:#edf8f4;border-left:4px solid var(--green);padding:11px 13px;border-radius:7px;font-size:14px}
+.formula{font-size:15px;line-height:1.8}.formula b{font-family:Georgia,serif;font-weight:600}
+footer{text-align:center;font-size:12px;color:#62768b;padding:12px}
+@media(max-width:850px){.layout{grid-template-columns:1fr}canvas{height:48vh;min-height:325px}.side{grid-template-columns:repeat(2,minmax(0,1fr))}.side .wide{grid-column:1/-1}}
+@media(max-width:560px){.side{grid-template-columns:1fr}.side .wide{grid-column:auto}.values{grid-template-columns:1fr 1fr}header{padding:12px}}
+</style></head><body>
+<header><h1>Intensidad del campo gravitatorio</h1><p>¿Por qué el campo no depende de la masa testigo?</p></header>
+<main><div class="layout">
+<section class="panel"><div class="plotHead"><strong>Plano XY · masas puntuales</strong><div class="legend"><span><i class="dot" style="background:#27384c"></i>M₁ creadora</span><span><i class="dot" style="background:#e5a12b"></i>m₂ testigo</span><span><i class="dot" style="background:var(--red)"></i>F</span><span><i class="dot" style="background:var(--blue)"></i>g</span></div></div>
+<canvas id="plane" role="img" aria-label="Plano cartesiano interactivo con la masa creadora en el origen, la masa testigo arrastrable y los vectores gravitatorios"></canvas></section>
+<aside class="side">
+<section class="panel section"><h2>1. Modifica las masas</h2>
+<div class="control"><label for="mass1">M₁ · masa creadora <output id="mass1out"></output></label><input id="mass1" type="range" min="1" max="20" step="1" value="8"></div>
+<div class="control"><label for="mass2">m₂ · masa testigo <output id="mass2out"></output></label><input id="mass2" type="range" min="1" max="10" step="0.5" value="1"></div></section>
+<section class="panel section"><h2>2. Cambia la posición de m₂</h2>
+<div class="control"><label for="distance">Distancia r <output id="distanceout"></output></label><input id="distance" type="range" min="1" max="9" step="0.1" value="5"></div>
+<div class="control"><label for="angle">Ángulo θ respecto a +X <output id="angleout"></output></label><input id="angle" type="range" min="0" max="359" step="1" value="35"></div><small>También puedes arrastrar la masa amarilla en el plano. La escala espacial es ilustrativa.</small></section>
+<section class="panel section"><h2>3. Vectores visibles</h2><div class="buttons"><button id="force" aria-pressed="true">Fuerza F</button><button id="field" aria-pressed="true">Campo g</button><button id="reset">Reiniciar</button></div>
+<p style="font-size:12px;color:#617185;margin-bottom:0">Los dos vectores nacen en m₂ y apuntan hacia M₁. La longitud de las flechas se normaliza para su lectura: no es una escala absoluta de N o N/kg.</p></section>
+<section class="panel section wide"><h2>Valores calculados</h2><div class="values">
+<div class="value"><small>Distancia</small><strong id="rvalue"></strong></div><div class="value"><small>Orientación</small><strong id="thetavalue"></strong></div>
+<div class="value"><small>Fuerza |F|</small><strong id="fvalue"></strong></div><div class="value"><small>Intensidad |g|</small><strong id="gvalue"></strong></div>
+<div class="value"><small>Componentes Fₓ, Fᵧ</small><strong id="fxy"></strong></div><div class="value"><small>Componentes gₓ, gᵧ</small><strong id="gxy"></strong></div></div>
+<p class="formula"><b>|F| = G·M₁·m₂/r²</b><br><b>|g| = |F|/m₂ = G·M₁/r²</b></p>
+<div class="note" id="insight" aria-live="polite"></div><p style="font-size:12px;color:#617185;margin-bottom:0">Constante G = 6,67430 · 10⁻¹¹ N·m²/kg². Se utilizan masas y distancias educativas; las intensidades resultantes son muy pequeñas.</p></section>
+</aside></div></main><footer>IES El Majuelo · Física de 2.º de Bachillerato · Interacción gravitatoria</footer>
+<script>
+(()=>{'use strict';
+const G=6.67430e-11, $=id=>document.getElementById(id);
+const c=$('plane'),ctx=c.getContext('2d');
+const state={M:8,m:1,r:5,theta:35,F:true,g:true};
+const fmt=v=>v.toLocaleString('es-ES',{maximumFractionDigits:2});
+const sci=v=>v.toExponential(3).replace('e-',' · 10⁻').replace('e+',' · 10⁺').replace(/[0-9]/g,d=>d); 
+function scientific(v){if(v===0)return '0';const exp=Math.floor(Math.log10(Math.abs(v)));return (v/Math.pow(10,exp)).toLocaleString('es-ES',{maximumFractionDigits:3})+' · 10'+sup(exp);}
+function sup(n){let s=String(n);return [...s].map(ch=>({'-':'⁻','+':'⁺','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'})[ch]||ch).join('')}
+function pos(){let a=state.theta*Math.PI/180;return {x:state.r*Math.cos(a),y:state.r*Math.sin(a)}}
+function update(){
+$('mass1out').textContent=fmt(state.M)+' kg';$('mass2out').textContent=fmt(state.m)+' kg';
+$('distanceout').textContent=fmt(state.r)+' m';$('angleout').textContent=state.theta+'°';
+for(const [id,val] of [['mass1',state.M],['mass2',state.m],['distance',state.r],['angle',state.theta]])$(id).value=val;
+let g=G*state.M/(state.r**2),f=g*state.m,rad=state.theta*Math.PI/180;
+$('rvalue').textContent=fmt(state.r)+' m';$('thetavalue').textContent=state.theta+'°';
+$('fvalue').textContent=scientific(f)+' N';$('gvalue').textContent=scientific(g)+' N/kg';
+$('fxy').textContent='('+scientific(-f*Math.cos(rad))+'; '+scientific(-f*Math.sin(rad))+') N';
+$('gxy').textContent='('+scientific(-g*Math.cos(rad))+'; '+scientific(-g*Math.sin(rad))+') N/kg';
+$('insight').textContent=state.m===1?'Con m₂ = 1 kg, |F| y |g| tienen el mismo valor numérico, pero distintas unidades: N frente a N/kg.':'Al variar m₂ cambia |F| proporcionalmente, pero |g| permanece invariable si M₁ y r no cambian.';
+$('force').setAttribute('aria-pressed',String(state.F));$('field').setAttribute('aria-pressed',String(state.g));draw();}
+function geometry(){const w=c.clientWidth,h=c.clientHeight;return{w,h,cx:w/2,cy:h/2,scale:Math.min((w-80)/20,(h-80)/20)}}
+function arrow(x,y,dx,dy,color,label,offset){let sx=x+offset,sy=y+offset,tx=sx+dx,ty=sy+dy,a=Math.atan2(dy,dx);ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=3.5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(tx,ty);ctx.stroke();ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(tx-12*Math.cos(a-.42),ty-12*Math.sin(a-.42));ctx.lineTo(tx-12*Math.cos(a+.42),ty-12*Math.sin(a+.42));ctx.closePath();ctx.fill();ctx.font='bold 16px system-ui';ctx.fillText(label,tx+11*Math.cos(a+1.6),ty+11*Math.sin(a+1.6));}
+function draw(){const dpr=Math.min(devicePixelRatio||1,2),{w,h,cx,cy,scale}=geometry();if(!w||!h)return;c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);ctx.fillStyle='#fbfdff';ctx.fillRect(0,0,w,h);
+ctx.lineWidth=1;ctx.strokeStyle='#e4ebf4';let xMax=Math.ceil(w/(2*scale)),yMax=Math.ceil(h/(2*scale));
+for(let i=-xMax;i<=xMax;i++){let x=cx+i*scale;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}
+for(let j=-yMax;j<=yMax;j++){let y=cy+j*scale;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+ctx.strokeStyle='#8397aa';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(w,cy);ctx.moveTo(cx,0);ctx.lineTo(cx,h);ctx.stroke();
+ctx.fillStyle='#556c82';ctx.font='12px system-ui';ctx.fillText('X',w-22,cy-9);ctx.fillText('Y',cx+11,17);ctx.fillText('0',cx+7,cy+15);
+for(let i=-xMax;i<=xMax;i++){if(i&&i%2===0&&cx+i*scale>18&&cx+i*scale<w-18)ctx.fillText(String(i),cx+i*scale-5,cy+15)}
+for(let j=-yMax;j<=yMax;j++){if(j&&j%2===0&&cy-j*scale>12&&cy-j*scale<h-10)ctx.fillText(String(j),cx+7,cy-j*scale+4)}
+const p=pos(),px=cx+p.x*scale,py=cy-p.y*scale;
+ctx.setLineDash([6,5]);ctx.lineWidth=1.5;ctx.strokeStyle='#97a9bd';ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(px,py);ctx.stroke();ctx.setLineDash([]);
+let a=Math.atan2(cy-py,cx-px),vx=Math.cos(a),vy=Math.sin(a);
+const L=Math.max(28,Math.min(115,state.m*23+25)); 
+// Flechas desplazadas perpendicularmente para mantener visibles ambos vectores.
+if(state.F&&state.g){arrow(px,py,vx*L,vy*L,'#e05655','F',-6);arrow(px,py,vx*76,vy*76,'#1673dc','g',6)}
+else if(state.F)arrow(px,py,vx*L,vy*L,'#e05655','F',0);
+else if(state.g)arrow(px,py,vx*76,vy*76,'#1673dc','g',0);
+ctx.fillStyle='#283a4c';ctx.beginPath();ctx.arc(cx,cy,15,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillText('M₁',cx,cy+5);ctx.textAlign='left';
+ctx.fillStyle='#e6a029';ctx.beginPath();ctx.arc(px,py,11,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#a77017';ctx.lineWidth=2;ctx.stroke();
+ctx.fillStyle='#8b5e12';ctx.font='bold 14px system-ui';let tx=px+14,ty=py-15;if(tx>w-50)tx=px-37;if(ty<20)ty=py+26;ctx.fillText('m₂',tx,ty);
+ctx.fillStyle='#617487';ctx.font='12px system-ui';ctx.fillText('r = '+fmt(state.r)+' m',Math.max(8,Math.min(w-94,(cx+px)/2+8)),Math.max(15,Math.min(h-9,(cy+py)/2-9)));}
+for(const [key,prop] of [['mass1','M'],['mass2','m'],['distance','r'],['angle','theta']])$(key).addEventListener('input',e=>{state[prop]=+e.target.value;update()});
+$('force').onclick=()=>{state.F=!state.F;update()};$('field').onclick=()=>{state.g=!state.g;update()};
+$('reset').onclick=()=>{Object.assign(state,{M:8,m:1,r:5,theta:35,F:true,g:true});update()};
+let dragging=false;
+function move(e){const rect=c.getBoundingClientRect(),{cx,cy,scale}=geometry(),x=(e.clientX-rect.left-cx)/scale,y=-(e.clientY-rect.top-cy)/scale;state.r=Math.round(Math.min(9,Math.max(1,Math.hypot(x,y)))*10)/10;state.theta=(Math.round(Math.atan2(y,x)*180/Math.PI)+360)%360;update()}
+c.addEventListener('pointerdown',e=>{const {cx,cy,scale}=geometry(),p=pos(),rect=c.getBoundingClientRect();let dx=e.clientX-rect.left-(cx+p.x*scale),dy=e.clientY-rect.top-(cy-p.y*scale);if(Math.hypot(dx,dy)<35){dragging=true;c.setPointerCapture(e.pointerId);move(e)}});
+c.addEventListener('pointermove',e=>{if(dragging)move(e)});c.addEventListener('pointerup',()=>dragging=false);c.addEventListener('pointercancel',()=>dragging=false);
+new ResizeObserver(()=>draw()).observe(c);update();
+})();
+</script></body></html>
