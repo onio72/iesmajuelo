@@ -60,32 +60,82 @@ $('gxy').textContent='('+scientific(-g*Math.cos(rad))+'; '+scientific(-g*Math.si
 $('insight').textContent=state.m===1?'Con m₂ = 1 kg, |F| y |g| tienen el mismo valor numérico, pero distintas unidades: N frente a N/kg.':'Al variar m₂ cambia |F| proporcionalmente, pero |g| permanece invariable si M₁ y r no cambian.';
 $('force').setAttribute('aria-pressed',String(state.F));$('field').setAttribute('aria-pressed',String(state.g));draw();}
 function geometry(){const w=c.clientWidth,h=c.clientHeight;return{w,h,cx:w/2,cy:h/2,scale:Math.min((w-80)/20,(h-80)/20)}}
-function arrow(x,y,dx,dy,color,label,offset){let sx=x+offset,sy=y+offset,tx=sx+dx,ty=sy+dy,a=Math.atan2(dy,dx);ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=3.5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(tx,ty);ctx.stroke();ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(tx-12*Math.cos(a-.42),ty-12*Math.sin(a-.42));ctx.lineTo(tx-12*Math.cos(a+.42),ty-12*Math.sin(a+.42));ctx.closePath();ctx.fill();ctx.font='bold 16px system-ui';ctx.fillText(label,tx+11*Math.cos(a+1.6),ty+11*Math.sin(a+1.6));}
-function draw(){const dpr=Math.min(devicePixelRatio||1,2),{w,h,cx,cy,scale}=geometry();if(!w||!h)return;c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);ctx.fillStyle='#fbfdff';ctx.fillRect(0,0,w,h);
-ctx.lineWidth=1;ctx.strokeStyle='#e4ebf4';let xMax=Math.ceil(w/(2*scale)),yMax=Math.ceil(h/(2*scale));
-for(let i=-xMax;i<=xMax;i++){let x=cx+i*scale;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}
-for(let j=-yMax;j<=yMax;j++){let y=cy+j*scale;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
-ctx.strokeStyle='#8397aa';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(w,cy);ctx.moveTo(cx,0);ctx.lineTo(cx,h);ctx.stroke();
-ctx.fillStyle='#556c82';ctx.font='12px system-ui';ctx.fillText('X',w-22,cy-9);ctx.fillText('Y',cx+11,17);ctx.fillText('0',cx+7,cy+15);
-for(let i=-xMax;i<=xMax;i++){if(i&&i%2===0&&cx+i*scale>18&&cx+i*scale<w-18)ctx.fillText(String(i),cx+i*scale-5,cy+15)}
-for(let j=-yMax;j<=yMax;j++){if(j&&j%2===0&&cy-j*scale>12&&cy-j*scale<h-10)ctx.fillText(String(j),cx+7,cy-j*scale+4)}
-const p=pos(),px=cx+p.x*scale,py=cy-p.y*scale;
-ctx.setLineDash([6,5]);ctx.lineWidth=1.5;ctx.strokeStyle='#97a9bd';ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(px,py);ctx.stroke();ctx.setLineDash([]);
-let a=Math.atan2(cy-py,cx-px),vx=Math.cos(a),vy=Math.sin(a);
-// Escala visual didáctica: referencia fija en r=1 m y decaimiento inverso cuadrático.
-const strength=1/(state.r*state.r);
-const scaleLen=Math.min(155,Math.max(36,Math.min(w,h)*0.29));
-const visibleLength=value=>Math.max(4,scaleLen*Math.sqrt(value)); // raíz solo en la representación visual para hacer perceptibles los valores pequeños
-const L=visibleLength(strength*state.m); 
-const Lg=visibleLength(strength); 
-// Flechas desplazadas perpendicularmente para mantener visibles ambos vectores.
-if(state.F&&state.g){arrow(px,py,vx*L,vy*L,'#e05655','F',-6);arrow(px,py,vx*Lg,vy*Lg,'#1673dc','g',6)}
-else if(state.F)arrow(px,py,vx*L,vy*L,'#e05655','F',0);
-else if(state.g)arrow(px,py,vx*76,vy*76,'#1673dc','g',0);
-ctx.fillStyle='#283a4c';ctx.beginPath();ctx.arc(cx,cy,15,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillText('M₁',cx,cy+5);ctx.textAlign='left';
-ctx.fillStyle='#e6a029';ctx.beginPath();ctx.arc(px,py,11,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#a77017';ctx.lineWidth=2;ctx.stroke();
-ctx.fillStyle='#8b5e12';ctx.font='bold 14px system-ui';let tx=px+14,ty=py-15;if(tx>w-50)tx=px-37;if(ty<20)ty=py+26;ctx.fillText('m₂',tx,ty);
-ctx.fillStyle='#617487';ctx.font='12px system-ui';ctx.fillText('r = '+fmt(state.r)+' m',Math.max(8,Math.min(w-94,(cx+px)/2+8)),Math.max(15,Math.min(h-9,(cy+py)/2-9)));}
+// Cada vector se dibuja con un segmento que TERMINA antes de la punta triangular.
+const occupied=[];
+function addSegmentObstacle(x1,y1,x2,y2,pad=9){occupied.push({x:Math.min(x1,x2)-pad,y:Math.min(y1,y2)-pad,w:Math.abs(x2-x1)+2*pad,h:Math.abs(y2-y1)+2*pad})}
+function overlap(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
+function placeLabel(label,x,y,opts={}){
+ ctx.font=opts.font||'bold 14px system-ui';ctx.textAlign='left';
+ const width=ctx.measureText(label).width+8, height=22;
+ const directions=opts.directions||[[12,-18],[12,25],[-width-12,-18],[-width-12,25],[18,-35],[-width-18,43],[26,5],[-width-24,5]];
+ let best=null,score=Infinity;
+ for(const [ox,oy] of directions){
+  const rect={x:x+ox-4,y:y+oy-17,w:width,h:height};
+  if(rect.x<3||rect.y<3||rect.x+rect.w>c.clientWidth-3||rect.y+rect.h>c.clientHeight-3)continue;
+  const hits=occupied.reduce((n,item)=>n+(overlap(rect,item)?1:0),0);
+  const cost=hits*1000+Math.hypot(ox,oy);
+  if(cost<score){score=cost;best={rect,px:x+ox,py:y+oy}}
+ }
+ if(!best)return;
+ ctx.fillStyle=opts.color||'#263b52';ctx.fillText(label,best.px,best.py);
+ occupied.push(best.rect);
+}
+function arrow(x,y,dx,dy,color,label,side,radius){
+ const length=Math.hypot(dx,dy);if(length<1)return;
+ const ux=dx/length,uy=dy/length,nx=-uy,ny=ux;
+ const shift=side*7;
+ const sx=x+nx*shift+ux*(radius+4),sy=y+ny*shift+uy*(radius+4);
+ const visualLength=Math.max(17,length);
+ const tipX=sx+ux*visualLength,tipY=sy+uy*visualLength;
+ const headLen=Math.min(13,visualLength*.42),halfWidth=6.5;
+ const bx=tipX-ux*headLen,by=tipY-uy*headLen;
+ // Trazo solo hasta la BASE de la cabeza, sin superposición.
+ ctx.lineWidth=3.5;ctx.lineCap='butt';ctx.strokeStyle=color;
+ ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(bx,by);ctx.stroke();
+ ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(tipX,tipY);
+ ctx.lineTo(bx+nx*halfWidth,by+ny*halfWidth);
+ ctx.lineTo(bx-nx*halfWidth,by-ny*halfWidth);ctx.closePath();ctx.fill();
+ addSegmentObstacle(sx,sy,tipX,tipY,7);
+ placeLabel(label,tipX,tipY,{color,font:'bold 16px system-ui',
+ directions:[[nx*15+8,ny*15-6],[-nx*15-14,-ny*15-6],[12,-20],[-27,-20],[12,30],[-27,30]]});
+}
+function draw(){
+ const dpr=Math.min(devicePixelRatio||1,2),{w,h,cx,cy,scale}=geometry();
+ if(!w||!h)return;
+ occupied.length=0;c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);
+ ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+ ctx.fillStyle='#fbfdff';ctx.fillRect(0,0,w,h);
+ ctx.lineWidth=1;ctx.strokeStyle='#e4ebf4';
+ const xMax=Math.ceil(w/(2*scale)),yMax=Math.ceil(h/(2*scale));
+ for(let i=-xMax;i<=xMax;i++){const x=cx+i*scale;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}
+ for(let j=-yMax;j<=yMax;j++){const y=cy+j*scale;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+ ctx.strokeStyle='#8397aa';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(w,cy);ctx.moveTo(cx,0);ctx.lineTo(cx,h);ctx.stroke();
+ ctx.fillStyle='#556c82';ctx.font='12px system-ui';ctx.textAlign='left';
+ ctx.fillText('X',w-22,cy-9);ctx.fillText('Y',cx+11,17);
+ for(let i=-xMax;i<=xMax;i++){if(i&&i%2===0&&cx+i*scale>18&&cx+i*scale<w-18)ctx.fillText(String(i),cx+i*scale-5,cy+15)}
+ for(let j=-yMax;j<=yMax;j++){if(j&&j%2===0&&cy-j*scale>12&&cy-j*scale<h-10)ctx.fillText(String(j),cx+7,cy-j*scale+4)}
+ const p=pos(),px=cx+p.x*scale,py=cy-p.y*scale;
+ const massRadius=10+5*(state.M-1)/19,testRadius=8+5*(state.m-1)/9;
+ ctx.setLineDash([6,5]);ctx.lineWidth=1.4;ctx.strokeStyle='#aab9c9';ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(px,py);ctx.stroke();ctx.setLineDash([]);
+ const vx=(cx-px)/Math.hypot(cx-px,cy-py),vy=(cy-py)/Math.hypot(cx-px,cy-py);
+ const strength=1/state.r**2;
+ const scaleLen=Math.min(155,Math.max(45,Math.min(w,h)*.35));
+ const visibleLength=value=>Math.max(17,scaleLen*Math.sqrt(value));
+ const L=visibleLength(strength*state.m),Lg=visibleLength(strength);
+ // Objetos ocupados: nunca situar etiquetas sobre las masas.
+ occupied.push({x:cx-massRadius-4,y:cy-massRadius-4,w:2*massRadius+8,h:2*massRadius+8});
+ occupied.push({x:px-testRadius-5,y:py-testRadius-5,w:2*testRadius+10,h:2*testRadius+10});
+ // Separación perpendicular simétrica de ambos vectores.
+ if(state.F)arrow(px,py,vx*L,vy*L,'#e05655','F',state.g?-1:0,testRadius);
+ if(state.g)arrow(px,py,vx*Lg,vy*Lg,'#1673dc','g',state.F?1:0,testRadius);
+ ctx.fillStyle='#283a4c';ctx.beginPath();ctx.arc(cx,cy,massRadius,0,2*Math.PI);ctx.fill();
+ ctx.fillStyle='#fff';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillText('M₁',cx,cy+5);ctx.textAlign='left';
+ ctx.fillStyle='#e6a029';ctx.beginPath();ctx.arc(px,py,testRadius,0,2*Math.PI);ctx.fill();ctx.strokeStyle='#a77017';ctx.lineWidth=2;ctx.stroke();
+ placeLabel('m₂',px,py,{color:'#8b5e12'});
+ const midX=(cx+px)/2,midY=(cy+py)/2;
+ placeLabel('r = '+fmt(state.r)+' m',midX,midY,{font:'12px system-ui',color:'#617487',
+ directions:[[12,-17],[-95,25],[12,27],[-95,-17],[24,-32],[-110,40]]});
+}
 for(const [key,prop] of [['mass1','M'],['mass2','m'],['distance','r'],['angle','theta']])$(key).addEventListener('input',e=>{state[prop]=+e.target.value;update()});
 $('force').onclick=()=>{state.F=!state.F;update()};$('field').onclick=()=>{state.g=!state.g;update()};
 $('reset').onclick=()=>{Object.assign(state,{M:8,m:1,r:5,theta:35,F:true,g:true});update()};
