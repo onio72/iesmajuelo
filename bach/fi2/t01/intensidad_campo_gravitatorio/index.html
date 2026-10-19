@@ -115,7 +115,8 @@ function draw(){
  for(let i=-xMax;i<=xMax;i++){if(i&&i%2===0&&cx+i*scale>18&&cx+i*scale<w-18)ctx.fillText(String(i),cx+i*scale-5,cy+15)}
  for(let j=-yMax;j<=yMax;j++){if(j&&j%2===0&&cy-j*scale>12&&cy-j*scale<h-10)ctx.fillText(String(j),cx+7,cy-j*scale+4)}
  const p=pos(),px=cx+p.x*scale,py=cy-p.y*scale;
- const massRadius=10+5*(state.M-1)/19,testRadius=8+5*(state.m-1)/9;
+ const radiusForMass=mass=>8+7*Math.sqrt((mass-1)/19);
+ const massRadius=radiusForMass(state.M),testRadius=radiusForMass(state.m);
  ctx.setLineDash([6,5]);ctx.lineWidth=1.4;ctx.strokeStyle='#aab9c9';ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(px,py);ctx.stroke();ctx.setLineDash([]);
  const vx=(cx-px)/Math.hypot(cx-px,cy-py),vy=(cy-py)/Math.hypot(cx-px,cy-py);
  const strength=1/state.r**2;
