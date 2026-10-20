@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Misión Satélites: Análisis Proporcional</title>
+    <title>Tema 1: Interacción gravitatoria. Control de variables (II)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -41,7 +41,7 @@
     <!-- Header -->
     <header class="w-full max-w-3xl flex justify-between items-center mb-6 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
         <div>
-            <h1 class="text-2xl font-black text-blue-900 tracking-tight">Física de Satélites</h1>
+            <h1 class="text-2xl font-black text-blue-900 tracking-tight">Tema 1: Interacción gravitatoria. Control de variables (II)</h1>
             <div id="level-badge" class="inline-block px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded mt-1 uppercase">Nivel 1: Cadete</div>
 <div style="margin-top:12px"><button id="calc-open-header" type="button" style="display:inline-block;background:#1d588d;color:white;border:0;border-radius:10px;padding:11px 17px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px #10283d33">▦ Abrir calculadora científica</button></div>
         </div>
@@ -71,6 +71,8 @@
                         Sincronizando telemetría...
                     </p>
                 </div>
+
+                <div id="answer-feedback" class="hidden mt-4 p-4 rounded-xl font-bold" role="status" aria-live="polite"></div>
 
                 <!-- Options -->
                 <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-10">
@@ -222,6 +224,7 @@
             nextQuestion() {
                 this.isAnswering = true;
                 document.getElementById('explanation-card').classList.add('hidden');
+                document.getElementById('answer-feedback').classList.add('hidden');
                 
                 const magKeys = Object.keys(TEMPLATES);
                 const magKey = magKeys[Math.floor(Math.random() * magKeys.length)];
@@ -261,19 +264,20 @@
                 document.getElementById('topic-tag').innerText = q.template.label;
                 document.getElementById('diff-tag').innerText = "Análisis de " + Object.values(q.changes).filter(c => c.val !== 1).length + " variable(s)";
                 
-                const initStyle = `<span class="text-blue-600 font-bold italic">configuración inicial</span>`;
-                const modStyle = `<span class="text-red-600 font-bold italic">nueva configuración</span>`;
-                
-                let text = "Un satélite se encuentra en una " + initStyle + " con magnitud $" + q.template.symbol + "$. Consideremos ahora una " + modStyle + " en la que: ";
-                
-                const changeStrings = [];
-                for (let v in q.changes) {
-                    if (q.changes[v].val !== 1) {
-                        changeStrings.push("la <b>" + q.template.vars[v] + "</b> " + q.changes[v].text);
-                    }
-                }
-                text += changeStrings.join(' y ') + ".";
-                text += "<br><br>¿Cuál será el valor de la magnitud resultante bajo estas nuevas condiciones?";
+                const descriptions = {
+                    vesc: ['La velocidad de escape de un planeta tiene un determinado valor.', '¿cómo varía la velocidad de escape?'],
+                    vorb: ['La velocidad orbital de un satélite tiene un determinado valor.', '¿cómo varía la velocidad orbital?'],
+                    T: ['El periodo orbital de un satélite tiene un determinado valor.', '¿cómo varía el periodo orbital?'],
+                    Ec: ['La energía cinética de un satélite tiene un determinado valor.', '¿cómo varía su energía cinética?'],
+                    Ep: ['La energía potencial gravitatoria de un satélite tiene un determinado valor.', '¿cómo varía su energía potencial gravitatoria?'],
+                    Em: ['La energía mecánica de un satélite tiene un determinado valor.', '¿cómo varía su energía mecánica?']
+                };
+                const changes = Object.keys(q.changes)
+                    .filter(v => q.changes[v].val !== 1)
+                    .map(v => 'la <b>' + q.template.vars[v] + '</b> ' + q.changes[v].text);
+                const clauses = changes.length === 1 ? changes[0]
+                    : changes.slice(0, -1).join(', ') + ' y ' + changes[changes.length - 1];
+                const text = descriptions[q.magKey][0] + ' Si ' + clauses + ', ' + descriptions[q.magKey][1];
 
                 document.getElementById('question-text').innerHTML = text;
                 
@@ -354,6 +358,9 @@
                     });
                 }
 
+                const feedback = document.getElementById('answer-feedback');
+                feedback.className = isCorrect ? 'mt-4 p-4 rounded-xl font-bold bg-emerald-50 text-emerald-800' : 'mt-4 p-4 rounded-xl font-bold bg-red-50 text-red-800';
+                feedback.textContent = isCorrect ? 'Respuesta correcta (+1 punto)' : 'Respuesta incorrecta (-0,5 puntos). La respuesta correcta está señalada en verde.';
                 this.updateUI();
                 this.showExplanation();
             }
@@ -437,9 +444,7 @@
                 document.getElementById('explanation-card').classList.remove('hidden');
                 this.typeset();
                 
-                setTimeout(() => {
-                    document.getElementById('explanation-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 100);
+                // Mantener visible el enunciado y la corrección; no desplazar la página.
             }
 
             typeset() {
