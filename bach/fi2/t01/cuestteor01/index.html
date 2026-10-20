@@ -72,6 +72,8 @@
                     </p>
                 </div>
 
+                <div id="answer-feedback" class="hidden mt-4 p-4 rounded-xl font-bold" role="status" aria-live="polite"></div>
+
                 <!-- Options -->
                 <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-10">
                     <!-- Inyectado por JS -->
@@ -189,6 +191,7 @@
             nextQuestion() {
                 this.isAnswering = true;
                 document.getElementById('explanation-card').classList.add('hidden');
+                document.getElementById('answer-feedback').classList.add('hidden');
                 
                 const magKeys = Object.keys(TEMPLATES);
                 const magKey = magKeys[Math.floor(Math.random() * magKeys.length)];
@@ -299,6 +302,9 @@
                     btn.classList.add('bg-red-50');
                 }
 
+                const feedback = document.getElementById('answer-feedback');
+                feedback.className = isCorrect ? 'mt-4 p-4 rounded-xl font-bold bg-emerald-50 text-emerald-800' : 'mt-4 p-4 rounded-xl font-bold bg-red-50 text-red-800';
+                feedback.textContent = isCorrect ? 'Respuesta correcta (+1 punto)' : 'Respuesta incorrecta (-0,5 puntos). Consulta la deducción a continuación.';
                 this.updateUI();
                 this.showExplanation();
             }
@@ -383,9 +389,7 @@
                 document.getElementById('explanation-card').classList.remove('hidden');
                 this.typeset();
                 
-                setTimeout(() => {
-                    document.getElementById('explanation-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 100);
+                // Se conserva la posición del scroll para que el alumno vea su respuesta.
             }
 
             typeset() {
