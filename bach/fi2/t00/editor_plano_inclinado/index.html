@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Editor de fuerzas · Plano inclinado</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#16243a;background:#f3f6fb}*{box-sizing:border-box}
+body{margin:0}.wrap{max-width:1240px;margin:auto;padding:20px}h1{font-size:1.5rem;margin:0 0 4px}p{color:#64748b;margin:0 0 18px}
+.layout{display:grid;grid-template-columns:295px minmax(0,1fr);gap:16px}.panel,.stage{background:white;border:1px solid #dbe3ee;border-radius:15px;padding:18px;box-shadow:0 4px 20px #19314a0c}
+label{display:block;font-size:.9rem;font-weight:650;margin:14px 0 5px}.line{display:flex;justify-content:space-between;align-items:center}input[type=range]{width:100%;accent-color:#2563eb}
+button{border:1px solid #cbd5e1;background:#fff;border-radius:9px;padding:10px 12px;font-weight:650;color:#24344b;cursor:pointer}button:hover{background:#f1f5f9}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:7px}.btns button.active{background:#dbeafe;border-color:#2563eb;color:#1d4ed8}
+.actions{display:grid;gap:9px;margin-top:22px}.primary{background:#2563eb;color:white;border-color:#2563eb}.primary:hover{background:#1d4ed8}
+svg{display:block;width:100%;height:auto;touch-action:none;user-select:none;background:#fff;border:1px solid #edf2f7;border-radius:9px}
+small{display:block;line-height:1.45;color:#64748b;margin:14px 0}.checks{display:grid;gap:8px;margin-top:12px}.checks label{margin:0;font-weight:500;display:flex;gap:8px;align-items:center}
+.scene-note{color:#64748b;margin:0 0 10px;font-size:.9rem}.footer{text-align:right;margin-top:9px;color:#94a3b8;font-size:.77rem}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.wrap{padding:12px}}
+</style></head><body><div class="wrap"><h1>Editor de diagramas de fuerzas · Plano inclinado</h1><p>Física 2.º Bachillerato · Tema 0 · Crea, ajusta y exporta tu esquema.</p>
+<div class="layout"><aside class="panel">
+<div class="line"><label for="angle">Inclinación</label><b id="angleVal">30°</b></div><input id="angle" type="range" min="10" max="60" step="1" value="30">
+<div class="line"><label for="size">Tamaño del bloque</label><b id="sizeVal">Mediano</b></div><input id="size" type="range" min="38" max="82" step="2" value="58">
+<div class="line"><label for="length">Longitud de los vectores</label><b id="lengthVal">100 %</b></div><input id="length" type="range" min="50" max="160" step="5" value="100">
+<label>Selecciona una fuerza para añadirla o editarla</label><div class="btns" id="forceButtons"></div>
+<div class="checks"><label><input type="checkbox" id="axes"> Mostrar ejes paralelo y normal</label><label><input type="checkbox" id="showAngle" checked> Mostrar ángulo de inclinación</label><label><input type="checkbox" id="names" checked> Mostrar etiquetas de fuerzas</label></div>
+<div class="actions"><button id="reset">Restablecer vectores</button><button id="clear">Quitar todas las fuerzas</button><button class="primary" id="save">↓ Descargar esquema JPG</button></div>
+<small>Pulsa un botón de fuerza para mostrarla. Arrastra la punta de cualquier vector para cambiar su dirección y longitud; vuelve a pulsar su botón para quitarla. La imagen JPG contiene solo el plano, el bloque, los vectores y sus etiquetas, sin controles.</small>
+</aside><section class="stage"><div class="scene-note">Área de dibujo · Arrastra las puntas de flecha para orientar los vectores.</div>
+<svg xmlns="http://www.w3.org/2000/svg" id="scene" viewBox="0 0 900 570" aria-label="Diagrama editable de plano inclinado"></svg>
+<div class="footer">Editor didáctico · Esquema no necesariamente a escala</div></section></div></div>
+<script>
+(()=>{'use strict';
+const NS='http://www.w3.org/2000/svg', svg=document.getElementById('scene');
+const items=[
+{id:'P',label:'Peso P',color:'#dc2626',ang:90},
+{id:'N',label:'Normal N',color:'#2563eb',ang:-60},
+{id:'Fr',label:'Rozamiento Fr',color:'#d97706',ang:150},
+{id:'T',label:'Tensión T',color:'#16a34a',ang:-30},
+{id:'Px',label:'Componente P∥',color:'#9333ea',ang:150},
+{id:'Py',label:'Componente P⊥',color:'#0891b2',ang:30}
+];
+const forces=new Map();let theta=30,block=58,scale=1,selected=null,drag=null;
+const by=id=>document.getElementById(id);
+function elt(type,attr,parent=svg){const e=document.createElementNS(NS,type);Object.entries(attr||{}).forEach(([k,v])=>e.setAttribute(k,String(v)));parent.append(e);return e;}
+function label(x,y,t,opts={}){const a=elt('text',{x,y,'font-family':'Arial, sans-serif','font-size':opts.size||21,'font-weight':opts.weight||600,fill:opts.color||'#334155','text-anchor':opts.anchor||'middle','paint-order':'stroke',stroke:'#fff','stroke-width':4,'stroke-linejoin':'round'});a.textContent=t;return a;}
+function rad(d){return d*Math.PI/180}
+function geometry(){const a=rad(theta),base={x:165,y:475},L=610,dx=Math.cos(a),dy=-Math.sin(a);let center={x:base.x+L*.52*dx,y:base.y+L*.52*dy};const normal={x:-Math.sin(a),y:-Math.cos(a)};center={x:center.x+normal.x*block*.52,y:center.y+normal.y*block*.52};return {base,L,dx,dy,center,normal,a}}
+function render(){
+svg.replaceChildren();const g=geometry(),{base,L,dx,dy,center,normal,a}=g;
+elt('polygon',{points:`${base.x},${base.y} ${base.x+L*dx},${base.y+L*dy} ${base.x+L*dx},${base.y}`,fill:'#e7ebf1',stroke:'#718096','stroke-width':2.4,'stroke-linejoin':'round'});
+elt('line',{x1:base.x-34,y1:base.y,x2:base.x+L*dx+48,y2:base.y,stroke:'#475569','stroke-width':2.6});
+const grp=elt('g',{transform:`translate(${center.x} ${center.y}) rotate(${-theta})`});
+elt('rect',{x:-block/2,y:-block/2,width:block,height:block,rx:4,fill:'#a8c6e8',stroke:'#264d7b','stroke-width':2.8},grp);
+elt('circle',{cx:0,cy:0,r:3.5,fill:'#273f5c'},grp);
+if(by('showAngle').checked){const R=76;elt('path',{d:`M ${base.x+R} ${base.y} A ${R} ${R} 0 0 0 ${base.x+R*dx} ${base.y-R*Math.sin(a)}`,fill:'none',stroke:'#475569','stroke-width':2});label(base.x+105*Math.cos(a/2),base.y-105*Math.sin(a/2)+5,theta+'°',{size:20});}
+if(by('axes').checked){const u={x:dx,y:dy},n=normal;for(const [v,t] of [[u,'x'],[n,'y']]){elt('line',{x1:center.x,y1:center.y,x2:center.x+v.x*130,y2:center.y+v.y*130,stroke:'#94a3b8','stroke-width':1.8,'stroke-dasharray':'7 6'});label(center.x+v.x*151,center.y+v.y*151,t,{size:18,color:'#64748b'});}}
+for(const it of items){const f=forces.get(it.id);if(!f)continue;const e=rad(f.angle),len=f.len*scale;const x=center.x+Math.cos(e)*len,y=center.y+Math.sin(e)*len;
+elt('line',{x1:center.x,y1:center.y,x2:x,y2:y,stroke:it.color,'stroke-width':4.2,'stroke-linecap':'round'});
+const ux=Math.cos(e),uy=Math.sin(e),px=-uy,py=ux;
+elt('polygon',{points:`${x},${y} ${x-ux*17+px*8},${y-uy*17+py*8} ${x-ux*17-px*8},${y-uy*17-py*8}`,fill:it.color});
+if(by('names').checked){const txt=it.id==='Fr'?'Fᵣ':it.id==='Px'?'P∥':it.id==='Py'?'P⊥':it.id;label(x+ux*19+px*8,y+uy*19+py*8+6,txt,{size:22,color:it.color});}
+elt('circle',{cx:x,cy:y,r:17,fill:'transparent',stroke:selected===it.id?it.color:'transparent','stroke-width':2,'data-force':it.id,style:'cursor:grab'});
+}
+document.querySelectorAll('[data-id]').forEach(b=>{const f=forces.has(b.dataset.id);b.classList.toggle('active',f);b.setAttribute('aria-pressed',String(f));});
+}
+function defaults(){const a=theta;return {P:90,N:-90-a,Fr:180-a,T:-a,Px:180-a,Py:90-a}}
+function add(id){if(forces.has(id)){forces.delete(id);if(selected===id)selected=null}else{forces.set(id,{angle:defaults()[id],len:id==='P'?126:105});selected=id}render();}
+for(const it of items){const b=document.createElement('button');b.textContent=it.label;b.dataset.id=it.id;b.type='button';b.style.borderLeft='5px solid '+it.color;b.addEventListener('click',()=>add(it.id));by('forceButtons').append(b);}
+function pointer(evt){const pt=svg.createSVGPoint();pt.x=evt.clientX;pt.y=evt.clientY;return pt.matrixTransform(svg.getScreenCTM().inverse())}
+svg.addEventListener('pointerdown',e=>{const id=e.target.getAttribute('data-force');if(!id)return;drag=id;selected=id;svg.setPointerCapture(e.pointerId);render();});
+svg.addEventListener('pointermove',e=>{if(!drag)return;const p=pointer(e),c=geometry().center,dx=p.x-c.x,dy=p.y-c.y;forces.set(drag,{angle:Math.atan2(dy,dx)*180/Math.PI,len:Math.max(20,Math.min(250,Math.hypot(dx,dy)/scale))});render();});
+svg.addEventListener('pointerup',()=>{drag=null});svg.addEventListener('pointercancel',()=>{drag=null});
+by('angle').addEventListener('input',e=>{const old=theta;theta=+e.target.value;by('angleVal').textContent=theta+'°';for(const [id,f] of forces){if(id!=='P')f.angle+=old-theta;}render()});
+by('size').addEventListener('input',e=>{block=+e.target.value;by('sizeVal').textContent=block<50?'Pequeño':block>70?'Grande':'Mediano';render()});
+by('length').addEventListener('input',e=>{scale=+e.target.value/100;by('lengthVal').textContent=e.target.value+' %';render()});
+['axes','showAngle','names'].forEach(id=>by(id).addEventListener('change',render));
+by('reset').addEventListener('click',()=>{const d=defaults();for(const [id,f] of forces){f.angle=d[id];f.len=id==='P'?126:105}render()});
+by('clear').addEventListener('click',()=>{forces.clear();selected=null;render()});
+by('save').addEventListener('click',async()=>{
+const clone=svg.cloneNode(true);clone.querySelectorAll('[data-force]').forEach(n=>n.remove());clone.removeAttribute('id');clone.removeAttribute('style');clone.setAttribute('width','900');clone.setAttribute('height','570');
+const box={minX:110,minY:40,maxX:865,maxY:510};const g=geometry();const pts=[[g.base.x,g.base.y],[g.base.x+g.L*g.dx,g.base.y],[g.base.x+g.L*g.dx,g.base.y+g.L*g.dy]];
+for(const it of items){const f=forces.get(it.id);if(f){const e=rad(f.angle);pts.push([g.center.x+Math.cos(e)*f.len*scale*1.28,g.center.y+Math.sin(e)*f.len*scale*1.28]);}}
+const minX=Math.max(0,Math.min(...pts.map(p=>p[0]))-70),minY=Math.max(0,Math.min(...pts.map(p=>p[1]))-80),maxX=Math.min(900,Math.max(...pts.map(p=>p[0]))+80),maxY=Math.min(570,Math.max(...pts.map(p=>p[1]))+65);
+const w=maxX-minX,h=maxY-minY;clone.setAttribute('viewBox',`${minX} ${minY} ${w} ${h}`);clone.setAttribute('width',w);clone.setAttribute('height',h);
+const source=new XMLSerializer().serializeToString(clone);const blob=new Blob([source],{type:'image/svg+xml;charset=utf-8'}),url=URL.createObjectURL(blob),im=new Image();try{await new Promise((ok,no)=>{im.onload=ok;im.onerror=no;im.src=url});const factor=3,c=document.createElement('canvas');c.width=Math.round(w*factor);c.height=Math.round(h*factor);const ctx=c.getContext('2d');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(im,0,0,c.width,c.height);const jpeg=await new Promise(ok=>c.toBlob(ok,'image/jpeg',.95));if(!jpeg)throw Error('No se pudo generar JPG');const a=document.createElement('a'),href=URL.createObjectURL(jpeg);a.href=href;a.download='esquema-fuerzas-plano-inclinado.jpg';a.click();setTimeout(()=>URL.revokeObjectURL(href),1500);}catch(err){alert('No se pudo generar la imagen: '+err.message)}finally{URL.revokeObjectURL(url)}
+});
+render();
+})();
+</script></body></html>
