@@ -66,8 +66,8 @@ function add(id){if(forces.has(id)){forces.delete(id);if(selected===id)selected=
 for(const it of items){
 const row=document.createElement('div');row.className='force-row';
 const btn=document.createElement('button');btn.className='force-toggle';btn.textContent=it.label;btn.dataset.id=it.id;btn.type='button';btn.style.borderLeft='5px solid '+it.color;btn.addEventListener('click',()=>add(it.id));row.append(btn);
-const cp=document.createElement('label');cp.className='color-picker';cp.title='Cambiar color de '+it.label;cp.style.setProperty('--swatch',it.color);
-cp.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 22 1-4 9.5-9.5"/><path d="m12.5 8.5 3 3"/><path d="M14.5 3.5a2.12 2.12 0 0 1 3 0l3 3a2.12 2.12 0 0 1 0 3l-3 3-6-6z"/></svg>';
+const cp=document.createElement('label');cp.className='color-picker';cp.title='Elegir color de '+it.label;cp.style.setProperty('--swatch',it.color);
+cp.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18h1.4a2.3 2.3 0 0 0 2.2-3c-.5-1.4.3-2.3 1.6-2.3h1.4A3.4 3.4 0 0 0 22 12.3 9.4 9.4 0 0 0 12 3Z"/><circle cx="7.5" cy="10" r="1.3" fill="#2563eb" stroke="none"/><circle cx="11" cy="6.8" r="1.3" fill="#f59e0b" stroke="none"/><circle cx="16.4" cy="9.1" r="1.3" fill="#dc2626" stroke="none"/><circle cx="8.3" cy="15.2" r="1.3" fill="#16a34a" stroke="none"/></svg>';
 const input=document.createElement('input');input.type='color';input.value=it.color;input.setAttribute('aria-label','Cambiar color de '+it.label);input.addEventListener('input',e=>{const color=e.target.value;colors.set(it.id,color);cp.style.setProperty('--swatch',color);btn.style.borderLeftColor=color;if(forces.has(it.id))forces.get(it.id).color=color;render();});cp.append(input);row.append(cp);by('forceButtons').append(row);
 }
 function pointer(evt){const pt=svg.createSVGPoint();pt.x=evt.clientX;pt.y=evt.clientY;return pt.matrixTransform(svg.getScreenCTM().inverse())}
@@ -82,7 +82,7 @@ by('length').addEventListener('input',e=>{scale=+e.target.value/100;by('lengthVa
 by('reset').addEventListener('click',()=>{const d=defaults();for(const [id,f] of forces){f.angle=d[id];f.len=id==='P'?126:105}render()});
 by('clear').addEventListener('click',()=>{forces.clear();selected=null;render()});
 by('save').addEventListener('click',async()=>{
-const clone=svg.cloneNode(true);clone.querySelectorAll('[data-force]').forEach(n=>n.remove());clone.removeAttribute('id');clone.removeAttribute('style');clone.setAttribute('width','900');clone.setAttribute('height','570');
+const clone=svg.cloneNode(true);clone.querySelectorAll('circle[data-force]').forEach(n=>n.remove());clone.querySelectorAll('[data-force]').forEach(n=>{n.removeAttribute('data-force');n.removeAttribute('style');});clone.removeAttribute('id');clone.removeAttribute('style');clone.setAttribute('width','900');clone.setAttribute('height','570');
 const box={minX:110,minY:40,maxX:865,maxY:510};const g=geometry();const pts=[[g.base.x,g.base.y],[g.base.x+g.L*g.dx,g.base.y],[g.base.x+g.L*g.dx,g.base.y+g.L*g.dy]];
 for(const it of items){const f=forces.get(it.id);if(f){const e=rad(f.angle);pts.push([g.center.x+Math.cos(e)*f.len*scale*1.28,g.center.y+Math.sin(e)*f.len*scale*1.28]);}}
 const minX=Math.max(0,Math.min(...pts.map(p=>p[0]))-70),minY=Math.max(0,Math.min(...pts.map(p=>p[1]))-80),maxX=Math.min(900,Math.max(...pts.map(p=>p[0]))+80),maxY=Math.min(570,Math.max(...pts.map(p=>p[1]))+65);
