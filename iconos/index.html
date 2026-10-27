@@ -28,7 +28,7 @@ function pintar(){
  }
 }
 buscar.addEventListener('input',pintar);
-fetch('./catalogo.json?v=20261014-1',{cache:'no-store'})
+fetch('./catalogo.json?v=20261027-1',{cache:'no-store'})
 .then(r=>{if(!r.ok)throw Error('Error HTTP '+r.status+' al cargar el catálogo');return r.json()})
 .then(d=>{iconos=(d.iconos||[]).filter(x=>x.estado==='aprobado');pintar()})
 .catch(e=>{estado.textContent='No se pudo cargar el catálogo: '+e.message;});
