@@ -23,16 +23,17 @@ function list(){const el=$('masslist');el.replaceChildren();$('count').textConte
 function reset(){bodies=[{id:1,m:2,x:w*.35,y:h*.48},{id:2,m:3,x:w*.65,y:h*.52}];selected=null;probe=null;list();redraw()}
 function pos(e){const r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left)*w/r.width,y:(e.clientY-r.top)*h/r.height}}
 canvas.addEventListener('pointerdown',e=>{const p=pos(e);if(mode==='map'){const b=[...bodies].reverse().find(q=>Math.hypot(q.x-p.x,q.y-p.y)<23);if(b){drag={kind:'mass',id:b.id};selected=b.id;list()}else drag=null}else drag=null;if(drag)canvas.setPointerCapture(e.pointerId);redraw()});
-canvas.addEventListener('pointermove',e=>{const p=pos(e);if(drag?.kind==='mass'){let b=bodies.find(b=>b.id===drag.id);if(b){b.x=Math.max(15,Math.min(w-15,p.x));b.y=Math.max(15,Math.min(h-15,p.y))}}}if(mode==='map'){probe=p;const v=potential(p.x,p.y);$('probe').textContent='V = '+v.V.toExponential(3)+' J/kg | |g| = '+v.g.toExponential(3)+' N/kg';}else $('probe').textContent='Relieve esquemático: arrastra el fondo para girarlo.';redraw()});
+canvas.addEventListener('pointermove',e=>{const p=pos(e);if(drag?.kind==='mass'){let b=bodies.find(b=>b.id===drag.id);if(b){b.x=Math.max(15,Math.min(w-15,p.x));b.y=Math.max(15,Math.min(h-15,p.y))}}if(mode==='map'){probe=p;const v=potential(p.x,p.y);$('probe').textContent='V = '+v.V.toExponential(3)+' J/kg | |g| = '+v.g.toExponential(3)+' N/kg';}else $('probe').textContent='Relieve esquemático: arrastra el fondo para girarlo.';redraw()});
 function stop(){drag=null}canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',stop);
 $('map').onclick=()=>{mode='map';plot.classList.remove('threed');$('map').className='active';$('relief').className='';$('viewhelp').textContent='Arrastra las masas y mueve el cursor para explorar el potencial.';redraw()};$('relief').onclick=()=>{mode='relief';plot.classList.add('threed');$('relief').className='active';$('map').className='';$('viewhelp').textContent='Arrastra el fondo para girar el relieve 3D.';redraw()};
 $('add').onclick=()=>{if(bodies.length>=4)return;let b={id:idNext++,m:1,x:w*(.32+.36*Math.random()),y:h*(.3+.4*Math.random())};bodies.push(b);selected=b.id;list();redraw()};$('reset').onclick=reset;
 for(const key of ['contours','markers','wire'])$(key).onchange=e=>{opts[key]=e.target.checked;redraw()};for(const key of ['contrast','depth'])$(key).oninput=e=>{opts[key]=+e.target.value;$(key+'Value').textContent=e.target.value;redraw()};
 new ResizeObserver(()=>{let r=plot.getBoundingClientRect();if(!r.width||!r.height)return;const ow=w,oh=h;w=r.width;h=r.height;const dpr=Math.min(2,window.devicePixelRatio||1);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);for(const b of bodies){b.x*=w/ow;b.y*=h/oh}redraw();if(window.resizePotential3D)window.resizePotential3D()}).observe(plot);reset();
 </script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
-import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/controls/OrbitControls.js';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const host=document.getElementById('webgl');
 const scene=new THREE.Scene();scene.background=new THREE.Color('#f6f8fc');
 const camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.set(0,5,8);
