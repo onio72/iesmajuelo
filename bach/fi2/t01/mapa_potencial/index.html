@@ -21,7 +21,7 @@ $('workStatus').textContent=Math.abs(work)<Math.max(Math.abs(ea),Math.abs(eb),1)
 }
 function drawPath(){if(mode!=='map'||!w||!h)return;pctx.clearRect(0,0,w,h);const a=pathPoint(reverse?pathEnd:pathStart),b=pathPoint(reverse?pathStart:pathEnd);
 const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1;
-const mid={x:(a.x+b.x)/2+(-dy/L)*curveSeed*Math.min(w,h)*.52,y:(a.y+b.y)/2+(dx/L)*curveSeed*Math.min(w,h)*.52};
+const mid={x:(a.x+b.x)/2+(-dy/L)*(reverse?-1:1)*curveSeed*Math.min(w,h)*.52,y:(a.y+b.y)/2+(dx/L)*(reverse?-1:1)*curveSeed*Math.min(w,h)*.52};
 const c1={x:a.x+(mid.x-a.x)*.68,y:a.y+(mid.y-a.y)*.68},c2={x:b.x+(mid.x-b.x)*.68,y:b.y+(mid.y-b.y)*.68};
 pctx.lineWidth=5;pctx.strokeStyle='#fff';pctx.beginPath();pctx.moveTo(a.x,a.y);pctx.bezierCurveTo(c1.x,c1.y,c2.x,c2.y,b.x,b.y);pctx.stroke();
 pctx.lineWidth=2.6;pctx.setLineDash([9,6]);pctx.strokeStyle='#172554';pctx.stroke();pctx.setLineDash([]);
