@@ -25,7 +25,11 @@ let pathStart={x:.16,y:.24},pathEnd={x:.82,y:.76},reverse=false,curveSeed=0,path
 function randomPath(){curveSeed=Math.random()*2-1;drawPath()}
 function pathPoint(p){return{x:p.x*w,y:p.y*h}}
 function showWork(){const start=pathPoint(reverse?pathEnd:pathStart),end=pathPoint(reverse?pathStart:pathEnd),mass=+$('testMass').value;
-const va=potential(start.x,start.y).V,vb=potential(end.x,end.y).V,ea=mass*va,eb=mass*vb,delta=eb-ea,work=-delta;
+const pA=reverse?pathEnd:pathStart,pB=reverse?pathStart:pathEnd;let va=potential(start.x,start.y).V,vb=potential(end.x,end.y).V;
+// En un mismo nivel equipotencial, las diferencias residuales son solo redondeo numérico.
+const sameLevel=pA.level!=null&&pB.level!=null&&Math.abs(pA.level-pB.level)<Math.abs(pA.level)*1e-12&&Math.abs(va-vb)<Math.abs(va)*1e-8;
+if(sameLevel){va=pA.level;vb=pB.level}
+const ea=mass*va,eb=mass*vb,delta=eb-ea,work=-delta;
 const fmt=v=>{if(!Number.isFinite(v))return '—';if(v===0)return '0';const [mantissa,exponent]=v.toExponential(3).split('e');const n=Number(exponent);return mantissa.replace('.',',')+(n===0?'':' · 10<sup>'+n+'</sup>')};
 $('testMassLabel').textContent=mass.toLocaleString('es-ES')+' kg';$('valueVA').innerHTML=fmt(va);$('valueVB').innerHTML=fmt(vb);$('valueEA').innerHTML=fmt(ea);$('valueEB').innerHTML=fmt(eb);$('valueDelta').innerHTML=fmt(delta);
 $('workResult').innerHTML='W<sub>g</sub> = −ΔE<sub>p</sub> = '+fmt(work)+' J';
@@ -49,6 +53,28 @@ function mix(a,b,t){return a+(b-a)*t}function rgb(t){t=Math.max(0,Math.min(.9999
 function potential(x,y){let V=0,gx=0,gy=0;for(const b of bodies){const dx=(x-b.x)*unit,dy=(y-b.y)*unit,r=Math.max(Math.hypot(dx,dy),4*unit),gm=G*b.m*massUnit;V-=gm/r;const factor=-gm/(r*r*r);gx+=factor*dx;gy+=factor*dy}return {V,gx,gy,g:Math.hypot(gx,gy)}}
 function bounds(){let max=-Infinity,min=Infinity;for(let y=0;y<=h;y+=Math.max(18,h/18))for(let x=0;x<=w;x+=Math.max(18,w/22)){let v=potential(x,y).V;max=Math.max(max,v);min=Math.min(min,v)}if(!bodies.length)return {lo:-1,hi:0};const hi=max,lo=Math.min(min,Math.min(...bodies.map(b=>potential(b.x,b.y).V)));return {lo,hi:Math.max(hi,lo+1)}}
 function norm(v,lo,hi){if(!bodies.length)return 1;const inner=Math.max(1,-lo),outer=Math.max(1,-hi),a=Math.log(outer),b=Math.log(inner);if(b-a<1e-8)return .5;const fraction=Math.max(0,Math.min(1,(Math.log(Math.max(1,-v))-a)/(b-a)));const gamma=1.05-(opts.contrast-20)*.005;return 1-Math.pow(fraction,gamma)}
+// Las curvas y el ajuste magnético comparten exactamente los mismos niveles.
+function equipotentialLevels(lo,hi){const levels=[];if(!(lo<hi&&lo<0&&hi<0))return levels;for(let k=1;k<=9;k++){const t=k/10;levels.push(-Math.exp(Math.log(-lo)*(1-t)+Math.log(-hi)*t))}return levels}
+function snapEquipotential(x,y){
+ if(!opts.contours||!bodies.length)return {x,y,snapped:false};
+ const {lo,hi}=bounds(),levels=equipotentialLevels(lo,hi),v=potential(x,y).V;
+ const eps=1.5,gradX=(potential(x+eps,y).V-potential(x-eps,y).V)/(2*eps),gradY=(potential(x,y+eps).V-potential(x,y-eps).V)/(2*eps),g2=gradX*gradX+gradY*gradY;
+ if(g2<1e-18)return {x,y,snapped:false};
+ let candidate=null;
+ for(const level of levels){const dist=Math.abs(level-v)/Math.sqrt(g2);if(dist<=14&&(!candidate||dist<candidate.dist))candidate={level,dist}}
+ if(!candidate)return {x,y,snapped:false};
+ let xx=x,yy=y;
+ for(let i=0;i<14;i++){
+  const err=potential(xx,yy).V-candidate.level;
+  if(Math.abs(err)<=Math.abs(candidate.level)*1e-12)break;
+  const dx=(potential(xx+eps,yy).V-potential(xx-eps,yy).V)/(2*eps),dy=(potential(xx,yy+eps).V-potential(xx,yy-eps).V)/(2*eps),n=dx*dx+dy*dy;
+  if(n<1e-18)break;
+  const correction=Math.max(-6,Math.min(6,err/n));
+  xx=Math.max(12,Math.min(w-12,xx-correction*dx));yy=Math.max(12,Math.min(h-12,yy-correction*dy));
+ }
+ if(Math.hypot(xx-x,yy-y)>18||Math.abs(potential(xx,yy).V-candidate.level)>Math.abs(candidate.level)*1e-8)return {x,y,snapped:false};
+ return {x:xx,y:yy,snapped:true,level:candidate.level}
+}
 function contour2D(lo,hi){const d=14,nx=Math.ceil(w/d),ny=Math.ceil(h/d),levels=9;ctx.strokeStyle='#18274965';ctx.lineWidth=.85;for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const x=i*d,y=j*d,xy=[[x,y],[x+d,y],[x+d,y+d],[x,y+d]],v=xy.map(p=>potential(...p).V);for(let k=1;k<=levels;k++){const t=k/(levels+1),target=-Math.exp(Math.log(-lo)*(1-t)+Math.log(-hi)*t),hits=[];for(let e=0;e<4;e++){const n=(e+1)%4;if((v[e]<target&&v[n]>=target)||(v[e]>=target&&v[n]<target)){const t=(target-v[e])/(v[n]-v[e]);hits.push([mix(xy[e][0],xy[n][0],t),mix(xy[e][1],xy[n][1],t)])}}for(let p=0;p+1<hits.length;p+=2){ctx.beginPath();ctx.moveTo(...hits[p]);ctx.lineTo(...hits[p+1]);ctx.stroke()}}}}
 function drawMap(lo,hi){if(canvas.width<1||canvas.height<1)return;const nx=Math.max(1,Math.ceil(w/2)),ny=Math.max(1,Math.ceil(h/2));if(!drawMap.buffer||drawMap.buffer.width!==nx||drawMap.buffer.height!==ny){drawMap.buffer=document.createElement('canvas');drawMap.buffer.width=nx;drawMap.buffer.height=ny}const off=drawMap.buffer,c=off.getContext('2d'),im=c.createImageData(nx,ny);for(let y=0;y<ny;y++)for(let x=0;x<nx;x++){const v=potential((x+.5)*w/nx,(y+.5)*h/ny).V,col=rgb(norm(v,lo,hi)),idx=4*(y*nx+x);im.data[idx]=col[0];im.data[idx+1]=col[1];im.data[idx+2]=col[2];im.data[idx+3]=255}c.putImageData(im,0,0);ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(off,0,0,w,h);ctx.restore();if(opts.contours)contour2D(lo,hi);if(opts.markers)bodies.forEach((b,i)=>{ctx.beginPath();ctx.arc(b.x,b.y,13,0,Math.PI*2);ctx.fillStyle='#ed4949';ctx.fill();ctx.strokeStyle=selected===b.id?'white':'#8b1b1b';ctx.lineWidth=selected===b.id?3:1.5;ctx.stroke();ctx.fillStyle='white';ctx.font='bold 12px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('m'+(i+1),b.x,b.y)});if(probe){ctx.strokeStyle='white';ctx.lineWidth=2;ctx.beginPath();ctx.arc(probe.x,probe.y,5,0,7);ctx.stroke()}}
 function transform(x,y,z){let X=(x/w-.5)*2,Y=(y/h-.5)*2,A=X*Math.cos(angle)-Y*Math.sin(angle),B=X*Math.sin(angle)+Y*Math.cos(angle);return [w*.5+A*w*.31,w*.54+B*h*.21*Math.cos(pitch)+z*h*.55*Math.sin(pitch)]}
@@ -57,10 +83,10 @@ function draw(){raf=0;ctx.clearRect(0,0,w,h);const {lo,hi}=bounds();$('low').tex
 function redraw(){if(!raf)raf=requestAnimationFrame(draw);if(mode==='map')requestAnimationFrame(drawPath);else showWork()}
 function switchView(view){mode=view;const isMap=view==='map';plot.classList.toggle('threed',!isMap);canvas.style.setProperty('display',isMap?'block':'none','important');$('webgl').style.setProperty('display',isMap?'none':'block','important');$('map').classList.toggle('active',isMap);$('relief').classList.toggle('active',!isMap);$('viewhelp').textContent=isMap?'Arrastra las masas y explora el mapa cenital.':'Arrastra el fondo para girar el relieve 3D.';requestAnimationFrame(()=>{if(isMap){draw();drawPath()}else{window.resizePotential3D?.();window.updatePotential3D?.()}})}
 function list(){const el=$('masslist');el.replaceChildren();$('count').textContent=bodies.length+' / 4';$('add').disabled=bodies.length>=4;bodies.forEach((b,i)=>{const node=document.createElement('div');node.className='mass'+(selected===b.id?' active':'');node.innerHTML='<div class="masshead"><div><span class="massbadge">m</span><b>Masa '+(i+1)+'</b></div><button aria-label="Eliminar masa">🗑</button></div><p class="explain">M = <b>'+b.m+' × 10²⁴ kg</b></p><input type="range" min="1" max="5" step="1" value="'+b.m+'" aria-label="Magnitud de masa '+(i+1)+'">';node.onclick=()=>{selected=b.id;list();redraw()};node.querySelector('button').onclick=e=>{e.stopPropagation();bodies=bodies.filter(c=>c.id!==b.id);if(selected===b.id)selected=null;list();redraw()};node.querySelector('input').oninput=e=>{e.stopPropagation();b.m=+e.target.value;list();redraw()};el.append(node)})}
-function reset(){bodies=[{id:1,m:2,x:w*.35,y:h*.48},{id:2,m:3,x:w*.65,y:h*.52}];selected=null;probe=null;reverse=false;curveSeed=.6;list();redraw()}
+function reset(){pathStart.level=null;pathEnd.level=null;bodies=[{id:1,m:2,x:w*.35,y:h*.48},{id:2,m:3,x:w*.65,y:h*.52}];selected=null;probe=null;reverse=false;curveSeed=.6;list();redraw()}
 function pos(e){const r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left)*w/r.width,y:(e.clientY-r.top)*h/r.height}}
 canvas.addEventListener('pointerdown',e=>{const p=pos(e);if(mode==='map'){const pa=pathPoint(pathStart),pb=pathPoint(pathEnd);if(pathEnabled&&Math.hypot(p.x-pa.x,p.y-pa.y)<19)drag={kind:'point',which:'start'};else if(pathEnabled&&Math.hypot(p.x-pb.x,p.y-pb.y)<19)drag={kind:'point',which:'end'};else {const b=[...bodies].reverse().find(q=>Math.hypot(q.x-p.x,q.y-p.y)<23);if(b){drag={kind:'mass',id:b.id};selected=b.id;list()}else drag=null}}else drag=null;if(drag)canvas.setPointerCapture(e.pointerId);redraw()});
-canvas.addEventListener('pointermove',e=>{const p=pos(e);if(drag?.kind==='point'){const point=drag.which==='start'?pathStart:pathEnd;point.x=Math.max(.025,Math.min(.975,p.x/w));point.y=Math.max(.025,Math.min(.975,p.y/h));drawPath()}else if(drag?.kind==='mass'){let b=bodies.find(b=>b.id===drag.id);if(b){b.x=Math.max(15,Math.min(w-15,p.x));b.y=Math.max(15,Math.min(h-15,p.y))}}if(mode==='map'){probe=p;const v=potential(p.x,p.y);$('probe').textContent='V = '+v.V.toExponential(3)+' J/kg | |g| = '+v.g.toExponential(3)+' N/kg';}else $('probe').textContent='Relieve esquemático: arrastra el fondo para girarlo.';redraw()});
+canvas.addEventListener('pointermove',e=>{const p=pos(e);if(drag?.kind==='point'){const point=drag.which==='start'?pathStart:pathEnd;const snapped=snapEquipotential(p.x,p.y);point.x=Math.max(.025,Math.min(.975,snapped.x/w));point.y=Math.max(.025,Math.min(.975,snapped.y/h));point.level=snapped.snapped?snapped.level:null;drawPath()}else if(drag?.kind==='mass'){let b=bodies.find(b=>b.id===drag.id);if(b){b.x=Math.max(15,Math.min(w-15,p.x));b.y=Math.max(15,Math.min(h-15,p.y))}}if(mode==='map'){probe=p;const v=potential(p.x,p.y);$('probe').textContent='V = '+v.V.toExponential(3)+' J/kg | |g| = '+v.g.toExponential(3)+' N/kg';}else $('probe').textContent='Relieve esquemático: arrastra el fondo para girarlo.';redraw()});
 function stop(){drag=null}canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',stop);
 $('map').onclick=()=>switchView('map');$('relief').onclick=()=>switchView('relief');
 $('add').onclick=()=>{if(bodies.length>=4)return;let b={id:idNext++,m:1,x:w*(.32+.36*Math.random()),y:h*(.3+.4*Math.random())};bodies.push(b);selected=b.id;list();redraw()};$('reset').onclick=reset;
