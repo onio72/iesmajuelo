@@ -138,8 +138,15 @@ window.updatePath3D=()=>{if(!renderer)return;abGroup.visible=pathEnabled&&mode==
 const curve=new THREE.CatmullRomCurve3(points);for(const obj of [...abGroup.children]){if(obj.userData.pathTube){abGroup.remove(obj);obj.geometry.dispose()}}
 // Trazo blanco continuo como halo y segmentos azul oscuro separados como en el mapa 2D.
 {const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,140,.025,6,false),abCurveMaterial);tube.userData.pathTube=true;tube.renderOrder=20;abGroup.add(tube)}
-for(let i=0;i<100;i+=7){const from=i/100,to=Math.min(100,i+4)/100;const pts=[];for(let j=0;j<=5;j++)pts.push(curve.getPoint(from+(to-from)*j/5));const dash=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),6,.010,5,false),abOutlineMaterial);dash.userData.pathTube=true;dash.renderOrder=21;abGroup.add(dash)}
-abLabelA.position.copy(points[0]);abLabelB.position.copy(points[100]);
+// Las rayas oscuras deben quedar POR ENCIMA del tubo blanco, no hundidas en él.
+// Igual que en Canvas: base blanca continua y trazo oscuro discontinuo superpuesto.
+for(let i=0;i<100;i+=7){
+ const from=i/100,to=Math.min(100,i+4)/100,pts=[];
+ for(let j=0;j<=6;j++){const p=curve.getPoint(from+(to-from)*j/6);p.y+=.026;pts.push(p)}
+ const dash=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),8,.011,7,false),abOutlineMaterial);
+ dash.userData.pathTube=true;dash.renderOrder=21;abGroup.add(dash)
+}
+abLabelA.position.copy(points[0]).add(new THREE.Vector3(0,.035,0));abLabelB.position.copy(points[100]).add(new THREE.Vector3(0,.035,0));
 const middle=curve.getPoint(.78),tangent=curve.getTangent(.78).normalize();abArrow.position.copy(middle).addScaledVector(tangent,.10).add(new THREE.Vector3(0,.035,0));abArrow.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),tangent);abArrow.renderOrder=22;renderSoon()};
 
 // Curvas equipotenciales 3D: mismos nueve niveles y marcha por celdas del mapa 2D.
@@ -158,7 +165,21 @@ function updateContours3D(lo,hi){
    const hits=[];
    for(let edge=0;edge<4;edge++){const n=(edge+1)%4,a=vals[edge],b=vals[n];if((a<level&&b>=level)||(a>=level&&b<level)){const t=(level-a)/(b-a);hits.push([mix(q[edge][0],q[n][0],t),mix(q[edge][1],q[n][1],t)])}}
    for(let j=0;j+1<hits.length;j+=2){
-    for(const p of [hits[j],hits[j+1]])verts.push((p[0]/w-.5)*SIZE,abHeight(p[0],p[1],lo,hi)-.075,(p[1]/h-.5)*SIZE)
+    for(const raw of [hits[j],hits[j+1]]){
+     // Ajuste del punto interpolado al valor físico EXACTO de la equipotencial.
+     let px=raw[0],py=raw[1];
+     for(let iter=0;iter<5;iter++){
+      const error=potential(px,py).V-level,eps=.75;
+      if(Math.abs(error)<Math.abs(level)*1e-10)break;
+      const gx=(potential(px+eps,py).V-potential(px-eps,py).V)/(2*eps);
+      const gy=(potential(px,py+eps).V-potential(px,py-eps).V)/(2*eps);
+      const den=gx*gx+gy*gy;if(den<1e-20)break;
+      const step=Math.max(-2,Math.min(2,error/den));
+      px=Math.max(0,Math.min(w,px-step*gx));py=Math.max(0,Math.min(h,py-step*gy))
+     }
+     // Misma superficie matemática que A/B. Ligera elevación para evitar ocultación.
+     verts.push((px/w-.5)*SIZE,abHeight(px,py,lo,hi)+.006,(py/h-.5)*SIZE)
+    }
    }
   }
  }
