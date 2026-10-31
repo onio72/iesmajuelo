@@ -38,7 +38,7 @@ pctx.lineWidth=5;pctx.strokeStyle='#fff';pctx.beginPath();pctx.moveTo(a.x,a.y);p
 pctx.lineWidth=2.6;pctx.setLineDash([9,6]);pctx.strokeStyle='#172554';pctx.stroke();pctx.setLineDash([]);
 const t=.78,u=1-t,p={x:u*u*u*a.x+3*u*u*t*c1.x+3*u*t*t*c2.x+t*t*t*b.x,y:u*u*u*a.y+3*u*u*t*c1.y+3*u*t*t*c2.y+t*t*t*b.y},vx=3*u*u*(c1.x-a.x)+6*u*t*(c2.x-c1.x)+3*t*t*(b.x-c2.x),vy=3*u*u*(c1.y-a.y)+6*u*t*(c2.y-c1.y)+3*t*t*(b.y-c2.y),theta=Math.atan2(vy,vx);
 pctx.fillStyle='#172554';pctx.beginPath();pctx.moveTo(p.x,p.y);pctx.lineTo(p.x-13*Math.cos(theta-.47),p.y-13*Math.sin(theta-.47));pctx.lineTo(p.x-13*Math.cos(theta+.47),p.y-13*Math.sin(theta+.47));pctx.fill();
-[[a,'A'],[b,'B']].forEach(([q,label])=>{pctx.beginPath();pctx.arc(q.x,q.y,12,0,Math.PI*2);pctx.fillStyle='#fff';pctx.fill();pctx.lineWidth=3;pctx.strokeStyle='#172554';pctx.stroke();pctx.fillStyle='#172554';pctx.font='bold 14px system-ui';pctx.textAlign='center';pctx.textBaseline='middle';pctx.fillText(label,q.x,q.y)});
+[[a,'A'],[b,'B']].forEach(([q,label])=>{pctx.lineCap='round';for(const [color,width] of [['#ffffff',6],['#172554',2.5]]){pctx.strokeStyle=color;pctx.lineWidth=width;pctx.beginPath();pctx.moveTo(q.x-7,q.y-7);pctx.lineTo(q.x+7,q.y+7);pctx.moveTo(q.x+7,q.y-7);pctx.lineTo(q.x-7,q.y+7);pctx.stroke()}pctx.font='bold 15px system-ui';pctx.textAlign='left';pctx.textBaseline='middle';pctx.lineWidth=3.5;pctx.strokeStyle='#fff';pctx.strokeText(label,q.x+13,q.y-12);pctx.fillStyle='#172554';pctx.fillText(label,q.x+13,q.y-12)});
 showWork()}
 $('showPath').addEventListener('change',e=>{pathEnabled=e.target.checked;$('pathSettings').hidden=!pathEnabled;drawPath();redraw()});
 $('testMass').addEventListener('input',showWork);
@@ -92,16 +92,15 @@ for(let i=0;i<4;i++){const m=new THREE.Mesh(sphereGeometry,new THREE.MeshStandar
 const grid=new THREE.GridHelper(SIZE,16,0x9aa9c3,0xbcc8d7);grid.position.y=-2.5;scene.add(grid);
 const abGroup=new THREE.Group();scene.add(abGroup);
 // Trazo fino con filete claro para distinguirlo de cualquier color del relieve.
-const abCurveMaterial=new THREE.MeshBasicMaterial({color:0xf8fafc,depthTest:true});
+const abCurveMaterial=new THREE.MeshBasicMaterial({color:0xffffff,depthTest:true});
 const abOutlineMaterial=new THREE.MeshBasicMaterial({color:0x172554,depthTest:true});
 function abCrossLabel(letter){
- const c=document.createElement('canvas');c.width=256;c.height=128;const g=c.getContext('2d');
- g.lineCap='round';g.lineJoin='round';
- // Aspa de dos trazos; no puede confundirse con una masa esférica.
- for(const [stroke,width] of [['#ffffff',15],['#172554',7]]){
-  g.strokeStyle=stroke;g.lineWidth=width;g.beginPath();g.moveTo(37,36);g.lineTo(85,84);g.moveTo(85,36);g.lineTo(37,84);g.stroke();
+ const c=document.createElement('canvas');c.width=256;c.height=128;const g=c.getContext('2d');g.lineCap='round';g.lineJoin='round';
+ // La cruz ocupa el centro exacto del sprite: coincide con el extremo de la curva.
+ for(const [stroke,width] of [['#ffffff',14],['#172554',6]]){
+  g.strokeStyle=stroke;g.lineWidth=width;g.beginPath();g.moveTo(110,46);g.lineTo(146,82);g.moveTo(146,46);g.lineTo(110,82);g.stroke();
  }
- g.font='bold 66px system-ui';g.textBaseline='middle';g.lineWidth=6;g.strokeStyle='#fff';g.strokeText(letter,112,63);g.fillStyle='#172554';g.fillText(letter,112,63);
+ g.font='bold 50px system-ui';g.textBaseline='middle';g.lineWidth=5;g.strokeStyle='#fff';g.strokeText(letter,158,34);g.fillStyle='#172554';g.fillText(letter,158,34);
  const texture=new THREE.CanvasTexture(c);texture.colorSpace=THREE.SRGBColorSpace;
  const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,depthTest:false,depthWrite:false}));
  sprite.scale.set(.72,.36,1);sprite.renderOrder=24;return sprite
@@ -111,8 +110,8 @@ const abArrow=new THREE.Mesh(new THREE.ConeGeometry(.065,.17,10),new THREE.MeshB
 function abHeight(x,y,lo,hi){const t=norm(potential(x,y).V,lo,hi);return -2.3*(opts.depth/65)*Math.pow(Math.max(0,1-t),.9)+.18}
 window.updatePath3D=()=>{if(!renderer)return;abGroup.visible=pathEnabled&&mode==='relief';if(!abGroup.visible)return;const {a,b,c1,c2}=window.getABCurve(),{lo,hi}=bounds();const points=[];for(let i=0;i<=100;i++){const t=i/100,u=1-t,x=u*u*u*a.x+3*u*u*t*c1.x+3*u*t*t*c2.x+t*t*t*b.x,y=u*u*u*a.y+3*u*u*t*c1.y+3*u*t*t*c2.y+t*t*t*b.y;points.push(new THREE.Vector3((x/w-.5)*SIZE,abHeight(x,y,lo,hi),(y/h-.5)*SIZE))}
 const curve=new THREE.CatmullRomCurve3(points);for(const obj of [...abGroup.children]){if(obj.userData.pathTube){abGroup.remove(obj);obj.geometry.dispose()}}
-for(const [radius,mat] of [[.023,abCurveMaterial],[.011,abOutlineMaterial]]){const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,140,radius,6,false),mat);tube.userData.pathTube=true;tube.renderOrder=20;abGroup.add(tube)}
-abLabelA.position.copy(points[0]).add(new THREE.Vector3(0,.22,0));abLabelB.position.copy(points[100]).add(new THREE.Vector3(0,.22,0));
+for(const [radius,mat] of [[.027,abCurveMaterial],[.012,abOutlineMaterial]]){const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,140,radius,6,false),mat);tube.userData.pathTube=true;tube.renderOrder=20;abGroup.add(tube)}
+abLabelA.position.copy(points[0]);abLabelB.position.copy(points[100]);
 const middle=curve.getPoint(.78),tangent=curve.getTangent(.78).normalize();abArrow.position.copy(middle).addScaledVector(tangent,.10).add(new THREE.Vector3(0,.035,0));abArrow.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),tangent);abArrow.renderOrder=22;renderSoon()};
 
 const pal=[[48,18,59],[50,21,133],[32,74,195],[26,147,211],[64,214,152],[180,222,44],[253,187,45],[244,96,48],[180,4,38]];
