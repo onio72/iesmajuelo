@@ -136,16 +136,40 @@ const abArrow=new THREE.Mesh(new THREE.ConeGeometry(.065,.17,10),new THREE.MeshB
 function abHeight(x,y,lo,hi){const t=norm(potential(x,y).V,lo,hi);return -2.3*(opts.depth/65)*Math.pow(Math.max(0,1-t),.9)+.18}
 window.updatePath3D=()=>{if(!renderer)return;abGroup.visible=pathEnabled&&mode==='relief';if(!abGroup.visible)return;const {a,b,c1,c2}=window.getABCurve(),{lo,hi}=bounds();const points=[];for(let i=0;i<=100;i++){const t=i/100,u=1-t,x=u*u*u*a.x+3*u*u*t*c1.x+3*u*t*t*c2.x+t*t*t*b.x,y=u*u*u*a.y+3*u*u*t*c1.y+3*u*t*t*c2.y+t*t*t*b.y;points.push(new THREE.Vector3((x/w-.5)*SIZE,abHeight(x,y,lo,hi),(y/h-.5)*SIZE))}
 const curve=new THREE.CatmullRomCurve3(points);for(const obj of [...abGroup.children]){if(obj.userData.pathTube){abGroup.remove(obj);obj.geometry.dispose()}}
-for(const [radius,mat] of [[.027,abCurveMaterial],[.012,abOutlineMaterial]]){const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,140,radius,6,false),mat);tube.userData.pathTube=true;tube.renderOrder=20;abGroup.add(tube)}
+// Trazo blanco continuo como halo y segmentos azul oscuro separados como en el mapa 2D.
+{const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,140,.025,6,false),abCurveMaterial);tube.userData.pathTube=true;tube.renderOrder=20;abGroup.add(tube)}
+for(let i=0;i<100;i+=7){const from=i/100,to=Math.min(100,i+4)/100;const pts=[];for(let j=0;j<=5;j++)pts.push(curve.getPoint(from+(to-from)*j/5));const dash=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),6,.010,5,false),abOutlineMaterial);dash.userData.pathTube=true;dash.renderOrder=21;abGroup.add(dash)}
 abLabelA.position.copy(points[0]);abLabelB.position.copy(points[100]);
 const middle=curve.getPoint(.78),tangent=curve.getTangent(.78).normalize();abArrow.position.copy(middle).addScaledVector(tangent,.10).add(new THREE.Vector3(0,.035,0));abArrow.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),tangent);abArrow.renderOrder=22;renderSoon()};
 
+// Curvas equipotenciales 3D: mismos nueve niveles y marcha por celdas del mapa 2D.
+const contourGroup=new THREE.Group();scene.add(contourGroup);
+const contourMaterial=new THREE.LineBasicMaterial({color:0x173354,transparent:true,opacity:.72,depthTest:true});
+function updateContours3D(lo,hi){
+ contourGroup.visible=mode==='relief'&&opts.contours;
+ if(!contourGroup.visible)return;
+ for(const child of contourGroup.children)child.geometry.dispose();contourGroup.clear();
+ const d=14,levels=equipotentialLevels(lo,hi),verts=[];
+ // Marching squares con interpolación exacta del nivel en cada arista.
+ for(let y=0;y<h;y+=d)for(let x=0;x<w;x+=d){
+  const q=[[x,y],[Math.min(w,x+d),y],[Math.min(w,x+d),Math.min(h,y+d)],[x,Math.min(h,y+d)]];
+  const vals=q.map(p=>potential(p[0],p[1]).V);
+  for(const level of levels){
+   const hits=[];
+   for(let edge=0;edge<4;edge++){const n=(edge+1)%4,a=vals[edge],b=vals[n];if((a<level&&b>=level)||(a>=level&&b<level)){const t=(level-a)/(b-a);hits.push([mix(q[edge][0],q[n][0],t),mix(q[edge][1],q[n][1],t)])}}
+   for(let j=0;j+1<hits.length;j+=2){
+    for(const p of [hits[j],hits[j+1]])verts.push((p[0]/w-.5)*SIZE,abHeight(p[0],p[1],lo,hi)-.075,(p[1]/h-.5)*SIZE)
+   }
+  }
+ }
+ if(verts.length){const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));const lines=new THREE.LineSegments(geo,contourMaterial);lines.renderOrder=8;contourGroup.add(lines)}
+}
 const pal=[[48,18,59],[50,21,133],[32,74,195],[26,147,211],[64,214,152],[180,222,44],[253,187,45],[244,96,48],[180,4,38]];
 function samplePalette(t){let q=Math.max(0,Math.min(.99999,t))*(pal.length-1),i=Math.floor(q),f=q-i;return pal[i].map((a,j)=>(a+(pal[i+1][j]-a)*f)/255)}
 let renderPending=false;
 window.updatePotential3D=()=>{if(!renderer)return;const {lo,hi}=bounds();for(let i=0;i<attr.count;i++){const xx=attr.getX(i),zz=attr.getZ(i),x=(xx/SIZE+.5)*w,y=(zz/SIZE+.5)*h;const V=potential(x,y).V,t=norm(V,lo,hi),depression=Math.pow(Math.max(0,1-t),.9);attr.setY(i,mode==='map'?0:-2.3*(opts.depth/65)*depression);const c=samplePalette(t);colorAttribute.setXYZ(i,c[0],c[1],c[2])}
 attr.needsUpdate=true;colorAttribute.needsUpdate=true;meshGeometry.computeVertexNormals();for(let i=0;i<4;i++){const b=bodies[i],m=markers[i];m.visible=!!b&&opts.markers;if(b){const t=norm(potential(b.x,b.y).V,lo,hi);m.position.set((b.x/w-.5)*SIZE,(mode==='map'?0:-2.3*(opts.depth/65)*Math.pow(1-t,.9))+.06,(b.y/h-.5)*SIZE)}}
-grid.visible=mode==='relief'&&opts.wire;if(controls)controls.enabled=mode==='relief';window.updatePath3D();renderSoon()};
+grid.visible=mode==='relief'&&opts.wire;if(controls)controls.enabled=mode==='relief';updateContours3D(lo,hi);window.updatePath3D();renderSoon()};
 function renderSoon(){if(!renderer||renderPending)return;renderPending=true;requestAnimationFrame(()=>{renderPending=false;controls.update();renderer.render(scene,mode==='map'?topCamera:camera)})}
 function resize(){if(!renderer)return;const r=host.getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();const ratio=r.width/r.height;topCamera.left=-SIZE/2;topCamera.right=SIZE/2;topCamera.top=SIZE/(2*ratio);topCamera.bottom=-SIZE/(2*ratio);topCamera.updateProjectionMatrix();renderSoon()}
 window.resizePotential3D=resize;
