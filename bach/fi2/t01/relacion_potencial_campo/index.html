@@ -1,0 +1,150 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relación entre potencial y campo gravitatorio</title><style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#243348;background:#f5f7fb}*{box-sizing:border-box}body{margin:0}header{background:white;border-bottom:1px solid #dee5ee;padding:15px 22px;display:flex;justify-content:space-between;gap:12px;align-items:center}h1{font-size:21px;margin:0}header p{margin:5px 0 0;font-size:13px;color:#64748b}button{background:white;color:#334155;border:1px solid #cbd5e1;border-radius:9px;padding:9px 12px;cursor:pointer;font:inherit}button:hover{background:#eef2ff}button.primary{background:#4f46e5;color:white;border:0}button:disabled{opacity:.45;cursor:default}.layout{display:grid;grid-template-columns:minmax(0,1fr) 310px;height:calc(100dvh - 75px);min-height:550px}.surface{display:flex;flex-direction:column;min-width:0;padding:15px;gap:10px}.tabs{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.tabs button.active{background:#4f46e5;color:white}.plot{position:relative;flex:1;min-height:350px;background:#fafcff;border:1px solid #d5deea;border-radius:13px;overflow:hidden}canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}.probe{position:absolute;top:12px;right:12px;background:#fffffff0;border:1px solid #dce4ee;border-radius:10px;padding:9px 12px;pointer-events:none;font-size:12px;line-height:1.5;max-width:245px}.legend{display:flex;align-items:center;gap:12px;background:white;border:1px solid #e2e8f0;border-radius:10px;padding:12px;font-size:12px}.gradient{width:100%;height:14px;border-radius:5px;background:linear-gradient(to right,#30123b,#321585,#204ac3,#1a93d3,#40d698,#b4de2c,#fdbb2d,#f46030,#b40426);border:1px solid #9aa6b4}.legendright{flex:1}.numbers{display:flex;justify-content:space-between;color:#475569;margin-top:4px}aside{background:white;border-left:1px solid #e2e8f0;padding:18px;overflow:auto}aside h2{font-size:16px;margin:0 0 14px}h3{font-size:12px;text-transform:uppercase;color:#64748b;letter-spacing:1px;margin:22px 0 10px}.mass{border:1px solid #dce5ef;border-radius:11px;padding:10px;margin:9px 0;cursor:pointer}.mass.active{border-color:#6366f1;background:#eef2ff}.masshead{display:flex;justify-content:space-between;align-items:center}.massbadge{display:inline-flex;align-items:center;justify-content:center;background:#e54b4b;color:white;width:27px;height:27px;border-radius:50%;font-size:12px;font-weight:bold;margin-right:7px}input[type=range]{width:100%;accent-color:#4f46e5}.switch{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:13px;padding:8px 0;border-bottom:1px solid #edf2f7}.explain{font-size:12px;color:#64748b;line-height:1.55}.caption{font-size:12px;color:#64748b}button:focus-visible,input:focus-visible{outline:2px solid #4f46e5;outline-offset:2px}@media(max-width:800px){header{padding:12px}h1{font-size:17px}.layout{grid-template-columns:1fr;height:auto}.surface{height:70vh;min-height:510px}.plot{min-height:310px}aside{border-left:0;border-top:1px solid #ddd}.probe{font-size:11px;top:6px;right:6px}}
+#webgl{position:absolute;inset:0;display:none;width:100%;height:100%;touch-action:none;z-index:1}#canvas{position:absolute;inset:0;display:block;width:100%;height:100%;z-index:2}#webgl canvas{width:100%;height:100%;display:block}.plot.threed #canvas{display:none}.plot.threed #webgl{display:block}.plot.threed{background:#f6f8fc}.gradient{background:linear-gradient(to right,#30123b,#321585,#204ac3,#1a93d3,#40d698,#b4de2c,#fdbb2d,#f46030,#b40426)!important}.status{font-size:12px;color:#475569}.path-overlay{position:absolute!important;inset:0;z-index:3;pointer-events:none;width:100%;height:100%;display:block}.plot.threed .path-overlay{display:none}.work-card{background:#fff;border:1px solid #dce5ef;border-radius:11px;padding:13px;margin-top:14px}.work-card h3{margin:0 0 12px}.work-table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.work-table td{padding:5px 3px;border-bottom:1px solid #edf2f7}.work-table td:last-child{text-align:right;font-weight:650}.work-result{background:#eef2ff;padding:10px;border-radius:8px;margin-top:10px;font-weight:700;font-size:13px;line-height:1.6}.path-controls{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.path-controls button{flex:1;font-size:12px;padding:8px}.work-status{font-size:12px;line-height:1.45;margin:10px 0 0;color:#475569}.guide-modal{border:0;border-radius:18px;padding:0;width:min(740px,calc(100vw - 26px));max-height:min(88dvh,850px);box-shadow:0 26px 90px #15233b60;color:#243348}.guide-modal::backdrop{background:#0f172a9e}.guide-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:19px 22px;background:#eef2ff;border-bottom:1px solid #dbe3f0}.guide-head h2{margin:0;font-size:20px}.guide-body{padding:18px 25px 26px;overflow:auto;max-height:calc(88dvh - 90px);line-height:1.55;font-size:14px}.guide-body ol{padding-left:22px}.guide-body li{margin:0 0 17px;padding-left:5px}.guide-body li strong{color:#3730a3}.guide-body p{margin:6px 0}.guide-note{background:#f3f5fa;padding:13px;border-radius:10px;border-left:3px solid #6366f1}.guide-close{font-size:20px;line-height:1;padding:6px 11px}.guide-open{font-weight:650;color:#4338ca;border-color:#c7d2fe}@media(max-width:600px){.guide-head{padding:15px}.guide-body{padding:15px;font-size:13px}}</style></head><body><header><div><h1>Relación entre potencial y campo gravitatorio</h1><p>Laboratorio de Física · 2.º de Bachillerato · Pozos de potencial y superposición</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="reset">↺ Reiniciar</button></div></header>
+
+<div class="layout"><main class="surface"><div class="tabs"><button id="map" class="active">Mapa de colores 2D</button><button id="relief">Relieve 3D</button><span class="caption" id="viewhelp">Arrastra las masas y mueve el cursor para explorar el potencial.</span></div><div class="plot" id="plot"><canvas id="canvas" aria-label="Mapa de potencial gravitatorio"></canvas><div id="webgl" aria-label="Relieve tridimensional del potencial gravitatorio"></div><div class="probe" id="probe">En el relieve 3D, mueve el ratón sobre la superficie para mostrar el vector campo gravitatorio.</div></div><div class="legend"><b>V (J/kg)</b><div class="legendright"><div class="gradient"></div><div class="numbers"><span id="low">Más negativo</span><span id="high">Menos negativo</span></div></div></div><div class="caption">El potencial V determina el campo: <b>g = −∇V</b>. El vector rojo en el relieve señala la dirección de mayor descenso del potencial en el plano; no es una flecha hacia abajo del pozo visual.</div></main>
+<aside><h2>⚙ Panel de control</h2><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><b>Masas puntuales</b><span id="count">2 / 4</span></div><div id="masslist"></div><button class="primary" id="add" style="width:100%">＋ Añadir masa</button><h3>Visualización</h3><label class="switch">Curvas equipotenciales <input id="contours" type="checkbox" checked></label><label class="switch">Mostrar masas <input id="markers" type="checkbox" checked></label><label class="switch">Mostrar cuadrícula 3D <input id="wire" type="checkbox" checked></label><h3>Contraste y relieve</h3><label class="switch">Profundidad visual <strong id="depthValue">65</strong></label><input type="range" id="depth" min="20" max="100" value="65"><label class="switch">Contraste cromático <strong id="contrastValue">55</strong></label><input type="range" id="contrast" min="20" max="100" value="55"><h3>Interpretación física</h3><p class="explain">Cada masa crea un potencial V = −GM/r. El potencial total es la suma de todos los potenciales. Con referencia cero en el infinito, V es negativo y se hace más negativo cerca de las masas. El campo gravitatorio es <b>g = −∇V</b>: un cuerpo libre tiende a acelerar hacia potenciales más bajos.</p><p class="explain">Masas: 1 a 5 × 10²⁴ kg. Escala: 1 píxel = 10⁶ m. Los discos rojos son simbólicos. El pozo se recorta a una distancia mínima de 4 píxeles para representar la singularidad de forma estable. La escala cromática es logarítmica y realza diferencias que una escala lineal ocultaría.</p><p class="explain">En el relieve 3D mueve el ratón para situar el vector <b>g</b>. Arrastra para girar la superficie. En el mapa 2D puedes desplazar las masas.</p><div class="work-card"><h3>Campo en el punto señalado</h3><p id="fieldReadout" class="explain">Selecciona «Relieve 3D» y señala un punto de la superficie.</p></div></aside></div>
+<script>
+'use strict';
+const $=s=>document.getElementById(s),canvas=$('canvas'),plot=$('plot'),ctx=canvas.getContext('2d'),G=6.67430e-11,unit=1e6,massUnit=1e24;
+let w=640,h=480,bodies=[],idNext=3,selected=null,drag=null,probe=null,mode='map',angle=-.7,pitch=.8,raf=0;
+const opts={contours:true,markers:true,wire:true,depth:65,contrast:55};
+const palette=[[48,18,59],[50,21,133],[32,74,195],[26,147,211],[64,214,152],[180,222,44],[253,187,45],[244,96,48],[180,4,38]];
+function mix(a,b,t){return a+(b-a)*t}function rgb(t){t=Math.max(0,Math.min(.999999,t))*(palette.length-1);let i=Math.floor(t),f=t-i;return [0,1,2].map(k=>Math.round(mix(palette[i][k],palette[i+1][k],f)))}
+function potential(x,y){let V=0,gx=0,gy=0;for(const b of bodies){const dx=(x-b.x)*unit,dy=(y-b.y)*unit,r=Math.max(Math.hypot(dx,dy),4*unit),gm=G*b.m*massUnit;V-=gm/r;const factor=-gm/(r*r*r);gx+=factor*dx;gy+=factor*dy}return {V,gx,gy,g:Math.hypot(gx,gy)}}
+function bounds(){let max=-Infinity,min=Infinity;for(let y=0;y<=h;y+=Math.max(18,h/18))for(let x=0;x<=w;x+=Math.max(18,w/22)){let v=potential(x,y).V;max=Math.max(max,v);min=Math.min(min,v)}if(!bodies.length)return {lo:-1,hi:0};const hi=max,lo=Math.min(min,Math.min(...bodies.map(b=>potential(b.x,b.y).V)));return {lo,hi:Math.max(hi,lo+1)}}
+function norm(v,lo,hi){if(!bodies.length)return 1;const inner=Math.max(1,-lo),outer=Math.max(1,-hi),a=Math.log(outer),b=Math.log(inner);if(b-a<1e-8)return .5;const fraction=Math.max(0,Math.min(1,(Math.log(Math.max(1,-v))-a)/(b-a)));const gamma=1.05-(opts.contrast-20)*.005;return 1-Math.pow(fraction,gamma)}
+function equipotentialLevels(lo,hi){if(!(lo<hi&&lo<0&&hi<0))return [];return Array.from({length:9},(_,i)=>{const t=(i+1)/10;return -Math.exp(Math.log(-lo)*(1-t)+Math.log(-hi)*t)})}
+function contour2D(lo,hi){const d=14,nx=Math.ceil(w/d),ny=Math.ceil(h/d),levels=9;ctx.strokeStyle='#18274965';ctx.lineWidth=.85;for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const x=i*d,y=j*d,xy=[[x,y],[x+d,y],[x+d,y+d],[x,y+d]],v=xy.map(p=>potential(...p).V);for(let k=1;k<=levels;k++){const t=k/(levels+1),target=-Math.exp(Math.log(-lo)*(1-t)+Math.log(-hi)*t),hits=[];for(let e=0;e<4;e++){const n=(e+1)%4;if((v[e]<target&&v[n]>=target)||(v[e]>=target&&v[n]<target)){const t=(target-v[e])/(v[n]-v[e]);hits.push([mix(xy[e][0],xy[n][0],t),mix(xy[e][1],xy[n][1],t)])}}for(let p=0;p+1<hits.length;p+=2){ctx.beginPath();ctx.moveTo(...hits[p]);ctx.lineTo(...hits[p+1]);ctx.stroke()}}}}
+function drawMap(lo,hi){if(canvas.width<1||canvas.height<1)return;const nx=Math.max(1,Math.ceil(w/2)),ny=Math.max(1,Math.ceil(h/2));if(!drawMap.buffer||drawMap.buffer.width!==nx||drawMap.buffer.height!==ny){drawMap.buffer=document.createElement('canvas');drawMap.buffer.width=nx;drawMap.buffer.height=ny}const off=drawMap.buffer,c=off.getContext('2d'),im=c.createImageData(nx,ny);for(let y=0;y<ny;y++)for(let x=0;x<nx;x++){const v=potential((x+.5)*w/nx,(y+.5)*h/ny).V,col=rgb(norm(v,lo,hi)),idx=4*(y*nx+x);im.data[idx]=col[0];im.data[idx+1]=col[1];im.data[idx+2]=col[2];im.data[idx+3]=255}c.putImageData(im,0,0);ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(off,0,0,w,h);ctx.restore();if(opts.contours)contour2D(lo,hi);if(opts.markers)bodies.forEach((b,i)=>{ctx.beginPath();ctx.arc(b.x,b.y,13,0,Math.PI*2);ctx.fillStyle='#ed4949';ctx.fill();ctx.strokeStyle=selected===b.id?'white':'#8b1b1b';ctx.lineWidth=selected===b.id?3:1.5;ctx.stroke();ctx.fillStyle='white';ctx.font='bold 12px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('m'+(i+1),b.x,b.y)});if(probe){ctx.strokeStyle='white';ctx.lineWidth=2;ctx.beginPath();ctx.arc(probe.x,probe.y,5,0,7);ctx.stroke()}}
+function transform(x,y,z){let X=(x/w-.5)*2,Y=(y/h-.5)*2,A=X*Math.cos(angle)-Y*Math.sin(angle),B=X*Math.sin(angle)+Y*Math.cos(angle);return [w*.5+A*w*.31,w*.54+B*h*.21*Math.cos(pitch)+z*h*.55*Math.sin(pitch)]}
+function draw3D(lo,hi){ctx.fillStyle='#f9fbff';ctx.fillRect(0,0,w,h);if(!bodies.length)return;const nx=66,ny=51,dz=opts.depth/100,mesh=[];for(let j=0;j<=ny;j++){const row=[];for(let i=0;i<=nx;i++){const x=i*w/nx,y=j*h/ny,v=potential(x,y).V,t=norm(v,lo,hi),z=-Math.pow(1-t,.78)*dz;row.push({x,y,z,v,t,p:transform(x,y,z)})}mesh.push(row)}const faces=[];for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const a=mesh[j][i],b=mesh[j][i+1],c=mesh[j+1][i+1],d=mesh[j+1][i];const depth=((a.y+b.y+c.y+d.y)/4/h-.5)*Math.cos(angle)+((a.x+b.x+c.x+d.x)/4/w-.5)*Math.sin(angle);faces.push({points:[a,b,c,d],depth})}faces.sort((a,b)=>a.depth-b.depth);for(const f of faces){const t=f.points.reduce((s,v)=>s+v.t,0)/4,col=rgb(t);ctx.beginPath();ctx.moveTo(...f.points[0].p);for(let k=1;k<4;k++)ctx.lineTo(...f.points[k].p);ctx.closePath();ctx.fillStyle='rgb('+col.join(',')+')';ctx.fill();if(opts.wire){ctx.strokeStyle='#18345c26';ctx.lineWidth=.5;ctx.stroke()}}if(opts.markers)bodies.forEach((b,i)=>{const v=potential(b.x,b.y).V,p=transform(b.x,b.y,-Math.pow(1-norm(v,lo,hi),.78)*dz);ctx.beginPath();ctx.arc(...p,7,0,Math.PI*2);ctx.fillStyle='#ed4949';ctx.fill();ctx.fillStyle='white';ctx.font='bold 10px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('m'+(i+1),p[0],p[1])})}
+function draw(){raf=0;ctx.clearRect(0,0,w,h);const {lo,hi}=bounds();$('low').textContent=lo.toExponential(2);$('high').textContent=hi.toExponential(2);if(mode==='map')drawMap(lo,hi);else window.updatePotential3D?.()}
+function redraw(){if(!raf)raf=requestAnimationFrame(draw)}
+function switchView(view){mode=view;const isMap=view==='map';plot.classList.toggle('threed',!isMap);canvas.style.setProperty('display',isMap?'block':'none','important');$('webgl').style.setProperty('display',isMap?'none':'block','important');$('map').classList.toggle('active',isMap);$('relief').classList.toggle('active',!isMap);$('viewhelp').textContent=isMap?'Arrastra las masas y explora el mapa cenital.':'Arrastra el fondo para girar el relieve 3D.';requestAnimationFrame(()=>{if(isMap){draw();drawPath()}else{window.resizePotential3D?.();window.updatePotential3D?.()}})}
+function list(){const el=$('masslist');el.replaceChildren();$('count').textContent=bodies.length+' / 4';$('add').disabled=bodies.length>=4;bodies.forEach((b,i)=>{const node=document.createElement('div');node.className='mass'+(selected===b.id?' active':'');node.innerHTML='<div class="masshead"><div><span class="massbadge">m</span><b>Masa '+(i+1)+'</b></div><button aria-label="Eliminar masa">🗑</button></div><p class="explain">M = <b>'+b.m+' × 10²⁴ kg</b></p><input type="range" min="1" max="5" step="1" value="'+b.m+'" aria-label="Magnitud de masa '+(i+1)+'">';node.onclick=()=>{selected=b.id;list();redraw()};node.querySelector('button').onclick=e=>{e.stopPropagation();bodies=bodies.filter(c=>c.id!==b.id);if(selected===b.id)selected=null;list();redraw()};node.querySelector('input').oninput=e=>{e.stopPropagation();b.m=+e.target.value;list();redraw()};el.append(node)})}
+function reset(){bodies=[{id:1,m:2,x:w*.35,y:h*.48},{id:2,m:3,x:w*.65,y:h*.52}];selected=null;probe=null;list();redraw()}
+function pos(e){const r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left)*w/r.width,y:(e.clientY-r.top)*h/r.height}}
+canvas.addEventListener('pointerdown',e=>{const p=pos(e);if(mode==='map'){const b=[...bodies].reverse().find(q=>Math.hypot(q.x-p.x,q.y-p.y)<23);drag=b?{kind:'mass',id:b.id}:null;if(b){selected=b.id;list()}}if(drag)canvas.setPointerCapture(e.pointerId);redraw()});
+canvas.addEventListener('pointermove',e=>{const p=pos(e);if(drag?.kind==='mass'){const b=bodies.find(b=>b.id===drag.id);if(b){b.x=Math.max(15,Math.min(w-15,p.x));b.y=Math.max(15,Math.min(h-15,p.y))}}if(mode==='map'){probe=p;const v=potential(p.x,p.y);$('probe').textContent='V = '+v.V.toExponential(3)+' J/kg | |g| = '+v.g.toExponential(3)+' N/kg'}redraw()});
+function stop(){drag=null}canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',stop);
+$('map').onclick=()=>switchView('map');$('relief').onclick=()=>switchView('relief');
+$('add').onclick=()=>{if(bodies.length>=4)return;let b={id:idNext++,m:1,x:w*(.32+.36*Math.random()),y:h*(.3+.4*Math.random())};bodies.push(b);selected=b.id;list();redraw()};$('reset').onclick=reset;
+for(const key of ['contours','markers','wire'])$(key).onchange=e=>{opts[key]=e.target.checked;redraw()};for(const key of ['contrast','depth'])$(key).oninput=e=>{opts[key]=+e.target.value;$(key+'Value').textContent=e.target.value;redraw()};
+new ResizeObserver(()=>{let r=plot.getBoundingClientRect();if(!r.width||!r.height)return;const ow=w,oh=h;w=r.width;h=r.height;const dpr=Math.min(2,window.devicePixelRatio||1);canvas.width=Math.max(1,Math.round(w*dpr));canvas.height=Math.max(1,Math.round(h*dpr));ctx.setTransform(dpr,0,0,dpr,0,0);for(const b of bodies){b.x*=w/ow;b.y*=h/oh}redraw();if(window.resizePotential3D)window.resizePotential3D()}).observe(plot);reset();switchView('map');
+</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+const host=document.getElementById('webgl');
+const scene=new THREE.Scene();scene.background=new THREE.Color('#f6f8fc');
+const camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.set(0,5,8);
+let renderer;
+try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;host.appendChild(renderer.domElement)}
+catch(err){host.textContent='Este navegador no ofrece WebGL 2: utiliza el mapa 2D.';console.error(err)}
+const controls=renderer?new OrbitControls(camera,renderer.domElement):null;
+if(controls){controls.enableDamping=true;controls.dampingFactor=.08;controls.minDistance=3.8;controls.maxDistance=16;controls.maxPolarAngle=Math.PI*.48;controls.target.set(0,-.6,0);controls.update()}
+scene.add(new THREE.HemisphereLight(0xffffff,0x9eacc4,2));
+const sun=new THREE.DirectionalLight(0xffffff,2.3);sun.position.set(-3,8,6);scene.add(sun);
+const SIZE=6.4,segments=120;
+const meshGeometry=new THREE.PlaneGeometry(SIZE,SIZE,segments,segments);meshGeometry.rotateX(-Math.PI/2);
+const meshMaterial=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.8,metalness:0,side:THREE.DoubleSide});
+const ground=new THREE.Mesh(meshGeometry,meshMaterial);scene.add(ground);
+const topCamera=new THREE.OrthographicCamera(-3.2,3.2,3.2,-3.2,.1,30);topCamera.position.set(0,12,0);topCamera.up.set(0,0,-1);topCamera.lookAt(0,0,0);
+const attr=meshGeometry.getAttribute('position'),colorArray=new Float32Array(attr.count*3),colorAttribute=new THREE.BufferAttribute(colorArray,3);meshGeometry.setAttribute('color',colorAttribute);
+const sphereGeometry=new THREE.SphereGeometry(.075,20,14),markers=[];
+for(let i=0;i<4;i++){const m=new THREE.Mesh(sphereGeometry,new THREE.MeshStandardMaterial({color:'#ed4949',roughness:.45}));scene.add(m);markers.push(m)}
+const grid=new THREE.GridHelper(SIZE,16,0x9aa9c3,0xbcc8d7);grid.position.y=-2.5;scene.add(grid);
+// Curvas equipotenciales 3D: mismos nueve niveles y marcha por celdas del mapa 2D.
+const contourGroup=new THREE.Group();scene.add(contourGroup);
+const contourMaterial=new THREE.LineBasicMaterial({color:0x173354,transparent:true,opacity:.72,depthTest:true});
+function surfaceHeight(x,y,lo,hi){const t=norm(potential(x,y).V,lo,hi);return -2.3*(opts.depth/65)*Math.pow(Math.max(0,1-t),.9)}
+function updateContours3D(lo,hi){
+ contourGroup.visible=mode==='relief'&&opts.contours;
+ if(!contourGroup.visible)return;
+ for(const child of contourGroup.children)child.geometry.dispose();contourGroup.clear();
+ const d=14,levels=equipotentialLevels(lo,hi),verts=[];
+ // Marching squares con interpolación exacta del nivel en cada arista.
+ for(let y=0;y<h;y+=d)for(let x=0;x<w;x+=d){
+  const q=[[x,y],[Math.min(w,x+d),y],[Math.min(w,x+d),Math.min(h,y+d)],[x,Math.min(h,y+d)]];
+  const vals=q.map(p=>potential(p[0],p[1]).V);
+  for(const level of levels){
+   const hits=[];
+   for(let edge=0;edge<4;edge++){const n=(edge+1)%4,a=vals[edge],b=vals[n];if((a<level&&b>=level)||(a>=level&&b<level)){const t=(level-a)/(b-a);hits.push([mix(q[edge][0],q[n][0],t),mix(q[edge][1],q[n][1],t)])}}
+   for(let j=0;j+1<hits.length;j+=2){
+    for(const raw of [hits[j],hits[j+1]]){
+     // Ajuste del punto interpolado al valor físico EXACTO de la equipotencial.
+     let px=raw[0],py=raw[1];
+     for(let iter=0;iter<5;iter++){
+      const error=potential(px,py).V-level,eps=.75;
+      if(Math.abs(error)<Math.abs(level)*1e-10)break;
+      const gx=(potential(px+eps,py).V-potential(px-eps,py).V)/(2*eps);
+      const gy=(potential(px,py+eps).V-potential(px,py-eps).V)/(2*eps);
+      const den=gx*gx+gy*gy;if(den<1e-20)break;
+      const step=Math.max(-2,Math.min(2,error/den));
+      px=Math.max(0,Math.min(w,px-step*gx));py=Math.max(0,Math.min(h,py-step*gy))
+     }
+     // Misma superficie matemática que A/B. Ligera elevación para evitar ocultación.
+     verts.push((px/w-.5)*SIZE,surfaceHeight(px,py,lo,hi)+.028,(py/h-.5)*SIZE)
+    }
+   }
+  }
+ }
+ if(verts.length){const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));const lines=new THREE.LineSegments(geo,contourMaterial);lines.renderOrder=8;contourGroup.add(lines)}
+}
+
+const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();
+const fieldGroup=new THREE.Group();scene.add(fieldGroup);
+const fieldArrow=new THREE.ArrowHelper(new THREE.Vector3(1,0,0),new THREE.Vector3(),.8,0xc92e48,.18,.10);
+fieldArrow.line.material.depthTest=false;fieldArrow.cone.material.depthTest=false;fieldGroup.add(fieldArrow);
+const fieldSpot=new THREE.Mesh(new THREE.SphereGeometry(.045,12,8),new THREE.MeshBasicMaterial({color:0xffffff,depthTest:false}));fieldGroup.add(fieldSpot);
+fieldGroup.visible=false;
+let fieldSample=null;
+function updateFieldVector(){
+ if(!fieldSample||mode!=='relief'){fieldGroup.visible=false;return}
+ const x=fieldSample.x,y=fieldSample.y,{lo,hi}=bounds(),v=potential(x,y);
+ const magnitude=Math.hypot(v.gx,v.gy);if(magnitude<1e-22){fieldGroup.visible=false;return}
+ // gx y gy: N/kg sobre los ejes del plano, no componentes de la altura artística.
+ const direction=new THREE.Vector3(v.gx,0,v.gy).normalize();
+ const origin=new THREE.Vector3((x/w-.5)*SIZE,surfaceHeight(x,y,lo,hi)+.15,(y/h-.5)*SIZE);
+ const length=Math.min(1.05,Math.max(.42,.46+.15*Math.log10(1+magnitude*1e4)));
+ fieldArrow.position.copy(origin);fieldArrow.setDirection(direction);fieldArrow.setLength(length,.17,.10);
+ fieldSpot.position.copy(origin);fieldGroup.visible=true;
+ const format=n=>n.toExponential(3).replace('.',',');
+ document.getElementById('fieldReadout').innerHTML='V = '+format(v.V)+' J/kg<br>g<sub>x</sub> = '+format(v.gx)+' N/kg<br>g<sub>y</sub> = '+format(v.gy)+' N/kg<br>|g| = <b>'+format(magnitude)+' N/kg</b>';
+}
+if(renderer){
+ renderer.domElement.addEventListener('pointermove',e=>{
+  if(mode!=='relief'||e.buttons){if(e.buttons){fieldSample=null;fieldGroup.visible=false}return}
+  const rect=renderer.domElement.getBoundingClientRect();mouse.set(2*(e.clientX-rect.left)/rect.width-1,1-2*(e.clientY-rect.top)/rect.height);
+  raycaster.setFromCamera(mouse,camera);
+  const hit=raycaster.intersectObject(ground,false)[0];
+  if(!hit){fieldSample=null;fieldGroup.visible=false;return}
+  const p=hit.point;fieldSample={x:Math.max(0,Math.min(w,(p.x/SIZE+.5)*w)),y:Math.max(0,Math.min(h,(p.z/SIZE+.5)*h))};updateFieldVector();renderSoon()
+ });
+ renderer.domElement.addEventListener('pointerleave',()=>{fieldSample=null;fieldGroup.visible=false;renderSoon()});
+}
+const pal=[[48,18,59],[50,21,133],[32,74,195],[26,147,211],[64,214,152],[180,222,44],[253,187,45],[244,96,48],[180,4,38]];
+function samplePalette(t){let q=Math.max(0,Math.min(.99999,t))*(pal.length-1),i=Math.floor(q),f=q-i;return pal[i].map((a,j)=>(a+(pal[i+1][j]-a)*f)/255)}
+let renderPending=false;
+window.updatePotential3D=()=>{if(!renderer)return;const {lo,hi}=bounds();for(let i=0;i<attr.count;i++){const xx=attr.getX(i),zz=attr.getZ(i),x=(xx/SIZE+.5)*w,y=(zz/SIZE+.5)*h;const V=potential(x,y).V,t=norm(V,lo,hi),depression=Math.pow(Math.max(0,1-t),.9);attr.setY(i,mode==='map'?0:-2.3*(opts.depth/65)*depression);const c=samplePalette(t);colorAttribute.setXYZ(i,c[0],c[1],c[2])}
+attr.needsUpdate=true;colorAttribute.needsUpdate=true;meshGeometry.computeVertexNormals();for(let i=0;i<4;i++){const b=bodies[i],m=markers[i];m.visible=!!b&&opts.markers;if(b){const t=norm(potential(b.x,b.y).V,lo,hi);m.position.set((b.x/w-.5)*SIZE,(mode==='map'?0:-2.3*(opts.depth/65)*Math.pow(1-t,.9))+.06,(b.y/h-.5)*SIZE)}}
+grid.visible=mode==='relief'&&opts.wire;if(controls)controls.enabled=mode==='relief';updateContours3D(lo,hi);updateFieldVector();renderSoon()};
+function renderSoon(){if(!renderer||renderPending)return;renderPending=true;requestAnimationFrame(()=>{renderPending=false;controls.update();renderer.render(scene,mode==='map'?topCamera:camera)})}
+function resize(){if(!renderer)return;const r=host.getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();const ratio=r.width/r.height;topCamera.left=-SIZE/2;topCamera.right=SIZE/2;topCamera.top=SIZE/(2*ratio);topCamera.bottom=-SIZE/(2*ratio);topCamera.updateProjectionMatrix();renderSoon()}
+window.resizePotential3D=resize;
+const observer=new ResizeObserver(resize);observer.observe(host);
+function animate(){requestAnimationFrame(animate);if(!renderer)return;if(mode==='relief'){controls.update();renderer.render(scene,camera)}}animate();
+document.getElementById('relief').addEventListener('click',()=>{resize();window.updatePotential3D()});
+document.getElementById('map').addEventListener('click',()=>renderSoon());
+window.updatePotential3D();
+
+let mapDrag=null;
+function mapPoint(e){const rect=renderer.domElement.getBoundingClientRect();return {x:(e.clientX-rect.left)/rect.width*w,y:(e.clientY-rect.top)/rect.height*h}}
+if(renderer){const view=renderer.domElement;
+view.addEventListener('pointerdown',e=>{if(mode!=='map')return;const p=mapPoint(e),b=[...bodies].reverse().find(b=>Math.hypot(b.x-p.x,b.y-p.y)<25);if(b){mapDrag=b.id;selected=b.id;list();view.setPointerCapture(e.pointerId)}});
+view.addEventListener('pointermove',e=>{if(mode!=='map')return;const p=mapPoint(e);if(mapDrag!==null){const b=bodies.find(b=>b.id===mapDrag);if(b){b.x=Math.max(12,Math.min(w-12,p.x));b.y=Math.max(12,Math.min(h-12,p.y));window.updatePotential3D()}}const v=potential(p.x,p.y);document.getElementById('probe').textContent='V = '+v.V.toExponential(3)+' J/kg · |g| = '+v.g.toExponential(3)+' N/kg'});
+for(const event of ['pointerup','pointercancel','lostpointercapture'])view.addEventListener(event,()=>{mapDrag=null});
+}
+</script></body></html>
