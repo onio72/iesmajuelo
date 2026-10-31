@@ -31,10 +31,9 @@ $('testMassLabel').textContent=mass.toLocaleString('es-ES')+' kg';$('valueVA').t
 $('workResult').innerHTML='W<sub>g</sub> = −ΔE<sub>p</sub> = '+fmt(work)+' J';
 $('workStatus').textContent=Math.abs(work)<Math.max(Math.abs(ea),Math.abs(eb),1)*1e-10?'Trabajo nulo: no existe preferencia energética entre A y B.':work>0?'Wg > 0: la gravedad favorece el desplazamiento de A a B (si se libera desde reposo y no hay restricciones).':'Wg < 0: el desplazamiento A → B requiere aporte externo de energía; la gravedad se opone.';
 }
-function drawPath(){pctx.clearRect(0,0,w,h);if(mode!=='map'||!w||!h||!pathEnabled)return;const a=pathPoint(reverse?pathEnd:pathStart),b=pathPoint(reverse?pathStart:pathEnd);
-const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1;
-const mid={x:(a.x+b.x)/2+(-dy/L)*(reverse?-1:1)*curveSeed*Math.min(w,h)*.52,y:(a.y+b.y)/2+(dx/L)*(reverse?-1:1)*curveSeed*Math.min(w,h)*.52};
-const c1={x:a.x+(mid.x-a.x)*.68,y:a.y+(mid.y-a.y)*.68},c2={x:b.x+(mid.x-b.x)*.68,y:b.y+(mid.y-b.y)*.68};
+function abCurve(){const a=pathPoint(reverse?pathEnd:pathStart),b=pathPoint(reverse?pathStart:pathEnd),dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1;const mid={x:(a.x+b.x)/2+(-dy/L)*(reverse?-1:1)*curveSeed*Math.min(w,h)*.52,y:(a.y+b.y)/2+(dx/L)*(reverse?-1:1)*curveSeed*Math.min(w,h)*.52};const c1={x:a.x+(mid.x-a.x)*.68,y:a.y+(mid.y-a.y)*.68},c2={x:b.x+(mid.x-b.x)*.68,y:b.y+(mid.y-b.y)*.68};return {a,b,c1,c2}}
+window.getABCurve=abCurve;
+function drawPath(){pctx.clearRect(0,0,w,h);window.updatePath3D?.();if(mode!=='map'||!w||!h||!pathEnabled)return;const {a,b,c1,c2}=abCurve();
 pctx.lineWidth=5;pctx.strokeStyle='#fff';pctx.beginPath();pctx.moveTo(a.x,a.y);pctx.bezierCurveTo(c1.x,c1.y,c2.x,c2.y,b.x,b.y);pctx.stroke();
 pctx.lineWidth=2.6;pctx.setLineDash([9,6]);pctx.strokeStyle='#172554';pctx.stroke();pctx.setLineDash([]);
 const t=.78,u=1-t,p={x:u*u*u*a.x+3*u*u*t*c1.x+3*u*t*t*c2.x+t*t*t*b.x,y:u*u*u*a.y+3*u*u*t*c1.y+3*u*t*t*c2.y+t*t*t*b.y},vx=3*u*u*(c1.x-a.x)+6*u*t*(c2.x-c1.x)+3*t*t*(b.x-c2.x),vy=3*u*u*(c1.y-a.y)+6*u*t*(c2.y-c1.y)+3*t*t*(b.y-c2.y),theta=Math.atan2(vy,vx);
@@ -91,12 +90,26 @@ const attr=meshGeometry.getAttribute('position'),colorArray=new Float32Array(att
 const sphereGeometry=new THREE.SphereGeometry(.075,20,14),markers=[];
 for(let i=0;i<4;i++){const m=new THREE.Mesh(sphereGeometry,new THREE.MeshStandardMaterial({color:'#ed4949',roughness:.45}));scene.add(m);markers.push(m)}
 const grid=new THREE.GridHelper(SIZE,16,0x9aa9c3,0xbcc8d7);grid.position.y=-2.5;scene.add(grid);
+const abGroup=new THREE.Group();scene.add(abGroup);
+const abCurveMaterial=new THREE.MeshBasicMaterial({color:0xffffff,depthTest:false});
+const abOutlineMaterial=new THREE.MeshBasicMaterial({color:0x172554,depthTest:false});
+const abDotGeometry=new THREE.SphereGeometry(.105,18,12);
+function abLabel(letter){const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');g.fillStyle='#fff';g.beginPath();g.arc(64,64,54,0,Math.PI*2);g.fill();g.lineWidth=9;g.strokeStyle='#172554';g.stroke();g.fillStyle='#172554';g.font='bold 68px system-ui';g.textAlign='center';g.textBaseline='middle';g.fillText(letter,64,67);const texture=new THREE.CanvasTexture(c);const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,depthTest:false}));sprite.scale.set(.42,.42,1);return sprite}
+const abLabelA=abLabel('A'),abLabelB=abLabel('B');abGroup.add(abLabelA,abLabelB);
+const abArrow=new THREE.Mesh(new THREE.ConeGeometry(.10,.28,12),new THREE.MeshBasicMaterial({color:0x172554,depthTest:false}));abGroup.add(abArrow);
+function abHeight(x,y,lo,hi){const t=norm(potential(x,y).V,lo,hi);return -2.3*(opts.depth/65)*Math.pow(Math.max(0,1-t),.9)+.11}
+window.updatePath3D=()=>{if(!renderer)return;abGroup.visible=pathEnabled&&mode==='relief';if(!abGroup.visible)return;const {a,b,c1,c2}=window.getABCurve(),{lo,hi}=bounds();const points=[];for(let i=0;i<=100;i++){const t=i/100,u=1-t,x=u*u*u*a.x+3*u*u*t*c1.x+3*u*t*t*c2.x+t*t*t*b.x,y=u*u*u*a.y+3*u*u*t*c1.y+3*u*t*t*c2.y+t*t*t*b.y;points.push(new THREE.Vector3((x/w-.5)*SIZE,abHeight(x,y,lo,hi),(y/h-.5)*SIZE))}
+const curve=new THREE.CatmullRomCurve3(points);for(const obj of [...abGroup.children]){if(obj.userData.pathTube){abGroup.remove(obj);obj.geometry.dispose()}}
+for(const [radius,mat] of [[.038,abCurveMaterial],[.019,abOutlineMaterial]]){const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,140,radius,6,false),mat);tube.userData.pathTube=true;tube.renderOrder=20;abGroup.add(tube)}
+abLabelA.position.copy(points[0]).add(new THREE.Vector3(0,.30,0));abLabelB.position.copy(points[100]).add(new THREE.Vector3(0,.30,0));abLabelA.renderOrder=21;abLabelB.renderOrder=21;
+const middle=curve.getPoint(.78),tangent=curve.getTangent(.78).normalize();abArrow.position.copy(middle).addScaledVector(tangent,.10);abArrow.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),tangent);abArrow.renderOrder=22;renderSoon()};
+
 const pal=[[48,18,59],[50,21,133],[32,74,195],[26,147,211],[64,214,152],[180,222,44],[253,187,45],[244,96,48],[180,4,38]];
 function samplePalette(t){let q=Math.max(0,Math.min(.99999,t))*(pal.length-1),i=Math.floor(q),f=q-i;return pal[i].map((a,j)=>(a+(pal[i+1][j]-a)*f)/255)}
 let renderPending=false;
 window.updatePotential3D=()=>{if(!renderer)return;const {lo,hi}=bounds();for(let i=0;i<attr.count;i++){const xx=attr.getX(i),zz=attr.getZ(i),x=(xx/SIZE+.5)*w,y=(zz/SIZE+.5)*h;const V=potential(x,y).V,t=norm(V,lo,hi),depression=Math.pow(Math.max(0,1-t),.9);attr.setY(i,mode==='map'?0:-2.3*(opts.depth/65)*depression);const c=samplePalette(t);colorAttribute.setXYZ(i,c[0],c[1],c[2])}
 attr.needsUpdate=true;colorAttribute.needsUpdate=true;meshGeometry.computeVertexNormals();for(let i=0;i<4;i++){const b=bodies[i],m=markers[i];m.visible=!!b&&opts.markers;if(b){const t=norm(potential(b.x,b.y).V,lo,hi);m.position.set((b.x/w-.5)*SIZE,(mode==='map'?0:-2.3*(opts.depth/65)*Math.pow(1-t,.9))+.06,(b.y/h-.5)*SIZE)}}
-grid.visible=mode==='relief'&&opts.wire;if(controls)controls.enabled=mode==='relief';renderSoon()};
+grid.visible=mode==='relief'&&opts.wire;if(controls)controls.enabled=mode==='relief';window.updatePath3D();renderSoon()};
 function renderSoon(){if(!renderer||renderPending)return;renderPending=true;requestAnimationFrame(()=>{renderPending=false;controls.update();renderer.render(scene,mode==='map'?topCamera:camera)})}
 function resize(){if(!renderer)return;const r=host.getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();const ratio=r.width/r.height;topCamera.left=-SIZE/2;topCamera.right=SIZE/2;topCamera.top=SIZE/(2*ratio);topCamera.bottom=-SIZE/(2*ratio);topCamera.updateProjectionMatrix();renderSoon()}
 window.resizePotential3D=resize;
