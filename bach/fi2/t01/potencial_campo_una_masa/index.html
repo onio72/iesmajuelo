@@ -40,21 +40,26 @@ function paletteColor(t){let z=Math.min(.99999,Math.max(0,t))*(palette.length-1)
 function world(x,y){return new THREE.Vector3((x/w-.5)*SIZE,height(x,y),(y/h-.5)*SIZE)}
 function setGeometry(){for(let i=0;i<positions.count;i++){const x=(positions.getX(i)/SIZE+.5)*w,y=(positions.getZ(i)/SIZE+.5)*h,t=normalized(x,y),rgb=paletteColor(t);positions.setY(i,height(x,y));colors.setXYZ(i,rgb[0]/255,rgb[1]/255,rgb[2]/255)}positions.needsUpdate=true;colors.needsUpdate=true;mesh.computeVertexNormals();massBall.position.set(0,height(w/2,h/2)+.11,0)}
 function scientific(n){if(!Number.isFinite(n))return '—';if(n===0)return '0';const [a,e]=n.toExponential(3).split('e');const exp=Number(e);return a.replace('.',',')+(exp===0?'':' · 10<sup>'+exp+'</sup>')}
+// Escala visual monótona: el módulo físico crece como 1/r² y la longitud
+// de la flecha crece de manera saturada. No se recorta por distancia al centro.
+function vectorLength(g){const reference=G*3*MUNIT/Math.pow(110*UNIT,2);const q=Math.sqrt(Math.max(0,g)/reference);return .25+1.12*q/(1+q)}
 function updateMarker(){
  const {x,y}=unitPoint(),p=world(x,y),v=field(x,y);
  const origin=p.clone().add(new THREE.Vector3(0,.16,0));cross.position.copy(origin);
- const dx=w/2-x,dy=h/2-y,rad=Math.hypot(dx,dy);
- arrow.visible=rad>=4;
+ const dx=w/2-x,dy=h/2-y,r=Math.hypot(dx,dy);
+ arrow.visible=r>=4;
  if(arrow.visible){
-  // Construir la flecha desde dos puntos REALES de la superficie, en dirección
-  // radial hacia M. La punta nunca cruza el centro del pozo.
-  const ux=dx/rad,uy=dy/rad,step=Math.min(90,rad*.62);
-  const end=world(x+ux*step,y+uy*step);
-  const target=end.add(new THREE.Vector3(0,.16,0));
-  const direction=target.clone().sub(origin),length=direction.length();
-  arrow.position.copy(origin);
-  arrow.setDirection(direction.normalize());
-  arrow.setLength(length,Math.min(.19,length*.30),.10);
+  const ux=dx/r,uy=dy/r;
+  // La dirección es radial y descendente: -gradiente del potencial.
+  // El declive se obtiene localmente; no condiciona la longitud.
+  const sample=Math.min(8,r*.3),h0=height(x,y);
+  const dh=height(x+ux*sample,y+uy*sample)-h0;
+  const horizontal=sample*SIZE/Math.sqrt(w*h);
+  const slope=Math.min(0,dh)/Math.max(horizontal,1e-6);
+  const direction=new THREE.Vector3(ux,slope,uy).normalize();
+  const len=vectorLength(v.mag);
+  arrow.position.copy(origin);arrow.setDirection(direction);
+  arrow.setLength(len,Math.min(.20,len*.25),.105);
  }
  $('measures').innerHTML='Potencial en A:<br><strong>'+scientific(phi(x,y))+' J/kg</strong><br>Módulo del campo:<br><strong>'+scientific(v.mag)+' N/kg</strong><br>g<sub>x</sub> = '+scientific(v.gx)+' N/kg<br>g<sub>y</sub> = '+scientific(v.gy)+' N/kg';
 }
@@ -63,7 +68,7 @@ function draw2(){let cw=Math.max(1,Math.floor(w/2)),ch=Math.max(1,Math.floor(h/2
  ctx.beginPath();ctx.arc(w/2,h/2,12,0,Math.PI*2);ctx.fillStyle='#ed4545';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='white';ctx.font='bold 12px system-ui';ctx.textAlign='center';ctx.fillText('M',w/2,h/2+4);
  const {x,y}=unitPoint(),v=field(x,y),len=Math.hypot(v.gx,v.gy)||1,ux=v.gx/len,uy=v.gy/len;
  ctx.lineCap='round';for(const [color,line] of [['white',7],['#142d55',3]]){ctx.strokeStyle=color;ctx.lineWidth=line;ctx.beginPath();ctx.moveTo(x-8,y-8);ctx.lineTo(x+8,y+8);ctx.moveTo(x+8,y-8);ctx.lineTo(x-8,y+8);ctx.stroke()}ctx.font='bold 16px system-ui';ctx.lineWidth=4;ctx.strokeStyle='white';ctx.strokeText('A',x+15,y-13);ctx.fillStyle='#142d55';ctx.fillText('A',x+15,y-13);
- let arrowLength=Math.min(77,Math.max(0,Math.hypot(w/2-x,h/2-y)-5)*.7),ex=x+ux*arrowLength,ey=y+uy*arrowLength;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(ex,ey);ctx.strokeStyle='white';ctx.lineWidth=7;ctx.stroke();ctx.strokeStyle='#d71d49';ctx.lineWidth=3;ctx.stroke();const a=Math.atan2(uy,ux);ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex-13*Math.cos(a-.45),ey-13*Math.sin(a-.45));ctx.lineTo(ex-13*Math.cos(a+.45),ey-13*Math.sin(a+.45));ctx.closePath();ctx.fillStyle='#d71d49';ctx.fill()}
+ let arrowLength=vectorLength(v.mag)*75,ex=x+ux*arrowLength,ey=y+uy*arrowLength;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(ex,ey);ctx.strokeStyle='white';ctx.lineWidth=7;ctx.stroke();ctx.strokeStyle='#d71d49';ctx.lineWidth=3;ctx.stroke();const a=Math.atan2(uy,ux);ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex-13*Math.cos(a-.45),ey-13*Math.sin(a-.45));ctx.lineTo(ex-13*Math.cos(a+.45),ey-13*Math.sin(a+.45));ctx.closePath();ctx.fillStyle='#d71d49';ctx.fill()}
 function refresh(){setGeometry();updateMarker();draw2()}
 function relocate(x,y){point.x=Math.max(.04,Math.min(.96,x/w));point.y=Math.max(.04,Math.min(.96,y/h));updateMarker();draw2()}
 function xy2(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*w,y:(e.clientY-r.top)/r.height*h}}
