@@ -27,7 +27,7 @@ const surface=new THREE.Mesh(mesh,new THREE.MeshStandardMaterial({side:THREE.Dou
 const grid=new THREE.GridHelper(SIZE,16,0x9aaac0,0xbbc8d8);grid.position.y=-2.58;scene.add(grid);
 const massBall=new THREE.Mesh(new THREE.SphereGeometry(.10,22,16),new THREE.MeshStandardMaterial({color:0xed4545}));scene.add(massBall);
 const marker=new THREE.Group();scene.add(marker);
-function labelSprite(){const c=document.createElement('canvas');c.width=128;c.height=128;const g=c.getContext('2d');g.lineCap='round';for(const [color,line] of [['white',13],['#142d55',6]]){g.strokeStyle=color;g.lineWidth=line;g.beginPath();g.moveTo(34,34);g.lineTo(76,76);g.moveTo(76,34);g.lineTo(34,76);g.stroke()}g.fillStyle='#142d55';g.font='bold 45px system-ui';g.fillText('A',82,39);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthTest:false,depthWrite:false,transparent:true}));sprite.scale.set(.44,.44,1);return sprite}
+function labelSprite(){const c=document.createElement('canvas');c.width=192;c.height=128;const g=c.getContext('2d');g.lineCap='round';g.lineJoin='round';const cx=96,cy=64;for(const [color,line] of [['white',13],['#142d55',6]]){g.strokeStyle=color;g.lineWidth=line;g.beginPath();g.moveTo(cx-20,cy-20);g.lineTo(cx+20,cy+20);g.moveTo(cx+20,cy-20);g.lineTo(cx-20,cy+20);g.stroke()}g.font='bold 39px system-ui';g.lineWidth=4;g.strokeStyle='white';g.strokeText('A',cx+27,cy-18);g.fillStyle='#142d55';g.fillText('A',cx+27,cy-18);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthTest:false,depthWrite:false,transparent:true}));sprite.scale.set(.66,.44,1);return sprite}
 const cross=labelSprite();marker.add(cross);
 const arrow=new THREE.ArrowHelper(new THREE.Vector3(-1,0,0),new THREE.Vector3(),.8,0xd71d49,.18,.105);arrow.line.material.depthTest=false;arrow.cone.material.depthTest=false;marker.add(arrow);
 const palette=[[48,18,59],[50,21,133],[32,74,195],[26,147,211],[64,214,152],[180,222,44],[253,187,45],[244,96,48],[180,4,38]];
@@ -42,7 +42,7 @@ function setGeometry(){for(let i=0;i<positions.count;i++){const x=(positions.get
 function scientific(n){if(!Number.isFinite(n))return '—';if(n===0)return '0';const [a,e]=n.toExponential(3).split('e');const exp=Number(e);return a.replace('.',',')+(exp===0?'':' · 10<sup>'+exp+'</sup>')}
 function updateMarker(){
  const {x,y}=unitPoint(),p=world(x,y),v=field(x,y);
- cross.position.copy(p).add(new THREE.Vector3(0,.17,0));
+ const origin=p.clone().add(new THREE.Vector3(0,.16,0));cross.position.copy(origin);
  const dx=w/2-x,dy=h/2-y,rad=Math.hypot(dx,dy);
  arrow.visible=rad>=4;
  if(arrow.visible){
@@ -50,7 +50,6 @@ function updateMarker(){
   // radial hacia M. La punta nunca cruza el centro del pozo.
   const ux=dx/rad,uy=dy/rad,step=Math.min(90,rad*.62);
   const end=world(x+ux*step,y+uy*step);
-  const origin=p.clone().add(new THREE.Vector3(0,.16,0));
   const target=end.add(new THREE.Vector3(0,.16,0));
   const direction=target.clone().sub(origin),length=direction.length();
   arrow.position.copy(origin);
