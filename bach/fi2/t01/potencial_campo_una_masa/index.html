@@ -5,7 +5,7 @@
 :root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#17263d;background:#f4f7fb}*{box-sizing:border-box}body{margin:0}header{background:white;border-bottom:1px solid #dbe3ee;padding:16px 22px;display:flex;justify-content:space-between;gap:15px;align-items:center}h1{font-size:21px;margin:0}header p{margin:5px 0 0;color:#61718a;font-size:13px}main{padding:16px;max-width:1480px;margin:auto}.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 290px;gap:13px}.panel,.controls{background:white;border:1px solid #d9e3ef;border-radius:14px;overflow:hidden}.panel h2,.controls h2{margin:0;font-size:15px;padding:13px 15px;border-bottom:1px solid #e4ebf4}.stage{position:relative;height:min(60vh,550px);min-height:380px;background:#eaf0f8;touch-action:none}.stage canvas{display:block;width:100%;height:100%;touch-action:none}.readout{position:absolute;left:10px;top:10px;border:1px solid #cbd5e1;border-radius:8px;background:#ffffffeb;padding:7px 9px;font-size:12px;pointer-events:none;line-height:1.55}.panel p{padding:0 15px;font-size:12px;color:#52647b}.controls{padding-bottom:16px}.control{padding:12px 16px 4px}.control label{display:flex;justify-content:space-between;font-size:13px}.control input{width:100%;accent-color:#4f46e5;margin:12px 0}.note{margin:14px;background:#eef2ff;padding:12px;font-size:12px;line-height:1.6;border-radius:8px}.key{display:flex;align-items:center;gap:8px;padding:4px 16px;font-size:12px}.swatch{width:13px;height:13px;border-radius:50%}.legend{height:12px;margin:13px 16px 4px;border-radius:8px;background:linear-gradient(90deg,#30123b,#204ac3,#1a93d3,#40d698,#fdbb2d,#b40426)}.legendtext{display:flex;justify-content:space-between;margin:0 16px;font-size:11px;color:#64748b}.equations{padding:12px 16px;font-size:13px;line-height:1.8}.equations strong{color:#312e81}@media(max-width:1100px){.layout{grid-template-columns:1fr 1fr}.controls{grid-column:1/-1}}@media(max-width:660px){.layout{grid-template-columns:1fr}.controls{grid-column:auto}.stage{height:400px;min-height:330px}}button{border:1px solid #cbd5e1;background:white;border-radius:9px;padding:9px 12px;cursor:pointer}button:hover{background:#edf2ff}
 </style></head><body><header><div><h1>Relación entre potencial y campo gravitatorio</h1><p>Experimento de una sola masa · Versión de prueba sin indexar</p></div><button id="reset">↺ Reiniciar A</button></header>
 <main><div class="layout"><section class="panel"><h2>Mapa de potencial · 2D</h2><div class="stage" id="stage2"><canvas id="map"></canvas><div class="readout">Arrastra el aspa A para explorar el campo</div></div><p>La masa M permanece en el centro. El vector rojo apunta hacia ella.</p></section>
-<section class="panel"><h2>Relieve de potencial · 3D</h2><div class="stage" id="stage3"><div id="webgl" style="width:100%;height:100%"></div><div class="readout">Arrastra el aspa A · Gira el fondo</div></div><p>La flecha sigue la dirección de descenso máximo del relieve; la altura es una representación visual de V.</p></section>
+<section class="panel"><h2>Relieve de potencial · 3D</h2><div class="stage" id="stage3"><div id="webgl" style="width:100%;height:100%"></div><div class="readout">Arrastra el aspa A · Gira el fondo</div></div><p>La flecha roja une dos puntos del relieve en dirección hacia la masa. Su inclinación representa visualmente la disminución del potencial.</p></section>
 <aside class="controls"><h2>Controles y medidas</h2><div class="control"><label for="mass">Masa central <b id="massValue">3 × 10²⁴ kg</b></label><input id="mass" type="range" min="1" max="5" step=".25" value="3"></div>
 <div class="control"><label for="depth">Profundidad del relieve <b id="depthValue">65</b></label><input id="depth" type="range" min="20" max="100" value="65"></div>
 <div class="control"><label for="contrast">Contraste cromático <b id="contrastValue">55</b></label><input id="contrast" type="range" min="20" max="100" value="55"></div>
@@ -39,32 +39,32 @@ function height(x,y){const t=normalized(x,y);return -2.3*(depth/65)*Math.pow(Mat
 function paletteColor(t){let z=Math.min(.99999,Math.max(0,t))*(palette.length-1),i=Math.floor(z),f=z-i;return palette[i].map((v,k)=>v+(palette[i+1][k]-v)*f)}
 function world(x,y){return new THREE.Vector3((x/w-.5)*SIZE,height(x,y),(y/h-.5)*SIZE)}
 function setGeometry(){for(let i=0;i<positions.count;i++){const x=(positions.getX(i)/SIZE+.5)*w,y=(positions.getZ(i)/SIZE+.5)*h,t=normalized(x,y),rgb=paletteColor(t);positions.setY(i,height(x,y));colors.setXYZ(i,rgb[0]/255,rgb[1]/255,rgb[2]/255)}positions.needsUpdate=true;colors.needsUpdate=true;mesh.computeVertexNormals();massBall.position.set(0,height(w/2,h/2)+.11,0)}
-function updateMarker(){const {x,y}=unitPoint(),p=world(x,y),v=field(x,y);cross.position.copy(p).add(new THREE.Vector3(0,.20,0));
- // Derivada de la altura mostrada: el vector de descenso del relieve es tangente a su superficie.
- // Para una única masa, g siempre es radial y apunta hacia su centro.
-// La flecha se orienta con una diferencia HACIA DELANTE, no con una derivada centrada:
-// cerca del centro, la derivada centrada puede cruzar el pozo y dar el signo contrario.
+function scientific(n){if(!Number.isFinite(n))return '—';if(n===0)return '0';const [a,e]=n.toExponential(3).split('e');const exp=Number(e);return a.replace('.',',')+(exp===0?'':' · 10<sup>'+exp+'</sup>')}
+function updateMarker(){
+ const {x,y}=unitPoint(),p=world(x,y),v=field(x,y);
+ cross.position.copy(p).add(new THREE.Vector3(0,.17,0));
  const dx=w/2-x,dy=h/2-y,rad=Math.hypot(dx,dy);
- if(rad<4){arrow.visible=false}else{
- arrow.visible=true;
- const step=Math.min(24,rad*.5),ux=dx/rad,uy=dy/rad;
- const hx=x+ux*step,hy=y+uy*step;
- const radial=new THREE.Vector3(ux,0,uy).normalize();
- const deltaY=height(hx,hy)-height(x,y);
- // Al avanzar hacia M, el potencial y la altura deben disminuir o permanecer constantes.
- const descent=Math.min(0,deltaY)/(step*SIZE/Math.sqrt(w*h));
- const tangent=new THREE.Vector3(radial.x,descent,radial.z).normalize();
- arrow.position.copy(p).add(new THREE.Vector3(0,.14,0));arrow.setDirection(tangent);arrow.setLength(.85,.18,.105);
+ arrow.visible=rad>=4;
+ if(arrow.visible){
+  // Construir la flecha desde dos puntos REALES de la superficie, en dirección
+  // radial hacia M. La punta nunca cruza el centro del pozo.
+  const ux=dx/rad,uy=dy/rad,step=Math.min(90,rad*.62);
+  const end=world(x+ux*step,y+uy*step);
+  const origin=p.clone().add(new THREE.Vector3(0,.16,0));
+  const target=end.add(new THREE.Vector3(0,.16,0));
+  const direction=target.clone().sub(origin),length=direction.length();
+  arrow.position.copy(origin);
+  arrow.setDirection(direction.normalize());
+  arrow.setLength(length,Math.min(.19,length*.30),.10);
  }
- const fmt=n=>n.toExponential(3).replace('.',',').replace(/e\+?/,' · 10^');
- $('measures').innerHTML='Potencial en A:<br><strong>'+fmt(phi(x,y))+' J/kg</strong><br>Módulo del campo:<br><strong>'+fmt(v.mag)+' N/kg</strong><br>gₓ = '+fmt(v.gx)+' N/kg<br>gᵧ = '+fmt(v.gy)+' N/kg';
+ $('measures').innerHTML='Potencial en A:<br><strong>'+scientific(phi(x,y))+' J/kg</strong><br>Módulo del campo:<br><strong>'+scientific(v.mag)+' N/kg</strong><br>g<sub>x</sub> = '+scientific(v.gx)+' N/kg<br>g<sub>y</sub> = '+scientific(v.gy)+' N/kg';
 }
 function draw2(){let cw=Math.max(1,Math.floor(w/2)),ch=Math.max(1,Math.floor(h/2)),off=document.createElement('canvas');off.width=cw;off.height=ch;const ct=off.getContext('2d'),im=ct.createImageData(cw,ch);for(let j=0;j<ch;j++)for(let i=0;i<cw;i++){const rgb=paletteColor(normalized(i*w/cw,j*h/ch)),o=(j*cw+i)*4;im.data[o]=rgb[0];im.data[o+1]=rgb[1];im.data[o+2]=rgb[2];im.data[o+3]=255}ct.putImageData(im,0,0);ctx.drawImage(off,0,0,w,h);
  // Masa central, aspa A y flecha 2D.
  ctx.beginPath();ctx.arc(w/2,h/2,12,0,Math.PI*2);ctx.fillStyle='#ed4545';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='white';ctx.font='bold 12px system-ui';ctx.textAlign='center';ctx.fillText('M',w/2,h/2+4);
  const {x,y}=unitPoint(),v=field(x,y),len=Math.hypot(v.gx,v.gy)||1,ux=v.gx/len,uy=v.gy/len;
  ctx.lineCap='round';for(const [color,line] of [['white',7],['#142d55',3]]){ctx.strokeStyle=color;ctx.lineWidth=line;ctx.beginPath();ctx.moveTo(x-8,y-8);ctx.lineTo(x+8,y+8);ctx.moveTo(x+8,y-8);ctx.lineTo(x-8,y+8);ctx.stroke()}ctx.font='bold 16px system-ui';ctx.lineWidth=4;ctx.strokeStyle='white';ctx.strokeText('A',x+15,y-13);ctx.fillStyle='#142d55';ctx.fillText('A',x+15,y-13);
- let ex=x+ux*77,ey=y+uy*77;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(ex,ey);ctx.strokeStyle='white';ctx.lineWidth=7;ctx.stroke();ctx.strokeStyle='#d71d49';ctx.lineWidth=3;ctx.stroke();const a=Math.atan2(uy,ux);ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex-13*Math.cos(a-.45),ey-13*Math.sin(a-.45));ctx.lineTo(ex-13*Math.cos(a+.45),ey-13*Math.sin(a+.45));ctx.closePath();ctx.fillStyle='#d71d49';ctx.fill()}
+ let arrowLength=Math.min(77,Math.max(0,Math.hypot(w/2-x,h/2-y)-5)*.7),ex=x+ux*arrowLength,ey=y+uy*arrowLength;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(ex,ey);ctx.strokeStyle='white';ctx.lineWidth=7;ctx.stroke();ctx.strokeStyle='#d71d49';ctx.lineWidth=3;ctx.stroke();const a=Math.atan2(uy,ux);ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex-13*Math.cos(a-.45),ey-13*Math.sin(a-.45));ctx.lineTo(ex-13*Math.cos(a+.45),ey-13*Math.sin(a+.45));ctx.closePath();ctx.fillStyle='#d71d49';ctx.fill()}
 function refresh(){setGeometry();updateMarker();draw2()}
 function relocate(x,y){point.x=Math.max(.04,Math.min(.96,x/w));point.y=Math.max(.04,Math.min(.96,y/h));updateMarker();draw2()}
 function xy2(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*w,y:(e.clientY-r.top)/r.height*h}}
