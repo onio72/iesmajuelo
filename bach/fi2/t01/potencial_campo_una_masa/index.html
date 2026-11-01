@@ -41,10 +41,21 @@ function world(x,y){return new THREE.Vector3((x/w-.5)*SIZE,height(x,y),(y/h-.5)*
 function setGeometry(){for(let i=0;i<positions.count;i++){const x=(positions.getX(i)/SIZE+.5)*w,y=(positions.getZ(i)/SIZE+.5)*h,t=normalized(x,y),rgb=paletteColor(t);positions.setY(i,height(x,y));colors.setXYZ(i,rgb[0]/255,rgb[1]/255,rgb[2]/255)}positions.needsUpdate=true;colors.needsUpdate=true;mesh.computeVertexNormals();massBall.position.set(0,height(w/2,h/2)+.11,0)}
 function updateMarker(){const {x,y}=unitPoint(),p=world(x,y),v=field(x,y);cross.position.copy(p).add(new THREE.Vector3(0,.20,0));
  // Derivada de la altura mostrada: el vector de descenso del relieve es tangente a su superficie.
- const delta=1,dir2=new THREE.Vector3(v.gx,0,v.gy).normalize(),tx=dir2.x*delta*w/SIZE,ty=dir2.z*delta*h/SIZE;
- const slope=(height(x+tx,y+ty)-height(x-tx,y-ty))/(2*delta);
- const tangent=new THREE.Vector3(dir2.x,slope,dir2.z).normalize();
+ // Para una única masa, g siempre es radial y apunta hacia su centro.
+// La flecha se orienta con una diferencia HACIA DELANTE, no con una derivada centrada:
+// cerca del centro, la derivada centrada puede cruzar el pozo y dar el signo contrario.
+ const dx=w/2-x,dy=h/2-y,rad=Math.hypot(dx,dy);
+ if(rad<4){arrow.visible=false}else{
+ arrow.visible=true;
+ const step=Math.min(24,rad*.5),ux=dx/rad,uy=dy/rad;
+ const hx=x+ux*step,hy=y+uy*step;
+ const radial=new THREE.Vector3(ux,0,uy).normalize();
+ const deltaY=height(hx,hy)-height(x,y);
+ // Al avanzar hacia M, el potencial y la altura deben disminuir o permanecer constantes.
+ const descent=Math.min(0,deltaY)/(step*SIZE/Math.sqrt(w*h));
+ const tangent=new THREE.Vector3(radial.x,descent,radial.z).normalize();
  arrow.position.copy(p).add(new THREE.Vector3(0,.14,0));arrow.setDirection(tangent);arrow.setLength(.85,.18,.105);
+ }
  const fmt=n=>n.toExponential(3).replace('.',',').replace(/e\+?/,' · 10^');
  $('measures').innerHTML='Potencial en A:<br><strong>'+fmt(phi(x,y))+' J/kg</strong><br>Módulo del campo:<br><strong>'+fmt(v.mag)+' N/kg</strong><br>gₓ = '+fmt(v.gx)+' N/kg<br>gᵧ = '+fmt(v.gy)+' N/kg';
 }
