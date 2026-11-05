@@ -5,18 +5,38 @@
 :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#183148;background:#eef4fa}*{box-sizing:border-box}body{margin:0;padding:18px}.app{max-width:1220px;margin:auto;background:#fff;border:1px solid #d9e5ef;border-radius:18px;overflow:hidden;box-shadow:0 8px 30px #17375412}header{padding:23px 28px 15px;border-bottom:1px solid #e6edf4}h1{font-size:clamp(1.3rem,2.3vw,1.8rem);margin:0 0 7px}p{line-height:1.5}header p{margin:0;color:#577087}.eq{font-size:.93rem;color:#355c7b;margin:10px 0 0}.bar{display:flex;flex-wrap:wrap;gap:9px;align-items:center;justify-content:space-between;margin:0 25px;padding:16px 0 11px}.bar .group{display:flex;flex-wrap:wrap;gap:8px}button{font:inherit;font-weight:650;border:1px solid #c5d5e3;color:#183e5a;background:#fff;border-radius:9px;padding:10px 15px;cursor:pointer;min-height:42px}button:hover{background:#edf5fd}button.primary{background:#1766ad;color:#fff;border-color:#1766ad}button:focus-visible{outline:3px solid #87b9f7;outline-offset:2px}.counter{color:#506c82;font-size:.91rem;font-weight:700}.stage-wrap{margin:0 20px;border:1px solid #dce6ef;border-radius:13px;overflow-x:auto;background:#fbfdff}canvas{display:block;width:100%;min-width:850px;height:auto;touch-action:none;cursor:grab}canvas.dragging{cursor:grabbing}.note{font-size:.86rem;color:#647b91;padding:12px 28px 0}.feedback{margin:14px 25px 20px;padding:13px 16px;border:1px solid #d9e6f0;background:#f5f9fd;border-radius:12px;min-height:52px;line-height:1.45}.feedback.good{background:#e9f8f0;border-color:#acd9be;color:#14573b}.feedback.bad{background:#fff2ee;border-color:#efc3b8;color:#873e28}.explain{display:none;margin:0 25px 24px;padding:17px;border-radius:12px;border:1px solid #bbd9e9;background:#f4faff}.explain.visible{display:block}.explain h2{font-size:1.02rem;margin:0 0 8px}.explain table{border-collapse:collapse;width:100%;font-size:.91rem}.explain td,.explain th{border-bottom:1px solid #d6e5ef;text-align:left;padding:7px}.help{padding:0 27px 22px;color:#60778b;font-size:.84rem}@media(max-width:640px){body{padding:6px}.app{border-radius:10px}header{padding:18px 14px}.bar{margin:0 12px}.stage-wrap{margin:0 8px}.feedback,.explain{margin-left:12px;margin-right:12px}.note,.help{padding-left:14px;padding-right:14px}}
 </style></head><body><main class="app">
 <header><h1>¿Qué muelle tiene mayor constante elástica?</h1><p>Cuelga cinco masas idénticas de cinco muelles con diferentes constantes elásticas. Compara sus alargamientos e identifica el valor de <strong>k</strong> de cada uno.</p><p class="eq"><strong>Ley de Hooke (equilibrio):</strong> mg = k·ΔL &nbsp;·&nbsp; Masa: 100 g por bloque &nbsp;·&nbsp; g = 9,8 m/s²</p></header>
-<div class="bar"><div class="group"><button class="primary" id="check">Comprobar</button><button id="reset">Reiniciar colocaciones</button><button id="new">Nuevo reto</button></div><span class="counter" id="score">Reto 1 · Aciertos: 0/5</span></div>
+<div class="bar"><div class="group"><button class="primary" id="check">Comprobar</button><button id="reset">Reiniciar colocaciones</button><button id="new">Nuevo reto</button></div><div class="group"><button id="rulerToggle" aria-pressed="false">📏 Mostrar cinta métrica</button><button id="rulerPrev" title="Medir muelle anterior" disabled>◀</button><button id="rulerNext" title="Medir muelle siguiente" disabled>▶</button></div><span class="counter" id="score">Reto 1 · Aciertos: 0/5</span></div>
 <div class="stage-wrap"><canvas id="lab" width="1100" height="720" aria-label="Cinco muelles y fichas de masas y de constantes elásticas. Arrastra las masas a los muelles y las constantes a las casillas inferiores."></canvas></div>
-<p class="note">Arrastra los bloques de <strong>100 g</strong> desde la bandeja a los muelles. Después arrastra los valores de <strong>k</strong> a las casillas bajo cada muelle. También puedes tocar una ficha y luego tocar su destino.</p>
+<p class="note">Arrastra los bloques de <strong>100 g</strong> desde la bandeja a los muelles. Puedes activar la <strong>cinta métrica</strong> y desplazarla entre muelles (arrastrándola o utilizando ◀ ▶). Su cero coincide con la longitud natural L₀. Después arrastra los valores de <strong>k</strong> a las casillas bajo cada muelle. También puedes tocar una ficha y luego tocar su destino.</p>
 <div id="feedback" class="feedback" role="status" aria-live="polite">Los cinco muelles están descargados. Empieza colgando una masa de cada uno y compara los alargamientos.</div>
 <section class="explain" id="explain"><h2>Resultados y explicación física</h2><p>Cuanto mayor es la constante elástica <strong>k</strong>, menor es el alargamiento para una misma fuerza de 0,98 N.</p><table><thead><tr><th>Muelle</th><th>k (N/m)</th><th>ΔL (m)</th></tr></thead><tbody id="results"></tbody></table></section>
-<div class="help">Todos los muelles tienen la misma longitud en reposo. Para poder comparar su rigidez, los cinco cuerpos tienen la misma masa. El movimiento transitorio al colgarlos es una oscilación amortiguada ilustrativa; los alargamientos de equilibrio siguen exactamente ΔL = mg/k.</div>
+<div class="help">La regla está graduada en metros y mide el alargamiento desde L₀ hasta el extremo libre del muelle; cada división pequeña representa 0,01 m. Todos los muelles tienen la misma longitud en reposo. Para poder comparar su rigidez, los cinco cuerpos tienen la misma masa. El movimiento transitorio al colgarlos es una oscilación amortiguada ilustrativa; los alargamientos de equilibrio siguen exactamente ΔL = mg/k.</div>
 </main><script>
 (()=>{'use strict';
 const canvas=document.getElementById('lab'),c=canvas.getContext('2d'),$=id=>document.getElementById(id),TAU=2*Math.PI;
 const xs=[110,330,550,770,990],restY=205,scale=180,mass=0.1,g=9.8,baseKs=[1,2,3,4,5];
 let order=[],placed=Array(5).fill(false),kAssigned=Array(5).fill(null),timePlaced=Array(5).fill(0),round=0,checked=false,selected=null,drag=null,hover=null,now=0;
 const massSourceY=476,kSlotY=579,kSourceY=671,kSourceXs=[300,425,550,675,800];
+const subDigits=['₁','₂','₃','₄','₅'];
+let showRuler=false,rulerIndex=0,rulerX=xs[0]-71,rulerDrag=null;
+function updateRulerControls(){ $('rulerToggle').textContent=showRuler?'📏 Ocultar cinta métrica':'📏 Mostrar cinta métrica';$('rulerToggle').setAttribute('aria-pressed',String(showRuler));$('rulerPrev').disabled=!showRuler;$('rulerNext').disabled=!showRuler; }
+function setRulerIndex(i){rulerIndex=(i+5)%5;rulerX=xs[rulerIndex]-71;draw()}
+function drawRuler(){
+ if(!showRuler)return;
+ const x=rulerX,y0=restY,h=190,rl=20,rr=23;
+ c.save();
+ roundRect(x-rl,y0-13,rl+rr,h+21,5,'rgba(247,236,190,.95)','#c5a872');
+ for(let n=0;n<=100;n++){
+   const y=y0+n*scale/100;
+   const major=n%10===0,mid=n%5===0;
+   line(x+rr-(major?18:mid?13:8),y,x+rr-2,y,major?'#775e2b':'#97845b',major?1.4:1);
+   if(major)text((n/100).toFixed(1).replace('.',','),x-rl+3,y+1,'#5e5338',10,'700','left');
+ }
+ text('m',x+3,y0-25,'#726038',12,'700');
+ text('↔',x+1,y0+h+18,'#726038',15,'700');
+ c.restore();
+}
+
 function randomOrder(){let a=[...baseKs];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function say(s,type=''){const e=$('feedback');e.textContent=s;e.className='feedback'+(type?' '+type:'')}
 function line(x1,y1,x2,y2,color='#b8cbd9',width=1,dash=[]){c.beginPath();c.setLineDash(dash);c.strokeStyle=color;c.lineWidth=width;c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();c.setLineDash([])}
@@ -35,7 +55,7 @@ let x=xs[i],ext=extension(i),end=restY+scale*ext;
 text('Muelle '+(i+1),x-33,115,'#334f66',15,'700','right');
 coil(x,77,end);
 if(placed[i]){drawMass(x,end+24);line(x-49,end,x+49,end,'#90a8ba',1,[4,4])}else{c.beginPath();c.arc(x,end,5,0,TAU);c.fillStyle='#538aad';c.fill()}
-line(x+48,restY,x+48,end,'#a2b4c2',1.3,[4,4]);if(placed[i])text('ΔL',x+64,(restY+end)/2,'#456a85',14,'700');
+line(x+48,restY,x+48,end,'#a2b4c2',1.3,[4,4]);if(placed[i])text('ΔL'+subDigits[i],x+64,(restY+end)/2,'#456a85',14,'700');
 const slotY=kSlotY;roundRect(x-66,slotY-27,132,54,10,hover?.kind==='slot'&&hover.i===i?'#e3f5ff':'#f0f5f9',hover?.kind==='slot'&&hover.i===i?'#398dd1':'#c1d1df');
 if(kAssigned[i]!=null){labelK(x,slotY,kAssigned[i]);if(checked)text(kAssigned[i]===order[i]?'✓':'✕',x+56,slotY-29,kAssigned[i]===order[i]?'#258355':'#c04a40',23,'800')}
 else text('Suelta aquí k',x,slotY,'#7a8c9b',13);
@@ -47,19 +67,25 @@ text('ASIGNA k A CADA MUELLE',150,543,'#58738a',12,'700');
 line(24,617,1076,617,'#d9e5ee',1);
 text('ETIQUETAS DE k (N/m)',145,645,'#58738a',12,'700');
 for(let j=0;j<5;j++){const value=j+1,used=kAssigned.includes(value);if(!used)labelK(kSourceXs[j],kSourceY,value);else{roundRect(kSourceXs[j]-54,kSourceY-22,108,44,9,'#edf2f6','#d4e0e8');text('✓',kSourceXs[j],kSourceY,'#729b8a',20,'700')}}
+drawRuler();
 if(selected){text(selected.kind==='mass'?'Masa seleccionada: toca un muelle':'k = '+selected.value+' N/m seleccionado: toca una casilla',550,707,'#1465aa',14,'700')}
 if(drag&&drag.moved){c.save();c.globalAlpha=.82;if(drag.kind==='mass')drawMass(drag.x,drag.y);else labelK(drag.x,drag.y,drag.value);c.restore()}
 }
 function point(e){const rect=canvas.getBoundingClientRect();return {x:(e.clientX-rect.left)*canvas.width/rect.width,y:(e.clientY-rect.top)*canvas.height/rect.height}}
+function overRuler(x,y){return showRuler&&x>=rulerX-26&&x<=rulerX+30&&y>=restY-38&&y<=restY+218}
 function source(x,y){if(y>478&&y<526){for(let i=0;i<5;i++)if(Math.abs(x-xs[i])<39&&!placed[i])return {kind:'mass',source:i}}if(y>647&&y<695){for(let i=0;i<5;i++)if(Math.abs(x-kSourceXs[i])<56&&!kAssigned.includes(i+1))return {kind:'k',value:i+1,from:-1}}if(y>550&&y<608){for(let i=0;i<5;i++)if(Math.abs(x-xs[i])<64&&kAssigned[i]!=null)return {kind:'k',value:kAssigned[i],from:i}}return null}
 function target(x,y,kind){for(let i=0;i<5;i++){if(Math.abs(x-xs[i])>=78)continue;if(kind==='mass'&&y>85&&y<438)return {kind:'spring',i};if(kind==='k'&&y>548&&y<611)return {kind:'slot',i}}return null}
 function commit(item,to){if(!item||!to)return false;if(item.kind==='mass'&&to.kind==='spring'){if(placed[to.i]){say('Ese muelle ya tiene una masa. Elige otro muelle.');return false}placed[to.i]=true;timePlaced[to.i]=now;checked=false;say(placed.every(Boolean)?'Ya has colgado las cinco masas. Compara sus alargamientos y asigna los cinco valores de k.':'Masa colocada. Observa cómo oscila el muelle hasta acercarse a su posición de equilibrio.');return true}
 if(item.kind==='k'&&to.kind==='slot'){const previous=kAssigned[to.i];if(item.from===to.i)return false;if(item.from>=0)kAssigned[item.from]=previous;else if(previous!=null){}kAssigned[to.i]=item.value;checked=false;say(kAssigned.every(v=>v!=null)?'Ya has asignado los cinco valores. Pulsa «Comprobar».':'Etiqueta colocada. Puedes moverla a otra casilla si cambias de opinión.');return true}return false}
-canvas.addEventListener('pointerdown',e=>{const p=point(e),it=source(p.x,p.y);if(it){drag={...it,start:p,x:p.x,y:p.y,moved:false};canvas.setPointerCapture(e.pointerId);e.preventDefault()}});
-canvas.addEventListener('pointermove',e=>{const p=point(e);if(drag){drag.x=p.x;drag.y=p.y;if(Math.hypot(p.x-drag.start.x,p.y-drag.start.y)>9)drag.moved=true;hover=target(p.x,p.y,drag.kind);draw();e.preventDefault()}});
-canvas.addEventListener('pointerup',e=>{const p=point(e);if(drag){const item={...drag},isDrag=drag.moved;drag=null;hover=null;if(isDrag){if(commit(item,target(p.x,p.y,item.kind)))selected=null;else say('Suelta la masa sobre un muelle o la etiqueta de k en la casilla situada debajo.')}else selected={kind:item.kind,source:item.source,value:item.value,from:item.from};draw();return}if(selected){const dest=target(p.x,p.y,selected.kind);if(dest&&commit(selected,dest))selected=null;draw()}});
-canvas.addEventListener('pointercancel',()=>{drag=null;hover=null;draw()});
-function newRound(){let next=randomOrder();if(order.length){let n=0;while(next.every((v,i)=>v===order[i])&&n++<10)next=randomOrder()}order=next;placed=Array(5).fill(false);kAssigned=Array(5).fill(null);timePlaced=Array(5).fill(0);selected=null;drag=null;hover=null;checked=false;round++;$('explain').classList.remove('visible');$('score').textContent=`Reto ${round} · Aciertos: 0/5`;say('Los cinco muelles están descargados. Empieza colgando una masa de cada uno y compara los alargamientos.');draw()}
+canvas.addEventListener('pointerdown',e=>{const p=point(e);if(overRuler(p.x,p.y)){rulerDrag={dx:p.x-rulerX};canvas.setPointerCapture(e.pointerId);e.preventDefault();return}const it=source(p.x,p.y);if(it){drag={...it,start:p,x:p.x,y:p.y,moved:false};canvas.setPointerCapture(e.pointerId);e.preventDefault()}});
+canvas.addEventListener('pointermove',e=>{const p=point(e);if(rulerDrag){rulerX=Math.max(28,Math.min(1070,p.x-rulerDrag.dx));draw();e.preventDefault();return}if(drag){drag.x=p.x;drag.y=p.y;if(Math.hypot(p.x-drag.start.x,p.y-drag.start.y)>9)drag.moved=true;hover=target(p.x,p.y,drag.kind);draw();e.preventDefault()}});
+canvas.addEventListener('pointerup',e=>{const p=point(e);if(rulerDrag){rulerDrag=null;let best=0;for(let i=1;i<5;i++)if(Math.abs(xs[i]-71-rulerX)<Math.abs(xs[best]-71-rulerX))best=i;setRulerIndex(best);return}if(drag){const item={...drag},isDrag=drag.moved;drag=null;hover=null;if(isDrag){if(commit(item,target(p.x,p.y,item.kind)))selected=null;else say('Suelta la masa sobre un muelle o la etiqueta de k en la casilla situada debajo.')}else selected={kind:item.kind,source:item.source,value:item.value,from:item.from};draw();return}if(selected){const dest=target(p.x,p.y,selected.kind);if(dest&&commit(selected,dest))selected=null;draw()}});
+canvas.addEventListener('pointercancel',()=>{drag=null;rulerDrag=null;hover=null;draw()});
+function newRound(){let next=randomOrder();if(order.length){let n=0;while(next.every((v,i)=>v===order[i])&&n++<10)next=randomOrder()}order=next;setRulerIndex(0);placed=Array(5).fill(false);kAssigned=Array(5).fill(null);timePlaced=Array(5).fill(0);selected=null;drag=null;hover=null;checked=false;round++;$('explain').classList.remove('visible');$('score').textContent=`Reto ${round} · Aciertos: 0/5`;say('Los cinco muelles están descargados. Empieza colgando una masa de cada uno y compara los alargamientos.');draw()}
+$('rulerToggle').onclick=()=>{showRuler=!showRuler;updateRulerControls();draw()};
+$('rulerPrev').onclick=()=>setRulerIndex(rulerIndex-1);
+$('rulerNext').onclick=()=>setRulerIndex(rulerIndex+1);
+updateRulerControls();
 $('new').onclick=newRound;
 $('reset').onclick=()=>{placed=Array(5).fill(false);kAssigned=Array(5).fill(null);timePlaced=Array(5).fill(0);selected=null;drag=null;hover=null;checked=false;$('explain').classList.remove('visible');$('score').textContent=`Reto ${round} · Aciertos: 0/5`;say('Colocaciones reiniciadas. Los valores ocultos de k siguen siendo los mismos.');draw()};
 $('check').onclick=()=>{if(!placed.every(Boolean)||!kAssigned.every(v=>v!=null)){say('Antes de comprobar, cuelga las cinco masas y coloca las cinco etiquetas de k.','bad');return}checked=true;const hits=kAssigned.filter((v,i)=>v===order[i]).length;$('score').textContent=`Reto ${round} · Aciertos: ${hits}/5`;if(hits===5){say('¡Excelente! Has ordenado correctamente las cinco constantes elásticas. El muelle que menos se alarga tiene la k mayor.','good');$('results').innerHTML=order.map((v,i)=>`<tr><td>${i+1}</td><td>${v}</td><td>${(mass*g/v).toFixed(3).replace('.',',')}</td></tr>`).join('');$('explain').classList.add('visible')}else{say(`Has acertado ${hits} de los 5 valores. Las marcas verdes indican asignaciones correctas; las rojas, incorrectas. Puedes intercambiar las etiquetas y comprobar de nuevo.`,'bad');$('explain').classList.remove('visible')}draw()};
