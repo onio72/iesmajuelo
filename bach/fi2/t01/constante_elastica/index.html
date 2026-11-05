@@ -10,7 +10,7 @@
 <p class="note">Arrastra los bloques de <strong>100 g</strong> desde la bandeja a los muelles. Puedes activar la <strong>cinta métrica</strong> y desplazarla entre muelles (arrastrándola o utilizando ◀ ▶). Su cero coincide con la longitud natural L₀. Después arrastra los valores de <strong>k</strong> a las casillas bajo cada muelle. También puedes tocar una ficha y luego tocar su destino.</p>
 <div id="feedback" class="feedback" role="status" aria-live="polite">Los cinco muelles están descargados. Empieza colgando una masa de cada uno y compara los alargamientos.</div>
 <section class="explain" id="explain"><h2>Resultados y explicación física</h2><p>Cuanto mayor es la constante elástica <strong>k</strong>, menor es el alargamiento para una misma fuerza de 0,98 N.</p><table><thead><tr><th>Muelle</th><th>k (N/m)</th><th>ΔL (m)</th></tr></thead><tbody id="results"></tbody></table></section>
-<div class="help">La regla está graduada en metros y mide el alargamiento desde L₀ hasta el extremo libre del muelle; cada división pequeña representa 0,01 m. Todos los muelles tienen la misma longitud en reposo. Para poder comparar su rigidez, los cinco cuerpos tienen la misma masa. El movimiento transitorio al colgarlos es una oscilación amortiguada ilustrativa; los alargamientos de equilibrio siguen exactamente ΔL = mg/k.</div>
+<div class="help">La regla está graduada en centímetros y mide el alargamiento desde L₀ hasta el extremo libre del muelle; cada división pequeña representa 1 cm. Para calcular k en N/m, convierte el alargamiento a metros. Todos los muelles tienen la misma longitud en reposo. Para poder comparar su rigidez, los cinco cuerpos tienen la misma masa. El movimiento transitorio al colgarlos es una oscilación amortiguada ilustrativa; los alargamientos de equilibrio siguen exactamente ΔL = mg/k.</div>
 </main><script>
 (()=>{'use strict';
 const canvas=document.getElementById('lab'),c=canvas.getContext('2d'),$=id=>document.getElementById(id),TAU=2*Math.PI;
@@ -30,9 +30,9 @@ function drawRuler(){
    const y=y0+n*scale/100;
    const major=n%10===0,mid=n%5===0;
    line(x+rr-(major?18:mid?13:8),y,x+rr-2,y,major?'#775e2b':'#97845b',major?1.4:1);
-   if(major)text((n/100).toFixed(1).replace('.',','),x-rl+3,y+1,'#5e5338',10,'700','left');
+   if(major)text(String(n),x-rl+3,y+1,'#5e5338',10,'700','left');
  }
- text('m',x+3,y0-25,'#726038',12,'700');
+ text('cm',x+3,y0-25,'#726038',12,'700');
  text('↔',x+1,y0+h+18,'#726038',15,'700');
  c.restore();
 }
