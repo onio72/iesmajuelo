@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Movimiento circular uniforme y movimiento armónico simple</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#172b40;background:#f1f5fa}
+*{box-sizing:border-box}body{margin:0;padding:24px}.app{max-width:1160px;margin:auto;background:white;border:1px solid #dee6ef;border-radius:20px;box-shadow:0 12px 42px #15253f14;overflow:hidden}header{padding:25px 30px 17px;border-bottom:1px solid #e6ebf1}h1{font-size:clamp(1.28rem,2.5vw,1.9rem);margin:0 0 8px;font-weight:760;letter-spacing:-.035em}header p{margin:0;color:#5b6d80;font-size:.96rem;line-height:1.45}.plot{padding:16px 20px 0;position:relative}canvas{width:100%;height:auto;display:block;touch-action:none}.columns{display:grid;grid-template-columns:1fr 1fr;text-align:center;color:#55697e;font-size:.92rem;font-weight:690;gap:12px;padding:0 28px 15px}.controls{background:#f8fafc;border-top:1px solid #e6ebf1;padding:19px 26px 22px;display:grid;gap:17px}.actions{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap}button{font:inherit;font-weight:700;cursor:pointer;border:1px solid #cdd8e4;border-radius:11px;background:white;color:#18344e;padding:11px 15px;min-height:44px;transition:background .15s}button:hover{background:#e9f2ff}button.primary{background:#135eb0;color:white;border-color:#135eb0;min-width:132px}button.primary:hover{background:#104c8d}button:focus-visible,input:focus-visible{outline:3px solid #89b9f4;outline-offset:3px}.settings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.setting{display:flex;flex-direction:column;gap:8px}.settop{display:flex;align-items:baseline;justify-content:space-between;gap:5px;font-size:.88rem;font-weight:650}.settop output{font-variant-numeric:tabular-nums;color:#165ca5;font-weight:730}input[type=range]{width:100%;accent-color:#176bb6;cursor:pointer}.readout{display:flex;align-items:center;justify-content:space-around;gap:15px;flex-wrap:wrap;font-size:.91rem;color:#4b627b;border-top:1px solid #e2eaf1;padding-top:14px}.readout strong{color:#17324e;font-variant-numeric:tabular-nums}.legend{display:inline-flex;align-items:center;gap:7px}.dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:#e37534}.dot.blue{background:#2176bd}.graphs{padding:18px 26px 24px;border-top:1px solid #e6ebf1}.graphs h2{margin:0 0 6px;font-size:1.14rem}.graphs p{font-size:.87rem;color:#5b6d80;margin:0 0 14px}.graph-actions{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:13px}.graph-actions button[aria-pressed="true"]{background:#e5f1ff;border-color:#2675bb;color:#134e86}.graph-wrap{display:none;border:1px solid #e0e8f0;border-radius:12px;overflow:hidden;background:#fff}.graph-wrap.visible{display:block}.graph-wrap canvas{width:100%;height:auto}.graph-note{margin-top:8px;font-size:.8rem;color:#647689} .graphs{padding:20px 26px 8px;border-top:1px solid #e6ebf1;background:#fff}.graph-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.graph-bar strong{margin-right:8px}.graph-toggle[aria-pressed="true"]{background:#e3effe;border-color:#2c78ba;color:#114f86}.graph-stack{display:grid;gap:15px}.graph-panel{border:1px solid #dde7f0;border-radius:13px;padding:10px 14px 13px}.graph-panel[hidden]{display:none}.graph-panel h2{font-size:1rem;margin:1px 0 2px;font-weight:740}.graph-panel p{font-size:.84rem;color:#667a8b;margin:0 0 5px}.graph-panel canvas{max-height:250px}.graphs-note{margin:5px 0 14px;font-size:.83rem;color:#60758b}.footer{padding:14px 27px 19px;color:#647689;font-size:.82rem;line-height:1.5}@media(max-width:650px){.graphs{padding:17px 12px}.graph-panel{padding:9px 6px}.graph-bar{gap:7px}body{padding:8px}.app{border-radius:12px}header{padding:17px 16px}.plot{padding:9px 5px 0}.controls{padding:17px 13px}.settings{grid-template-columns:1fr;gap:13px}.columns{padding:0 5px 12px;font-size:.77rem}.actions{gap:6px}button{padding:10px 12px}.readout{justify-content:flex-start}.graphs{padding:15px 12px}.graph-actions button{flex:1 1 105px}}
+</style></head>
+<body><main class="app"><header><h1>Del movimiento circular uniforme al movimiento armónico simple</h1><p>La proyección vertical de un punto que gira uniformemente coincide en todo instante con la posición de la masa que oscila unida a un muelle.</p></header>
+<div class="plot"><canvas id="scene" width="1100" height="490" role="img" aria-label="A la izquierda, partícula en movimiento circular uniforme. A la derecha, masa que oscila verticalmente colgada de un muelle, ambas a la misma altura."></canvas></div>
+<div class="columns"><span>Movimiento circular uniforme (MCU)</span><span>Movimiento armónico simple (MAS)</span></div>
+<section class="controls" aria-label="Controles de la simulación"><div class="actions"><button id="back" title="Retroceder 1/24 de vuelta">⟲ Paso atrás</button><button id="play" class="primary">▶ Reproducir</button><button id="forward" title="Avanzar 1/24 de vuelta">Paso adelante ⟳</button><button id="reset" title="Volver a la posición inicial">↺ Reiniciar</button></div>
+<div class="settings"><label class="setting"><span class="settop">Amplitud <output id="ampOut">1,0 m</output></span><input id="amp" type="range" min="0.4" max="1.5" step="0.1" value="1" aria-label="Amplitud del movimiento"></label><label class="setting"><span class="settop">Período <output id="periodOut">4,0 s</output></span><input id="period" type="range" min="1" max="10" step="0.5" value="4" aria-label="Periodo de oscilación"></label><label class="setting"><span class="settop">Fase <output id="phaseOut">0°</output></span><input id="phase" type="range" min="0" max="360" step="1" value="0" aria-label="Fase en grados"></label></div>
+<div class="readout"><span class="legend"><i class="dot"></i> MCU</span><span class="legend"><i class="dot blue"></i> MAS</span><span>Desplazamiento: <strong id="disp">+0,00 m</strong></span><span>Tiempo: <strong id="time">0,00 s</strong></span><span>ω = <strong id="omega">1,57 rad/s</strong></span></div></section>
+<section class="graphs" aria-label="Gráficas del movimiento armónico simple">
+<div class="graph-bar"><strong>Representaciones temporales</strong><button class="graph-toggle" data-graph="y" aria-pressed="false">Mostrar y–t</button><button class="graph-toggle" data-graph="v" aria-pressed="false">Mostrar vᵧ–t</button><button class="graph-toggle" data-graph="a" aria-pressed="false">Mostrar aᵧ–t</button></div>
+<div class="graph-stack"><div class="graph-panel" id="panel-y" hidden><h2>Posición vertical, y(t)</h2><p>y = A · sen(ωt + φ₀)</p><canvas id="chart-y" width="1050" height="245" role="img" aria-label="Gráfica de la posición vertical frente al tiempo"></canvas></div><div class="graph-panel" id="panel-v" hidden><h2>Velocidad vertical, vᵧ(t)</h2><p>vᵧ = Aω · cos(ωt + φ₀)</p><canvas id="chart-v" width="1050" height="245" role="img" aria-label="Gráfica de la velocidad vertical frente al tiempo"></canvas></div><div class="graph-panel" id="panel-a" hidden><h2>Aceleración vertical, aᵧ(t)</h2><p>aᵧ = −Aω² · sen(ωt + φ₀)</p><canvas id="chart-a" width="1050" height="245" role="img" aria-label="Gráfica de la aceleración vertical frente al tiempo"></canvas></div></div>
+<p class="graphs-note">Las curvas muestran dos períodos. El punto de color identifica el estado instantáneo de la simulación.</p></section>
+<div class="footer">Modelo ideal sin rozamiento. Se representa el movimiento respecto a la posición de equilibrio; el peso y el alargamiento estático del muelle están incorporados en esa posición. Los botones de paso avanzan o retroceden hasta el siguiente múltiplo de 15°, asegurando el paso por 0°, 90°, 180°, 270° y 360°.</div></main>
+<script>
+(()=>{'use strict';
+const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
+const el=id=>document.getElementById(id), amp=el('amp'),period=el('period'),phase=el('phase');
+const TAU=Math.PI*2, step=TAU/24;let theta=0,elapsed=0,playing=false,last=null;const visible={y:false,v:false,a:false};
+const comma=(n,d=2)=>Number(n).toFixed(d).replace('.',',');
+const px=1100,py=490;const leftX=310,rightX=817,midY=272,scale=135;
+function line(x1,y1,x2,y2,color='#9bb0c5',w=1,dash=[]){ctx.beginPath();ctx.setLineDash(dash);ctx.strokeStyle=color;ctx.lineWidth=w;ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.setLineDash([])}
+function txt(t,x,y,size=16,color='#536a80',align='center',bold=false){ctx.font=`${bold?'700':'500'} ${size}px system-ui,sans-serif`;ctx.fillStyle=color;ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(t,x,y)}
+function circle(x,y,r,fill,stroke=null,w=1){ctx.beginPath();ctx.arc(x,y,r,0,TAU);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.lineWidth=w;ctx.strokeStyle=stroke;ctx.stroke()}}
+function arrow(x1,y1,x2,y2,color,w=2){line(x1,y1,x2,y2,color,w);const ang=Math.atan2(y2-y1,x2-x1),s=9;ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-s*Math.cos(ang-.42),y2-s*Math.sin(ang-.42));ctx.lineTo(x2-s*Math.cos(ang+.42),y2-s*Math.sin(ang+.42));ctx.closePath();ctx.fillStyle=color;ctx.fill()}
+function drawSpring(x,top,bottom){const head=14,tail=14,coils=10,radius=16;line(x,top,x,top+head,'#496a80',3);const y0=top+head,y1=Math.max(y0+22,bottom-tail),usable=y1-y0;ctx.beginPath();ctx.moveTo(x,y0);for(let i=0;i<=220;i++){const f=i/220,yy=y0+usable*f,xx=x+radius*Math.sin(f*coils*TAU);ctx.lineTo(xx,yy)}ctx.strokeStyle='#2176bd';ctx.lineWidth=4;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();line(x,y1,x,bottom,'#496a80',3)}
+function draw(){ctx.clearRect(0,0,px,py);const A=+amp.value,T=+period.value,r=scale*A, y=midY-r*Math.sin(theta),x=leftX+r*Math.cos(theta),massY=y;const massH=62,massW=76,springTop=34,springBottom=massY-massH/2;
+// panel separating line and horizontal equilibrium reference
+line(550,32,550,456,'#e5edf5',2);
+line(90,midY,1000,midY,'#afbecd',1.7,[7,6]);
+txt('Posición de equilibrio (y = 0)',670,midY-26,13,'#718498');
+// circle and axes
+line(leftX-r-32,midY,leftX+r+32,midY,'#9aacbc',1.5);line(leftX,midY-r-33,leftX,midY+r+33,'#9aacbc',1.5);
+arrow(leftX,midY+r+27,leftX,midY-r-31,'#738a9e',1.7);txt('y',leftX-15,midY-r-31,16,'#738a9e');
+circle(leftX,midY,r,null,'#a7c8e2',2.5);
+line(leftX,midY,x,y,'#e37534',3);circle(leftX,midY,4,'#6b859e');
+// dotted projection path at identical y
+line(x,y,rightX-43,y,'#e4a07b',2,[7,6]);
+line(leftX,y,x,y,'#d5a484',1.5,[4,5]);
+// phase angle at circle centre
+ctx.beginPath();ctx.arc(leftX,midY,39,0,-theta,theta>0);ctx.strokeStyle='#e5a178';ctx.lineWidth=2;ctx.stroke();
+txt('θ',leftX+52,midY-25,17,'#cf7540', 'center',true);
+circle(x,y,12,'#e37534','#fff',3);
+// static support
+ctx.fillStyle='#dae5ee';ctx.fillRect(rightX-70,17,140,13);for(let q=-65;q<70;q+=12)line(rightX+q,17,rightX+q+11,6,'#a7b5c1',1);
+// spring dynamically stretches/contracts
+if(springBottom>springTop+30)drawSpring(rightX,springTop,springBottom);
+// moving mass
+ctx.fillStyle='#2176bd';ctx.strokeStyle='#15548c';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(rightX-massW/2,massY-massH/2,massW,massH,11);ctx.fill();ctx.stroke();
+circle(rightX,massY,4.2,'white');line(rightX-22,massY,rightX+22,massY,'#d7ecff',1.4);txt('m',rightX,massY-17,21,'#fff','center',true);
+// amplitude marks
+line(108,midY-r,145,midY-r,'#c4d0dc',1.5,[4,4]);line(108,midY+r,145,midY+r,'#c4d0dc',1.5,[4,4]);
+txt('+A',119,midY-r-15,15,'#6c8298');txt('−A',119,midY+r+17,15,'#6c8298');
+// annotations
+txt('Proyección vertical',leftX,447,17,'#536a80');txt('Oscilación vertical',rightX,447,17,'#536a80');
+// point ordinate equality visual
+circle(rightX-76,y,5,'#e37534');
+el('disp').textContent=(Math.abs(A*Math.sin(theta))<1e-9?'':A*Math.sin(theta)>=0?'+':'')+comma(Math.abs(A*Math.sin(theta))<1e-9?0:A*Math.sin(theta))+' m';
+el('time').textContent=comma(elapsed)+' s';el('omega').textContent=comma(TAU/T)+' rad/s';
+drawGraphs();
+phase.value=String(Math.round(((theta%TAU)+TAU)%TAU/TAU*360)%360);el('phaseOut').textContent=phase.value+'°';
+}
+const charts={y:{color:'#2878b9',unit:'m',label:'y'},v:{color:'#268d70',unit:'m/s',label:'vᵧ'},a:{color:'#be5d42',unit:'m/s²',label:'aᵧ'}};
+function drawGraphs(){
+ const A=+amp.value,T=+period.value,w=TAU/T, tmax=2*T;
+ const initialPhase=theta-w*elapsed, cursor=((elapsed%tmax)+tmax)%tmax;
+ for(const key of Object.keys(charts)){
+  if(!visible[key])continue;
+  const cv=el('chart-'+key),g=cv.getContext('2d'),W=cv.width,H=cv.height;
+  const left=73,right=W-30,top=23,bottom=H-42,cy=(top+bottom)/2,half=(bottom-top)/2-15;
+  const conf=charts[key],max=key==='y'?A:key==='v'?A*w:A*w*w;
+  const valueAt=t=>{const ang=w*t+initialPhase;return key==='y'?A*Math.sin(ang):key==='v'?A*w*Math.cos(ang):-A*w*w*Math.sin(ang)};
+  const X=t=>left+(right-left)*t/tmax,Y=v=>cy-half*v/max;
+  g.clearRect(0,0,W,H);
+  g.font='14px system-ui,sans-serif';g.textBaseline='middle';g.textAlign='right';
+  for(const f of [-1,-.5,0,.5,1]){
+   const yy=Y(f*max);g.beginPath();g.setLineDash(f===0?[]:[3,5]);g.moveTo(left,yy);g.lineTo(right,yy);g.lineWidth=f===0?1.6:1;g.strokeStyle=f===0?'#8497a9':'#e0e8ef';g.stroke();g.setLineDash([]);g.fillStyle='#65788a';g.fillText(comma(f*max,2),left-12,yy);
+  }
+  for(let i=0;i<=8;i++){
+    const t=tmax*i/8,x=X(t);g.beginPath();g.moveTo(x,top);g.lineTo(x,bottom);g.strokeStyle='#edf1f5';g.lineWidth=1;g.stroke();
+    g.fillStyle='#62758a';g.textAlign='center';g.fillText(comma(t,1),x,bottom+19);
+  }
+  g.fillStyle='#536b80';g.textAlign='left';g.fillText(conf.label+' ('+conf.unit+')',9,11);g.textAlign='right';g.fillText('t (s)',right,bottom+37);
+  g.beginPath();for(let i=0;i<=600;i++){const t=tmax*i/600,x=X(t),y=Y(valueAt(t));if(i===0)g.moveTo(x,y);else g.lineTo(x,y)}g.strokeStyle=conf.color;g.lineWidth=3;g.lineJoin='round';g.stroke();
+  const cx=X(cursor),val=valueAt(cursor),yy=Y(val);g.beginPath();g.moveTo(cx,top);g.lineTo(cx,bottom);g.setLineDash([5,5]);g.strokeStyle='#8b9cac';g.lineWidth=1.5;g.stroke();g.setLineDash([]);
+  g.beginPath();g.arc(cx,yy,7,0,TAU);g.fillStyle=conf.color;g.fill();g.strokeStyle='#fff';g.lineWidth=2;g.stroke();
+  const info=conf.label+' = '+(val>=0?'+':'')+comma(val,2)+' '+conf.unit;
+  g.font='bold 15px system-ui,sans-serif';g.textAlign=cx>W*.62?'right':'left';g.fillStyle=conf.color;g.fillText(info,cx>W*.62?cx-14:cx+14,Math.max(top+10,Math.min(bottom-10,yy-17)));
+ }
+}
+for(const button of document.querySelectorAll('.graph-toggle')){
+ button.addEventListener('click',()=>{
+  const key=button.dataset.graph;visible[key]=!visible[key];el('panel-'+key).hidden=!visible[key];button.setAttribute('aria-pressed',String(visible[key]));button.textContent=(visible[key]?'Ocultar ':'Mostrar ')+({y:'y–t',v:'vᵧ–t',a:'aᵧ–t'}[key]);drawGraphs();
+ });
+}
+function stop(){playing=false;last=null;el('play').textContent='▶ Reproducir'}
+function animate(t){if(playing){if(last!==null){let dt=Math.min((t-last)/1000,.08);elapsed+=dt;theta+=dt*TAU/(+period.value)}last=t;draw();requestAnimationFrame(animate)}}
+el('play').addEventListener('click',()=>{if(playing){stop()}else{playing=true;last=null;el('play').textContent='Ⅱ Pausar';requestAnimationFrame(animate)}});
+// Cada paso aterriza en un múltiplo exacto de 15°, incluso tras pausar
+// la reproducción en un ángulo arbitrario. Así se visitan 0, π/2, π, 3π/2 y 2π.
+function stepToGrid(direction){
+ stop();
+ const oldTheta=theta;
+ const grid=oldTheta/step;
+ const epsilon=1e-9;
+ const targetIndex=direction>0?Math.floor(grid+epsilon)+1:Math.ceil(grid-epsilon)-1;
+ theta=targetIndex*step;
+ // Mantener coherencia entre fase, tiempo y los marcadores de las gráficas.
+ elapsed+=(theta-oldTheta)/(TAU/(+period.value));
+ draw();
+}
+el('back').addEventListener('click',()=>stepToGrid(-1));
+el('forward').addEventListener('click',()=>stepToGrid(1));
+el('reset').addEventListener('click',()=>{stop();theta=0;elapsed=0;draw()});
+amp.addEventListener('input',()=>{el('ampOut').textContent=comma(amp.value,1)+' m';draw()});period.addEventListener('input',()=>{el('periodOut').textContent=comma(period.value,1)+' s';draw()});phase.addEventListener('input',()=>{stop();theta=+phase.value*Math.PI/180;elapsed=theta/(TAU/(+period.value));draw()});
+draw();
+})();
+</script></body></html>
