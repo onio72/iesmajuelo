@@ -31,3 +31,7 @@ Mantener una biblioteca coherente de iconos destinados a presentaciones, comunic
 
 ## Convención de catálogo
 Cada icono debe tener: `id`, `nombre`, `categoria`, `archivo`, `descripcion`, `estado` (`aprobado` o `borrador`). No registrar archivos inexistentes.
+
+## Fecha de guardado
+- Registrar `fecha_guardado` al incorporar un icono, en ISO 8601 con zona horaria, y conservarla posteriormente.
+- Las fechas iniciales proceden de la creación local del archivo y pueden reflejar su copia. Los archivos ausentes no tienen fecha y se ordenan al final.
