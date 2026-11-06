@@ -2,10 +2,27 @@
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Descubriendo el movimiento armónico simple · Física 2.º Bachillerato</title>
 <style>
-:root{font-family:system-ui,-apple-system,Arial,sans-serif;color:#203a54;background:#eef3f8}*{box-sizing:border-box}body{margin:0;padding:17px}main{max-width:1320px;margin:auto}h1{font-size:clamp(23px,3vw,32px);margin:0 0 7px;color:#164a75}h2{font-size:19px;margin:0 0 8px}p{line-height:1.55}header{margin-bottom:15px}small,.muted{color:#687d8e}.layout{display:grid;grid-template-columns:minmax(350px,540px) minmax(330px,1fr);gap:16px;align-items:start}.card{background:white;border:1px solid #d8e4ed;border-radius:16px;padding:17px;box-shadow:0 4px 24px #20466a0a}.sceneWrap{background:#f9fcff;border-radius:12px;border:1px solid #dce7ef;overflow:hidden}.scene{display:block;width:100%;height:auto;touch-action:none;cursor:grab}.scene:active{cursor:grabbing}.controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.controls button{flex:1}button,input,select{font:inherit}button{border:1px solid #bdcedd;background:white;color:#245477;padding:10px 12px;border-radius:9px;cursor:pointer;font-weight:650}button.primary{background:#146db4;color:white;border-color:#146db4}button:disabled{opacity:.45;cursor:not-allowed}.readings{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.read{background:#eff5fb;border-radius:9px;padding:9px;text-align:center}.read small{display:block;font-size:11px}.read strong{display:block;font-size:20px;color:#1a5e93;font-variant-numeric:tabular-nums}.stepbar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}.stepbar button{padding:7px 10px;font-size:12px;border-radius:30px}.stepbar button.active{background:#176eae;color:white}.stepbar button.locked{opacity:.45}.question{font-size:16px;background:#f1f7fd;border-left:4px solid #1d76b6;border-radius:7px;padding:13px;margin:12px 0}.answers{display:grid;gap:10px;margin:12px 0}.answers label{display:flex;gap:9px;align-items:flex-start;padding:10px;background:#f8fbff;border:1px solid #d9e5ef;border-radius:9px;cursor:pointer}.answers input{margin-top:4px}.response{min-height:45px;padding:10px 12px;background:#f4f7fa;border-radius:9px;margin:11px 0;line-height:1.5;font-size:14px}.response.ok{background:#e8f5ef;color:#185c43}.response.bad{background:#fff1e8;color:#95481f}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}input[type=number]{width:135px;padding:9px;border:1px solid #b9cddb;border-radius:8px}input[type=range]{width:100%}.hidden{display:none!important}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:8px;border-bottom:1px solid #dfe8f0;text-align:center}th{background:#f1f6fa}canvas#graph{width:100%;height:auto;border:1px solid #dce7ef;border-radius:8px;background:#fff}.hint{font-size:13px;color:#5c7183}.status{display:inline-block;padding:5px 10px;border-radius:30px;background:#e9f4fd;color:#24669a;font-size:12px;font-weight:700}.lower{margin-top:16px}.foot{font-size:12px;color:#687b8c;margin-top:12px}@media(max-width:880px){body{padding:8px}.layout{grid-template-columns:1fr}.card{padding:12px}.read strong{font-size:17px}}
+:root{font-family:system-ui,-apple-system,Arial,sans-serif;color:#203a54;background:#eef3f8}*{box-sizing:border-box}body{margin:0;padding:17px}main{max-width:1320px;margin:auto}h1{font-size:clamp(23px,3vw,32px);margin:0 0 7px;color:#164a75}h2{font-size:19px;margin:0 0 8px}p{line-height:1.55}header{margin-bottom:15px}small,.muted{color:#687d8e}.layout{display:grid;grid-template-columns:minmax(350px,540px) minmax(330px,1fr);gap:16px;align-items:start}.card{background:white;border:1px solid #d8e4ed;border-radius:16px;padding:17px;box-shadow:0 4px 24px #20466a0a}.sceneWrap{background:#f9fcff;border-radius:12px;border:1px solid #dce7ef;overflow:hidden}.scene{display:block;width:100%;height:auto;touch-action:none;cursor:grab}.scene:active{cursor:grabbing}.controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.controls button{flex:1}button,input,select{font:inherit}button{border:1px solid #bdcedd;background:white;color:#245477;padding:10px 12px;border-radius:9px;cursor:pointer;font-weight:650}button.primary{background:#146db4;color:white;border-color:#146db4}button:disabled{opacity:.45;cursor:not-allowed}.readings{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.read{background:#eff5fb;border-radius:9px;padding:9px;text-align:center}.read small{display:block;font-size:11px}.read strong{display:block;font-size:20px;color:#1a5e93;font-variant-numeric:tabular-nums}.stepbar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}.stepbar button{padding:7px 10px;font-size:12px;border-radius:30px}.stepbar button.active{background:#176eae;color:white}.stepbar button.locked{opacity:.45}.question{font-size:16px;background:#f1f7fd;border-left:4px solid #1d76b6;border-radius:7px;padding:13px;margin:12px 0}.answers{display:grid;gap:10px;margin:12px 0}.answers label{display:flex;gap:9px;align-items:flex-start;padding:10px;background:#f8fbff;border:1px solid #d9e5ef;border-radius:9px;cursor:pointer}.answers input{margin-top:4px}.response{min-height:45px;padding:10px 12px;background:#f4f7fa;border-radius:9px;margin:11px 0;line-height:1.5;font-size:14px}.response.ok{background:#e8f5ef;color:#185c43}.response.bad{background:#fff1e8;color:#95481f}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}input[type=number]{width:135px;padding:9px;border:1px solid #b9cddb;border-radius:8px}input[type=range]{width:100%}.hidden{display:none!important}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:8px;border-bottom:1px solid #dfe8f0;text-align:center}th{background:#f1f6fa}canvas#graph{width:100%;height:auto;border:1px solid #dce7ef;border-radius:8px;background:#fff}.hint{font-size:13px;color:#5c7183}.status{display:inline-block;padding:5px 10px;border-radius:30px;background:#e9f4fd;color:#24669a;font-size:12px;font-weight:700}.lower{margin-top:16px}
+.capture-mode{grid-template-columns:minmax(300px,405px) minmax(390px,1fr)}
+.capture-mode .sceneWrap{max-width:335px;margin-inline:auto}
+.capture-mode .stepbar{margin-bottom:7px}
+.capture-mode .foot{display:none}
+.instructions-toggle{display:none;width:100%;text-align:left;justify-content:space-between;align-items:center;margin:8px 0}
+.capture-mode .instructions-toggle{display:flex}
+.capture-mode .instructions-body{display:none}
+.capture-mode .instructions-body.expanded{display:block}
+.capture-mode #feedback{margin:8px 0}
+.capture-mode #dataCard{border-top:1px solid #dae6ee;margin-top:12px;padding-top:12px}
+.capture-mode #dataCard h2{margin-bottom:5px}
+.capture-mode #dataCard .muted{margin:0 0 9px}
+.capture-mode .tablewrap{max-height:220px;overflow:auto;border:1px solid #dbe6ee;border-radius:8px}
+.capture-mode #dataCard thead{position:sticky;top:0;z-index:1}
+.capture-mode #dataCard .graphwrap{margin:8px 0 12px}
+@media(max-width:880px){.capture-mode{grid-template-columns:1fr}.capture-mode .sceneWrap{max-width:270px}.capture-mode .readings{max-width:470px;margin:auto}}
+.foot{font-size:12px;color:#687b8c;margin-top:12px}@media(max-width:880px){body{padding:8px}.layout{grid-template-columns:1fr}.card{padding:12px}.read strong{font-size:17px}}
 </style></head><body><main>
 <header><h1>Descubriendo el movimiento armónico simple</h1><p class="muted" style="margin:0">Laboratorio de exploración guiada · Física de 2.º de Bachillerato</p></header>
-<div class="layout">
+<div class="layout" id="layout">
 <section class="card">
 <div class="row" style="justify-content:space-between;margin-bottom:10px"><strong>Escena experimental</strong><span class="status" id="state">Preparado</span></div>
 <div class="sceneWrap"><canvas id="scene" class="scene" width="520" height="760" aria-label="Muelle vertical con masa interactiva y sistema de referencia"></canvas></div>
@@ -13,16 +30,22 @@
 <div class="readings"><div class="read"><small>Tiempo de simulación</small><strong id="time">0,00 s</strong></div><div class="read"><small>Cronómetro</small><strong id="clock">—</strong></div><div class="read"><small>Capturas</small><strong id="count">0</strong></div></div>
 <p class="hint" id="sceneHint">Arrastra la masa verticalmente y suéltala. El movimiento comienza al soltarla.</p>
 </section>
-<section class="card">
+<section class="card" id="activities">
 <div class="stepbar" id="steps"></div><div class="row" style="justify-content:space-between"><h2 id="stepTitle">1. Observa</h2><span class="status" id="progress">1 / 6</span></div>
-<div id="stepBody"></div><div id="feedback" class="response" role="status">Explora la escena para comenzar.</div>
+<button id="instructionsToggle" class="instructions-toggle" aria-expanded="false" aria-controls="instructionsBody">▸ Mostrar instrucciones del ejercicio <span>▾</span></button>
+<div id="instructionsBody" class="instructions-body expanded"><div id="stepBody"></div></div>
+<div id="feedback" class="response" role="status">Explora la escena para comenzar.</div>
 <div class="row"><button id="previous">← Anterior</button><button class="primary" id="next" disabled>Siguiente →</button></div>
 <p class="foot">El eje positivo se orienta hacia arriba. Las distancias se refieren al centro de la masa. El sistema oscila idealmente sin rozamiento alrededor de su posición de equilibrio.</p>
-</section></div>
-<section class="card lower hidden" id="dataCard"><h2>Cuaderno de posiciones</h2><p class="muted">Pausa el movimiento o avanza en pequeños intervalos; pulsa «Capturar posición» para registrar el instante y la elongación. La tabla y la gráfica se construyen con tus medidas.</p><div class="row" style="margin-bottom:12px"><button class="primary" id="capture">📷 Capturar posición</button><button id="clear">Vaciar capturas</button></div>
-<div class="tablewrap"><table><thead><tr><th>N.º</th><th>t (s)</th><th>y (cm)</th></tr></thead><tbody id="rows"><tr><td colspan="3">Sin mediciones</td></tr></tbody></table></div>
-<div style="margin-top:14px"><canvas id="graph" width="920" height="300" aria-label="Gráfica de elongación frente al tiempo"></canvas></div>
 </section>
+<section class="lower hidden" id="dataCard"><h2>Cuaderno de posiciones</h2>
+<p class="muted">Captura el tiempo y la elongación con el movimiento pausado. La gráfica se actualiza con cada medida.</p>
+<div class="row" style="margin-bottom:9px"><button class="primary" id="capture">📷 Capturar posición</button><button id="clear">Vaciar capturas</button></div>
+<div class="graphwrap"><canvas id="graph" width="920" height="300" aria-label="Gráfica de elongación frente al tiempo"></canvas></div>
+<details id="tableDetails"><summary style="cursor:pointer;font-weight:650;padding:9px 0">Ver tabla de posiciones (<span id="tableCount">0</span> capturas)</summary>
+<div class="tablewrap"><table><thead><tr><th>N.º</th><th>t (s)</th><th>y (cm)</th></tr></thead><tbody id="rows"><tr><td colspan="3">Sin mediciones</td></tr></tbody></table></div>
+</details></section>
+</section></div>
 </main><script>
 (function(){
 'use strict';
@@ -117,6 +140,10 @@ function renderNav(){$('steps').replaceChildren();names.forEach((n,i)=>{const b=
 function go(i){if(i<0||i>unlocked||i>5)return;compareStop();step=i;stop();renderStep()}
 function renderStep(){
 $('stepTitle').textContent=(step+1)+'. '+names[step];$('dataCard').classList.toggle('hidden',step!==5);
+$('layout').classList.toggle('capture-mode',step===5);
+$('instructionsToggle').setAttribute('aria-expanded',String(step!==5));
+$('instructionsBody').classList.toggle('expanded',step!==5);
+$('instructionsToggle').innerHTML=step===5?'▸ Mostrar instrucciones del ejercicio <span>▾</span>':'▾ Ocultar instrucciones <span>▴</span>';
 let h='';
 if(step===0){h='<p>Estira el paquete verticalmente y suéltalo. Observa varias oscilaciones completas.</p><div class="question">¿Qué extensión del espacio recorre el objeto?</div>'+options(['Se desplaza indefinidamente por todo el eje vertical.','Se mueve entre una posición superior y otra inferior.','Termina detenido en uno de los extremos.'])+'<button class="primary" id="check">Comprobar</button>'}
 if(step===1){
@@ -175,9 +202,14 @@ scene.addEventListener('pointerup',release);scene.addEventListener('pointercance
 $('play').onclick=play;$('pause').onclick=stop;$('back').onclick=()=>{stop();t=Math.max(0,t-.1);draw()};$('forward').onclick=()=>{stop();t+=.1;draw()};$('reset').onclick=resetMotion;
 $('previous').onclick=()=>go(step-1);$('next').onclick=()=>go(step+1);
 function plot(){const cv=$('graph'),g=cv.getContext('2d'),ww=cv.width,hh=cv.height;g.clearRect(0,0,ww,hh);g.fillStyle='#fff';g.fillRect(0,0,ww,hh);const left=75,right=ww-25,top=24,bottom=hh-47;const maxT=Math.max(4,...samples.map(x=>x.t)),range=Math.max(9,amp/pixCm+1);g.strokeStyle='#bacddd';g.lineWidth=1.5;g.beginPath();g.moveTo(left,top);g.lineTo(left,bottom);g.lineTo(right,bottom);g.stroke();g.setLineDash([5,5]);g.beginPath();g.moveTo(left,(top+bottom)/2);g.lineTo(right,(top+bottom)/2);g.stroke();g.setLineDash([]);g.fillStyle='#587286';g.font='14px system-ui';g.fillText('y (cm)',11,21);g.fillText('t (s)',right-28,bottom+30);for(let i=0;i<=4;i++){const xx=left+i*(right-left)/4;g.fillText(fmt(maxT*i/4,1),xx-12,bottom+21)}for(const it of samples){const xx=left+it.t/maxT*(right-left),yy=(top+bottom)/2-it.y/range*(bottom-top)/2;g.beginPath();g.arc(xx,yy,5,0,TAU);g.fillStyle='#1875b8';g.fill()}}
-function renderTable(){$('rows').replaceChildren();if(!samples.length){$('rows').innerHTML='<tr><td colspan="3">Sin mediciones</td></tr>'}else samples.forEach((a,i)=>{const tr=document.createElement('tr');[i+1,fmt(a.t),fmt(a.y)].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});$('rows').append(tr)});draw();plot()}
+function renderTable(){$('tableCount').textContent=String(samples.length);$('rows').replaceChildren();if(!samples.length){$('rows').innerHTML='<tr><td colspan="3">Sin mediciones</td></tr>'}else samples.forEach((a,i)=>{const tr=document.createElement('tr');[i+1,fmt(a.t),fmt(a.y)].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});$('rows').append(tr)});draw();plot()}
 $('capture').onclick=()=>{if(step!==5)return;if(samples.some(s=>Math.abs(s.t-t)<.015)){setFeedback('Ya has registrado este instante. Avanza o retrocede antes de capturar otro.');return}samples.push({t:t,y:yCm()});samples.sort((a,b)=>a.t-b.t);renderTable();setFeedback('Captura registrada. Compara la posición con el tiempo y continúa tomando medidas.',true)};
 $('clear').onclick=()=>{samples=[];renderTable();setFeedback('Se han borrado las capturas.')};
+$('instructionsToggle').onclick=()=>{
+ const opened=$('instructionsBody').classList.toggle('expanded');
+ $('instructionsToggle').setAttribute('aria-expanded',String(opened));
+ $('instructionsToggle').innerHTML=opened?'▾ Ocultar instrucciones <span>▴</span>':'▸ Mostrar instrucciones del ejercicio <span>▾</span>';
+};
 renderStep();draw();plot();
 })();
 </script></body></html>
