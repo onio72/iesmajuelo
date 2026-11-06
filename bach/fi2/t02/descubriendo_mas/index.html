@@ -300,7 +300,7 @@ if(step===4){
  }
 }
 if(step===5)$('check').onclick=()=>{if(samples.length<4)return setFeedback('Necesitas al menos cuatro capturas en distintos instantes para contrastar tu conclusión.',false);answer(1,'Aunque la trayectoria es rectilínea, la elongación no sigue una función lineal del tiempo. La velocidad cambia.')};
-if(step===6){stop();sign=1;speedBind();}
+if(step===6){stop();sign=1;speedBind();speedPreview(1)}
 draw();plot();
 }
 const scene=$('scene');
