@@ -30,8 +30,23 @@ const $=id=>document.getElementById(id),c=$('scene').getContext('2d'),TAU=2*Math
 const W=520,H=760,eqY=390,centerX=276,pixCm=20,T=3.2,w=TAU/T;
 let amp=120,sign=1,t=0,running=false,lastFrame=null,raf=0,dragMode='',axisY=475,axisPlaced=false;
 let step=0,unlocked=0,passed=[false,false,false,false,false,false],samples=[],observed=false;
-let amplitudeCompared=false,comparison={a:70,b:132,correct:1};
-function newComparison(){let a=65+Math.floor(Math.random()*35),b=125+Math.floor(Math.random()*30);if(Math.random()<.5)[a,b]=[b,a];comparison={a,b,correct:a>b?0:1}}
+let amplitudeCompared=false,comparison={a:72,b:140,correct:1,periodA:2.6,periodB:3.8,phaseA:.5,phaseB:2.1};
+let compareRunning=false,compareT=0,compareLast=null,compareRAF=0;
+function newComparison(){
+ let a=65+Math.floor(Math.random()*26),b=131+Math.floor(Math.random()*22);
+ if(Math.random()<.5)[a,b]=[b,a];
+ const periods=[2.5+Math.random()*.7,3.5+Math.random()*.8];
+ if(Math.random()<.5)periods.reverse();
+ comparison={a,b,correct:a>b?0:1,periodA:periods[0],periodB:periods[1],phaseA:Math.random()*TAU,phaseB:Math.random()*TAU};
+ compareT=0;compareLast=null;
+}
+function compareControls(){
+ const btn=$('comparePlay');if(btn)btn.textContent=compareRunning?'Ⅱ Pausar':'▶ Reproducir';
+}
+function compareStop(){compareRunning=false;compareLast=null;if(compareRAF)cancelAnimationFrame(compareRAF);compareRAF=0;compareControls()}
+function compareTick(now){if(!compareRunning)return;if(compareLast!==null)compareT+=Math.min((now-compareLast)/1000,.075);compareLast=now;drawComparison();compareRAF=requestAnimationFrame(compareTick)}
+function comparePlay(){if(compareRunning)return;compareRunning=true;compareLast=null;compareControls();compareRAF=requestAnimationFrame(compareTick)}
+function compareReset(){compareT=0;compareLast=null;drawComparison()}
 newComparison();
 const extrema={top:null,bottom:null};let pressPoint=null;
 const bothExtrema=()=>extrema.top!==null&&extrema.bottom!==null;
@@ -57,15 +72,18 @@ line(rx-27,eqY,rx+43,eqY,'#b17d43',1.5,[4,3]);label('0 = equilibrio',rx+2,bottom
 function drawComparison(){
  const cv=$('comparisonCanvas');if(!cv)return;
  const g=cv.getContext('2d'),width=cv.width;
- g.clearRect(0,0,width,440);g.fillStyle='#f8fbff';g.fillRect(0,0,width,440);
- for(const q of [{x:165,A:comparison.a,name:'Muelle A'},{x:495,A:comparison.b,name:'Muelle B'}]){
-  const cy=235-q.A*Math.cos(w*t),top=45,end=cy-21;
-  g.fillStyle='#42627c';g.font='bold 17px system-ui';g.textAlign='center';g.fillText(q.name,q.x,24);
-  g.fillStyle='#9dafba';g.fillRect(q.x-60,34,120,9);
-  g.beginPath();g.setLineDash([6,5]);g.strokeStyle='#b9c9d7';g.moveTo(q.x-110,235);g.lineTo(q.x+110,235);g.stroke();g.setLineDash([]);
-  g.beginPath();g.moveTo(q.x,top);for(let n=0;n<=160;n++){let u=n/160;g.lineTo(q.x+14*Math.sin(u*11*TAU),top+u*(end-top))}
-  g.strokeStyle='#227fbc';g.lineWidth=3;g.stroke();
-  g.fillStyle='#2776b0';g.beginPath();g.roundRect(q.x-26,cy-20,52,40,6);g.fill();
+ g.clearRect(0,0,width,540);g.fillStyle='#f8fbff';g.fillRect(0,0,width,540);
+ for(const q of [
+ {x:165,A:comparison.a,name:'Muelle A',period:comparison.periodA,phase:comparison.phaseA},
+ {x:495,A:comparison.b,name:'Muelle B',period:comparison.periodB,phase:comparison.phaseB}
+ ]){
+  const cy=285-q.A*Math.cos(TAU*compareT/q.period+q.phase),top=53,end=cy-21;
+  g.fillStyle='#42627c';g.font='bold 18px system-ui';g.textAlign='center';g.fillText(q.name,q.x,26);
+  g.fillStyle='#9dafba';g.fillRect(q.x-60,37,120,9);
+  g.beginPath();g.moveTo(q.x,top);
+  for(let n=0;n<=180;n++){const u=n/180;g.lineTo(q.x+14*Math.sin(u*11*TAU),top+u*(end-top))}
+  g.strokeStyle='#227fbc';g.lineWidth=3;g.lineCap='round';g.lineJoin='round';g.stroke();
+  g.fillStyle='#2776b0';g.beginPath();g.roundRect(q.x-27,cy-20,54,40,6);g.fill();
   g.fillStyle='#fff';g.font='bold 17px system-ui';g.fillText('m',q.x,cy+6);
  }
 }
@@ -96,7 +114,7 @@ function options(items){const data=items.map((text,i)=>({text,i}));for(let i=dat
 function chosen(){const el=document.querySelector('input[name=answer]:checked');return el?Number(el.value):-1}
 function answer(correct,explain){const val=chosen();if(val===-1){setFeedback('Selecciona una respuesta antes de comprobar.');return}if(val===correct){mark();setFeedback('Correcto. '+explain,true)}else setFeedback('Revisa tu respuesta. Observa el movimiento y vuelve a intentarlo.',false)}
 function renderNav(){$('steps').replaceChildren();names.forEach((n,i)=>{const b=document.createElement('button');b.textContent=(i+1)+'. '+n;b.disabled=i>unlocked;b.className=(i===step?'active ': '')+(i>unlocked?'locked':'');b.onclick=()=>go(i);$('steps').append(b)});$('progress').textContent=(step+1)+' / 6';$('next').disabled=!passed[step]||step===5;$('previous').disabled=step===0}
-function go(i){if(i<0||i>unlocked||i>5)return;step=i;stop();renderStep()}
+function go(i){if(i<0||i>unlocked||i>5)return;compareStop();step=i;stop();renderStep()}
 function renderStep(){
 $('stepTitle').textContent=(step+1)+'. '+names[step];$('dataCard').classList.toggle('hidden',step!==5);
 let h='';
@@ -108,7 +126,7 @@ if(step===1){
 if(step===2){h='<p>El origen se sitúa ahora en el equilibrio y el sentido positivo es hacia arriba. La coordenada <b>y</b> describe la elongación respecto al equilibrio.</p><div class="question">Durante una oscilación completa, ¿qué signos puede tomar la elongación?</div>'+options(['Siempre es positiva.','Siempre es negativa.','Puede ser positiva, nula o negativa.'])+'<button class="primary" id="check">Comprobar</button>'}
 if(step===3){
  if(!amplitudeCompared)h='<p>La posición de equilibrio se encuentra a igual distancia de los extremos. La <b>amplitud A</b> es la distancia desde el equilibrio hasta cualquiera de ellos.</p><div class="question">Utiliza la regla vertical para medir la amplitud de esta oscilación.</div><div class="row"><label for="amplitudeInput">A = </label><input type="number" id="amplitudeInput" min="0" max="20" step=".1" placeholder="cm"><strong>cm</strong><button class="primary" id="check">Comprobar</button></div><p class="hint">La regla está graduada en centímetros. Puedes cambiar la amplitud arrastrando el bloque y observar cómo varía la medida.</p>';
- else h='<p><b>Compara ahora dos oscilaciones diferentes.</b> Observa cuánto se aleja cada masa de su posición de equilibrio.</p><div class="question">¿Cuál de los dos movimientos tiene mayor amplitud?</div><canvas id="comparisonCanvas" width="660" height="440" style="width:100%;height:auto;border:1px solid #dae7f1;border-radius:10px;background:#f8fbff" aria-label="Dos muelles animados con amplitudes diferentes"></canvas>'+options(['El movimiento del muelle A','El movimiento del muelle B'])+'<button class="primary" id="checkComparison" style="margin-top:10px">Comprobar comparación</button> <button id="repeatComparison">Otro ejemplo</button><p class="hint">Las dos masas tienen la misma posición de equilibrio y el mismo período. Compara sus desplazamientos máximos, no sus velocidades instantáneas.</p>';
+ else h='<p><b>Compara ahora dos oscilaciones diferentes.</b> Observa cuánto se aleja cada masa de su posición de equilibrio.</p><div class="question">¿Cuál de los dos movimientos tiene mayor amplitud?</div><canvas id="comparisonCanvas" width="660" height="540" style="width:100%;height:auto;border:1px solid #dae7f1;border-radius:10px;background:#f8fbff" aria-label="Dos muelles con oscilaciones de amplitud, fase y período diferentes"></canvas><div class="controls"><button class="primary" id="comparePlay">▶ Reproducir</button><button id="compareReset">↺ Reiniciar</button></div>'+options(['El movimiento del muelle A','El movimiento del muelle B'])+'<button class="primary" id="checkComparison" style="margin-top:10px">Comprobar comparación</button> <button id="repeatComparison">Otro ejemplo</button><p class="hint">Observa varios ciclos: los muelles tienen períodos y fases diferentes. Compara la amplitud del recorrido, no la posición en un único instante.</p>';
 }
 if(step===4){h='<p>El movimiento es periódico: tras un ciclo, el objeto recupera exactamente el mismo estado de movimiento.</p><div class="question">¿Qué condición permite afirmar que ha completado un ciclo?</div>'+options(['Que pasa otra vez por la misma posición, sin importar el sentido.','Que recupera la misma posición y velocidad (módulo y sentido).','Que pasa por la posición de equilibrio.'])+'<button id="cycleCheck">Comprobar concepto</button><hr style="border:0;border-top:1px solid #dce7ef;margin:14px 0"><p>Mide el tiempo de una oscilación completa usando «Reiniciar» y el cronómetro de la escena. Puedes detener o avanzar en pasos de 0,10 s.</p><div class="row"><label for="periodInput">Período T = </label><input type="number" id="periodInput" min=".1" step=".01" placeholder="segundos"><strong>s</strong><button class="primary" id="check">Comprobar período</button></div><p class="hint">Un ciclo completo termina cuando la masa vuelve al mismo extremo en el que comenzó, con la misma velocidad (cero). Otra posibilidad es medir diez ciclos y dividir el tiempo entre diez.</p>'}
 if(step===5){h='<p>El movimiento es rectilíneo, pero ¿la elongación varía uniformemente con el tiempo?</p><div class="question">Registra al menos cuatro posiciones en distintos instantes, construye la gráfica y decide si se trata de un movimiento rectilíneo uniforme.</div>'+options(['Sí, porque describe una línea recta en el espacio.','No: la elongación no varía linealmente con el tiempo y la velocidad cambia.'])+'<button class="primary" id="check">Comprobar conclusión</button><p class="hint">Utiliza «Capturar posición» bajo la escena y observa la gráfica creada a partir de los datos. Este bloque prepara la investigación posterior de velocidad y aceleración.</p>'}
@@ -125,8 +143,11 @@ if(step===2)$('check').onclick=()=>answer(2,'Con origen en equilibrio y eje posi
 if(step===3){
  if(!amplitudeCompared)$('check').onclick=()=>{const e=$('amplitudeInput');if(!e.value)return setFeedback('Introduce una medida en centímetros.');const v=Number(e.value.replace(',','.'));if(Math.abs(v-amp/pixCm)<=.25){amplitudeCompared=true;newComparison();renderStep();setFeedback('Correcto. La amplitud es '+fmt(amp/pixCm,1)+' cm. Ahora compara las amplitudes de dos movimientos.',true)}else setFeedback('Revisa qué distancia mide la amplitud: no es el recorrido completo entre los dos extremos.',false)};
  else{
+  $('comparePlay').onclick=()=>{if(compareRunning)compareStop();else comparePlay()};
+  $('compareReset').onclick=compareReset;
+  compareControls();comparePlay();
   $('checkComparison').onclick=()=>{const v=chosen();if(v<0)return setFeedback('Selecciona uno de los movimientos.');if(v===comparison.correct){mark();setFeedback('Correcto. La mayor amplitud corresponde al movimiento cuyo extremo está más alejado del equilibrio.',true)}else setFeedback('Revisa los extremos alcanzados por cada objeto. No basta con comparar sus posiciones en un instante.',false)};
-  $('repeatComparison').onclick=()=>{newComparison();renderStep();setFeedback('Nuevo par de oscilaciones: observa sus amplitudes y elige la mayor.')};
+  $('repeatComparison').onclick=()=>{compareStop();newComparison();renderStep();setFeedback('Nuevo par de oscilaciones: observa sus amplitudes y elige la mayor.')};
  }
 }
 if(step===4){let understood=false;$('cycleCheck').onclick=()=>{if(chosen()===1){understood=true;setFeedback('Correcto: pasar por el mismo punto en sentido opuesto no representa el mismo estado de movimiento.',true)}else setFeedback('Para completar un ciclo debe repetirse el estado: misma posición y misma velocidad.',false)};$('check').onclick=()=>{const e=$('periodInput');if(!understood)return setFeedback('Comprueba antes la pregunta sobre qué es un ciclo.',false);if(!e.value)return setFeedback('Introduce tu medida del período.');const v=Number(e.value.replace(',','.'));if(Math.abs(v-T)<=.25){mark();setFeedback('Correcto. El período es aproximadamente '+fmt(T,2)+' s. El cronómetro permite medirlo experimentalmente.',true)}else setFeedback('El resultado no coincide. Reinicia la oscilación y mide hasta que el movimiento vuelva al estado inicial.',false)}}
