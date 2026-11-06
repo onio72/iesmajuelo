@@ -43,9 +43,10 @@ function drawSpring(bottom){const top=69,lead=15,end=bottom-12,n=12,length=Math.
 line(centerX,49,centerX,top,'#668297',3);c.beginPath();c.moveTo(centerX,top);for(let i=0;i<=240;i++){const f=i/240;c.lineTo(centerX+20*Math.sin(f*n*TAU),top+lead+f*length)}c.strokeStyle='#277cbe';c.lineWidth=4;c.lineCap='round';c.lineJoin='round';c.stroke();line(centerX,end,centerX,bottom,'#668297',3)}
 function drawRuler(){const rx=411,A=amp,top=eqY-A,bottom=eqY+A;
 rounded(rx-16,top-12,57,bottom-top+26,6,'#f7eac7');
-for(let j=0;j<=Math.round(2*A/pixCm);j++){const yy=top+j*pixCm,major=j%2===0;line(rx+18-(major?15:8),yy,rx+29,yy,'#987947',major?1.5:1);if(major)label(String(j),rx-8,yy,12,'#6b573b','center')}
+const count=Math.floor(A/pixCm);
+for(let j=-count;j<=count;j++){const yy=eqY-j*pixCm,major=j%2===0;line(rx+18-(major?15:8),yy,rx+29,yy,'#987947',major?1.5:1);if(major)label(String(j),rx-8,yy,12,'#6b573b','center')}
 label('cm',rx+7,top-29,13,'#806842','center');
-line(rx-27,eqY,rx+43,eqY,'#b17d43',1.5,[4,3]);label('0 en L₀',rx+4,bottom+28,11,'#94764f','center')}
+line(rx-27,eqY,rx+43,eqY,'#b17d43',1.5,[4,3]);label('0 = equilibrio',rx+2,bottom+28,11,'#94764f','center')}
 function draw(){
 c.clearRect(0,0,W,H);c.fillStyle='#fafdff';c.fillRect(0,0,W,H);
 for(let yy=80;yy<H;yy+=40)line(16,yy,W-15,yy,'#edf2f7');
