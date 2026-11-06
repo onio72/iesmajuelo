@@ -30,7 +30,11 @@ const $=id=>document.getElementById(id),c=$('scene').getContext('2d'),TAU=2*Math
 const W=520,H=760,eqY=390,centerX=276,pixCm=20,T=3.2,w=TAU/T;
 let amp=120,sign=1,t=0,running=false,lastFrame=null,raf=0,dragMode='',axisY=475,axisPlaced=false;
 let step=0,unlocked=0,passed=[false,false,false,false,false,false],samples=[],observed=false;
-const names=['Observar','Referencias','Coordenadas','Amplitud','Período','Posiciones'];
+const extrema={top:null,bottom:null};let pressPoint=null;
+const bothExtrema=()=>extrema.top!==null&&extrema.bottom!==null;
+function invalidateExtrema(){extrema.top=null;extrema.bottom=null;axisPlaced=false;passed[1]=false;if(unlocked>1){unlocked=1;passed=[passed[0],false,false,false,false,false]}}
+function markExtremum(){if(step!==1||bothExtrema())return;const cy=yScreen(),v=-sign*amp*w*Math.sin(w*t);if(Math.abs(v)>amp*w*.16){setFeedback('Todavía está moviéndose. Espera a que alcance un extremo y su velocidad sea prácticamente nula.',false);return}const side=cy<eqY?'top':'bottom';if(extrema[side]!==null){setFeedback('Ese extremo ya está marcado. Espera al extremo opuesto.',false);return}extrema[side]=side==='top'?eqY-amp:eqY+amp;draw();if(bothExtrema()){stop();setFeedback('Has identificado ambos puntos de retorno. Ahora arrastra el origen O hasta que sus coordenadas tengan el mismo valor absoluto y signos opuestos.',true);renderStep()}else setFeedback('Primer extremo marcado. La línea queda fija. Espera al extremo opuesto y vuelve a pulsar sobre la masa o «Marcar extremo».',true)}
+const names=['Observar','Extremos y origen','Coordenadas','Amplitud','Período','Posiciones'];
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const fmt=(n,d=2)=>n.toFixed(d).replace('.',',');
 const yScreen=()=>eqY-sign*amp*Math.cos(w*t);
@@ -52,9 +56,10 @@ c.clearRect(0,0,W,H);c.fillStyle='#fafdff';c.fillRect(0,0,W,H);
 for(let yy=80;yy<H;yy+=40)line(16,yy,W-15,yy,'#edf2f7');
 rounded(184,29,184,17,3,'#889da9');for(let i=0;i<16;i++)line(187+i*11,29,195+i*11,21,'#8c9fab',1.2);
 const cy=yScreen(),massTop=cy-24;
-if(step>=2||axisPlaced){line(55,eqY,486,eqY,'#8eb7a5',1.6,[7,6]);label('Equilibrio',75,eqY-13,13,'#317761')}
+if(step>=2||axisPlaced){line(55,eqY,486,eqY,'#8eb7a5',1.6,[7,6]);label('Equilibrio',135,eqY-13,13,'#317761')}
+if(step>=1){for(const side of ['top','bottom']){const yy=extrema[side];if(yy===null)continue;const color=side==='top'?'#9b70bb':'#d18c5b';line(112,yy,501,yy,color,2,[7,5]);label(side==='top'?'Extremo superior':'Extremo inferior',498,yy-14,12,color,'right');if(bothExtrema()&&step===1){const val=(axisY-yy)/pixCm;label('y = '+(val>0?'+':'')+fmt(val,1)+' cm',494,yy+13,13,color,'right')}}}
 if(step>=3){line(75,eqY-amp,490,eqY-amp,'#bed3e4',1.3,[6,5]);line(75,eqY+amp,490,eqY+amp,'#bed3e4',1.3,[6,5]);label('+A',472,eqY-amp-11,14,'#467ca9','right');label('−A',472,eqY+amp+12,14,'#467ca9','right')}
-if(step>=1){const ax=93;line(ax,630,ax,115,'#455f79',2);c.beginPath();c.moveTo(ax-6,128);c.lineTo(ax,114);c.lineTo(ax+6,128);c.fillStyle='#455f79';c.fill();line(ax-12,axisY,ax+40,axisY,'#315b7d',2);rounded(60,axisY-17,31,34,7,'#2678b6');label('O',76,axisY,14,'white','center');label('+y',ax+12,114,15,'#295a82');label('−y',ax+12,630,15,'#295a82');if(step===1&&!axisPlaced)label('Arrastra O',42,axisY+29,12,'#246eae')}
+if(step>=2||(step===1&&bothExtrema())){const ax=93;line(ax,630,ax,115,'#455f79',2);c.beginPath();c.moveTo(ax-6,128);c.lineTo(ax,114);c.lineTo(ax+6,128);c.fillStyle='#455f79';c.fill();line(ax-12,axisY,ax+40,axisY,'#315b7d',2);rounded(60,axisY-17,31,34,7,'#2678b6');label('O',76,axisY,14,'white','center');label('+y',ax+12,114,15,'#295a82');label('−y',ax+12,630,15,'#295a82');if(step===1&&!axisPlaced)label('Arrastra O',42,axisY+29,12,'#246eae')}
 if(step>=3)drawRuler();
 drawSpring(massTop);rounded(centerX-34,massTop,68,48,8,'#236ca9');rounded(centerX-27,massTop+7,54,10,3,'#4f94ca');
 label('m',centerX,cy+6,19,'white','center');c.beginPath();c.arc(centerX,cy,3.6,0,TAU);c.fillStyle='white';c.fill();
@@ -77,14 +82,23 @@ function renderStep(){
 $('stepTitle').textContent=(step+1)+'. '+names[step];$('dataCard').classList.toggle('hidden',step!==5);
 let h='';
 if(step===0){h='<p>Estira el paquete verticalmente y suéltalo. Observa varias oscilaciones completas.</p><div class="question">¿Qué extensión del espacio recorre el objeto?</div>'+options(['Se desplaza indefinidamente por todo el eje vertical.','Se mueve entre una posición superior y otra inferior.','Termina detenido en uno de los extremos.'])+'<button class="primary" id="check">Comprobar</button>'}
-if(step===1){h='<p>Necesitamos un sistema de referencia para describir la posición de la masa. El eje positivo se ha orientado hacia arriba.</p><div class="question">Arrastra el origen <b>O</b> del eje hasta el punto medio de las posiciones extremas. Después pulsa «Comprobar origen».</div><button class="primary" id="check">Comprobar origen</button><p class="hint">El sistema de referencia es una elección. Situar el origen en el equilibrio facilita la descripción del MAS, pero no es la única elección posible.</p>'}
+if(step===1){
+ if(!bothExtrema())h='<p><b>Primero localiza los dos puntos de retorno.</b> En esos instantes la masa está momentáneamente parada (v = 0). Observa el movimiento y pulsa sobre la masa cuando llegue al extremo superior o inferior. Se conservará una línea horizontal punteada.</p><div class="question">Marca los dos extremos, uno arriba y otro abajo. Puedes usar también el botón de marcar, especialmente en el móvil.</div><p id="marksStatus" class="hint">Extremo superior: '+(extrema.top===null?'pendiente':'marcado')+' · Extremo inferior: '+(extrema.bottom===null?'pendiente':'marcado')+'</p><button class="primary" id="markExtreme">Marcar extremo ahora</button><p class="hint">Si no aciertas en el instante exacto, espera al siguiente punto de retorno. Puedes usar la pausa y los pasos pequeños para acercarte al extremo.</p>';
+ else h='<p>Has señalado las dos posiciones en que la masa se detiene momentáneamente. Ahora coloca el sistema de referencia: <b>arrastra el origen O</b> sobre el eje vertical.</p><div class="question">Busca una altura para O tal que las dos líneas punteadas tengan coordenadas de igual valor absoluto y signo opuesto.</div><p class="hint">Las coordenadas en cm se actualizan mientras desplazas el origen. El sentido positivo es hacia arriba.</p><button class="primary" id="check">Comprobar origen</button><button id="repeatExtrema" style="margin-left:8px">Repetir marcas</button>';
+}
 if(step===2){h='<p>El origen se sitúa ahora en el equilibrio y el sentido positivo es hacia arriba. La coordenada <b>y</b> describe la elongación respecto al equilibrio.</p><div class="question">Durante una oscilación completa, ¿qué signos puede tomar la elongación?</div>'+options(['Siempre es positiva.','Siempre es negativa.','Puede ser positiva, nula o negativa.'])+'<button class="primary" id="check">Comprobar</button>'}
 if(step===3){h='<p>La posición de equilibrio se encuentra a igual distancia de los extremos. La <b>amplitud A</b> es la distancia desde el equilibrio hasta cualquiera de ellos.</p><div class="question">Utiliza la regla vertical para medir la amplitud de esta oscilación.</div><div class="row"><label for="amplitudeInput">A = </label><input type="number" id="amplitudeInput" min="0" max="20" step=".1" placeholder="cm"><strong>cm</strong><button class="primary" id="check">Comprobar</button></div><p class="hint">La regla está graduada en centímetros. Puedes cambiar la amplitud arrastrando el bloque y observar cómo varía la medida.</p>'}
 if(step===4){h='<p>El movimiento es periódico: tras un ciclo, el objeto recupera exactamente el mismo estado de movimiento.</p><div class="question">¿Qué condición permite afirmar que ha completado un ciclo?</div>'+options(['Que pasa otra vez por la misma posición, sin importar el sentido.','Que recupera la misma posición y velocidad (módulo y sentido).','Que pasa por la posición de equilibrio.'])+'<button id="cycleCheck">Comprobar concepto</button><hr style="border:0;border-top:1px solid #dce7ef;margin:14px 0"><p>Mide el tiempo de una oscilación completa usando «Reiniciar» y el cronómetro de la escena. Puedes detener o avanzar en pasos de 0,10 s.</p><div class="row"><label for="periodInput">Período T = </label><input type="number" id="periodInput" min=".1" step=".01" placeholder="segundos"><strong>s</strong><button class="primary" id="check">Comprobar período</button></div><p class="hint">Un ciclo completo termina cuando la masa vuelve al mismo extremo en el que comenzó, con la misma velocidad (cero). Otra posibilidad es medir diez ciclos y dividir el tiempo entre diez.</p>'}
 if(step===5){h='<p>El movimiento es rectilíneo, pero ¿la elongación varía uniformemente con el tiempo?</p><div class="question">Registra al menos cuatro posiciones en distintos instantes, construye la gráfica y decide si se trata de un movimiento rectilíneo uniforme.</div>'+options(['Sí, porque describe una línea recta en el espacio.','No: la elongación no varía linealmente con el tiempo y la velocidad cambia.'])+'<button class="primary" id="check">Comprobar conclusión</button><p class="hint">Utiliza «Capturar posición» bajo la escena y observa la gráfica creada a partir de los datos. Este bloque prepara la investigación posterior de velocidad y aceleración.</p>'}
 $('stepBody').innerHTML=h;renderNav();setFeedback(passed[step]?'Etapa completada. Puedes continuar o repetir la experiencia.':'Realiza la actividad y comprueba tu respuesta.');
 if(step===0)$('check').onclick=()=>answer(1,'El movimiento está acotado entre dos extremos. No abandona ese intervalo.');
-if(step===1)$('check').onclick=()=>{if(Math.abs(axisY-eqY)<19){axisY=eqY;axisPlaced=true;mark();setFeedback('Correcto. Has situado el origen en el punto medio: la posición de equilibrio.',true)}else setFeedback('Aún no está en el punto medio de los extremos. Ajusta el origen sobre la altura de equilibrio.',false);draw()};
+if(step===1){
+ if(!bothExtrema())$('markExtreme').onclick=markExtremum;
+ else {
+ $('check').onclick=()=>{const middle=(extrema.top+extrema.bottom)/2;const a=Math.abs(axisY-extrema.top),b=Math.abs(axisY-extrema.bottom);if(Math.abs(a-b)<12&&Math.abs(axisY-middle)<8){axisY=middle;axisPlaced=true;mark();setFeedback('Correcto. Los extremos son equidistantes del origen, con coordenadas opuestas: +'+fmt((axisY-extrema.top)/pixCm,1)+' cm y −'+fmt((extrema.bottom-axisY)/pixCm,1)+' cm. Este origen es el equilibrio.',true)}else setFeedback('Las dos distancias todavía no son iguales. Arrastra O hasta que las coordenadas sean opuestas y tengan igual módulo.',false);draw()};
+ $('repeatExtrema').onclick=()=>{invalidateExtrema();renderStep();play()};
+ }
+}
 if(step===2)$('check').onclick=()=>answer(2,'Con origen en equilibrio y eje positivo hacia arriba, y es positiva por encima, negativa por debajo y cero en el equilibrio.');
 if(step===3)$('check').onclick=()=>{const v=Number($('amplitudeInput').value.replace(',','.'));if(!$('amplitudeInput').value)return setFeedback('Introduce una medida en centímetros.');if(Math.abs(v-amp/pixCm)<=.25){mark();setFeedback('Correcto. La amplitud mide '+fmt(amp/pixCm,1)+' cm: distancia entre equilibrio y un extremo.',true)}else setFeedback('Revisa qué distancia mide la amplitud: no es el recorrido completo entre los dos extremos.',false)};
 if(step===4){let understood=false;$('cycleCheck').onclick=()=>{if(chosen()===1){understood=true;setFeedback('Correcto: pasar por el mismo punto en sentido opuesto no representa el mismo estado de movimiento.',true)}else setFeedback('Para completar un ciclo debe repetirse el estado: misma posición y misma velocidad.',false)};$('check').onclick=()=>{const e=$('periodInput');if(!understood)return setFeedback('Comprueba antes la pregunta sobre qué es un ciclo.',false);if(!e.value)return setFeedback('Introduce tu medida del período.');const v=Number(e.value.replace(',','.'));if(Math.abs(v-T)<=.25){mark();setFeedback('Correcto. El período es aproximadamente '+fmt(T,2)+' s. El cronómetro permite medirlo experimentalmente.',true)}else setFeedback('El resultado no coincide. Reinicia la oscilación y mide hasta que el movimiento vuelva al estado inicial.',false)}}
@@ -92,8 +106,21 @@ if(step===5)$('check').onclick=()=>{if(samples.length<4)return setFeedback('Nece
 draw();plot();
 }
 const scene=$('scene');
-scene.addEventListener('pointerdown',e=>{const p=xy(e);if(step>=1&&Math.abs(p.x-76)<43&&Math.abs(p.y-axisY)<38){dragMode='axis';scene.setPointerCapture(e.pointerId);e.preventDefault();return}if(Math.abs(p.x-centerX)<58&&Math.abs(p.y-yScreen())<48){stop();dragMode='mass';scene.setPointerCapture(e.pointerId);e.preventDefault();}});
-scene.addEventListener('pointermove',e=>{if(!dragMode)return;const p=xy(e);if(dragMode==='axis'){axisY=clamp(p.y,190,590);axisPlaced=false}else{amp=clamp(Math.abs(eqY-p.y),40,170);sign=p.y<=eqY?1:-1;t=0;observed=true;}draw();e.preventDefault()});
+scene.addEventListener('pointerdown',e=>{
+ const p=xy(e);
+ if(step===1&&bothExtrema()&&Math.abs(p.x-76)<43&&Math.abs(p.y-axisY)<38){dragMode='axis';scene.setPointerCapture(e.pointerId);e.preventDefault();return}
+ if(Math.abs(p.x-centerX)<58&&Math.abs(p.y-yScreen())<48){
+  if(step===1&&!bothExtrema()&&running){markExtremum();e.preventDefault();return}
+  if(step===1&&extrema.top!==null||step===1&&extrema.bottom!==null){setFeedback('Para conservar las marcas, termina primero esta etapa o pulsa «Repetir marcas».');return}
+  stop();dragMode='mass';scene.setPointerCapture(e.pointerId);e.preventDefault();
+ }
+});
+scene.addEventListener('pointermove',e=>{
+ if(!dragMode)return;const p=xy(e);
+ if(dragMode==='axis'){axisY=clamp(p.y,190,590);axisPlaced=false}
+ else{amp=clamp(Math.abs(eqY-p.y),40,170);sign=p.y<=eqY?1:-1;t=0;observed=true}
+ draw();e.preventDefault()
+});
 const release=()=>{if(dragMode==='mass'){dragMode='';play()}else if(dragMode==='axis'){dragMode='';draw()}};
 scene.addEventListener('pointerup',release);scene.addEventListener('pointercancel',release);
 $('play').onclick=play;$('pause').onclick=stop;$('back').onclick=()=>{stop();t=Math.max(0,t-.1);draw()};$('forward').onclick=()=>{stop();t+=.1;draw()};$('reset').onclick=resetMotion;
