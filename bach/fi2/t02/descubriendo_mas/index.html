@@ -238,9 +238,9 @@ function go(i){if(i<0||i>unlocked||i>6)return;compareStop();periodStop();step=i;
 function renderStep(){
 $('stepTitle').textContent=(step+1)+'. '+names[step];$('dataCard').classList.toggle('hidden',step!==5);
 $('layout').classList.toggle('capture-mode',step===5||step===6);
-$('instructionsToggle').setAttribute('aria-expanded',String(step!==5&&step!==6));
-$('instructionsBody').classList.toggle('expanded',step!==5&&step!==6);
-$('instructionsToggle').innerHTML=(step===5||step===6)?'▸ Mostrar instrucciones del ejercicio <span>▾</span>':'▾ Ocultar instrucciones <span>▴</span>';
+$('instructionsToggle').setAttribute('aria-expanded',String(step!==5));
+$('instructionsBody').classList.toggle('expanded',step!==5);
+$('instructionsToggle').innerHTML=step===5?'▸ Mostrar instrucciones del ejercicio <span>▾</span>':'▾ Ocultar instrucciones <span>▴</span>';
 let h='';
 if(step===0){h='<p>Estira el paquete verticalmente y suéltalo. Observa varias oscilaciones completas.</p><div class="question">¿Qué extensión del espacio recorre el objeto?</div>'+options(['Se desplaza indefinidamente por todo el eje vertical.','Se mueve entre una posición superior y otra inferior.','Termina detenido en uno de los extremos.'])+'<button class="primary" id="check">Comprobar</button>'}
 if(step===1){
