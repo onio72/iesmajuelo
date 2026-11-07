@@ -125,8 +125,8 @@ function speedPreview(n){stop();sign=1;t=n===1?speedPair(speedTab).t1:speedPair(
 function speedTable(){
  const el=$('velocityTable');if(!el)return;
  const body=speedTabs.map((it,i)=>{
- const result=speedResults[i];
- return '<tr><td>'+it.name+'</td><td>'+(result?fmt(result,2):'—')+'</td><td>'+(result?(result>.15?'Positiva':result<-.15?'Negativa':'Aproximadamente cero'):'—')+'</td></tr>';
+ const valid=Object.prototype.hasOwnProperty.call(speedResults,i),result=speedResults[i];
+ return '<tr><td>'+it.name+'</td><td>'+(valid?fmt(result,2):'—')+'</td><td>'+(valid?(result>.15?'Positiva':result<-.15?'Negativa':'Aproximadamente cero'):'—')+'</td></tr>';
  }).join('');
  el.innerHTML='<table class="velocity-summary"><thead><tr><th>Zona</th><th>v media (cm/s)</th><th>Signo</th></tr></thead><tbody>'+body+'</tbody></table>';
 }
