@@ -218,8 +218,8 @@ if(step>=3){line(75,eqY-amp,490,eqY-amp,'#bed3e4',1.3,[6,5]);line(75,eqY+amp,490
 if(step>=2||(step===1&&bothExtrema())){const ax=93;line(ax,630,ax,115,'#455f79',2);c.beginPath();c.moveTo(ax-6,128);c.lineTo(ax,114);c.lineTo(ax+6,128);c.fillStyle='#455f79';c.fill();line(ax-12,axisY,ax+40,axisY,'#315b7d',2);rounded(60,axisY-17,31,34,7,'#2678b6');label('O',76,axisY,14,'white','center');label('+y',ax+12,114,15,'#295a82');label('−y',ax+12,630,15,'#295a82');if(step===1&&!axisPlaced)label('Arrastra O',42,axisY+29,12,'#246eae')}
 if(step>=3)drawRuler();
 if(step===3&&amplitudeCompared)drawComparison();
-drawSpring(massTop);rounded(centerX-34,massTop,68,48,8,'#236ca9');rounded(centerX-27,massTop+7,54,10,3,'#4f94ca');
-label('m',centerX,cy+6,19,'white','center');c.beginPath();c.arc(centerX,cy,3.6,0,TAU);c.fillStyle='white';c.fill();
+drawSpring(massTop);rounded(centerX-34,massTop,68,48,8,'#236ca9');
+label('m',centerX,cy,21,'white','center');
 if(step>=2){line(centerX+43,eqY,centerX+43,cy,'#d08b3d',2);label('y',centerX+54,(eqY+cy)/2,14,'#a36a30')}
 $('time').textContent=fmt(t)+' s';$('clock').textContent=step>=4?fmt(t)+' s':'—';$('count').textContent=samples.length;
 $('state').textContent=running?'Oscilando':dragMode?'Arrastrando':'Pausado / preparado';
@@ -229,12 +229,12 @@ function tick(now){if(!running)return;if(lastFrame!==null)t+=Math.min((now-lastF
 function play(){if(running)return;running=true;lastFrame=null;raf=requestAnimationFrame(tick);draw()}
 function resetMotion(){stop();t=0;draw()}
 function setFeedback(msg,ok){const f=$('feedback');f.textContent=msg;f.className='response '+(ok===true?'ok':ok===false?'bad':'')}
-function mark(){passed[step]=true;unlocked=Math.max(unlocked,Math.min(6,step+1));$('next').disabled=step===5;renderNav()}
+function mark(){passed[step]=true;unlocked=Math.max(unlocked,Math.min(6,step+1));renderNav()}
 function options(items){const data=items.map((text,i)=>({text,i}));for(let i=data.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[data[i],data[j]]=[data[j],data[i]]}return '<div class="answers">'+data.map(item=>'<label><input type="radio" name="answer" value="'+item.i+'"><span>'+item.text+'</span></label>').join('')+'</div>'}
 function chosen(){const el=document.querySelector('input[name=answer]:checked');return el?Number(el.value):-1}
 function answer(correct,explain){const val=chosen();if(val===-1){setFeedback('Selecciona una respuesta antes de comprobar.');return}if(val===correct){mark();setFeedback('Correcto. '+explain,true)}else setFeedback('Revisa tu respuesta. Observa el movimiento y vuelve a intentarlo.',false)}
-function renderNav(){$('steps').replaceChildren();names.forEach((n,i)=>{const b=document.createElement('button');b.textContent=(i+1)+'. '+n;b.disabled=i>unlocked;b.className=(i===step?'active ': '')+(i>unlocked?'locked':'');b.onclick=()=>go(i);$('steps').append(b)});$('progress').textContent=(step+1)+' / 7';$('next').disabled=!passed[step]||step===6;$('previous').disabled=step===0}
-function go(i){if(i<0||i>unlocked||i>6)return;compareStop();periodStop();step=i;stop();renderStep()}
+function renderNav(){$('steps').replaceChildren();names.forEach((n,i)=>{const b=document.createElement('button');b.textContent=(i+1)+'. '+n;b.disabled=false;b.className=i===step?'active':'';b.setAttribute('aria-current',i===step?'step':'false');b.onclick=()=>go(i);$('steps').append(b)});$('progress').textContent=(step+1)+' / 7';$('next').disabled=step===6;$('previous').disabled=step===0}
+function go(i){if(i<0||i>6)return;compareStop();periodStop();step=i;stop();renderStep()}
 function renderStep(){
 $('stepTitle').textContent=(step+1)+'. '+names[step];$('dataCard').classList.toggle('hidden',step!==5);
 $('layout').classList.toggle('capture-mode',step===5||step===6);
