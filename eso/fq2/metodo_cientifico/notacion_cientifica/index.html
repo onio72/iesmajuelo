@@ -46,12 +46,16 @@
 const labels=['Decimal → científica','Científica → decimal','Notación correcta','Comparar cantidades'];
 const counts=[0,0,0,0];
 let current=null, answered=false, chosen=null, correct=0, errors=0, serial=0, comparisonIndex=0;
+const signQueues=[[],[]];
+function shuffle(values){for(let i=values.length-1;i>0;i--){const j=rnd(0,i);[values[i],values[j]]=[values[j],values[i]]}return values}
+function fiveBalancedSigns(){const positive=Math.random()<0.5?2:3;return shuffle(Array(positive).fill(1).concat(Array(5-positive).fill(-1)))}
+function nextSign(type){if(signQueues[type].length===0)signQueues[type]=fiveBalancedSigns();return signQueues[type].shift()}
 const $=id=>document.getElementById(id);
 const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
 function choose(a){return a[rnd(0,a.length-1)]}
-function numberData(){
+function numberData(sign=null){
  const len=rnd(1,3), digits=String(rnd(1,9))+Array.from({length:len-1},()=>rnd(0,9)).join('');
- const exp=rnd(-7,8), places=len-1;
+ const exp=sign===1?rnd(1,8):sign===-1?rnd(-7,-1):rnd(-7,8), places=len-1;
  const coefficient=digits[0]+(places?','+digits.slice(1):'');
  const power=exp-places;
  let dec;
@@ -94,8 +98,8 @@ function comparisonPair(){
  }
  return Math.random()<0.5?[a,b]:[b,a];
 }
-function make(type){
- const a=numberData();
+function make(type,sign=null){
+ const a=numberData(type===0||type===1?sign:null);
  if(type===0||type===1)return {type,a};
  if(type===2){
   const kind=choose(['ok','large','small','zero','fraction','negative','correct']);
@@ -127,7 +131,8 @@ function nextExercise(){
  }
  const min=Math.min(...available.map(i=>counts[i]));
  const candidates=available.filter(i=>counts[i]===min);
- current=make(choose(candidates));
+ const type=choose(candidates);
+ current=make(type,type<2?nextSign(type):null);
  const t=current.type;
  $('category').textContent='Bloque '+(t+1)+' de 4 · '+labels[t];
  $('prompt').innerHTML='';
@@ -159,12 +164,13 @@ $('answerForm').addEventListener('submit',e=>{
  renderProgress();$('next').focus();
 });
 $('next').addEventListener('click',nextExercise);
-$('restart').addEventListener('click',()=>{if(!confirm('¿Reiniciar todos los puntos de esta práctica?'))return;counts.fill(0);correct=0;errors=0;nextExercise()});
+$('restart').addEventListener('click',()=>{if(!confirm('¿Reiniciar todos los puntos de esta práctica?'))return;counts.fill(0);correct=0;errors=0;signQueues.forEach(q=>q.splice(0));nextExercise()});
 
 function worksheetHtml(){
  const blocks=labels.map((label,t)=>{
+  const signs=t<2?fiveBalancedSigns():null;
   const rows=Array.from({length:5},(_,j)=>{
-   const q=make(t);let text='';
+   const q=make(t,signs?signs[j]:null);let text='';
    if(t===0)text='Escribe en notación científica: '+dec(q.a);
    if(t===1)text='Escribe en notación decimal: '+sci(q.a);
    if(t===2)text='¿Está correctamente escrita? '+q.shown;
