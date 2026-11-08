@@ -8,7 +8,7 @@ Cuatro modalidades, cada una con cinco aciertos netos requeridos:
 1. Decimal → científica: respuesta integrada visualmente como [mantisa] × 10^[exponente].
 2. Científica → decimal: campo de texto.
 3. Identificar si la notación científica está normalizada.
-4. Comparar dos cantidades, alternando ordenadamente tres variantes: dos científicas, dos decimales y una comparación mixta. La lista imprimible incluye 2 + 2 + 1 ejemplos respectivamente.
+4. Comparar dos cantidades, alternando ordenadamente tres variantes: dos científicas, dos decimales y una comparación mixta. La lista imprimible incluye 2 + 2 + 1 ejemplos respectivamente. Las parejas se generan con valores próximos: normalmente comparten el mismo exponente y difieren aproximadamente entre un 1 % y un 12 %; algunos ejemplos quedan a ambos lados de la frontera entre dos órdenes consecutivos.
 
 Cada respuesta correcta suma un acierto neto en su modalidad; un error resta uno (mínimo 0); los bloques completados dejan de sortearse. Cada bloque vale 1,25 puntos, hasta 5,00. La corrección es inmediata y bloquea la doble puntuación.
 
