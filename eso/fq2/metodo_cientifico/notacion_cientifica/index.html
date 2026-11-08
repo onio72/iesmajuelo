@@ -63,10 +63,36 @@ function sci(d){return '<span class="number">'+d.coefficient+' × 10<sup>'+d.exp
 function dec(d){return '<span class="number">'+d.decimal+'</span>'}
 function plainNum(s){const x=String(s).trim().replace(/\s/g,'').replace(',','.');if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(x))return NaN;return Number(x)}
 function equal(a,b){return Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<=Math.max(Math.abs(b)*1e-11,1e-15)}
+// Construye valores con tres cifras significativas y representación decimal exacta.
+function comparisonNumber(mantissaHundredths, exp){
+ const digits=String(mantissaHundredths), coefficient=digits[0]+','+digits.slice(1);
+ const significant=digits.replace(/0+$/,'');
+ const power=exp-2;
+ const position=digits.length+power;
+ let decimal;
+ if(power>=0)decimal=digits+'0'.repeat(power);
+ else if(position>0)decimal=digits.slice(0,position)+','+digits.slice(position);
+ else decimal='0,'+'0'.repeat(-position)+digits;
+ if(decimal.includes(','))decimal=decimal.replace(/0+$/,'').replace(/,$/,'');
+ if(!decimal.includes(',')&&power>=0)decimal=digits+'0'.repeat(power);
+ return {digits:significant,coefficient,exp,decimal,value:mantissaHundredths*Math.pow(10,exp-2)};
+}
 function comparisonPair(){
- let a=numberData(),b=numberData(),tries=0;
- while((equal(a.value,b.value)||Math.random()<.5&&a.exp===b.exp)&&tries++<30)b=numberData();
- return [a,b];
+ const exp=rnd(-5,5);
+ let a,b;
+ if(Math.random()<0.2){
+  // A ambos lados de la frontera entre órdenes consecutivos.
+  const low=rnd(950,999), high=rnd(100,106);
+  a=comparisonNumber(low,exp);
+  b=comparisonNumber(high,exp+1);
+ }else{
+  // Mismo orden de magnitud y diferencias relativas de aproximadamente 1–12 %.
+  const first=rnd(140,860);
+  const delta=rnd(Math.max(1,Math.ceil(first*0.01)),Math.max(2,Math.floor(first*0.12)));
+  a=comparisonNumber(first,exp);
+  b=comparisonNumber(first+delta,exp);
+ }
+ return Math.random()<0.5?[a,b]:[b,a];
 }
 function make(type){
  const a=numberData();
