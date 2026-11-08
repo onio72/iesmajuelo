@@ -75,11 +75,11 @@ function make(type){
   const kind=choose(['ok','large','small','zero','fraction','negative','correct']);
   const c=Number(a.coefficient.replace(',','.'));
   let coefficient=a.coefficient, exp=a.exp, valid=true;
-  if(kind==='large'){coefficient=String((c*10).toFixed(2)).replace('.',',').replace(/,?0+$/,'');valid=false}
+  if(kind==='large'){coefficient=String(Number((c*10).toFixed(2))).replace('.',',');valid=false}
   if(kind==='small'){coefficient='0,'+a.digits;valid=false}
   if(kind==='zero'){coefficient='0';valid=false}
   if(kind==='fraction'){coefficient='0,0'+a.digits;valid=false}
-  if(kind==='negative'){coefficient='-'+String((c*10).toFixed(2)).replace('.',',').replace(/,?0+$/,'');valid=false}
+  if(kind==='negative'){coefficient='-'+String(Number((c*10).toFixed(2))).replace('.',',');valid=false}
   return {type,a,shown:'<span class="number">'+coefficient+' × 10<sup>'+exp+'</sup></span>',valid};
  }
  const [x,y]=comparisonPair();return {type,a:x,b:y};
