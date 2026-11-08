@@ -12,7 +12,7 @@
 <body class="edu-app">
 <main class="edu-shell">
 <header class="edu-header topline">
-<div><p class="exercise-title">Física y Química · 2.º ESO · Método científico</p><h1>Notación científica</h1><p>Convierte cantidades, identifica expresiones normalizadas y compara números. Supera los cuatro bloques para alcanzar el 5.</p></div>
+<div><p class="exercise-title">Física y Química · 2.º ESO · Método científico</p><h1>Notación científica</h1><p>Convierte cantidades, identifica expresiones normalizadas y compara números. Supera los cinco bloques para alcanzar el 5.</p></div>
 <div class="score" aria-live="polite"><small>Nota sobre 5</small><strong id="grade">0,00</strong><small id="correctCounter">0 aciertos · 0 errores</small></div>
 </header>
 <section class="progress-grid" aria-label="Progreso por bloques" id="progress"></section>
@@ -37,16 +37,16 @@
 <p>Si la expresión está normalizada, el exponente indica su <strong>orden de magnitud decimal</strong> en el sentido trabajado en esta actividad (potencia de diez que acompaña al coeficiente).</p>
 <p class="note">Se admiten coma o punto decimal. Por ejemplo, 2,5 × 10³ puede introducirse como 2,5 y 3 en las dos casillas.</p>
 <div class="hint">Cada bloque requiere 5 aciertos netos: acierto +1; error −1, sin bajar de 0. La puntuación máxima de cada bloque es 1,25 puntos. Los bloques completados dejan de aparecer.</div>
-<div class="edu-actions"><button class="edu-button edu-button-secondary" type="button" id="restart">Reiniciar práctica</button><button class="edu-button edu-button-secondary" type="button" id="worksheet">Lista de ejercicios (PDF)</button></div><p class="note">Genera 20 ejercicios nuevos, cinco de cada tipo, con espacio para contestar. En la ventana de impresión selecciona «Guardar como PDF».</p>
+<div class="edu-actions"><button class="edu-button edu-button-secondary" type="button" id="restart">Reiniciar práctica</button><button class="edu-button edu-button-secondary" type="button" id="worksheet">Lista de ejercicios (PDF)</button></div><p class="note">Genera 25 ejercicios nuevos, cinco de cada tipo, con espacio para contestar. En la ventana de impresión selecciona «Guardar como PDF».</p>
 </aside>
 </div>
 </main>
 <script>
 'use strict';
-const labels=['Decimal → científica','Científica → decimal','Notación correcta','Comparar cantidades'];
-const counts=[0,0,0,0];
-let current=null, answered=false, chosen=null, correct=0, errors=0, serial=0, comparisonIndex=0;
-const signQueues=[[],[]];
+const labels=['Decimal → científica','Científica → decimal','Notación correcta','Mayor o menor que 1','Comparar cantidades'];
+const counts=[0,0,0,0,0];
+let current=null, answered=false, chosen=null, correct=0, errors=0, serial=0, comparisonIndex=0, unitFormatIndex=0;
+const signQueues=[[],[],[]];
 function shuffle(values){for(let i=values.length-1;i>0;i--){const j=rnd(0,i);[values[i],values[j]]=[values[j],values[i]]}return values}
 function fiveBalancedSigns(){const positive=Math.random()<0.5?2:3;return shuffle(Array(positive).fill(1).concat(Array(5-positive).fill(-1)))}
 function nextSign(type){if(signQueues[type].length===0)signQueues[type]=fiveBalancedSigns();return signQueues[type].shift()}
@@ -99,8 +99,9 @@ function comparisonPair(){
  return Math.random()<0.5?[a,b]:[b,a];
 }
 function make(type,sign=null){
- const a=numberData(type===0||type===1?sign:null);
+ const a=numberData(type===0||type===1||type===3?sign:null);
  if(type===0||type===1)return {type,a};
+ if(type===3)return {type,a,scientific:unitFormatIndex++%2===0};
  if(type===2){
   const kind=choose(['ok','large','small','zero','fraction','negative','correct']);
   const c=Number(a.coefficient.replace(',','.'));
@@ -116,7 +117,7 @@ function make(type,sign=null){
 }
 function renderProgress(){
  $('progress').innerHTML=labels.map((label,i)=>'<div class="progress-item"><b>'+label+'</b><span>'+counts[i]+'/5 aciertos netos</span><div class="track" role="progressbar" aria-label="'+label+'" aria-valuemin="0" aria-valuemax="5" aria-valuenow="'+counts[i]+'"><i style="width:'+(counts[i]*20)+'%"></i></div></div>').join('');
- $('grade').textContent=(counts.reduce((a,b)=>a+b,0)/4).toFixed(2).replace('.',',');
+ $('grade').textContent=(counts.reduce((a,b)=>a+b,0)/5).toFixed(2).replace('.',',');
  $('correctCounter').textContent=correct+' aciertos · '+errors+' errores';
 }
 function nextExercise(){
@@ -125,22 +126,23 @@ function nextExercise(){
  const available=counts.map((n,i)=>n<5?i:-1).filter(i=>i>=0);
  renderProgress();
  if(!available.length){
-  current=null;$('category').textContent='Práctica completada';$('exerciseHeading').textContent='Has alcanzado el 5,00 en los cuatro bloques.';
+  current=null;$('category').textContent='Práctica completada';$('exerciseHeading').textContent='Has alcanzado el 5,00 en los cinco bloques.';
   $('prompt').innerHTML='<p>Dominio demostrado: cinco aciertos netos en cada modalidad.</p>';
   $('answer').innerHTML='';$('check').hidden=true;$('next').hidden=true;return;
  }
  const min=Math.min(...available.map(i=>counts[i]));
  const candidates=available.filter(i=>counts[i]===min);
  const type=choose(candidates);
- current=make(type,type<2?nextSign(type):null);
+ current=make(type,type<2?nextSign(type):type===3?nextSign(2):null);
  const t=current.type;
- $('category').textContent='Bloque '+(t+1)+' de 4 · '+labels[t];
+ $('category').textContent='Bloque '+(t+1)+' de 5 · '+labels[t];
  $('prompt').innerHTML='';
  let title='',answer='';
  if(t===0){title='Escribe en notación científica normalizada:';$('prompt').innerHTML='<div class="edu-formula">'+dec(current.a)+'</div>';answer='<div class="scientific-answer" role="group" aria-label="Escribe la cantidad en notación científica"><input class="mantissa" id="coefficient" type="text" inputmode="decimal" autocomplete="off" aria-label="Mantisa" placeholder="___" required><span aria-hidden="true">×</span><span class="power"><span aria-hidden="true">10</span><input id="exponent" type="text" inputmode="numeric" autocomplete="off" aria-label="Exponente" placeholder="?" required></span></div>'}
  if(t===1){title='Escribe esta cantidad en notación decimal:';$('prompt').innerHTML='<div class="edu-formula">'+sci(current.a)+'</div>';answer='<div class="answer-row single"><label class="edu-field">Número decimal<input id="decimal" type="text" inputmode="decimal" autocomplete="off" placeholder="Escribe la cantidad completa" required></label></div>'}
  if(t===2){title='¿Está correctamente escrita en notación científica normalizada?';$('prompt').innerHTML='<div class="edu-formula">'+current.shown+'</div>';answer=options(['Sí','No'])}
- if(t===3){title='¿Cuál de las dos cantidades es mayor?';const left=current.variant===0?sci(current.a):current.variant===1?dec(current.a):(current.scienceFirst?sci(current.a):dec(current.a));const right=current.variant===0?sci(current.b):current.variant===1?dec(current.b):(current.scienceFirst?dec(current.b):sci(current.b));$('prompt').innerHTML='<div class="compare-grid"><div class="compare-box"><label>A</label>'+left+'</div><div class="compare-box"><label>B</label>'+right+'</div></div>';answer=options(['A','B','Son iguales'])}
+ if(t===3){title='¿La siguiente cantidad es mayor o menor que 1?';$('prompt').innerHTML='<div class="edu-formula">'+(current.scientific?sci(current.a):dec(current.a))+'</div>';answer=options(['Mayor que 1','Menor que 1']);}
+ if(t===4){title='¿Cuál de las dos cantidades es mayor?';const left=current.variant===0?sci(current.a):current.variant===1?dec(current.a):(current.scienceFirst?sci(current.a):dec(current.a));const right=current.variant===0?sci(current.b):current.variant===1?dec(current.b):(current.scienceFirst?dec(current.b):sci(current.b));$('prompt').innerHTML='<div class="compare-grid"><div class="compare-box"><label>A</label>'+left+'</div><div class="compare-box"><label>B</label>'+right+'</div></div>';answer=options(['A','B','Son iguales'])}
  $('exerciseHeading').textContent=title;$('answer').innerHTML=answer;
  const first=$('answer').querySelector('input');if(first)first.focus();
 }
@@ -153,7 +155,8 @@ $('answerForm').addEventListener('submit',e=>{
  if(t===0){const c=plainNum($('coefficient').value),n=normalizedInt($('exponent').value);valid=Number.isFinite(c)&&Number.isInteger(n)&&$('coefficient').value.trim()!=='';ok=valid&&c>=1&&c<10&&n===a.exp&&equal(c,Number(a.coefficient.replace(',','.')));expected=sci(a);detail='El coeficiente debe tener una sola cifra distinta de cero antes de la coma. El exponente indica cuánto se desplaza la coma.'}
  if(t===1){const v=plainNum($('decimal').value);valid=Number.isFinite(v)&&$('decimal').value.trim()!=='';ok=valid&&equal(v,a.value);expected=dec(a);detail=a.exp>=0?'El exponente positivo desplaza la coma hacia la derecha.':'El exponente negativo desplaza la coma hacia la izquierda.'}
  if(t===2){valid=chosen!==null;ok=valid&&(chosen===0)===current.valid;expected=current.valid?'Sí, es normalizada.':'No, el coeficiente debe cumplir 1 ≤ |a| < 10.';detail='La potencia de 10 no corrige una mantisa fuera del intervalo permitido.'}
- if(t===3){valid=chosen!==null;const truth=equal(a.value,current.b.value)?2:a.value>current.b.value?0:1;ok=valid&&chosen===truth;expected=['A','B','Son iguales'][truth];detail='Para comparar, expresa mentalmente las dos cantidades con la misma potencia de diez o en notación decimal.'}
+ if(t===3){valid=chosen!==null;const truth=a.value>1?0:1;ok=valid&&chosen===truth;expected=truth===0?'Mayor que 1':'Menor que 1';detail=current.scientific?'En notación científica normalizada, el signo del exponente permite saber si la cantidad es mayor o menor que 1.':'Observa si la parte entera del número es al menos 1 o si comienza por 0 coma.';}
+ if(t===4){valid=chosen!==null;const truth=equal(a.value,current.b.value)?2:a.value>current.b.value?0:1;ok=valid&&chosen===truth;expected=['A','B','Son iguales'][truth];detail='Para comparar, expresa mentalmente las dos cantidades con la misma potencia de diez o en notación decimal.'}
  if(!valid){$('feedback').className='edu-feedback edu-error';$('feedback').textContent='Completa tu respuesta antes de comprobar.';$('feedback').hidden=false;return}
  answered=true;if(ok){correct++;counts[t]=Math.min(5,counts[t]+1)}else{errors++;counts[t]=Math.max(0,counts[t]-1)}
  $('feedback').className='edu-feedback '+(ok?'edu-ok':'edu-error');
@@ -168,19 +171,20 @@ $('restart').addEventListener('click',()=>{if(!confirm('¿Reiniciar todos los pu
 
 function worksheetHtml(){
  const blocks=labels.map((label,t)=>{
-  const signs=t<2?fiveBalancedSigns():null;
+  const signs=(t<2||t===3)?fiveBalancedSigns():null;
   const rows=Array.from({length:5},(_,j)=>{
    const q=make(t,signs?signs[j]:null);let text='';
    if(t===0)text='Escribe en notación científica: '+dec(q.a);
    if(t===1)text='Escribe en notación decimal: '+sci(q.a);
    if(t===2)text='¿Está correctamente escrita? '+q.shown;
-   if(t===3){
+   if(t===3){q.scientific=j%2===0;text='¿Es mayor o menor que 1? '+(q.scientific?sci(q.a):dec(q.a));}
+   if(t===4){
     q.variant=j%3;q.scienceFirst=j%2===0;
     const left=q.variant===0?sci(q.a):q.variant===1?dec(q.a):(q.scienceFirst?sci(q.a):dec(q.a));
     const right=q.variant===0?sci(q.b):q.variant===1?dec(q.b):(q.scienceFirst?dec(q.b):sci(q.b));
     text='¿Cuál es mayor? A: '+left+' &nbsp;&nbsp; B: '+right;
    }
-   const response=t===2?'<p class="choices">☐ Sí &nbsp; ☐ No</p>':t===3?'<p class="choices">☐ A &nbsp; ☐ B &nbsp; ☐ Son iguales</p>':'<div class="answerline"></div>';
+   const response=t===2?'<p class="choices">☐ Sí &nbsp; ☐ No</p>':t===3?'<p class="choices">☐ Mayor que 1 &nbsp; ☐ Menor que 1</p>':t===4?'<p class="choices">☐ A &nbsp; ☐ B &nbsp; ☐ Son iguales</p>':'<div class="answerline"></div>';
    return '<div class="questionrow"><strong>'+(j+1)+'.</strong><div>'+text+response+'</div></div>';
   }).join('');
   return '<section><h2>'+(t+1)+'. '+label+'</h2>'+rows+'</section>';
