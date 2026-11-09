@@ -181,11 +181,13 @@ function renderVelocitySamples(){
  drawVelocityGraph();
 }
 function velocityQuestionHtml(){
+ if(velocitySamples.length<4)return '<p class="question">Primero realiza al menos cuatro capturas de velocidad, preferentemente cerca de +A, y=0 descendiendo, −A y y=0 ascendiendo. Puedes utilizar los controles del cuaderno y los botones de avance y retroceso.</p><p class="hint">Capturas realizadas: '+velocitySamples.length+' de 4 necesarias para comenzar las preguntas.</p>';
  if(velocityPromptIndex>=velocityQuestions.length)return '<p>Has completado las preguntas de velocidad instantánea. Repite los experimentos si quieres comprobar los resultados.</p><button id="velocityRepeat">Repetir preguntas</button>';
  const q=velocityQuestions[velocityPromptIndex];
  return '<span class="status">Pregunta '+(velocityPromptIndex+1)+' de '+velocityQuestions.length+'</span><div class="question">'+q.question+'</div>'+options(q.answers)+'<button class="primary" id="velocityQuestionCheck">Comprobar respuesta</button>';
 }
 function bindVelocityQuestions(){
+ if(velocitySamples.length<4)return;
  if(velocityPromptIndex>=velocityQuestions.length){$('velocityRepeat').onclick=()=>{velocityPromptIndex=0;renderStep()};return}
  $('velocityQuestionCheck').onclick=()=>{const q=velocityQuestions[velocityPromptIndex],v=chosen();if(v<0)return setFeedback('Selecciona una respuesta.',false);if(v!==q.correct)return setFeedback('Observa el vector velocidad y el velocímetro cerca de las posiciones indicadas.',false);
  velocityAnswers[velocityPromptIndex]=true;velocityPromptIndex++;if(velocityPromptIndex>=velocityQuestions.length)mark();
@@ -384,10 +386,10 @@ $('velocityCapture').onclick=()=>{
  if(velocitySamples.some(q=>Math.abs(q.t-t)<.015))return setFeedback('Este instante ya se ha capturado. Avanza o retrocede para registrar otro.',false);
  velocitySamples.push({t,y:yCm(),v:velocityCms()});
  velocitySamples.sort((a,b)=>a.t-b.t);
- renderVelocitySamples();
+ if(velocitySamples.length===4){renderStep()}else renderVelocitySamples();
  setFeedback('Velocidad capturada: '+fmt(velocityCms(),2)+' cm/s. Observa el nuevo punto en la gráfica v-t.',true);
 };
-$('velocityClear').onclick=()=>{velocitySamples=[];renderVelocitySamples();setFeedback('Se han borrado las capturas de velocidad.')};
+$('velocityClear').onclick=()=>{velocitySamples=[];velocityPromptIndex=0;velocityAnswers=[false,false,false];renderStep();setFeedback('Se han borrado las capturas de velocidad.')};
 $('velocityTop').onclick=()=>velocityGuide(0);
 $('velocityDown').onclick=()=>velocityGuide(1);
 $('velocityBottom').onclick=()=>velocityGuide(2);
