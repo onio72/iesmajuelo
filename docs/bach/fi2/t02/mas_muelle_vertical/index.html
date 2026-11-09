@@ -30,8 +30,6 @@
             <defs>
               <linearGradient id="bodyGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6d9aa8"/><stop offset="1" stop-color="#285768"/></linearGradient>
               <linearGradient id="upperBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f8fbfd"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
-              <marker id="arrowV" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L8.5 5 L1 9 Z" fill="#2563eb"/></marker>
-              <marker id="arrowA" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L8.5 5 L1 9 Z" fill="#d26916"/></marker>
             </defs>
             <rect x="12" y="10" width="736" height="591" rx="18" fill="url(#upperBg)" stroke="#e5edf2"/>
             <g id="referenceLayer"><text x="78" y="70" fill="#617185" font-size="16" font-weight="750">y (m)</text><line x1="154" y1="128" x2="154" y2="558" stroke="#667f90" stroke-width="2"/><path d="M148 136 L154 122 L160 136" stroke="#667f90" stroke-width="2.2" fill="none"/><g id="rulerTicks"></g><line x1="154" y1="347" x2="550" y2="347" stroke="#249297" stroke-width="1.5" stroke-dasharray="7 7" opacity="0.7"/><text x="175" y="338" fill="#11848b" font-size="14" font-weight="750">Equilibrio · y = 0</text></g>
@@ -44,8 +42,8 @@
               <path d="M-43 -24 H43" stroke="#ffffff" stroke-width="2" opacity=".26"/>
               <text text-anchor="middle" y="8" fill="white" font-size="26" font-weight="750">m</text>
             </g>
-            <g id="velocityLayer" visibility="hidden"><line id="velocityArrow" x1="575" x2="575" stroke="#2563eb" stroke-width="3.2" marker-end="url(#arrowV)" stroke-linecap="round"/><text id="velocityCaption" x="585" y="0" font-size="15" font-weight="750" fill="#2563eb">v</text><text id="velocityValue" x="585" y="0" font-size="12" fill="#2563eb" visibility="hidden"></text></g>
-            <g id="accelerationLayer" visibility="hidden"><line id="accelerationArrow" x1="674" x2="674" stroke="#d26916" stroke-width="3.2" marker-end="url(#arrowA)" stroke-linecap="round"/><text id="accelerationCaption" x="684" y="0" font-size="15" font-weight="750" fill="#d26916">a</text><text id="accelerationValue" x="684" y="0" font-size="12" fill="#d26916" visibility="hidden"></text></g>
+            <g id="velocityLayer" visibility="hidden"><line id="velocityArrow" x1="575" x2="575" stroke="#2563eb" stroke-width="5.5" stroke-linecap="round"/><polygon id="velocityHead" fill="#2563eb" visibility="hidden"/><text id="velocityCaption" x="585" y="0" font-size="15" font-weight="750" fill="#2563eb">v</text><text id="velocityValue" x="585" y="0" font-size="12" fill="#2563eb" visibility="hidden"></text></g>
+            <g id="accelerationLayer" visibility="hidden"><line id="accelerationArrow" x1="674" x2="674" stroke="#d26916" stroke-width="5.5" stroke-linecap="round"/><polygon id="accelerationHead" fill="#d26916" visibility="hidden"/><text id="accelerationCaption" x="684" y="0" font-size="15" font-weight="750" fill="#d26916">a</text><text id="accelerationValue" x="684" y="0" font-size="12" fill="#d26916" visibility="hidden"></text></g>
           </svg>
           <div class="stage-note">Arrastra el bloque y suéltalo para iniciar una nueva oscilación</div>
         </div>
@@ -65,8 +63,8 @@
           <section class="plot-card" id="velocityPlotCard" hidden><h3><span style="color:#2563eb">Velocidad · tiempo</span><em>v (m/s)</em></h3><canvas class="plot-canvas" id="velocityPlot" role="img" aria-label="Gráfica de velocidad frente al tiempo"></canvas></section>
           <section class="plot-card" id="accelPlotCard" hidden><h3><span style="color:#d26916">Aceleración · tiempo</span><em>a (m/s²)</em></h3><canvas class="plot-canvas" id="accelPlot" role="img" aria-label="Gráfica de aceleración frente al tiempo"></canvas></section>
           <section class="plot-card merged-plot" id="overlayPlotCard" hidden>
-            <h3><span>Comparación de posición, velocidad y aceleración</span><em>Amplitudes normalizadas · eje vertical de −1 a +1</em></h3>
-            <canvas class="plot-canvas overlay-canvas" id="overlayPlot" role="img" aria-label="Superposición de posición, velocidad y aceleración, normalizadas por su amplitud sobre un eje temporal común"></canvas>
+            <h3><span>Superposición de las gráficas seleccionadas</span><em>Amplitudes normalizadas · eje vertical de −1 a +1</em></h3>
+            <canvas class="plot-canvas overlay-canvas" id="overlayPlot" role="img" aria-label="Superposición de las gráficas seleccionadas, normalizadas por su amplitud sobre un eje temporal común"></canvas>
             <div class="overlay-legend" aria-live="off"><span class="overlay-legend-item"><i class="legend-line teal"></i><span>y/A</span><strong id="overlayPositionValue">0,00 m</strong></span><span class="overlay-legend-item"><i class="legend-line blue"></i><span>v/(Aω)</span><strong id="overlayVelocityValue">0,00 m/s</strong></span><span class="overlay-legend-item"><i class="legend-line orange"></i><span>a/(Aω²)</span><strong id="overlayAccelValue">0,00 m/s²</strong></span></div>
           </section>
         </div>
@@ -82,7 +80,7 @@
         <button id="slowButton" class="speed-button" type="button" aria-pressed="false">◷ Cámara lenta · ×0,20</button>
         <p class="subtle">Avanza o retrocede en intervalos de 0,10 s. Arrastra el deslizador para elegir cualquier instante.</p>
         <div class="sec"><h2>Sistema de referencia</h2><label class="choice"><input id="showReference" type="checkbox" checked><span>Mostrar regla vertical y posición de equilibrio</span></label></div>
-        <div class="sec"><h2>Gráficas</h2><label class="choice"><input id="showPositionGraph" type="checkbox"><span>Posición–tiempo, y(t)</span></label><label class="choice"><input id="showVelocityGraph" type="checkbox"><span>Velocidad–tiempo, v(t)</span></label><label class="choice"><input id="showAccelGraph" type="checkbox"><span>Aceleración–tiempo, a(t)</span></label><label class="choice"><input id="showCombinedGraph" type="checkbox"><span><b>Superposición de gráficas</b> (las tres en los mismos ejes)</span></label><p class="subtle" id="combinedNote" hidden>Para comparar las tres curvas se representa y/A, v/(Aω) y a/(Aω²), con escala vertical común de −1 a +1.</p></div>
+        <div class="sec"><h2>Gráficas</h2><label class="choice"><input id="showPositionGraph" type="checkbox"><span>Posición–tiempo, y(t)</span></label><label class="choice"><input id="showVelocityGraph" type="checkbox"><span>Velocidad–tiempo, v(t)</span></label><label class="choice"><input id="showAccelGraph" type="checkbox"><span>Aceleración–tiempo, a(t)</span></label><label class="choice"><input id="showCombinedGraph" type="checkbox"><span><b>Superposición de gráficas</b> (solo las seleccionadas)</span></label><p class="subtle" id="combinedNote" hidden>Se representan únicamente las curvas marcadas, cada una normalizada por su amplitud y con una escala vertical común de −1 a +1.</p></div>
       </section>
       <section class="panel controls"><h2>Vectores y valores</h2>
         <label class="choice"><input id="showVelocity" type="checkbox"><span>Mostrar vector velocidad</span></label>
@@ -130,15 +128,20 @@
   for(let j=-8;j<=8;j+=2){const yPos=posY(j/10);const label=document.createElementNS('http://www.w3.org/2000/svg','text');label.textContent=(j>0?'+':'')+fmt(j/10,1);setAttrs(label,{x:137,y:yPos+5,'text-anchor':'end','font-size':14,fill:j===0?'#0e858e':'#6e8293','font-weight':j===0?750:500});ruler.appendChild(label);const tick=document.createElementNS('http://www.w3.org/2000/svg','line');setAttrs(tick,{x1:148,x2:160,y1:yPos,y2:yPos,stroke:j===0?'#118d91':'#7893a4','stroke-width':j===0?2.5:1.4});ruler.appendChild(tick);}
   function springD(bottomY){const top=SPRING_TOP, start=top+9, finish=Math.max(start+22,bottomY-6), count=18, increment=(finish-start)/(count+1);let d=`M445 ${top} L445 ${start}`;for(let i=1;i<=count;i++){d+=` L${445+(i%2?19:-19)} ${(start+increment*i).toFixed(3)}`;}d+=` L445 ${finish} L445 ${bottomY}`;return d;}
   function drawVector(prefix,value,bodyY,x,unit,showValue){
-    const layer=$(prefix+'Layer'),arrow=$(prefix+'Arrow'),label=$(prefix+'Caption'),reading=$(prefix+'Value');
+    const layer=$(prefix+'Layer'),arrow=$(prefix+'Arrow'),head=$(prefix+'Head'),label=$(prefix+'Caption'),reading=$(prefix+'Value');
     const maxValue=state.amplitude*(prefix==='velocity'?OMEGA:OMEGA*OMEGA);
     const ratio=clamp(value/maxValue,-1,1);
-    // Near an actual zero crossing the entire arrowhead, shaft and symbol vanish.
     const isZero=Math.abs(ratio)<.003;
-    const length=isZero?0:clamp(Math.abs(ratio)*85,12,85);
-    const end=bodyY-Math.sign(value)*length;
-    setAttrs(arrow,{x1:x,x2:x,y1:bodyY,y2:end,visibility:isZero?'hidden':'visible'});
-    setAttrs(label,{x:x+11,y:end+(value>0?-8:19),visibility:isZero?'hidden':'visible'});
+    const direction=value>0?-1:1; // Coordenadas SVG: hacia arriba es y decreciente.
+    const totalLength=isZero?0:clamp(Math.abs(ratio)*125,32,125);
+    const tipY=bodyY+direction*totalLength;
+    const headLength=17,halfHeadWidth=8;
+    const baseY=tipY-direction*headLength;
+    // La punta es un triángulo independiente situado a continuación del segmento.
+    // La base de la punta (16 px) es más ancha que el trazo (5,5 px).
+    setAttrs(arrow,{x1:x,x2:x,y1:bodyY,y2:baseY,visibility:isZero?'hidden':'visible'});
+    setAttrs(head,{points:`${x-halfHeadWidth},${baseY} ${x+halfHeadWidth},${baseY} ${x},${tipY}`,visibility:isZero?'hidden':'visible'});
+    setAttrs(label,{x:x+13,y:tipY+(value>0?-8:20),visibility:isZero?'hidden':'visible'});
     reading.textContent=(prefix==='velocity'?'v = ':'a = ')+signed(value)+' '+unit;
     setAttrs(reading,{x:570,y:prefix==='velocity'?115:142,'font-size':14,'font-weight':700,visibility:showValue?'visible':'hidden'});
     layer.setAttribute('visibility','visible');
@@ -165,11 +168,20 @@
   function updateGraphVisibility(){
     const merged=options.showCombinedGraph.checked;
     const settings=[['showPositionGraph','positionPlotCard'],['showVelocityGraph','velocityPlotCard'],['showAccelGraph','accelPlotCard']];
-    let count=0;
-    for(const [opt,card] of settings){const visible=!merged&&options[opt].checked;$(card).hidden=!visible;if(visible)count++;options[opt].disabled=merged;}
-    $('overlayPlotCard').hidden=!merged;
+    const selected=settings.filter(([opt])=>options[opt].checked).length;
+    for(const [opt,card] of settings){
+      $(card).hidden=merged||!options[opt].checked;
+      options[opt].disabled=false; // Permitir cambiar la selección mientras hay superposición.
+    }
+    $('overlayPlotCard').hidden=!merged||selected===0;
     $('combinedNote').hidden=!merged;
-    $('emptyPlots').hidden=merged||!!count;
+    $('emptyPlots').hidden=selected>0;
+    $('emptyPlots').textContent=merged
+      ? 'Marca al menos una de las tres gráficas para verla superpuesta.'
+      : 'Activa una o varias gráficas en el panel de control.';
+    $('overlayPositionValue').parentElement.style.display=options.showPositionGraph.checked?'flex':'none';
+    $('overlayVelocityValue').parentElement.style.display=options.showVelocityGraph.checked?'flex':'none';
+    $('overlayAccelValue').parentElement.style.display=options.showAccelGraph.checked?'flex':'none';
   }
   const graphs=[{key:'showPositionGraph',id:'positionPlot',type:'y',color:'#13858e',label:'y'},{key:'showVelocityGraph',id:'velocityPlot',type:'v',color:'#2563eb',label:'v'},{key:'showAccelGraph',id:'accelPlot',type:'a',color:'#d26916',label:'a'}];
   function plot(graph){if(!options[graph.key].checked)return;const canvas=$(graph.id);const rect=canvas.getBoundingClientRect();const width=Math.max(100,rect.width),height=Math.max(100,rect.height),dpr=Math.min(window.devicePixelRatio||1,2);if(canvas.width!==Math.round(width*dpr)||canvas.height!==Math.round(height*dpr)){canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);}const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
@@ -212,7 +224,7 @@
       const p=X(state.focusEvent);ctx.fillStyle='#a24ac410';ctx.fillRect(X(Math.max(start,state.focusEvent-.12)),margin.t,Math.max(1,X(Math.min(end,state.focusEvent+.12))-X(Math.max(start,state.focusEvent-.12))),ph);
       ctx.strokeStyle='#b66dc9';ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(p,margin.t);ctx.lineTo(p,height-margin.b);ctx.stroke();ctx.setLineDash([]);
     }
-    const now=coordsAt(state.time),series=[{key:'y',scale:state.amplitude,color:'#13858e'},{key:'v',scale:state.amplitude*OMEGA,color:'#2563eb'},{key:'a',scale:state.amplitude*OMEGA*OMEGA,color:'#d26916'}];
+    const now=coordsAt(state.time),series=[{option:'showPositionGraph',key:'y',scale:state.amplitude,color:'#13858e'},{option:'showVelocityGraph',key:'v',scale:state.amplitude*OMEGA,color:'#2563eb'},{option:'showAccelGraph',key:'a',scale:state.amplitude*OMEGA*OMEGA,color:'#d26916'}].filter(item=>options[item.option].checked);
     for(const item of series){
       ctx.strokeStyle=item.color;ctx.lineWidth=2.6;ctx.lineJoin='round';ctx.beginPath();
       const steps=Math.max(150,Math.round(pw*1.4));
