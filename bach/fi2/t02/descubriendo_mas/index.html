@@ -55,6 +55,14 @@
 <details id="tableDetails"><summary style="cursor:pointer;font-weight:650;padding:9px 0">Ver tabla de posiciones (<span id="tableCount">0</span> capturas)</summary>
 <div class="tablewrap"><table><thead><tr><th>N.º</th><th>t (s)</th><th>y (cm)</th></tr></thead><tbody id="rows"><tr><td colspan="3">Sin mediciones</td></tr></tbody></table></div>
 </details></section>
+<section class="lower hidden" id="velocityCard">
+<h2>Cuaderno de velocidades instantáneas</h2>
+<p class="muted">Pausa el movimiento, observa el vector velocidad y captura los valores. La gráfica muestra los puntos experimentales que vas registrando.</p>
+<div class="row" style="margin-bottom:9px"><button class="primary" id="velocityCapture">📷 Capturar velocidad</button><button id="velocityClear">Vaciar capturas</button></div>
+<div class="row" style="margin-bottom:10px"><button id="velocityTop">Ir a +A</button><button id="velocityDown">Equilibrio ↓</button><button id="velocityBottom">Ir a −A</button><button id="velocityUp">Equilibrio ↑</button></div>
+<div class="graphwrap"><canvas id="velocityGraph" width="920" height="310" style="width:100%;height:auto;border:1px solid #dce7ef;border-radius:8px" aria-label="Gráfica de velocidad instantánea frente al tiempo"></canvas></div>
+<details id="velocityDetails"><summary style="cursor:pointer;font-weight:650;padding:9px 0">Ver tabla de velocidades (<span id="velocityCount">0</span> capturas)</summary><div class="tablewrap"><table><thead><tr><th>N.º</th><th>t (s)</th><th>y (cm)</th><th>v (cm/s)</th></tr></thead><tbody id="velocityRows"><tr><td colspan="4">Sin capturas</td></tr></tbody></table></div></details>
+</section>
 </section></div>
 </main><script>
 (function(){
@@ -272,7 +280,7 @@ function answer(correct,explain){const val=chosen();if(val===-1){setFeedback('Se
 function renderNav(){$('steps').replaceChildren();names.forEach((n,i)=>{const b=document.createElement('button');b.textContent=(i+1)+'. '+n;b.disabled=false;b.className=i===step?'active':'';b.setAttribute('aria-current',i===step?'step':'false');b.onclick=()=>go(i);$('steps').append(b)});$('progress').textContent=(step+1)+' / 7';$('next').disabled=step===6;$('previous').disabled=step===0}
 function go(i){if(i<0||i>6)return;compareStop();periodStop();step=i;stop();renderStep()}
 function renderStep(){
-$('stepTitle').textContent=(step+1)+'. '+names[step];$('dataCard').classList.toggle('hidden',step!==5);
+$('stepTitle').textContent=(step+1)+'. '+names[step];$('dataCard').classList.toggle('hidden',step!==5);$('velocityCard').classList.toggle('hidden',step!==6);
 $('layout').classList.toggle('capture-mode',step===5||step===6);
 $('instructionsToggle').setAttribute('aria-expanded',String(step!==5));
 $('instructionsBody').classList.toggle('expanded',step!==5);
@@ -342,7 +350,7 @@ if(step===4){
  }
 }
 if(step===5)$('check').onclick=()=>{if(samples.length<4)return setFeedback('Necesitas al menos cuatro capturas en distintos instantes para contrastar tu conclusión.',false);answer(1,'Aunque la trayectoria es rectilínea, la elongación no sigue una función lineal del tiempo. La velocidad cambia.')};
-if(step===6){stop();sign=1;bindVelocityQuestions();drawVelocityGraph()}
+if(step===6){stop();sign=1;bindVelocityQuestions();renderVelocitySamples()}
 draw();plot();
 }
 const scene=$('scene');
@@ -370,6 +378,20 @@ function plot(){const cv=$('graph'),g=cv.getContext('2d'),ww=cv.width,hh=cv.heig
 function renderTable(){$('tableCount').textContent=String(samples.length);$('rows').replaceChildren();if(!samples.length){$('rows').innerHTML='<tr><td colspan="3">Sin mediciones</td></tr>'}else samples.forEach((a,i)=>{const tr=document.createElement('tr');[i+1,fmt(a.t),fmt(a.y)].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});$('rows').append(tr)});draw();plot()}
 $('capture').onclick=()=>{if(step!==5)return;if(samples.some(s=>Math.abs(s.t-t)<.015)){setFeedback('Ya has registrado este instante. Avanza o retrocede antes de capturar otro.');return}samples.push({t:t,y:yCm()});samples.sort((a,b)=>a.t-b.t);renderTable();setFeedback('Captura registrada. Compara la posición con el tiempo y continúa tomando medidas.',true)};
 $('clear').onclick=()=>{samples=[];renderTable();setFeedback('Se han borrado las capturas.')};
+$('velocityCapture').onclick=()=>{
+ if(step!==6)return;
+ stop();
+ if(velocitySamples.some(q=>Math.abs(q.t-t)<.015))return setFeedback('Este instante ya se ha capturado. Avanza o retrocede para registrar otro.',false);
+ velocitySamples.push({t,y:yCm(),v:velocityCms()});
+ velocitySamples.sort((a,b)=>a.t-b.t);
+ renderVelocitySamples();
+ setFeedback('Velocidad capturada: '+fmt(velocityCms(),2)+' cm/s. Observa el nuevo punto en la gráfica v-t.',true);
+};
+$('velocityClear').onclick=()=>{velocitySamples=[];renderVelocitySamples();setFeedback('Se han borrado las capturas de velocidad.')};
+$('velocityTop').onclick=()=>velocityGuide(0);
+$('velocityDown').onclick=()=>velocityGuide(1);
+$('velocityBottom').onclick=()=>velocityGuide(2);
+$('velocityUp').onclick=()=>velocityGuide(3);
 $('instructionsToggle').onclick=()=>{
  const opened=$('instructionsBody').classList.toggle('expanded');
  $('instructionsToggle').setAttribute('aria-expanded',String(opened));
