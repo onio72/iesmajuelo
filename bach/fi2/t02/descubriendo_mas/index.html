@@ -144,55 +144,46 @@ const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const fmt=(n,d=2)=>n.toFixed(d).replace('.',',');
 const yScreen=()=>eqY-sign*amp*Math.cos(w*t);
 const yCm=()=>(eqY-yScreen())/pixCm;
-const speedTabs=[
- {name:'Cerca de +A',when:0},
- {name:'Equilibrio ↓',when:T/4},
- {name:'Cerca de −A',when:T/2},
- {name:'Equilibrio ↑',when:3*T/4}
+let velocitySamples=[],velocityPromptIndex=0,velocityAnswers=[false,false,false];
+const velocityCms=()=>-sign*(amp/pixCm)*w*Math.sin(w*t);
+const velocityQuestions=[
+ {question:'¿Cómo es la velocidad cuando la elongación es máxima (+A)?',answers:['Es nula.','Tiene el máximo valor positivo.','Tiene el máximo valor negativo.'],correct:0,explain:'En el extremo superior el objeto se detiene momentáneamente antes de invertir el sentido.'},
+ {question:'¿Cómo es la velocidad cuando la elongación es mínima (−A)?',answers:['Es máxima y positiva.','Es nula.','Es máxima y negativa.'],correct:1,explain:'En el extremo inferior la velocidad también se anula durante un instante.'},
+ {question:'¿Qué sucede con la velocidad al pasar por el equilibrio (y = 0)?',answers:['Siempre es cero.','Tiene máximo módulo; es positiva al subir y negativa al bajar.','Tiene siempre el mismo signo.'],correct:1,explain:'El módulo es máximo al pasar por el equilibrio. El signo depende del sentido de movimiento.'}
 ];
-let speedTab=0,speedResults={};
-function speedPair(index){
- const duration=.16,tc=T+speedTabs[index].when,t1=tc-duration/2,t2=tc+duration/2;
- const A=amp/pixCm,y1=A*Math.cos(w*t1),y2=A*Math.cos(w*t2);
- return {t1,t2,y1,y2,deltaT:duration,velocity:(y2-y1)/duration};
+function velocityGuide(pos){
+ stop();sign=1;t=pos===0?0:pos===1?T/4:pos===2?T/2:3*T/4;draw();
+ if(step===6)setFeedback('Instante preparado. Observa el vector y el velocímetro; puedes capturarlo o ajustar el tiempo con los controles.',true);
 }
-function speedPreview(n){stop();sign=1;t=n===1?speedPair(speedTab).t1:speedPair(speedTab).t2;draw()}
-function speedTable(){
- const el=$('velocityTable');if(!el)return;
- const body=speedTabs.map((it,i)=>{
- const valid=Object.prototype.hasOwnProperty.call(speedResults,i),result=speedResults[i];
- return '<tr><td>'+it.name+'</td><td>'+(valid?fmt(result,2):'—')+'</td><td>'+(valid?(result>.15?'Positiva':result<-.15?'Negativa':'Aproximadamente cero'):'—')+'</td></tr>';
- }).join('');
- el.innerHTML='<table class="velocity-summary"><thead><tr><th>Zona</th><th>v media (cm/s)</th><th>Signo</th></tr></thead><tbody>'+body+'</tbody></table>';
+function drawVelocityGraph(){
+ const cv=$('velocityGraph');if(!cv)return;
+ const ctx=cv.getContext('2d'),width=cv.width,height=cv.height,l=75,r=width-27,top=29,bottom=height-45;
+ ctx.clearRect(0,0,width,height);ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);
+ const maxT=Math.max(T,...velocitySamples.map(q=>q.t)),maxV=(amp/pixCm)*w*1.15,mid=(top+bottom)/2;
+ ctx.strokeStyle='#91a6b7';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(l,top);ctx.lineTo(l,bottom);ctx.moveTo(l,mid);ctx.lineTo(r,mid);ctx.stroke();
+ ctx.fillStyle='#4f6d84';ctx.font='15px system-ui';ctx.fillText('v (cm/s)',8,19);ctx.fillText('t (s)',r-32,bottom+28);
+ for(let i=0;i<=4;i++){const x=l+(r-l)*i/4;ctx.fillText(fmt(maxT*i/4,1),x-13,bottom+22)}
+ ctx.fillText('+'+fmt(maxV,1),7,top+9);ctx.fillText('0',51,mid+5);ctx.fillText('−'+fmt(maxV,1),7,bottom);
+ for(const q of velocitySamples){const x=l+q.t/maxT*(r-l),y=mid-q.v/maxV*(bottom-top)/2;ctx.beginPath();ctx.arc(x,y,5,0,TAU);ctx.fillStyle=q.v>=0?'#2078b8':'#c86f4b';ctx.fill()}
 }
-function speedContent(){
- const p=speedPair(speedTab),already=Object.prototype.hasOwnProperty.call(speedResults,speedTab);
- return '<p>Analiza dos instantes separados por <b>0,16 s</b>, próximos a una misma zona del recorrido. Usa el eje positivo hacia arriba.</p>'+
- '<div class="velocity-tabs" id="velocityTabs">'+speedTabs.map((it,i)=>'<button data-speedtab="'+i+'" class="'+(i===speedTab?'selected':'')+'">'+it.name+(Object.prototype.hasOwnProperty.call(speedResults,i)?' ✓':'')+'</button>').join('')+'</div>'+
- '<div class="velocity-pair"><strong>'+speedTabs[speedTab].name+'</strong><div class="velocity-readings">'+
- '<div><b>Instante 1</b><div>t₁ = '+fmt(p.t1,2)+' s</div><div>y₁ = '+fmt(p.y1,2)+' cm</div><button id="speedView1">Ver posición 1</button></div>'+
- '<div><b>Instante 2</b><div>t₂ = '+fmt(p.t2,2)+' s</div><div>y₂ = '+fmt(p.y2,2)+' cm</div><button id="speedView2">Ver posición 2</button></div>'+
- '</div><div><b>Calcula:</b> v̄ = (y₂ − y₁) / (t₂ − t₁)</div></div>'+
- '<div class="velocity-answer"><label for="speedAnswer">Velocidad media = </label><input id="speedAnswer" inputmode="decimal" type="text" placeholder="cm/s" value="'+(already?fmt(speedResults[speedTab],2):'')+'"><b>cm/s</b><button id="speedCheck" class="primary">Comprobar</button></div>'+
- '<p class="hint">Interpreta también el signo: la velocidad es positiva si asciende y negativa si desciende. Próximo a un extremo, la velocidad media en un intervalo simétrico puede ser casi nula.</p>'+
- '<h3>Resultados obtenidos</h3><div id="velocityTable"></div>'+
- (Object.keys(speedResults).length===4?'<div class="question">¿Qué conclusión extraes de las mediciones?</div>'+options(['La velocidad es constante y siempre positiva.','La velocidad cambia de módulo y de signo durante la oscilación.','La velocidad es siempre nula en la posición de equilibrio.'])+'<button class="primary" id="speedConclusion">Comprobar conclusión</button>':'<p class="hint">Completa las cuatro pestañas para obtener una conclusión.</p>');
+function renderVelocitySamples(){
+ $('velocityCount').textContent=String(velocitySamples.length);$('velocityRows').replaceChildren();
+ if(!velocitySamples.length)$('velocityRows').innerHTML='<tr><td colspan="4">Sin capturas</td></tr>';
+ velocitySamples.forEach((item,i)=>{const tr=document.createElement('tr');[i+1,fmt(item.t,2),fmt(item.y,2),fmt(item.v,2)].forEach(value=>{const td=document.createElement('td');td.textContent=value;tr.append(td)});$('velocityRows').append(tr)});
+ drawVelocityGraph();
 }
-function speedBind(){
- const tabContainer=$('velocityTabs');if(!tabContainer)return;
- tabContainer.querySelectorAll('button').forEach(btn=>btn.onclick=()=>{speedTab=Number(btn.dataset.speedtab);renderStep();speedPreview(1)});
- $('speedView1').onclick=()=>speedPreview(1);
- $('speedView2').onclick=()=>speedPreview(2);
- $('speedCheck').onclick=()=>{
-   const raw=$('speedAnswer').value.trim().replace(',','.'),value=Number(raw),p=speedPair(speedTab);
-   if(!raw||!Number.isFinite(value))return setFeedback('Introduce una velocidad numérica en cm/s.',false);
-   if(Math.abs(value-p.velocity)>Math.max(.35,Math.abs(p.velocity)*.04))return setFeedback('Revisa la resta y su signo: v̄ = (y₂ − y₁)/0,16 s. Mantén las unidades en centímetros por segundo.',false);
-   speedResults[speedTab]=p.velocity;renderStep();setFeedback('Correcto: v̄ = '+fmt(p.velocity,2)+' cm/s. Compara el módulo y el signo en las demás regiones.',true);
+function velocityQuestionHtml(){
+ if(velocityPromptIndex>=velocityQuestions.length)return '<p>Has completado las preguntas de velocidad instantánea. Repite los experimentos si quieres comprobar los resultados.</p><button id="velocityRepeat">Repetir preguntas</button>';
+ const q=velocityQuestions[velocityPromptIndex];
+ return '<span class="status">Pregunta '+(velocityPromptIndex+1)+' de '+velocityQuestions.length+'</span><div class="question">'+q.question+'</div>'+options(q.answers)+'<button class="primary" id="velocityQuestionCheck">Comprobar respuesta</button>';
+}
+function bindVelocityQuestions(){
+ if(velocityPromptIndex>=velocityQuestions.length){$('velocityRepeat').onclick=()=>{velocityPromptIndex=0;renderStep()};return}
+ $('velocityQuestionCheck').onclick=()=>{const q=velocityQuestions[velocityPromptIndex],v=chosen();if(v<0)return setFeedback('Selecciona una respuesta.',false);if(v!==q.correct)return setFeedback('Observa el vector velocidad y el velocímetro cerca de las posiciones indicadas.',false);
+ velocityAnswers[velocityPromptIndex]=true;velocityPromptIndex++;if(velocityPromptIndex>=velocityQuestions.length)mark();
+ renderStep();setFeedback('Correcto. '+q.explain,true);
  };
- if($('speedConclusion'))$('speedConclusion').onclick=()=>answer(1,'En los extremos la velocidad tiende a cero; en el equilibrio el módulo es mayor y cambia de signo al invertir el sentido del movimiento.');
- speedTable();
 }
-
 function xy(e){const r=$('scene').getBoundingClientRect();return {x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
 function line(x,y,x2,y2,col='#9bb4c8',width=1,dash=[]){c.save();c.beginPath();c.setLineDash(dash);c.moveTo(x,y);c.lineTo(x2,y2);c.strokeStyle=col;c.lineWidth=width;c.stroke();c.restore()}
 function label(v,x,y,size=14,color='#45637b',align='left'){c.fillStyle=color;c.font='600 '+size+'px system-ui';c.textAlign=align;c.textBaseline='middle';c.fillText(v,x,y)}
@@ -249,12 +240,22 @@ rounded(184,29,184,17,3,'#889da9');for(let i=0;i<16;i++)line(187+i*11,29,195+i*1
 const cy=yScreen(),massTop=cy-24;
 if(step>=2||axisPlaced){line(55,eqY,486,eqY,'#8eb7a5',1.6,[7,6]);label('Equilibrio',135,eqY-13,13,'#317761')}
 if(step===1){for(const side of ['top','bottom']){const yy=extrema[side];if(yy===null)continue;const color=side==='top'?'#9b70bb':'#d18c5b';line(112,yy,501,yy,color,2,[7,5]);label(side==='top'?'Extremo superior':'Extremo inferior',498,yy-14,12,color,'right');if(bothExtrema()&&step===1){const val=(axisY-yy)/pixCm;label('y = '+(val>0?'+':'')+fmt(val,1)+' cm',494,yy+13,13,color,'right')}}}
-if(step>=3){line(75,eqY-amp,490,eqY-amp,'#bed3e4',1.3,[6,5]);line(75,eqY+amp,490,eqY+amp,'#bed3e4',1.3,[6,5]);label('+A',472,eqY-amp-11,14,'#467ca9','right');label('−A',472,eqY+amp+12,14,'#467ca9','right')}
+if(step>=3&&step!==6){line(75,eqY-amp,490,eqY-amp,'#bed3e4',1.3,[6,5]);line(75,eqY+amp,490,eqY+amp,'#bed3e4',1.3,[6,5]);label('+A',472,eqY-amp-11,14,'#467ca9','right');label('−A',472,eqY+amp+12,14,'#467ca9','right')}
 if(step>=2||(step===1&&bothExtrema())){const ax=93;line(ax,630,ax,115,'#455f79',2);c.beginPath();c.moveTo(ax-6,128);c.lineTo(ax,114);c.lineTo(ax+6,128);c.fillStyle='#455f79';c.fill();line(ax-12,axisY,ax+40,axisY,'#315b7d',2);rounded(60,axisY-17,31,34,7,'#2678b6');label('O',76,axisY,14,'white','center');label('+y',ax+12,114,15,'#295a82');label('−y',ax+12,630,15,'#295a82');if(step===1&&!axisPlaced)label('Arrastra O',42,axisY+29,12,'#246eae')}
-if(step>=3)drawRuler();
+if(step>=3&&step!==6)drawRuler();
 if(step===3&&amplitudeCompared)drawComparison();
 drawSpring(massTop);rounded(centerX-34,massTop,68,48,8,'#236ca9');
 label('m',centerX,cy,21,'white','center');
+if(step===6){
+ const v=velocityCms(),vx=centerX+62,arrow=clamp(v*8,-102,102),end=cy-arrow;
+ if(Math.abs(arrow)>3){
+  line(vx,cy,vx,end,'#cc6c2b',4);
+  c.fillStyle='#cc6c2b';c.beginPath();c.moveTo(vx,end);c.lineTo(vx-7,end+(arrow>0?12:-12));c.lineTo(vx+7,end+(arrow>0?12:-12));c.closePath();c.fill();
+ }else{c.fillStyle='#cc6c2b';c.beginPath();c.arc(vx,cy,4,0,TAU);c.fill()}
+ rounded(382,87,127,67,10,'#e7f3fd');
+ label('Velocímetro',445,107,13,'#395e7e','center');
+ label((v>0?'+':'')+fmt(v,2)+' cm/s',445,133,17,'#155b92','center');
+}
 if(step>=2){line(centerX+43,eqY,centerX+43,cy,'#d08b3d',2);label('y',centerX+54,(eqY+cy)/2,14,'#a36a30')}
 $('time').textContent=fmt(t)+' s';$('clock').textContent=step>=4?fmt(t)+' s':'—';$('count').textContent=samples.length;
 $('state').textContent=running?'Oscilando':dragMode?'Arrastrando':'Pausado / preparado';
@@ -294,7 +295,7 @@ if(step===4){
  else h='<p><b>Compara dos movimientos armónicos simples.</b> Ambos tienen la misma amplitud, pero períodos diferentes y fases iniciales distintas.</p><div class="question">¿Cuál de los dos movimientos tiene mayor '+(periodPair.kind==='period'?'período':'frecuencia')+'?</div><canvas id="periodCanvas" width="660" height="445" style="width:100%;height:auto;border:1px solid #dae7f1;border-radius:10px;background:#f8fbff" aria-label="Dos muelles oscilando a distinta frecuencia"></canvas><div class="controls"><button class="primary" id="periodPlay">▶ Reproducir</button><button id="periodReset">↺ Reiniciar</button></div>'+options(['El movimiento del muelle A','El movimiento del muelle B'])+'<div class="row" style="margin-top:10px"><button class="primary" id="checkPeriodPair">Comprobar comparación</button><button id="anotherPeriodPair">Otro ejercicio</button></div><p class="hint">Observa varios ciclos. El movimiento con mayor frecuencia completa más oscilaciones por segundo y tiene menor período.</p>';
 }
 if(step===5){h='<p>El movimiento es rectilíneo, pero ¿la elongación varía uniformemente con el tiempo?</p><div class="question">Registra al menos cuatro posiciones en distintos instantes, construye la gráfica y decide si se trata de un movimiento rectilíneo uniforme.</div>'+options(['Sí, porque describe una línea recta en el espacio.','No: la elongación no varía linealmente con el tiempo y la velocidad cambia.'])+'<button class="primary" id="check">Comprobar conclusión</button><p class="hint">Utiliza «Capturar posición» bajo la escena y observa la gráfica creada a partir de los datos. Este bloque prepara la investigación posterior de velocidad y aceleración.</p>'}
-if(step===6){h=speedContent()}
+if(step===6){h='<p>Observa el vector velocidad y el velocímetro de la escena. Captura diferentes instantes para construir una gráfica velocidad-tiempo y estudiar cómo cambia el módulo y el signo.</p><p class="hint">Usa los botones de reproducción y avance/retroceso de la animación. También puedes ir a situaciones concretas con los botones del cuaderno.</p>'+velocityQuestionHtml()}
 $('stepBody').innerHTML=h;renderNav();setFeedback(passed[step]?'Etapa completada. Puedes continuar o repetir la experiencia.':'Realiza la actividad y comprueba tu respuesta.');
 if(step===0)bindObservation();
 if(step===1){
@@ -341,7 +342,7 @@ if(step===4){
  }
 }
 if(step===5)$('check').onclick=()=>{if(samples.length<4)return setFeedback('Necesitas al menos cuatro capturas en distintos instantes para contrastar tu conclusión.',false);answer(1,'Aunque la trayectoria es rectilínea, la elongación no sigue una función lineal del tiempo. La velocidad cambia.')};
-if(step===6){stop();sign=1;speedBind();speedPreview(1)}
+if(step===6){stop();sign=1;bindVelocityQuestions();drawVelocityGraph()}
 draw();plot();
 }
 const scene=$('scene');
