@@ -63,6 +63,42 @@ const $=id=>document.getElementById(id),c=$('scene').getContext('2d'),TAU=2*Math
 const W=520,H=760,eqY=390,centerX=276,pixCm=20,T=3.2,w=TAU/T;
 let amp=120,sign=1,t=0,running=false,lastFrame=null,raf=0,dragMode='',axisY=475,axisPlaced=false;
 let step=0,unlocked=0,passed=[false,false,false,false,false,false,false],samples=[],observed=false;
+let observationIndex=0,observationFinished=false;
+const observationQuestions=[
+ {question:'¿Qué forma tiene la trayectoria que describe el paquete?',answers:['Es rectilínea y vertical.','Es una curva que cambia de forma.','Es circular alrededor del soporte.'],correct:0,explain:'La trayectoria es una recta vertical: se trata de un movimiento rectilíneo.'},
+ {question:'¿El paquete se puede desplazar indefinidamente por la vertical?',answers:['Sí, puede alcanzar cualquier altura.','No. Oscila entre un extremo superior y otro inferior.','Solo puede moverse por encima del punto central.'],correct:1,explain:'El movimiento está acotado: la masa permanece entre dos posiciones extremas.'},
+ {question:'Observa dos intervalos de tiempo iguales. ¿La posición cambia siempre en la misma cantidad durante ambos?',answers:['Sí, siempre recorre distancias iguales en tiempos iguales.','No. En intervalos iguales puede recorrer distancias diferentes.','La posición nunca cambia.'],correct:1,explain:'La posición no varía uniformemente con el tiempo: el desplazamiento en intervalos iguales no es siempre el mismo.'},
+ {question:'Mientras se mueve, ¿el paquete tiene siempre la misma rapidez?',answers:['Sí, es constante durante todo el recorrido.','No. Su rapidez va cambiando.','Su rapidez es siempre cero.'],correct:1,explain:'La rapidez no es constante: disminuye al acercarse a un extremo y aumenta al acercarse al punto medio.'},
+ {question:'¿Hay instantes en que el paquete está momentáneamente parado?',answers:['Sí, solo cuando pasa por el punto medio.','Sí, en el extremo superior y en el inferior.','No, nunca se detiene.','Sí, en cualquier punto de la trayectoria.'],correct:1,explain:'La velocidad es nula en los dos puntos de retorno; allí cambia el sentido del movimiento.'},
+ {question:'¿La dirección de la velocidad cambia durante el movimiento?',answers:['Sí, alterna entre una dirección horizontal y otra vertical.','No. Mientras se mueve, la velocidad tiene dirección vertical.','Sí, su dirección gira continuamente.'],correct:1,explain:'La dirección es siempre vertical. En los instantes de reposo la velocidad es nula y no tiene dirección definida.'},
+ {question:'¿El sentido de la velocidad es siempre el mismo?',answers:['Sí, siempre apunta hacia arriba.','Sí, siempre apunta hacia abajo.','No. Unas veces apunta hacia arriba y otras hacia abajo.'],correct:2,explain:'El sentido se invierte en cada extremo: al subir la velocidad apunta hacia arriba y al bajar, hacia abajo.'}
+];
+function observationHTML(){
+ if(observationFinished)return '<p>Has completado la observación del movimiento.</p><div class="question">Características identificadas</div><p><b>Trayectoria:</b> rectilínea y vertical.<br><b>Recorrido:</b> limitado por dos extremos.<br><b>Posición:</b> no cambia uniformemente con el tiempo.<br><b>Rapidez:</b> variable.<br><b>Reposo instantáneo:</b> en ambos extremos.<br><b>Velocidad:</b> dirección vertical, pero sentido alternante.</p><button id="observationRepeat">Repetir preguntas</button>';
+ const q=observationQuestions[observationIndex];
+ return '<p>Estira el paquete y suéltalo. Puedes utilizar pausa y avance para observar qué ocurre a lo largo del recorrido.</p>'+
+ '<span class="status">Pregunta '+(observationIndex+1)+' de '+observationQuestions.length+'</span>'+
+ '<div class="question">'+q.question+'</div>'+options(q.answers)+
+ '<button class="primary" id="observationCheck">Comprobar respuesta</button>'+
+ '<div id="observationContinue" class="hidden" style="margin-top:10px"><button class="primary" id="observationAdvance">'+(observationIndex===observationQuestions.length-1?'Ver conclusiones':'Siguiente pregunta →')+'</button></div>';
+}
+function bindObservation(){
+ if(observationFinished){$('observationRepeat').onclick=()=>{observationIndex=0;observationFinished=false;renderStep()};return}
+ $('observationCheck').onclick=()=>{
+   const v=chosen(),q=observationQuestions[observationIndex];
+   if(v<0)return setFeedback('Elige una respuesta.',false);
+   if(v!==q.correct)return setFeedback('Observa de nuevo la animación. Puedes detenerla y avanzar paso a paso.',false);
+   setFeedback('Correcto. '+q.explain,true);
+   document.querySelectorAll('input[name=answer]').forEach(x=>x.disabled=true);
+   $('observationCheck').disabled=true;
+   $('observationContinue').classList.remove('hidden');
+ };
+ $('observationAdvance').onclick=()=>{
+   if(observationIndex===observationQuestions.length-1){observationFinished=true;mark()}else observationIndex++;
+   renderStep();
+ };
+}
+
 let amplitudeCompared=false,comparison={a:72,b:140,correct:1,periodA:2.6,periodB:3.8,phaseA:.5,phaseB:2.1};
 let compareRunning=false,compareT=0,compareLast=null,compareRAF=0;
 let guideY=285,guideDrag=false;
@@ -242,7 +278,7 @@ $('instructionsToggle').setAttribute('aria-expanded',String(step!==5));
 $('instructionsBody').classList.toggle('expanded',step!==5);
 $('instructionsToggle').innerHTML=step===5?'▸ Mostrar instrucciones del ejercicio <span>▾</span>':'▾ Ocultar instrucciones <span>▴</span>';
 let h='';
-if(step===0){h='<p>Estira el paquete verticalmente y suéltalo. Observa varias oscilaciones completas.</p><div class="question">¿Qué extensión del espacio recorre el objeto?</div>'+options(['Se desplaza indefinidamente por todo el eje vertical.','Se mueve entre una posición superior y otra inferior.','Termina detenido en uno de los extremos.'])+'<button class="primary" id="check">Comprobar</button>'}
+if(step===0){h=observationHTML()}
 if(step===1){
  if(!bothExtrema())h='<p><b>Primero localiza los dos puntos de retorno.</b> En esos instantes la masa está momentáneamente parada (v = 0). Observa el movimiento y pulsa sobre la masa cuando llegue al extremo superior o inferior. Se conservará una línea horizontal punteada.</p><div class="question">Marca los dos extremos, uno arriba y otro abajo. Puedes usar también el botón de marcar, especialmente en el móvil.</div><p id="marksStatus" class="hint">Extremo superior: '+(extrema.top===null?'pendiente':'marcado')+' · Extremo inferior: '+(extrema.bottom===null?'pendiente':'marcado')+'</p><button class="primary" id="markExtreme">Marcar extremo ahora</button><p class="hint">Si no aciertas en el instante exacto, espera al siguiente punto de retorno. Puedes usar la pausa y los pasos pequeños para acercarte al extremo.</p>';
  else h='<p>Has señalado las dos posiciones en que la masa se detiene momentáneamente. Ahora coloca el sistema de referencia: <b>arrastra el origen O</b> sobre el eje vertical.</p><div class="question">Busca una altura para O tal que las dos líneas punteadas tengan coordenadas de igual valor absoluto y signo opuesto.</div><p class="hint">Las coordenadas en cm se actualizan mientras desplazas el origen. El sentido positivo es hacia arriba.</p><button class="primary" id="check">Comprobar origen</button><button id="repeatExtrema" style="margin-left:8px">Repetir marcas</button>';
@@ -260,7 +296,7 @@ if(step===4){
 if(step===5){h='<p>El movimiento es rectilíneo, pero ¿la elongación varía uniformemente con el tiempo?</p><div class="question">Registra al menos cuatro posiciones en distintos instantes, construye la gráfica y decide si se trata de un movimiento rectilíneo uniforme.</div>'+options(['Sí, porque describe una línea recta en el espacio.','No: la elongación no varía linealmente con el tiempo y la velocidad cambia.'])+'<button class="primary" id="check">Comprobar conclusión</button><p class="hint">Utiliza «Capturar posición» bajo la escena y observa la gráfica creada a partir de los datos. Este bloque prepara la investigación posterior de velocidad y aceleración.</p>'}
 if(step===6){h=speedContent()}
 $('stepBody').innerHTML=h;renderNav();setFeedback(passed[step]?'Etapa completada. Puedes continuar o repetir la experiencia.':'Realiza la actividad y comprueba tu respuesta.');
-if(step===0)$('check').onclick=()=>answer(1,'El movimiento está acotado entre dos extremos. No abandona ese intervalo.');
+if(step===0)bindObservation();
 if(step===1){
  if(!bothExtrema())$('markExtreme').onclick=markExtremum;
  else {
