@@ -12,3 +12,7 @@ Referencia prevista: cuestiones.css v1 para actividades de selección. Esta vers
 Sintaxis JavaScript y estructura del manifiesto verificadas; falta validar el seguimiento SCORM en un entorno real de Moodle Centros.
 
 La aplicación presenta exclusivamente las preguntas comparativas. Se ha eliminado la pestaña de exploración de variables.
+
+## Marcador (actualización)
+
+El marcador está encima de los muelles en práctica y SCORM: 0–10, +1 por acierto y −1 por error, limitado entre 0 y 10; pasa a verde a partir de 5. Al llegar a 10, la práctica ofrece reiniciar puntuación y la evaluación SCORM cierra el intento. La nota SCORM usa la escala 0–10 en `cmi.core.score.raw`.
