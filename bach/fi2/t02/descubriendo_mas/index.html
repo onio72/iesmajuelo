@@ -186,8 +186,6 @@ function drawAccelerationGraph(){
  ctx.fillStyle='#587083';ctx.font='15px system-ui';ctx.fillText('a (cm/s²)',8,19);ctx.fillText('t (s)',right-30,bottom+28);
  for(let i=0;i<=4;i++){let x=l+(right-l)*i/4;ctx.fillText(fmt(maxT*i/4,1),x-12,bottom+22)}
  ctx.fillText('+'+fmt(maxA,1),6,top+8);ctx.fillText('0',51,mid+5);ctx.fillText('−'+fmt(maxA,1),6,bottom);
- const distinct=accelerationSamples.filter((q,i,arr)=>i===0||q.t-arr[i-1].t>1e-6);
- if(distinct.length>1){ctx.beginPath();distinct.forEach((q,i)=>{const x=l+q.t/maxT*(right-l),y=mid-q.a/maxA*(bottom-top)/2;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.strokeStyle='#52a994';ctx.lineWidth=2;ctx.stroke()}
  for(const q of accelerationSamples){const x=l+q.t/maxT*(right-l),y=mid-q.a/maxA*(bottom-top)/2;ctx.beginPath();ctx.arc(x,y,4.2,0,TAU);ctx.fillStyle=q.a>=0?'#17816f':'#c06385';ctx.fill()}
 }
 function renderAccelerationSamples(){
@@ -230,8 +228,6 @@ function drawVelocityGraph(){
  ctx.fillStyle='#4f6d84';ctx.font='15px system-ui';ctx.fillText('v (cm/s)',8,19);ctx.fillText('t (s)',r-32,bottom+28);
  for(let i=0;i<=4;i++){const x=l+(r-l)*i/4;ctx.fillText(fmt(maxT*i/4,1),x-13,bottom+22)}
  ctx.fillText('+'+fmt(maxV,1),7,top+9);ctx.fillText('0',51,mid+5);ctx.fillText('−'+fmt(maxV,1),7,bottom);
- const distinct=velocitySamples.filter((q,i,arr)=>i===0||q.t-arr[i-1].t>1e-6);
- if(distinct.length>1){ctx.beginPath();distinct.forEach((q,i)=>{const x=l+q.t/maxT*(r-l),y=mid-q.v/maxV*(bottom-top)/2;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.strokeStyle='#5f9dcb';ctx.lineWidth=2;ctx.stroke()}
  for(const q of velocitySamples){const x=l+q.t/maxT*(r-l),y=mid-q.v/maxV*(bottom-top)/2;ctx.beginPath();ctx.arc(x,y,4.2,0,TAU);ctx.fillStyle=q.v>=0?'#2078b8':'#c86f4b';ctx.fill()}
 }
 function renderVelocitySamples(){
