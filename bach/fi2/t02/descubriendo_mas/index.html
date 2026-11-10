@@ -63,6 +63,15 @@
 <div class="graphwrap"><canvas id="velocityGraph" width="920" height="310" style="width:100%;height:auto;border:1px solid #dce7ef;border-radius:8px" aria-label="Gráfica de velocidad instantánea frente al tiempo"></canvas></div>
 <details id="velocityDetails"><summary style="cursor:pointer;font-weight:650;padding:9px 0">Ver tabla de velocidades (<span id="velocityCount">0</span> capturas)</summary><div class="tablewrap"><table><thead><tr><th>N.º</th><th>t (s)</th><th>y (cm)</th><th>v (cm/s)</th></tr></thead><tbody id="velocityRows"><tr><td colspan="4">Sin capturas</td></tr></tbody></table></div></details>
 </section>
+<section class="lower hidden" id="accelCard">
+<h2>Cuaderno de aceleración</h2>
+<p class="muted">Pausa el movimiento y registra el valor de la aceleración en distintos instantes. La fuerza resultante y la aceleración apuntan siempre hacia la posición de equilibrio.</p>
+<div class="row" style="margin-bottom:9px"><button class="primary" id="accelCapture">📷 Capturar aceleración</button><button id="accelClear">Vaciar capturas</button></div>
+<div class="row" style="margin-bottom:10px"><button id="accelTop">Ir a +A</button><button id="accelDown">Equilibrio ↓</button><button id="accelBottom">Ir a −A</button><button id="accelUp">Equilibrio ↑</button></div>
+<div class="graphwrap"><canvas id="accelGraph" width="920" height="310" style="width:100%;height:auto;border:1px solid #dce7ef;border-radius:8px" aria-label="Gráfica de aceleración frente al tiempo"></canvas></div>
+<details><summary style="cursor:pointer;font-weight:650;padding:9px 0">Ver tabla de aceleraciones (<span id="accelCount">0</span> capturas)</summary>
+<div class="tablewrap"><table><thead><tr><th>N.º</th><th>t (s)</th><th>y (cm)</th><th>a (cm/s²)</th></tr></thead><tbody id="accelRows"><tr><td colspan="4">Sin capturas</td></tr></tbody></table></div></details>
+</section>
 </section></div>
 </main><script>
 (function(){
@@ -70,7 +79,7 @@
 const $=id=>document.getElementById(id),c=$('scene').getContext('2d'),TAU=2*Math.PI;
 const W=520,H=760,eqY=390,centerX=276,pixCm=20,T=3.2,w=TAU/T;
 let amp=120,sign=1,t=0,running=false,lastFrame=null,raf=0,dragMode='',axisY=475,axisPlaced=false;
-let step=0,unlocked=0,passed=[false,false,false,false,false,false,false],samples=[],observed=false;
+let step=0,unlocked=0,passed=[false,false,false,false,false,false,false,false],samples=[],observed=false;
 let observationIndex=0,observationFinished=false;
 const observationQuestions=[
  {question:'¿Qué forma tiene la trayectoria que describe el paquete?',answers:['Es rectilínea y vertical.','Es una curva que cambia de forma.','Es circular alrededor del soporte.'],correct:0,explain:'La trayectoria es una recta vertical: se trata de un movimiento rectilíneo.'},
@@ -145,9 +154,9 @@ function compareReset(){compareT=0;compareLast=null;drawComparison()}
 newComparison();
 const extrema={top:null,bottom:null};let pressPoint=null;
 const bothExtrema=()=>extrema.top!==null&&extrema.bottom!==null;
-function invalidateExtrema(){extrema.top=null;extrema.bottom=null;axisPlaced=false;passed[1]=false;if(unlocked>1){unlocked=1;passed=[passed[0],false,false,false,false,false,false]}}
+function invalidateExtrema(){extrema.top=null;extrema.bottom=null;axisPlaced=false;passed[1]=false;if(unlocked>1){unlocked=1;passed=[passed[0],false,false,false,false,false,false,false]}}
 function markExtremum(){if(step!==1||bothExtrema())return;const cy=yScreen(),v=-sign*amp*w*Math.sin(w*t);if(Math.abs(v)>amp*w*.24){setFeedback('Todavía está moviéndose. Espera a que alcance un extremo y su velocidad sea prácticamente nula.',false);return}const side=cy<eqY?'top':'bottom';if(extrema[side]!==null){setFeedback('Ese extremo ya está marcado. Espera al extremo opuesto.',false);return}extrema[side]=side==='top'?eqY-amp:eqY+amp;draw();if(bothExtrema()){stop();setFeedback('Has identificado ambos puntos de retorno. Ahora arrastra el origen O hasta que sus coordenadas tengan el mismo valor absoluto y signos opuestos.',true);renderStep()}else setFeedback('Primer extremo marcado. La línea queda fija. Espera al extremo opuesto y vuelve a pulsar sobre la masa o «Marcar extremo».',true)}
-const names=['Observar','Extremos y origen','Coordenadas','Amplitud','Período','Posiciones','Velocidad media'];
+const names=['Observar','Extremos y origen','Coordenadas','Amplitud','Período','Posiciones','Velocidad','Aceleración'];
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const fmt=(n,d=2)=>n.toFixed(d).replace('.',',');
 const yScreen=()=>eqY-sign*amp*Math.cos(w*t);
@@ -250,9 +259,9 @@ rounded(184,29,184,17,3,'#889da9');for(let i=0;i<16;i++)line(187+i*11,29,195+i*1
 const cy=yScreen(),massTop=cy-24;
 if(step>=2||axisPlaced){line(55,eqY,486,eqY,'#8eb7a5',1.6,[7,6]);label('Equilibrio',135,eqY-13,13,'#317761')}
 if(step===1){for(const side of ['top','bottom']){const yy=extrema[side];if(yy===null)continue;const color=side==='top'?'#9b70bb':'#d18c5b';line(112,yy,501,yy,color,2,[7,5]);label(side==='top'?'Extremo superior':'Extremo inferior',498,yy-14,12,color,'right');if(bothExtrema()&&step===1){const val=(axisY-yy)/pixCm;label('y = '+(val>0?'+':'')+fmt(val,1)+' cm',494,yy+13,13,color,'right')}}}
-if(step>=3&&step!==6){line(75,eqY-amp,490,eqY-amp,'#bed3e4',1.3,[6,5]);line(75,eqY+amp,490,eqY+amp,'#bed3e4',1.3,[6,5]);label('+A',472,eqY-amp-11,14,'#467ca9','right');label('−A',472,eqY+amp+12,14,'#467ca9','right')}
+if(step>=3&&step!==6&&step!==7){line(75,eqY-amp,490,eqY-amp,'#bed3e4',1.3,[6,5]);line(75,eqY+amp,490,eqY+amp,'#bed3e4',1.3,[6,5]);label('+A',472,eqY-amp-11,14,'#467ca9','right');label('−A',472,eqY+amp+12,14,'#467ca9','right')}
 if(step>=2||(step===1&&bothExtrema())){const ax=93;line(ax,630,ax,115,'#455f79',2);c.beginPath();c.moveTo(ax-6,128);c.lineTo(ax,114);c.lineTo(ax+6,128);c.fillStyle='#455f79';c.fill();line(ax-12,axisY,ax+40,axisY,'#315b7d',2);rounded(60,axisY-17,31,34,7,'#2678b6');label('O',76,axisY,14,'white','center');label('+y',ax+12,114,15,'#295a82');label('−y',ax+12,630,15,'#295a82');if(step===1&&!axisPlaced)label('Arrastra O',42,axisY+29,12,'#246eae')}
-if(step>=3&&step!==6)drawRuler();
+if(step>=3&&step!==6&&step!==7)drawRuler();
 if(step===3&&amplitudeCompared)drawComparison();
 drawSpring(massTop);rounded(centerX-34,massTop,68,48,8,'#236ca9');
 label('m',centerX,cy,21,'white','center');
@@ -275,15 +284,15 @@ function tick(now){if(!running)return;if(lastFrame!==null)t+=Math.min((now-lastF
 function play(){if(running)return;running=true;lastFrame=null;raf=requestAnimationFrame(tick);draw()}
 function resetMotion(){stop();t=0;draw()}
 function setFeedback(msg,ok){const f=$('feedback');f.textContent=msg;f.className='response '+(ok===true?'ok':ok===false?'bad':'')}
-function mark(){passed[step]=true;unlocked=Math.max(unlocked,Math.min(6,step+1));renderNav()}
+function mark(){passed[step]=true;unlocked=Math.max(unlocked,Math.min(7,step+1));renderNav()}
 function options(items){const data=items.map((text,i)=>({text,i}));for(let i=data.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[data[i],data[j]]=[data[j],data[i]]}return '<div class="answers">'+data.map(item=>'<label><input type="radio" name="answer" value="'+item.i+'"><span>'+item.text+'</span></label>').join('')+'</div>'}
 function chosen(){const el=document.querySelector('input[name=answer]:checked');return el?Number(el.value):-1}
 function answer(correct,explain){const val=chosen();if(val===-1){setFeedback('Selecciona una respuesta antes de comprobar.');return}if(val===correct){mark();setFeedback('Correcto. '+explain,true)}else setFeedback('Revisa tu respuesta. Observa el movimiento y vuelve a intentarlo.',false)}
-function renderNav(){$('steps').replaceChildren();names.forEach((n,i)=>{const b=document.createElement('button');b.textContent=(i+1)+'. '+n;b.disabled=false;b.className=i===step?'active':'';b.setAttribute('aria-current',i===step?'step':'false');b.onclick=()=>go(i);$('steps').append(b)});$('progress').textContent=(step+1)+' / 7';$('next').disabled=step===6;$('previous').disabled=step===0}
-function go(i){if(i<0||i>6)return;compareStop();periodStop();step=i;stop();renderStep()}
+function renderNav(){$('steps').replaceChildren();names.forEach((n,i)=>{const b=document.createElement('button');b.textContent=(i+1)+'. '+n;b.disabled=false;b.className=i===step?'active':'';b.setAttribute('aria-current',i===step?'step':'false');b.onclick=()=>go(i);$('steps').append(b)});$('progress').textContent=(step+1)+' / 8';$('next').disabled=step===7;$('previous').disabled=step===0}
+function go(i){if(i<0||i>7)return;compareStop();periodStop();step=i;stop();renderStep()}
 function renderStep(){
-$('stepTitle').textContent=(step+1)+'. '+names[step];$('dataCard').classList.toggle('hidden',step!==5);$('velocityCard').classList.toggle('hidden',step!==6);
-$('layout').classList.toggle('capture-mode',step===5||step===6);
+$('stepTitle').textContent=(step+1)+'. '+names[step];$('dataCard').classList.toggle('hidden',step!==5);$('velocityCard').classList.toggle('hidden',step!==6);$('accelCard').classList.toggle('hidden',step!==7);
+$('layout').classList.toggle('capture-mode',step===5||step===6||step===7);
 $('instructionsToggle').setAttribute('aria-expanded',String(step!==5));
 $('instructionsBody').classList.toggle('expanded',step!==5);
 $('instructionsToggle').innerHTML=step===5?'▸ Mostrar instrucciones del ejercicio <span>▾</span>':'▾ Ocultar instrucciones <span>▴</span>';
@@ -359,7 +368,7 @@ const scene=$('scene');
 scene.addEventListener('pointerdown',e=>{
  const p=xy(e);
  if(step===1&&bothExtrema()&&Math.abs(p.x-76)<43&&Math.abs(p.y-axisY)<38){dragMode='axis';scene.setPointerCapture(e.pointerId);e.preventDefault();return}
- if(step===6)return;
+ if(step===6||step===7)return;
  if(Math.abs(p.x-centerX)<58&&Math.abs(p.y-yScreen())<48){
   if(step===1&&!bothExtrema()&&running){markExtremum();e.preventDefault();return}
   if(step===1&&extrema.top!==null||step===1&&extrema.bottom!==null){setFeedback('Para conservar las marcas, termina primero esta etapa o pulsa «Repetir marcas».');return}
