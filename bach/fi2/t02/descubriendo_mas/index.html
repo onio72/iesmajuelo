@@ -318,7 +318,8 @@ if(step===7){
  const acceleration=accelerationCms(),vx=centerX+62,arrow=clamp(acceleration*2.3,-110,110),end=cy-arrow;
  if(Math.abs(arrow)>3){
   line(vx,cy,vx,end,'#17816f',4);
-  c.fillStyle='#17816f';c.beginPath();c.moveTo(vx,end);c.lineTo(vx-7,end+(arrow>0?12:-12));c.lineTo(vx+7,end+(arrow>0?12:-12));c.closePath();c.fill();
+  const tip=end-(arrow>0?12:-12);
+  c.fillStyle='#17816f';c.beginPath();c.moveTo(vx,tip);c.lineTo(vx-7,end);c.lineTo(vx+7,end);c.closePath();c.fill();
  }else{c.fillStyle='#17816f';c.beginPath();c.arc(vx,cy,4,0,TAU);c.fill()}
  rounded(369,87,140,67,10,'#e3f6ee');
  label('Acelerómetro',439,107,13,'#326858','center');
