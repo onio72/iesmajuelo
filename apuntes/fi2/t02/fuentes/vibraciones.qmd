@@ -1,0 +1,80 @@
+---
+title: "Vibraciones y MAS"
+---
+
+# Vibraciones y movimiento armónico simple
+
+## Movimientos periódicos y oscilatorios
+
+Un movimiento es **periódico** cuando la posición, la velocidad y la aceleración se repiten a intervalos iguales de tiempo. El **período**, $T$, es el tiempo necesario para completar un ciclo; la **frecuencia**, $f$ (también $\nu$), es el número de ciclos por unidad de tiempo:
+
+$$f=\frac{1}{T}.$$
+
+El período se mide en segundos y la frecuencia en hercios: $1\,\mathrm{Hz}=1\,\mathrm{s^{-1}}$.
+
+En un movimiento **oscilatorio**, el cuerpo se desplaza repetidamente a ambos lados de una posición de equilibrio. La **elongación** $x$ es su posición respecto a ese equilibrio; la **amplitud** $A\geq0$ es el máximo valor de $|x|$. En estas notas utilizamos vibración para esta oscilación alrededor del equilibrio.
+
+Durante la oscilación se intercambian energía cinética y potencial. Si hay disipación y no se aporta energía al sistema, el movimiento es **amortiguado** y su amplitud disminuye con el tiempo. El MAS ideal que estudiaremos no está amortiguado.
+
+## Condición del movimiento armónico simple
+
+Un movimiento es armónico simple cuando su aceleración es proporcional a la elongación y tiene sentido contrario:
+
+$$\boxed{a=-\omega^2x}.$$
+
+La constante $\omega$ es la **pulsación** o frecuencia angular, medida en $\mathrm{rad\,s^{-1}}$:
+
+$$\omega=\frac{2\pi}{T}=2\pi f.$$
+
+La aceleración siempre apunta al equilibrio. Una solución de la ecuación anterior es
+
+$$\boxed{x(t)=A\sin(\omega t+\varphi_0)}.$$
+
+El argumento $\omega t+\varphi_0$ es la **fase**, y $\varphi_0$ la fase inicial. También puede utilizarse un coseno, cambiando la fase inicial: $\sin\theta=\cos(\theta-\pi/2)$. No debe cambiarse seno por coseno conservando sin más el mismo valor de la fase.
+
+## Relación con el movimiento circular uniforme
+
+Las proyecciones sobre dos ejes de un punto que gira con radio $A$ y velocidad angular $\omega$ son
+
+$$x=A\cos(\omega t+\varphi_0),\qquad y=A\sin(\omega t+\varphi_0).$$
+
+Cada proyección realiza un MAS. El radio del movimiento circular corresponde a la amplitud de la oscilación, y una vuelta completa corresponde a un período.
+
+## Velocidad y aceleración
+
+Derivando la expresión con seno:
+
+$$v_x=\frac{dx}{dt}=A\omega\cos(\omega t+\varphi_0),$$
+$$a_x=\frac{d^2x}{dt^2}=-A\omega^2\sin(\omega t+\varphi_0)=-\omega^2x.$$
+
+Por tanto,
+
+$$|v_x|_{\max}=A\omega,\qquad |a_x|_{\max}=A\omega^2.$$
+
+Eliminando la fase mediante $\sin^2\theta+\cos^2\theta=1$:
+
+$$v_x=\pm\omega\sqrt{A^2-x^2}.$$
+
+Los dos signos corresponden a los dos sentidos de paso por una misma posición.
+
+| Posición | Rapidez | Aceleración |
+|---|---|---|
+| $x=0$ | Máxima: $A\omega$ | Cero |
+| $x=A$ | Cero | $-\omega^2A$ |
+| $x=-A$ | Cero | $+\omega^2A$ |
+
+## Condiciones iniciales
+
+Para la elección $x=A\sin(\omega t+\varphi_0)$:
+
+$$x(0)=A\sin\varphi_0,\qquad v_x(0)=A\omega\cos\varphi_0.$$
+
+Ambas condiciones determinan el cuadrante correcto de la fase. Conocer solo la posición inicial puede dejar dos posibilidades.
+
+::: {.callout-tip title="Ejemplo resuelto"}
+Un oscilador tiene $A=0{,}050\,\mathrm m$, $T=0{,}40\,\mathrm s$ y parte del equilibrio en sentido positivo. Entonces $\omega=5\pi\,\mathrm{rad\,s^{-1}}$ y podemos tomar $\varphi_0=0$:
+
+$$x(t)=0{,}050\sin(5\pi t)\;\mathrm m.$$
+
+Su rapidez máxima es $0{,}25\pi\simeq0{,}785\,\mathrm{m\,s^{-1}}$ y su aceleración máxima en módulo es $1{,}25\pi^2\simeq12{,}3\,\mathrm{m\,s^{-2}}$.
+:::
