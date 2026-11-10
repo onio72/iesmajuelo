@@ -163,6 +163,55 @@ const yScreen=()=>eqY-sign*amp*Math.cos(w*t);
 const yCm=()=>(eqY-yScreen())/pixCm;
 let velocitySamples=[],velocityPromptIndex=0,velocityAnswers=[false,false,false];
 const velocityCms=()=>-sign*(amp/pixCm)*w*Math.sin(w*t);
+const accelerationCms=()=>-w*w*yCm();
+let accelerationSamples=[],accelerationQuestionIndex=0;
+const accelerationQuestions=[
+ {question:'Cuando el paquete está por encima del equilibrio (y positivo), ¿hacia dónde apunta su aceleración?',answers:['Hacia arriba, alejándose del equilibrio.','Hacia abajo, hacia el equilibrio.','Siempre es cero.'],correct:1,explain:'La aceleración resultante es recuperadora y apunta hacia el equilibrio: por encima de él, hacia abajo.'},
+ {question:'Cuando el paquete está por debajo del equilibrio (y negativo), ¿hacia dónde apunta su aceleración?',answers:['Hacia arriba, hacia el equilibrio.','Hacia abajo, alejándose del equilibrio.','Siempre en el sentido de la velocidad.'],correct:0,explain:'Debajo del equilibrio, la aceleración recuperadora apunta hacia arriba, aunque la masa pueda estar bajando.'},
+ {question:'Si el muelle está estirado, ¿hacia dónde tira de la masa la fuerza elástica?',answers:['Hacia arriba, hacia su punto de sujeción.','Siempre hacia el equilibrio de la masa.','Hacia abajo, igual que el peso.'],correct:0,explain:'La fuerza elástica de un muelle estirado apunta hacia el soporte. La aceleración depende de la fuerza resultante, que incluye también el peso.'},
+ {question:'¿Cómo es el módulo de la fuerza resultante en la elongación máxima (+A)?',answers:['Es máximo y apunta hacia abajo.','Es cero porque la velocidad es cero.','Es máximo y apunta hacia arriba.'],correct:0,explain:'En +A el módulo de la fuerza resultante es máximo y apunta hacia el equilibrio: hacia abajo.'},
+ {question:'¿Cómo es la fuerza resultante en la posición de equilibrio (y = 0)?',answers:['Es máxima porque la velocidad es máxima.','Es nula: peso y fuerza elástica se compensan.','Es máxima y apunta hacia abajo.'],correct:1,explain:'En el equilibrio, la fuerza del muelle compensa exactamente al peso, por lo que la resultante y la aceleración son nulas.'},
+ {question:'¿Cómo es el módulo de la fuerza resultante en la elongación mínima (−A)?',answers:['Es cero porque la masa está detenida.','Es máximo y apunta hacia arriba.','Es máximo y apunta hacia abajo.'],correct:1,explain:'En −A el módulo de la fuerza resultante vuelve a ser máximo, ahora dirigido hacia arriba.'}
+];
+function accelerationGuide(pos){
+ stop();sign=1;t=pos===0?0:pos===1?T/4:pos===2?T/2:3*T/4;draw();
+ setFeedback('Instante preparado: observa hacia dónde apunta la aceleración y el valor del acelerómetro.',true);
+}
+function drawAccelerationGraph(){
+ const cv=$('accelGraph');if(!cv)return;
+ const ctx=cv.getContext('2d'),ww=cv.width,hh=cv.height,l=75,right=ww-26,top=29,bottom=hh-45;
+ const maxT=Math.max(T,...accelerationSamples.map(q=>q.t)),maxA=amp/pixCm*w*w*1.15,mid=(top+bottom)/2;
+ ctx.clearRect(0,0,ww,hh);ctx.fillStyle='#fff';ctx.fillRect(0,0,ww,hh);
+ ctx.beginPath();ctx.moveTo(l,top);ctx.lineTo(l,bottom);ctx.moveTo(l,mid);ctx.lineTo(right,mid);ctx.strokeStyle='#96acbc';ctx.lineWidth=1.4;ctx.stroke();
+ ctx.fillStyle='#587083';ctx.font='15px system-ui';ctx.fillText('a (cm/s²)',8,19);ctx.fillText('t (s)',right-30,bottom+28);
+ for(let i=0;i<=4;i++){let x=l+(right-l)*i/4;ctx.fillText(fmt(maxT*i/4,1),x-12,bottom+22)}
+ ctx.fillText('+'+fmt(maxA,1),6,top+8);ctx.fillText('0',51,mid+5);ctx.fillText('−'+fmt(maxA,1),6,bottom);
+ for(const q of accelerationSamples){const x=l+q.t/maxT*(right-l),y=mid-q.a/maxA*(bottom-top)/2;ctx.beginPath();ctx.arc(x,y,5,0,TAU);ctx.fillStyle=q.a>=0?'#17816f':'#c06385';ctx.fill()}
+}
+function renderAccelerationSamples(){
+ $('accelCount').textContent=String(accelerationSamples.length);$('accelRows').replaceChildren();
+ if(!accelerationSamples.length)$('accelRows').innerHTML='<tr><td colspan="4">Sin capturas</td></tr>';
+ accelerationSamples.forEach((q,i)=>{const tr=document.createElement('tr');[i+1,fmt(q.t,2),fmt(q.y,2),fmt(q.a,2)].forEach(value=>{const td=document.createElement('td');td.textContent=value;tr.append(td)});$('accelRows').append(tr)});
+ drawAccelerationGraph();
+}
+function accelerationQuestionHtml(){
+ if(accelerationSamples.length<4)return '<p class="question">Registra al menos cuatro capturas de aceleración: en +A, en el equilibrio subiendo y bajando, y en −A.</p><p class="hint">Capturas: '+accelerationSamples.length+' de 4. Puedes ajustar el instante con los botones de avance y retroceso.</p>';
+ if(accelerationQuestionIndex>=accelerationQuestions.length)return '<p>Has completado el análisis de la fuerza resultante y la aceleración.</p><button id="accelerationRepeat">Repetir preguntas</button>';
+ const q=accelerationQuestions[accelerationQuestionIndex];
+ return '<span class="status">Pregunta '+(accelerationQuestionIndex+1)+' de '+accelerationQuestions.length+'</span><div class="question">'+q.question+'</div>'+options(q.answers)+'<button class="primary" id="accelerationQuestionCheck">Comprobar respuesta</button>';
+}
+function bindAccelerationQuestions(){
+ if(accelerationSamples.length<4)return;
+ if(accelerationQuestionIndex>=accelerationQuestions.length){$('accelerationRepeat').onclick=()=>{accelerationQuestionIndex=0;renderStep()};return}
+ $('accelerationQuestionCheck').onclick=()=>{
+  const v=chosen(),q=accelerationQuestions[accelerationQuestionIndex];
+  if(v<0)return setFeedback('Selecciona una respuesta.',false);
+  if(v!==q.correct)return setFeedback('Observa la masa detenida en las posiciones características y distingue la fuerza del muelle de la fuerza resultante.',false);
+  accelerationQuestionIndex++;if(accelerationQuestionIndex>=accelerationQuestions.length)mark();
+  renderStep();setFeedback('Correcto. '+q.explain,true);
+ };
+}
+
 const velocityQuestions=[
  {question:'¿Cómo es la velocidad cuando la elongación es máxima (+A)?',answers:['Es nula.','Tiene el máximo valor positivo.','Tiene el máximo valor negativo.'],correct:0,explain:'En el extremo superior el objeto se detiene momentáneamente antes de invertir el sentido.'},
  {question:'¿Cómo es la velocidad cuando la elongación es mínima (−A)?',answers:['Es máxima y positiva.','Es nula.','Es máxima y negativa.'],correct:1,explain:'En el extremo inferior la velocidad también se anula durante un instante.'},
