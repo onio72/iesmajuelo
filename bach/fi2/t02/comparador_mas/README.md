@@ -16,3 +16,7 @@ La aplicación presenta exclusivamente las preguntas comparativas. Se ha elimina
 ## Marcador (actualización)
 
 El marcador está encima de los muelles en práctica y SCORM: 0–10, +1 por acierto y −1 por error, limitado entre 0 y 10; pasa a verde a partir de 5. Al llegar a 10, la práctica ofrece reiniciar puntuación y la evaluación SCORM cierra el intento. La nota SCORM usa la escala 0–10 en `cmi.core.score.raw`.
+
+## Avance entre situaciones
+
+El botón «Otro ejercicio» o «Siguiente situación» comienza deshabilitado y solo se activa tras responder. Se incluye también una comprobación lógica que impide saltarse un ejercicio mediante el propio controlador. En SCORM, la respuesta se registra una única vez y se conserva el progreso al reanudar el intento.
