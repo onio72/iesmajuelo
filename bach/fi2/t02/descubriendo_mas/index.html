@@ -186,7 +186,9 @@ function drawAccelerationGraph(){
  ctx.fillStyle='#587083';ctx.font='15px system-ui';ctx.fillText('a (cm/s²)',8,19);ctx.fillText('t (s)',right-30,bottom+28);
  for(let i=0;i<=4;i++){let x=l+(right-l)*i/4;ctx.fillText(fmt(maxT*i/4,1),x-12,bottom+22)}
  ctx.fillText('+'+fmt(maxA,1),6,top+8);ctx.fillText('0',51,mid+5);ctx.fillText('−'+fmt(maxA,1),6,bottom);
- for(const q of accelerationSamples){const x=l+q.t/maxT*(right-l),y=mid-q.a/maxA*(bottom-top)/2;ctx.beginPath();ctx.arc(x,y,5,0,TAU);ctx.fillStyle=q.a>=0?'#17816f':'#c06385';ctx.fill()}
+ const distinct=accelerationSamples.filter((q,i,arr)=>i===0||q.t-arr[i-1].t>1e-6);
+ if(distinct.length>1){ctx.beginPath();distinct.forEach((q,i)=>{const x=l+q.t/maxT*(right-l),y=mid-q.a/maxA*(bottom-top)/2;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.strokeStyle='#52a994';ctx.lineWidth=2;ctx.stroke()}
+ for(const q of accelerationSamples){const x=l+q.t/maxT*(right-l),y=mid-q.a/maxA*(bottom-top)/2;ctx.beginPath();ctx.arc(x,y,4.2,0,TAU);ctx.fillStyle=q.a>=0?'#17816f':'#c06385';ctx.fill()}
 }
 function renderAccelerationSamples(){
  $('accelCount').textContent=String(accelerationSamples.length);$('accelRows').replaceChildren();
@@ -195,13 +197,11 @@ function renderAccelerationSamples(){
  drawAccelerationGraph();
 }
 function accelerationQuestionHtml(){
- if(accelerationSamples.length<4)return '<p class="question">Registra al menos cuatro capturas de aceleración: en +A, en el equilibrio subiendo y bajando, y en −A.</p><p class="hint">Capturas: '+accelerationSamples.length+' de 4. Puedes ajustar el instante con los botones de avance y retroceso.</p>';
  if(accelerationQuestionIndex>=accelerationQuestions.length)return '<p>Has completado el análisis de la fuerza resultante y la aceleración.</p><button id="accelerationRepeat">Repetir preguntas</button>';
  const q=accelerationQuestions[accelerationQuestionIndex];
  return '<span class="status">Pregunta '+(accelerationQuestionIndex+1)+' de '+accelerationQuestions.length+'</span><div class="question">'+q.question+'</div>'+options(q.answers)+'<button class="primary" id="accelerationQuestionCheck">Comprobar respuesta</button>';
 }
 function bindAccelerationQuestions(){
- if(accelerationSamples.length<4)return;
  if(accelerationQuestionIndex>=accelerationQuestions.length){$('accelerationRepeat').onclick=()=>{accelerationQuestionIndex=0;renderStep()};return}
  $('accelerationQuestionCheck').onclick=()=>{
   const v=chosen(),q=accelerationQuestions[accelerationQuestionIndex];
@@ -230,7 +230,9 @@ function drawVelocityGraph(){
  ctx.fillStyle='#4f6d84';ctx.font='15px system-ui';ctx.fillText('v (cm/s)',8,19);ctx.fillText('t (s)',r-32,bottom+28);
  for(let i=0;i<=4;i++){const x=l+(r-l)*i/4;ctx.fillText(fmt(maxT*i/4,1),x-13,bottom+22)}
  ctx.fillText('+'+fmt(maxV,1),7,top+9);ctx.fillText('0',51,mid+5);ctx.fillText('−'+fmt(maxV,1),7,bottom);
- for(const q of velocitySamples){const x=l+q.t/maxT*(r-l),y=mid-q.v/maxV*(bottom-top)/2;ctx.beginPath();ctx.arc(x,y,5,0,TAU);ctx.fillStyle=q.v>=0?'#2078b8':'#c86f4b';ctx.fill()}
+ const distinct=velocitySamples.filter((q,i,arr)=>i===0||q.t-arr[i-1].t>1e-6);
+ if(distinct.length>1){ctx.beginPath();distinct.forEach((q,i)=>{const x=l+q.t/maxT*(r-l),y=mid-q.v/maxV*(bottom-top)/2;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.strokeStyle='#5f9dcb';ctx.lineWidth=2;ctx.stroke()}
+ for(const q of velocitySamples){const x=l+q.t/maxT*(r-l),y=mid-q.v/maxV*(bottom-top)/2;ctx.beginPath();ctx.arc(x,y,4.2,0,TAU);ctx.fillStyle=q.v>=0?'#2078b8':'#c86f4b';ctx.fill()}
 }
 function renderVelocitySamples(){
  $('velocityCount').textContent=String(velocitySamples.length);$('velocityRows').replaceChildren();
@@ -239,13 +241,11 @@ function renderVelocitySamples(){
  drawVelocityGraph();
 }
 function velocityQuestionHtml(){
- if(velocitySamples.length<4)return '<p class="question">Primero realiza al menos cuatro capturas de velocidad, preferentemente cerca de +A, y=0 descendiendo, −A y y=0 ascendiendo. Puedes utilizar los controles del cuaderno y los botones de avance y retroceso.</p><p class="hint">Capturas realizadas: '+velocitySamples.length+' de 4 necesarias para comenzar las preguntas.</p>';
  if(velocityPromptIndex>=velocityQuestions.length)return '<p>Has completado las preguntas de velocidad instantánea. Repite los experimentos si quieres comprobar los resultados.</p><button id="velocityRepeat">Repetir preguntas</button>';
  const q=velocityQuestions[velocityPromptIndex];
  return '<span class="status">Pregunta '+(velocityPromptIndex+1)+' de '+velocityQuestions.length+'</span><div class="question">'+q.question+'</div>'+options(q.answers)+'<button class="primary" id="velocityQuestionCheck">Comprobar respuesta</button>';
 }
 function bindVelocityQuestions(){
- if(velocitySamples.length<4)return;
  if(velocityPromptIndex>=velocityQuestions.length){$('velocityRepeat').onclick=()=>{velocityPromptIndex=0;renderStep()};return}
  $('velocityQuestionCheck').onclick=()=>{const q=velocityQuestions[velocityPromptIndex],v=chosen();if(v<0)return setFeedback('Selecciona una respuesta.',false);if(v!==q.correct)return setFeedback('Observa el vector velocidad y el velocímetro cerca de las posiciones indicadas.',false);
  velocityAnswers[velocityPromptIndex]=true;velocityPromptIndex++;if(velocityPromptIndex>=velocityQuestions.length)mark();
@@ -317,9 +317,10 @@ label('m',centerX,cy,21,'white','center');
 if(step===7){
  const acceleration=accelerationCms(),vx=centerX+62,arrow=clamp(acceleration*2.3,-110,110),end=cy-arrow;
  if(Math.abs(arrow)>3){
-  line(vx,cy,vx,end,'#17816f',4);
-  const tip=end-(arrow>0?12:-12);
-  c.fillStyle='#17816f';c.beginPath();c.moveTo(vx,tip);c.lineTo(vx-7,end);c.lineTo(vx+7,end);c.closePath();c.fill();
+  const dir=Math.sign(arrow),tip=end-dir*12;
+  c.beginPath();c.moveTo(vx-3,cy);c.lineTo(vx-3,end);c.lineTo(vx-8,end);
+  c.lineTo(vx,tip);c.lineTo(vx+8,end);c.lineTo(vx+3,end);c.lineTo(vx+3,cy);c.closePath();
+  c.fillStyle='#17816f';c.fill();
  }else{c.fillStyle='#17816f';c.beginPath();c.arc(vx,cy,4,0,TAU);c.fill()}
  rounded(369,87,140,67,10,'#e3f6ee');
  label('Acelerómetro',439,107,13,'#326858','center');
@@ -374,8 +375,8 @@ if(step===4){
  else h='<p><b>Compara dos movimientos armónicos simples.</b> Ambos tienen la misma amplitud, pero períodos diferentes y fases iniciales distintas.</p><div class="question">¿Cuál de los dos movimientos tiene mayor '+(periodPair.kind==='period'?'período':'frecuencia')+'?</div><canvas id="periodCanvas" width="660" height="445" style="width:100%;height:auto;border:1px solid #dae7f1;border-radius:10px;background:#f8fbff" aria-label="Dos muelles oscilando a distinta frecuencia"></canvas><div class="controls"><button class="primary" id="periodPlay">▶ Reproducir</button><button id="periodReset">↺ Reiniciar</button></div>'+options(['El movimiento del muelle A','El movimiento del muelle B'])+'<div class="row" style="margin-top:10px"><button class="primary" id="checkPeriodPair">Comprobar comparación</button><button id="anotherPeriodPair">Otro ejercicio</button></div><p class="hint">Observa varios ciclos. El movimiento con mayor frecuencia completa más oscilaciones por segundo y tiene menor período.</p>';
 }
 if(step===5){h='<p>El movimiento es rectilíneo, pero ¿la elongación varía uniformemente con el tiempo?</p><div class="question">Registra al menos cuatro posiciones en distintos instantes, construye la gráfica y decide si se trata de un movimiento rectilíneo uniforme.</div>'+options(['Sí, porque describe una línea recta en el espacio.','No: la elongación no varía linealmente con el tiempo y la velocidad cambia.'])+'<button class="primary" id="check">Comprobar conclusión</button><p class="hint">Utiliza «Capturar posición» bajo la escena y observa la gráfica creada a partir de los datos. Este bloque prepara la investigación posterior de velocidad y aceleración.</p>'}
-if(step===6){h='<p>Observa el vector velocidad y el velocímetro de la escena. Captura diferentes instantes para construir una gráfica velocidad-tiempo y estudiar cómo cambia el módulo y el signo.</p><p class="hint">Usa los botones de reproducción y avance/retroceso de la animación. También puedes ir a situaciones concretas con los botones del cuaderno.</p>'+velocityQuestionHtml()}
-if(step===7){h='<p>Investiga la aceleración de la masa en el MAS. El vector verde indica la aceleración de la masa y el acelerómetro muestra su valor con signo. Compara el peso con la fuerza elástica: la <b>fuerza resultante</b> determina la aceleración.</p><p class="hint">Primero registra cuatro aceleraciones en el cuaderno; después responde las preguntas sobre el sentido de la fuerza recuperadora y su módulo en los extremos y en el equilibrio.</p>'+accelerationQuestionHtml()}
+if(step===6){h='<p>Observa el vector velocidad y el velocímetro de la escena. Captura tantos instantes como quieras para reconstruir la gráfica velocidad-tiempo y estudiar cómo cambia el módulo y el signo.</p><p class="hint">Usa los botones de reproducción y avance/retroceso de la animación. También puedes ir a situaciones concretas con los botones del cuaderno.</p>'+velocityQuestionHtml()}
+if(step===7){h='<p>Investiga la aceleración de la masa en el MAS. El vector verde indica la aceleración de la masa y el acelerómetro muestra su valor con signo. Compara el peso con la fuerza elástica: la <b>fuerza resultante</b> determina la aceleración.</p><p class="hint">Captura cuantos instantes quieras para reconstruir la gráfica a-t; las preguntas sobre la fuerza recuperadora y su módulo pueden responderse en cualquier momento.</p>'+accelerationQuestionHtml()}
 $('stepBody').innerHTML=h;renderNav();setFeedback(passed[step]?'Etapa completada. Puedes continuar o repetir la experiencia.':'Realiza la actividad y comprueba tu respuesta.');
 if(step===0)bindObservation();
 if(step===1){
@@ -453,11 +454,9 @@ $('capture').onclick=()=>{if(step!==5)return;if(samples.some(s=>Math.abs(s.t-t)<
 $('clear').onclick=()=>{samples=[];renderTable();setFeedback('Se han borrado las capturas.')};
 $('velocityCapture').onclick=()=>{
  if(step!==6)return;
- stop();
- if(velocitySamples.some(q=>Math.abs(q.t-t)<.015))return setFeedback('Este instante ya se ha capturado. Avanza o retrocede para registrar otro.',false);
  velocitySamples.push({t,y:yCm(),v:velocityCms()});
  velocitySamples.sort((a,b)=>a.t-b.t);
- if(velocitySamples.length===4){renderStep()}else renderVelocitySamples();
+ renderVelocitySamples();
  setFeedback('Velocidad capturada: '+fmt(velocityCms(),2)+' cm/s. Observa el nuevo punto en la gráfica v-t.',true);
 };
 $('velocityClear').onclick=()=>{velocitySamples=[];velocityPromptIndex=0;velocityAnswers=[false,false,false];renderStep();setFeedback('Se han borrado las capturas de velocidad.')};
@@ -467,11 +466,9 @@ $('velocityBottom').onclick=()=>velocityGuide(2);
 $('velocityUp').onclick=()=>velocityGuide(3);
 $('accelCapture').onclick=()=>{
  if(step!==7)return;
- stop();
- if(accelerationSamples.some(q=>Math.abs(q.t-t)<.015))return setFeedback('Este instante ya se ha capturado. Avanza o retrocede para registrar otro.',false);
  accelerationSamples.push({t,y:yCm(),a:accelerationCms()});
  accelerationSamples.sort((a,b)=>a.t-b.t);
- if(accelerationSamples.length===4)renderStep();else renderAccelerationSamples();
+ renderAccelerationSamples();
  setFeedback('Aceleración capturada: '+fmt(accelerationCms(),2)+' cm/s². Observa el nuevo punto en la gráfica a-t.',true);
 };
 $('accelClear').onclick=()=>{accelerationSamples=[];accelerationQuestionIndex=0;renderStep();setFeedback('Se han borrado las capturas de aceleración.')};
