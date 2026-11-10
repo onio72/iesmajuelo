@@ -10,3 +10,5 @@ Referencia prevista: cuestiones.css v1 para actividades de selección. Esta vers
 
 ## Validación
 Sintaxis JavaScript y estructura del manifiesto verificadas; falta validar el seguimiento SCORM en un entorno real de Moodle Centros.
+
+La aplicación presenta exclusivamente las preguntas comparativas. Se ha eliminado la pestaña de exploración de variables.
