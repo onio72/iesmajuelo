@@ -314,6 +314,16 @@ if(step>=3&&step!==6&&step!==7)drawRuler();
 if(step===3&&amplitudeCompared)drawComparison();
 drawSpring(massTop);rounded(centerX-34,massTop,68,48,8,'#236ca9');
 label('m',centerX,cy,21,'white','center');
+if(step===7){
+ const acceleration=accelerationCms(),vx=centerX+62,arrow=clamp(acceleration*2.3,-110,110),end=cy-arrow;
+ if(Math.abs(arrow)>3){
+  line(vx,cy,vx,end,'#17816f',4);
+  c.fillStyle='#17816f';c.beginPath();c.moveTo(vx,end);c.lineTo(vx-7,end+(arrow>0?12:-12));c.lineTo(vx+7,end+(arrow>0?12:-12));c.closePath();c.fill();
+ }else{c.fillStyle='#17816f';c.beginPath();c.arc(vx,cy,4,0,TAU);c.fill()}
+ rounded(369,87,140,67,10,'#e3f6ee');
+ label('Acelerómetro',439,107,13,'#326858','center');
+ label((acceleration>0?'+':'')+fmt(acceleration,2)+' cm/s²',439,133,15,'#126c5a','center');
+}
 if(step===6){
  const v=velocityCms(),vx=centerX+62,arrow=clamp(v*8,-102,102),end=cy-arrow;
  if(Math.abs(arrow)>3){
@@ -364,6 +374,7 @@ if(step===4){
 }
 if(step===5){h='<p>El movimiento es rectilíneo, pero ¿la elongación varía uniformemente con el tiempo?</p><div class="question">Registra al menos cuatro posiciones en distintos instantes, construye la gráfica y decide si se trata de un movimiento rectilíneo uniforme.</div>'+options(['Sí, porque describe una línea recta en el espacio.','No: la elongación no varía linealmente con el tiempo y la velocidad cambia.'])+'<button class="primary" id="check">Comprobar conclusión</button><p class="hint">Utiliza «Capturar posición» bajo la escena y observa la gráfica creada a partir de los datos. Este bloque prepara la investigación posterior de velocidad y aceleración.</p>'}
 if(step===6){h='<p>Observa el vector velocidad y el velocímetro de la escena. Captura diferentes instantes para construir una gráfica velocidad-tiempo y estudiar cómo cambia el módulo y el signo.</p><p class="hint">Usa los botones de reproducción y avance/retroceso de la animación. También puedes ir a situaciones concretas con los botones del cuaderno.</p>'+velocityQuestionHtml()}
+if(step===7){h='<p>Investiga la aceleración de la masa en el MAS. El vector verde indica la aceleración de la masa y el acelerómetro muestra su valor con signo. Compara el peso con la fuerza elástica: la <b>fuerza resultante</b> determina la aceleración.</p><p class="hint">Primero registra cuatro aceleraciones en el cuaderno; después responde las preguntas sobre el sentido de la fuerza recuperadora y su módulo en los extremos y en el equilibrio.</p>'+accelerationQuestionHtml()}
 $('stepBody').innerHTML=h;renderNav();setFeedback(passed[step]?'Etapa completada. Puedes continuar o repetir la experiencia.':'Realiza la actividad y comprueba tu respuesta.');
 if(step===0)bindObservation();
 if(step===1){
@@ -411,6 +422,7 @@ if(step===4){
 }
 if(step===5)$('check').onclick=()=>{if(samples.length<4)return setFeedback('Necesitas al menos cuatro capturas en distintos instantes para contrastar tu conclusión.',false);answer(1,'Aunque la trayectoria es rectilínea, la elongación no sigue una función lineal del tiempo. La velocidad cambia.')};
 if(step===6){stop();sign=1;bindVelocityQuestions();renderVelocitySamples()}
+if(step===7){stop();sign=1;bindAccelerationQuestions();renderAccelerationSamples()}
 draw();plot();
 }
 const scene=$('scene');
@@ -452,6 +464,20 @@ $('velocityTop').onclick=()=>velocityGuide(0);
 $('velocityDown').onclick=()=>velocityGuide(1);
 $('velocityBottom').onclick=()=>velocityGuide(2);
 $('velocityUp').onclick=()=>velocityGuide(3);
+$('accelCapture').onclick=()=>{
+ if(step!==7)return;
+ stop();
+ if(accelerationSamples.some(q=>Math.abs(q.t-t)<.015))return setFeedback('Este instante ya se ha capturado. Avanza o retrocede para registrar otro.',false);
+ accelerationSamples.push({t,y:yCm(),a:accelerationCms()});
+ accelerationSamples.sort((a,b)=>a.t-b.t);
+ if(accelerationSamples.length===4)renderStep();else renderAccelerationSamples();
+ setFeedback('Aceleración capturada: '+fmt(accelerationCms(),2)+' cm/s². Observa el nuevo punto en la gráfica a-t.',true);
+};
+$('accelClear').onclick=()=>{accelerationSamples=[];accelerationQuestionIndex=0;renderStep();setFeedback('Se han borrado las capturas de aceleración.')};
+$('accelTop').onclick=()=>accelerationGuide(0);
+$('accelDown').onclick=()=>accelerationGuide(1);
+$('accelBottom').onclick=()=>accelerationGuide(2);
+$('accelUp').onclick=()=>accelerationGuide(3);
 $('instructionsToggle').onclick=()=>{
  const opened=$('instructionsBody').classList.toggle('expanded');
  $('instructionsToggle').setAttribute('aria-expanded',String(opened));
