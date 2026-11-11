@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MAS · Ecuación · Física 2.º Bachillerato</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#152638;background:#f2f6fa;--azul:#1764a1;--verde:#117866;--muted:#627689}
+*{box-sizing:border-box}body{margin:0}header{background:#112c48;color:white;padding:19px max(20px,calc((100vw - 1180px)/2));}header h1{margin:0;font-size:clamp(1.35rem,2.5vw,2rem)}header p{margin:6px 0 0;color:#d2e0ed;font-size:.95rem}
+main{max-width:1180px;padding:22px 16px 50px;margin:auto;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(310px,.85fr);gap:18px}.panel{background:#fff;border:1px solid #dbe3ec;border-radius:14px;box-shadow:0 3px 15px #1d426610;padding:20px}.panel h2{font-size:1.14rem;margin:0 0 15px;color:#1c3c5d}.viz{display:flex;flex-direction:column}.diagram{width:100%;height:650px;max-height:none;min-height:500px;display:block;border-radius:10px;background:linear-gradient(#fbfdff,#eef5fb);touch-action:pan-y}.controls-row{display:flex;gap:9px;flex-wrap:wrap;margin:15px 0 4px}button{border:0;border-radius:9px;padding:11px 16px;font-weight:700;font-size:.95rem;cursor:pointer}button.primary{background:#136aa8;color:white}button.secondary{background:#e8f0f7;color:#1d4e76}button:focus-visible,input:focus-visible{outline:3px solid #e5aa3b;outline-offset:2px}.small-note{font-size:.85rem;color:#667b8d;line-height:1.5}.field{padding:13px 0;border-bottom:1px solid #edf1f5}.field:last-of-type{border:0}.field-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px}.field label{font-weight:650}.readout{font-variant-numeric:tabular-nums;color:var(--azul);font-weight:800}input[type=range]{width:100%;accent-color:#186aa7;cursor:pointer}.ends{display:flex;justify-content:space-between;color:#8a9aa9;font-size:.77rem;margin-top:1px}.eq{background:#f1f7fb;border-radius:10px;padding:18px 12px;text-align:center;font-size:clamp(1.08rem,2.2vw,1.4rem);letter-spacing:.01em;overflow-wrap:anywhere}.eq-main{font-weight:750;color:#134b77}.eq-sub{font-size:.91rem;color:#577084;margin-top:11px}.values{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.valuebox{background:#f4f7fa;border-radius:9px;padding:11px 6px;text-align:center}.valuebox span{display:block;color:#597184;font-size:.78rem}.valuebox strong{display:block;font-size:1.14rem;color:#213f59;font-variant-numeric:tabular-nums}.legend{display:flex;gap:15px;flex-wrap:wrap;align-items:center;margin-top:12px;color:#5a7083;font-size:.85rem}.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px}.caption{margin-top:8px;font-size:.82rem;color:#60778a}.math{font-family:Georgia,"Times New Roman",serif}footer{max-width:1180px;margin:-28px auto 20px;padding:0 17px;color:#74889a;font-size:.78rem}@media(max-width:780px){main{grid-template-columns:1fr}.diagram{height:570px;max-height:none}footer{margin:0 auto 20px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header><h1>MAS · Ecuación</h1><p>Física · 2.º de Bachillerato · Explora cómo cambian las oscilaciones al modificar sus parámetros</p></header>
+<main>
+<section class="panel viz" aria-label="Simulación del oscilador vertical"><h2>Oscilador vertical</h2>
+<svg class="diagram" id="scene" viewBox="0 0 540 700" role="img" aria-label="Muelle suspendido verticalmente de un techo con una masa que oscila entre dos extremos y una línea de equilibrio">
+<defs><linearGradient id="massGrad" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#388dc7"/><stop offset="1" stop-color="#125083"/></linearGradient></defs>
+<rect x="181" y="14" width="178" height="15" rx="3" fill="#647788"/><g id="hatch" stroke="#8495a2" stroke-width="2"></g>
+<line x1="70" y1="380" x2="463" y2="380" stroke="#198a79" stroke-dasharray="7 7" stroke-width="2"/><text x="466" y="373" font-size="14" fill="#0a7d6c" text-anchor="end">Equilibrio</text>
+<line x1="95" y1="190" x2="95" y2="570" stroke="#8192a2" stroke-width="1.6" stroke-dasharray="4 6"/>
+<path id="spring" stroke="#3b5267" fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect id="mass" x="220" y="345" width="100" height="66" rx="11" fill="url(#massGrad)" stroke="#0e466b" stroke-width="2"/><text id="mass-label" x="270" y="385" fill="white" font-weight="700" text-anchor="middle" font-size="20">M</text>
+<path id="position-arrow" d="" stroke="#d47730" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text id="x-label" x="352" y="380" font-weight="700" font-size="18" fill="#b35e1b">x = 0</text>
+
+</svg>
+
+<div class="controls-row"><button id="play" class="primary" type="button">▶ Reproducir</button><button id="reset" class="secondary" type="button">↺ Reiniciar tiempo</button></div>
+<p class="small-note">Al cambiar cualquier deslizador, el movimiento se detiene y se muestra la posición correspondiente a la nueva fase inicial. Pulsa <b>Reproducir</b> para observar el nuevo movimiento.</p>
+</section>
+<section class="panel"><h2>Parámetros del movimiento</h2>
+<div class="field"><div class="field-head"><label for="period">Periodo, T</label><span class="readout" id="period-value">2,00 s</span></div><input id="period" type="range" min="0.5" max="8" step="0.05" value="2"><div class="ends"><span>0,50 s</span><span>8,00 s</span></div></div>
+<div class="field"><div class="field-head"><label for="frequency">Frecuencia, f</label><span class="readout" id="frequency-value">0,50 Hz</span></div><input id="frequency" type="range" min="0.125" max="2" step="0.005" value="0.5"><div class="ends"><span>0,125 Hz</span><span>2,00 Hz</span></div></div>
+<div class="field"><div class="field-head"><label for="amplitude">Amplitud, A</label><span class="readout" id="amplitude-value">0,40 m</span></div><input id="amplitude" type="range" min="0.1" max="0.8" step="0.05" value="0.4"><div class="ends"><span>0,10 m</span><span>0,80 m</span></div></div>
+<div class="field"><div class="field-head"><label for="phase">Fase inicial, φ₀</label><span class="readout" id="phase-value">0°</span></div><input id="phase" type="range" min="-180" max="180" step="15" value="0"><div class="ends"><span>−180°</span><span>+180°</span></div></div>
+<h2 style="margin-top:20px">Ecuación de la posición</h2><div class="eq"><div class="eq-main math" id="equation">x(t) = 0,40 · cos(πt) m</div><div class="eq-sub math">x(t) = A · cos(2πft + φ₀)</div></div>
+<div class="values"><div class="valuebox"><span>Tiempo</span><strong id="time-value">0,00 s</strong></div><div class="valuebox"><span>Posición</span><strong id="position-value">+0,40 m</strong></div><div class="valuebox"><span>Velocidad</span><strong id="velocity-value">0,00 m/s</strong></div></div>
+<p class="small-note">La posición se mide desde el equilibrio estático. En este modelo ideal no hay rozamiento: la amplitud permanece constante. La fase inicial se modifica en grados, y se convierte internamente a radianes.</p>
+</section>
+</main><footer>Modelo cinemático de movimiento armónico simple: el dibujo del muelle es esquemático y no representa su elongación estática a escala.</footer>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),period=$('period'),frequency=$('frequency'),amplitude=$('amplitude'),phase=$('phase');
+let T=2,A=.4,phi=0,t=0,playing=false,lastFrame=null,raf=null;
+const fmt=(v,d=2)=>v.toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
+const spring=$('spring'),mass=$('mass'),label=$('mass-label'),arrow=$('position-arrow'),xLabel=$('x-label');
+function stop(){playing=false;lastFrame=null;if(raf!==null){cancelAnimationFrame(raf);raf=null} $('play').textContent='▶ Reproducir'}
+function formatEquation(){const omega=2*Math.PI/T;const ph=phi*Math.PI/180;let w=fmt(omega,2);let p=ph===0?'':(ph>0?' + ':' − ')+fmt(Math.abs(ph),2);$('equation').textContent=`x(t) = ${fmt(A)} · cos(${w}t${p}) m`;}
+function springPath(topOfMass){
+ const cx=270, top=29, lead=25, tail=12, turns=12;
+ const first=top+lead, last=topOfMass-tail;
+ let d=`M${cx} ${top} L${cx} ${first}`;
+ // Las espiras terminan siempre exactamente en la cara superior de la masa.
+ for(let i=1;i<=turns*2;i++){
+   const q=i/(turns*2);
+   const yy=first+(last-first)*q;
+   const xx=i===turns*2?cx:cx+(i%2?23:-23);
+   d+=` L${xx.toFixed(1)} ${yy.toFixed(1)}`;
+ }
+ return d+` L${cx} ${topOfMass}`;
+}
+function draw(){
+ const omega=2*Math.PI/T, x=A*Math.cos(omega*t+phi*Math.PI/180);
+ const v=-A*omega*Math.sin(omega*t+phi*Math.PI/180);
+ const cy=380-170*x/.8, mY=cy-35;
+ spring.setAttribute('d',springPath(mY));
+ mass.setAttribute('y',mY);label.setAttribute('y',cy+7);
+ const eq=380,sgn=cy>=eq?1:-1;
+ if(Math.abs(cy-eq)>9){
+  arrow.setAttribute('d',`M347 ${eq} L347 ${cy-sgn*8} M341 ${cy-sgn*16} L347 ${cy-sgn*8} L353 ${cy-sgn*16}`);
+ } else arrow.setAttribute('d','');
+ xLabel.setAttribute('y',Math.max(65,Math.min(640,(eq+cy)/2-10)));
+ xLabel.textContent=`x = ${x>=0?'+':''}${fmt(x)} m`;
+ $('time-value').textContent=fmt(t)+' s';
+ $('position-value').textContent=(x>=0?'+':'')+fmt(x)+' m';
+ $('velocity-value').textContent=(v>=0?'+':'')+fmt(v)+' m/s';
+ const scene=$('scene');scene.querySelectorAll('.limit').forEach(el=>el.remove());
+ for(const [yy,txt] of [[380-170*A/.8,'+A'],[380+170*A/.8,'−A']]){
+  const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+  line.setAttribute('x1','92');line.setAttribute('x2','106');line.setAttribute('y1',yy);
+  line.setAttribute('y2',yy);line.setAttribute('stroke','#8192a2');
+  line.setAttribute('stroke-width','2');line.setAttribute('class','limit');scene.appendChild(line);
+  const tx=document.createElementNS('http://www.w3.org/2000/svg','text');
+  tx.setAttribute('x','82');tx.setAttribute('y',yy+5);tx.setAttribute('text-anchor','end');
+  tx.setAttribute('font-size','15');tx.setAttribute('fill','#637789');
+  tx.setAttribute('class','limit');tx.textContent=txt;scene.appendChild(tx);
+ }
+}
+function update(){stop();t=0;T=parseFloat(period.value);A=parseFloat(amplitude.value);phi=parseFloat(phase.value);frequency.value=String(1/T);updateLabels();draw();}
+function updateLabels(){$('period-value').textContent=fmt(T)+' s';$('frequency-value').textContent=fmt(1/T,3)+' Hz';$('amplitude-value').textContent=fmt(A)+' m';$('phase-value').textContent=String(phi)+'°';formatEquation()}
+period.addEventListener('input',update);amplitude.addEventListener('input',update);phase.addEventListener('input',update);
+frequency.addEventListener('input',()=>{stop();t=0;T=1/parseFloat(frequency.value);period.value=String(T);A=parseFloat(amplitude.value);phi=parseFloat(phase.value);updateLabels();draw()});
+function frame(stamp){if(!playing)return;if(lastFrame!==null)t+=Math.min((stamp-lastFrame)/1000,.08);lastFrame=stamp;draw();raf=requestAnimationFrame(frame)}
+$('play').addEventListener('click',()=>{if(playing){stop();return}playing=true;lastFrame=null;$('play').textContent='Ⅱ Pausar';raf=requestAnimationFrame(frame)});
+$('reset').addEventListener('click',()=>{stop();t=0;draw()});
+const hatch=$('hatch');for(let i=0;i<12;i++){let line=document.createElementNS('http://www.w3.org/2000/svg','line');line.setAttribute('x1',184+i*15);line.setAttribute('y1',29);line.setAttribute('x2',174+i*15);line.setAttribute('y2',40);hatch.appendChild(line)}
+update();
+})();
+</script></body></html>
