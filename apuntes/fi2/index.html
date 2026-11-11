@@ -30,7 +30,7 @@ h1{font-size:clamp(1.65rem,3vw,2.35rem);line-height:1.2;margin:0 0 10px;font-wei
 .topic[open] summary:after{content:"−"}
 .topic[open] summary{border-bottom:1px solid var(--line);background:#f8fbfd}
 .number{width:46px;height:46px;flex:none;display:grid;place-items:center;border-radius:10px;background:#e8f1f8;color:#225b7f;font-weight:750;font-size:1.03rem}
-.topic-name{font-size:1.08rem;font-weight:720;color:#1b3043}
+.topic-name{display:block;font-size:1.09rem;font-weight:750;color:#21587d;line-height:1.45}
 .topic-sub{font-size:.84rem;color:var(--muted);margin-top:3px}
 .status{margin-left:auto;font-size:.72rem;border-radius:20px;border:1px solid #c9dcd4;color:#2e6653;padding:4px 9px;white-space:nowrap}
 .status.pending{border-color:#d9dfe4;color:#657786}
@@ -60,7 +60,7 @@ h1{font-size:clamp(1.65rem,3vw,2.35rem);line-height:1.2;margin:0 0 10px;font-wei
 <div class="utility"><h2 class="section-title">Índice de contenidos</h2><input class="search" id="filter" type="search" placeholder="Buscar un tema o material…" aria-label="Buscar temas y materiales"></div>
 <div id="topic-list" class="topic-list">
 <details class="topic" data-search="tema 0 repaso cinemática dinámica magnitudes vectores boletín soluciones">
-<summary><span class="number">00</span><span><span class="topic-name">Repaso de Física</span><span class="topic-sub">Tema 0 · Conceptos y herramientas fundamentales</span></span><span class="status">Disponible</span></summary>
+<summary><span class="number">00</span><span><span class="topic-name">Tema 0: Repaso de Física</span></span><span class="status">Disponible</span></summary>
 <div class="topic-content"><p class="intro">Magnitudes, vectores, cinemática y dinámica como base para el curso.</p>
 <a class="primary-link" href="./t00/">Leer los apuntes <span aria-hidden="true">↗</span></a>
 <p class="resource-label">Ejercicios y soluciones</p><div class="resources">
@@ -68,14 +68,14 @@ h1{font-size:clamp(1.65rem,3vw,2.35rem);line-height:1.2;margin:0 0 10px;font-wei
 </div></div></details>
 
 <details class="topic" data-search="tema 1 interacción gravitatoria campo gravitatorio apuntes problemas">
-<summary><span class="number">01</span><span><span class="topic-name">Interacción gravitatoria</span><span class="topic-sub">Tema 1 · Gravitación y campo gravitatorio</span></span><span class="status">Disponible</span></summary>
+<summary><span class="number">01</span><span><span class="topic-name">Tema 1: Interacción gravitatoria</span></span><span class="status">Disponible</span></summary>
 <div class="topic-content"><p class="intro">Estudia la interacción gravitatoria y practica su aplicación a problemas.</p>
 <a class="primary-link" href="./t01/interaccion-gravitatoria.html">Leer los apuntes <span aria-hidden="true">↗</span></a>
 <p class="resource-label">Práctica</p><div class="resources"><a href="./t01/problemas-interaccion.html">Problemas de interacción gravitatoria</a></div>
 </div></details>
 
 <details class="topic" data-search="tema 2 vibraciones ondas movimiento armónico simple ondas armónicas estacionarias energía fenómenos problemas">
-<summary><span class="number">02</span><span><span class="topic-name">Vibraciones y ondas</span><span class="topic-sub">Tema 2 · Oscilaciones y movimiento ondulatorio</span></span><span class="status">Disponible</span></summary>
+<summary><span class="number">02</span><span><span class="topic-name">Tema 2: Vibraciones y ondas</span></span><span class="status">Disponible</span></summary>
 <div class="topic-content"><p class="intro">Un tema dividido en capítulos, desde el movimiento armónico simple hasta las ondas estacionarias.</p>
 <a class="primary-link" href="./t02/">Abrir el tema completo <span aria-hidden="true">↗</span></a>
 <p class="resource-label">Capítulos</p>
@@ -90,18 +90,18 @@ h1{font-size:clamp(1.65rem,3vw,2.35rem);line-height:1.2;margin:0 0 10px;font-wei
 <p class="resource-label">Práctica</p><div class="resources"><a href="./t02/problemas-ondas.html">Boletín de problemas</a></div>
 </div></details>
 
-<details class="topic" data-search="tema 3 contenido preparación">
-<summary><span class="number">03</span><span><span class="topic-name">Tema 3</span><span class="topic-sub">Material todavía no publicado</span></span><span class="status pending">En preparación</span></summary>
+<details class="topic" data-search="tema 3 interacción electromagnética contenido preparación">
+<summary><span class="number">03</span><span><span class="topic-name">Tema 3: Interacción electromagnética</span></span><span class="status pending">En preparación</span></summary>
 <div class="topic-content"><p class="pending-info">El contenido de este tema está pendiente de publicación.</p></div>
 </details>
 
-<details class="topic" data-search="tema 4 contenido preparación">
-<summary><span class="number">04</span><span><span class="topic-name">Tema 4</span><span class="topic-sub">Material todavía no publicado</span></span><span class="status pending">En preparación</span></summary>
+<details class="topic" data-search="tema 4 óptica geométrica contenido preparación">
+<summary><span class="number">04</span><span><span class="topic-name">Tema 4: Óptica geométrica</span></span><span class="status pending">En preparación</span></summary>
 <div class="topic-content"><p class="pending-info">El contenido de este tema está pendiente de publicación.</p></div>
 </details>
 
 <details class="topic" data-search="tema 5 física del siglo xx cuántica bohr espectros radiación cuerpo negro fotoeléctrico dualidad incertidumbre nuclear radiactividad">
-<summary><span class="number">05</span><span><span class="topic-name">Física del siglo XX</span><span class="topic-sub">Tema 5 · Física cuántica y nuclear</span></span><span class="status">Disponible</span></summary>
+<summary><span class="number">05</span><span><span class="topic-name">Tema 5: Física del siglo XX</span></span><span class="status">Disponible</span></summary>
 <div class="topic-content"><p class="intro">Accede directamente a los capítulos sobre física moderna y estructura nuclear.</p>
 <a class="primary-link" href="./t05/">Abrir el tema completo <span aria-hidden="true">↗</span></a>
 <p class="resource-label">Capítulos</p>
