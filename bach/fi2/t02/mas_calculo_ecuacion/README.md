@@ -1,20 +1,30 @@
 # MAS · Cálculo de la ecuación
 
-Práctica guiada para Física de 2.º de Bachillerato.
+Aplicación práctica guiada para Física de 2.º de Bachillerato.
 
 ## Objetivo
-Deducir la ecuación del movimiento armónico simple de un oscilador vertical a partir de la amplitud, uno de los parámetros temporales (T, f, ω), la posición inicial y, cuando sea necesario, el sentido de la velocidad inicial.
+Deducir las ecuaciones del movimiento armónico simple vertical a partir de la amplitud, un dato temporal (periodo, frecuencia o frecuencia angular), la posición inicial y, cuando es necesario, el sentido inicial de la velocidad.
 
-## Secuencia
-1. Interpretar el enunciado y arrastrar la masa a y₀ = ±A, 0 o ±A/2; seleccionar la velocidad inicial mediante el vector.
-2. Elegir seno o coseno.
-3. Calcular A, ω y φ₀; comprobar respuestas.
-4. Mostrar, ocultar y comparar las dos ecuaciones equivalentes, y reproducir la oscilación.
+## Etapas
+1. Interpretar el enunciado y representar la condición inicial arrastrando la masa y orientando la velocidad.
+2. Elegir seno o coseno, ambos válidos con fases diferentes.
+3. Determinar A y ω.
+4. Completar las ecuaciones particulares de posición, velocidad y aceleración, manteniendo φ₀ como incógnita.
+5. Determinar φ₀ con una pista opcional que invita a evaluar las ecuaciones en t = 0 s.
+6. Comparar las dos expresiones equivalentes y reproducir el movimiento.
 
-Los extremos obligan a v₀=0. Para y₀=0 y ±A/2 el signo de v₀ determina la fase. El sistema usa +y hacia arriba.
+## Dificultad
+- Ejercicios 1–3: extremos ±A y equilibrio.
+- Ejercicios 4–6: ±A/2.
+- Desde el ejercicio 7: ±A√2/2 y ±A√3/2.
+
+Los enunciados no proporcionan directamente la ecuación simbólica de las condiciones iniciales ni anticipan la velocidad cero en los extremos. En posiciones intermedias se indica el sentido inicial de movimiento.
 
 ## Diseño y dependencias
-Se elige **herramientas/estilos/v1/practica.css**, porque predomina la interpretación gráfica con respuestas y corrección. Esta hoja importa la base común v1. Color azul para la masa; naranja para el vector velocidad; verde para el equilibrio. Es una aplicación web estática autónoma respecto a JavaScript, sin librerías externas.
+Usa **herramientas/estilos/v1/practica.css**, porque la tarea predominante consiste en interpretar una representación y dar respuestas que reciben corrección. La hoja importa la base común v1. Azul para la masa, naranja para el vector velocidad y verde para el equilibrio. Aplicación HTML/JavaScript sin bibliotecas JavaScript externas.
 
 ## Comprobaciones
-Se ha creado el archivo y se ha verificado su disponibilidad en GitHub. Pendiente la prueba visual e interacción real a 1280, 390 y 320 px, incluida la consola del navegador. No es SCORM ni se ha probado su ejecución dentro de Moodle.
+- Sintaxis JavaScript comprobada.
+- Comprobadas matemáticamente 32 combinaciones de posición, sentido y forma trigonométrica para las fases definidas.
+- Archivos y enlaces publicados en GitHub.
+- Pendientes pruebas de navegación e interacción real en navegador de escritorio y móvil (1280, 390 y 320 px), accesibilidad visual y consola. Sin pruebas en Moodle ni integración SCORM.
