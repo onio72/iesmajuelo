@@ -295,6 +295,23 @@
             .links-grid { grid-template-columns: 1fr; }
             .brand { font-size: 1rem; }
         }
+
+        /* Navegación compacta de Física 2.º Bachillerato */
+        .fi2-accordion { display:grid; gap:.8rem; }
+        .fi2-topic { border:1px solid var(--border); border-radius:.75rem; background:white; overflow:hidden; box-shadow:var(--shadow-sm); }
+        .fi2-topic > summary { list-style:none; display:flex; align-items:center; justify-content:space-between; gap:1rem; cursor:pointer; padding:1.08rem 1.25rem; font-weight:750; font-size:1.05rem; color:var(--text-main); }
+        .fi2-topic > summary::-webkit-details-marker, .fi2-section > summary::-webkit-details-marker { display:none; }
+        .fi2-topic > summary::after, .fi2-section > summary::after { content:'+'; font:600 1.5rem/1 system-ui; color:var(--primary); flex:none; }
+        .fi2-topic[open] > summary::after, .fi2-section[open] > summary::after { content:'−'; }
+        .fi2-topic[open] > summary { color:var(--primary); background:var(--primary-light); border-bottom:1px solid var(--border); }
+        .fi2-topic-body { padding:1rem; display:grid; gap:.65rem; }
+        .fi2-section { border:1px solid var(--border); border-radius:.6rem; background:var(--bg-body); overflow:hidden; }
+        .fi2-section > summary { list-style:none; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.8rem 1rem; cursor:pointer; font-size:.95rem; font-weight:650; }
+        .fi2-section[open] > summary { color:var(--primary); background:white; border-bottom:1px solid var(--border); }
+        .fi2-section .links-grid { padding:.75rem; gap:.65rem; }
+        .fi2-topic summary:focus-visible, .fi2-section summary:focus-visible { outline:3px solid var(--primary); outline-offset:-3px; }
+        .fi2-count { font-size:.77rem; font-weight:500; color:var(--text-muted); margin-left:auto; text-align:right; }
+        @media(max-width:600px) { .fi2-topic > summary { padding:.95rem 1rem; font-size:.98rem; } .fi2-topic-body { padding:.7rem; } .fi2-count { font-size:.7rem; } }
     </style>
 </head>
 <body>
@@ -634,6 +651,52 @@
         app.innerHTML = html;
     }
 
+
+    function renderFi2Accordion(groups) {
+        // La lista DATA es la fuente de verdad; no se cambian nombres, enlaces ni el orden de los recursos.
+        const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const sectionsFor = group => {
+            if (group.sections) return group.sections;
+            if (group.name === 'Vibraciones y ondas') {
+                return [
+                    { name:'Movimiento armónico simple', links:group.links.slice(0,10) },
+                    { name:'Ondas', links:group.links.slice(10) }
+                ];
+            }
+            return [{ name:'Recursos del tema', links:group.links || [] }];
+        };
+        const headings = {
+            'Campo gravitatorio':'Tema 1 · Campo gravitatorio',
+            'Vibraciones y ondas':'Tema 2 · Vibraciones y ondas',
+            'Interacción electromagnética':'Tema 3 · Interacción electromagnética'
+        };
+        return '<div class="fi2-accordion">'+groups.map((group,i) => {
+            const sections=sectionsFor(group);
+            const total=sections.reduce((sum,section)=>sum+section.links.length,0);
+            return '<details class="fi2-topic" data-fi2-topic="'+i+'">'+
+                '<summary><span>'+escapeHtml(headings[group.name]||group.name)+'</span><span class="fi2-count">'+total+' recursos</span></summary>'+
+                '<div class="fi2-topic-body">'+sections.map((section,j) =>
+                    '<details class="fi2-section" data-fi2-section="'+j+'"><summary><span>'+escapeHtml(section.name)+'</span><span class="fi2-count">'+section.links.length+' recursos</span></summary>'+
+                    '<div class="links-grid">'+section.links.map(link =>
+                        '<a href="'+escapeHtml(link.url)+'" class="link-item" target="_blank" rel="noopener">'+escapeHtml(link.name)+'</a>'
+                    ).join('')+'</div></details>'
+                ).join('')+'</div></details>';
+        }).join('')+'</div>';
+    }
+    function enableFi2Accordion() {
+        const root=document.querySelector('.fi2-accordion');
+        if(!root)return;
+        root.addEventListener('toggle', event => {
+            const item=event.target;
+            if(!(item instanceof HTMLDetailsElement)||!item.open)return;
+            if(item.classList.contains('fi2-topic')) {
+                root.querySelectorAll('.fi2-topic').forEach(other=>{if(other!==item)other.open=false});
+            } else if(item.classList.contains('fi2-section')) {
+                item.parentElement.querySelectorAll('.fi2-section').forEach(other=>{if(other!==item)other.open=false});
+            }
+        },true);
+    }
+
     function render() {
         if (isSearchActive) return;
 
@@ -675,6 +738,9 @@
             html += `</div>`;
         } else if (currentData.groups) {
             html += `<h1 class="resource-section-title">${currentData.title}</h1>`;
+            if (currentId === 'fi2') {
+                html += renderFi2Accordion(currentData.groups);
+            } else {
             currentData.groups.forEach(group => {
                 html += `
                     <div class="resource-group">
@@ -689,10 +755,12 @@
                     </div>
                 `;
             });
+            }
         }
         
         html += `</div>`;
         app.innerHTML = html;
+        if(currentId === 'fi2')enableFi2Accordion();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
