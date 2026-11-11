@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MAS · Cálculo de la ecuación</title>
+<link rel="stylesheet" href="../../../../herramientas/estilos/v1/practica.css">
+<style>
+.edu-app .edu-shell{max-width:1360px}.edu-app .edu-layout{grid-template-columns:minmax(350px,.9fr) minmax(0,1.1fr)}
+.edu-app .scene{width:100%;height:510px;display:block;background:linear-gradient(#fbfdff,#edf4fa);border:1px solid #dbe5ed;border-radius:9px;touch-action:none;user-select:none}
+.edu-app #mass,.edu-app #massText{cursor:grab}.edu-app #velocity{cursor:pointer}.edu-app .tools{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0}.edu-app .mini{font-size:.87rem;color:var(--muted)}.edu-app .step{border-top:1px solid var(--line);padding:16px 0}.edu-app .step h3{font-size:1rem;margin:0 0 8px}.edu-app .step.locked{opacity:.54}.edu-app .eq-grid{display:grid;gap:9px}.edu-app .eq-result{padding:12px;border:1px solid var(--line);border-radius:6px;overflow-x:auto;white-space:nowrap;font:1.12rem Georgia,serif}.edu-app .eq-result.active{background:#e9f2f9;border-color:#175675}.edu-app .readout-row{display:flex;flex-wrap:wrap;gap:16px;margin:8px 0}.edu-app .readout-row span{font-weight:650}.edu-app .inline-radios{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.edu-app .inline-radios label{border:1px solid var(--line);border-radius:6px;padding:8px 12px;cursor:pointer}.edu-app .inline-radios label:has(input:checked){border-color:var(--accent);background:#eef5f9}.edu-app .brief{font-size:1.08rem;line-height:1.6}.edu-app .helper{color:var(--muted);font-size:.9rem}.edu-app .answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.edu-app .hintbox{background:#f2f6f9;border-left:3px solid #688ca6;padding:12px 14px;margin-top:10px;font-size:.9rem}.edu-app .derivatives{display:grid;gap:12px}.edu-app .derivline{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font:1.1rem Georgia,serif}.edu-app .derivline select{min-height:40px;border:1px solid #9baebd;padding:7px;border-radius:5px;background:white}.edu-app .stage-badge{font-size:.82rem;color:#536574;font-weight:650;margin:2px 0 10px}.edu-app .answers label:last-child{grid-column:span 2}.edu-app .edu-field{margin:8px 0}.edu-app .edu-field input,.edu-app .edu-field select{min-width:0}
+@media(max-width:850px){.edu-app .edu-layout{grid-template-columns:1fr}.edu-app .scene{height:440px}}@media(max-width:480px){.edu-app .answers{grid-template-columns:1fr}.edu-app .answers label:last-child{grid-column:auto}.edu-app .scene{height:390px}}
+</style></head>
+<body class="edu-app"><main class="edu-shell">
+<header class="edu-header"><h1>MAS · Cálculo de la ecuación</h1><p>De las condiciones iniciales a la ecuación del movimiento armónico simple</p></header>
+<div class="edu-layout">
+<section class="edu-panel"><h2>Representa la condición inicial</h2>
+<svg id="scene" class="scene" viewBox="0 0 500 570" role="group" aria-label="Muelle vertical con masa arrastrable y vector velocidad que cambia de sentido al pulsarlo">
+<rect x="174" y="12" width="152" height="15" fill="#64798b" rx="2"/>
+<line x1="65" y1="315" x2="445" y2="315" stroke="#118777" stroke-width="2" stroke-dasharray="7 6"/>
+<text x="20" y="299" fill="#117866" font-size="15">Equilibrio</text>
+<line x1="100" y1="85" x2="100" y2="545" stroke="#91a7b9" stroke-dasharray="5 6"/>
+<text x="91" y="97" text-anchor="end" font-size="17" fill="#52677a">+A</text>
+<text x="91" y="538" text-anchor="end" font-size="17" fill="#52677a">−A</text>
+<path id="spring" stroke="#53687d" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<rect id="mass" x="198" y="280" width="104" height="70" rx="11" fill="#1d68a1" stroke="#134c78" stroke-width="2" tabindex="0" role="slider" aria-label="Posición inicial de la masa; flechas arriba y abajo" aria-valuemin="-1" aria-valuemax="1" aria-valuenow="0"/>
+<text id="massText" x="250" y="321" font-size="21" font-weight="700" text-anchor="middle" fill="white" pointer-events="none">M</text>
+<path id="velocity" fill="none" stroke="#c65b29" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" tabindex="0" role="button" aria-label="Invertir el sentido de la velocidad inicial"/>
+<text id="vlabel" x="351" y="265" font-size="15" font-weight="700" fill="#a94921">v₀</text>
+<text id="posLabel" x="492" y="340" text-anchor="end" font-size="17" fill="#a94921">y₀ = 0</text>
+</svg>
+<div class="tools"><button class="edu-button edu-button-secondary" id="flip" type="button">Invertir velocidad ↑/↓</button><button class="edu-button edu-button-secondary" id="home" type="button">Volver al equilibrio</button></div>
+<p class="mini">Arrastra la masa o utiliza las flechas del teclado. La flecha naranja indica la velocidad: pulsa sobre ella para invertir su sentido. En los extremos, la velocidad es nula.</p>
+<div class="readout-row"><span id="actualPos">y₀ = 0</span><span id="actualVel">v₀ hacia arriba</span></div>
+</section>
+<section class="edu-panel">
+<h2>Enunciado</h2><p class="stage-badge" id="levelLabel"></p><p class="brief" id="statement"></p>
+<div class="edu-actions"><button class="edu-button edu-button-secondary" type="button" id="another">Otro problema</button></div>
+<section class="step" id="step1"><h3>1. Interpreta el enunciado</h3><p class="helper">Coloca la masa en la posición indicada y, si procede, señala el sentido correcto de la velocidad.</p><button class="edu-button" id="checkScene" type="button">Comprobar estado inicial</button><div id="feedbackScene" aria-live="polite"></div></section>
+<section class="step locked" id="step2"><h3>2. Elige la forma de la ecuación</h3><p class="helper">Puedes elegir cualquiera: el desfase será diferente, pero describirán el mismo movimiento.</p>
+<div class="inline-radios"><label><input type="radio" name="trig" value="sin" checked> Seno</label><label><input type="radio" name="trig" value="cos"> Coseno</label></div>
+<div class="edu-formula" id="general">y(t) = A · sen(ωt + φ₀)</div><button id="choose" class="edu-button" type="button" disabled>Continuar</button></section>
+<section class="step locked" id="step3"><h3>3. Determina la amplitud y la frecuencia angular</h3>
+<div class="answers">
+<label class="edu-field">Amplitud A (m)<input type="text" id="answerA" inputmode="decimal" autocomplete="off" placeholder="Ej.: 0,40" disabled></label>
+<label class="edu-field">Frecuencia angular ω (rad/s)<select id="answerOmega" disabled><option value="">Selecciona</option><option value=".5">π/2</option><option value="1">π</option><option value="2">2π</option><option value="4">4π</option></select></label>
+</div><button class="edu-button" id="checkParams" disabled type="button">Comprobar parámetros</button><div id="feedbackParams" aria-live="polite"></div>
+</section>
+<section class="step locked" id="step4"><h3>4. Construye las ecuaciones de posición, velocidad y aceleración</h3>
+<p class="helper">Los valores de A y ω ya están determinados. Completa las funciones y los signos que aparecen al derivar, manteniendo φ₀ desconocida.</p>
+<div class="edu-formula eq-grid" id="previewEquations">
+<div id="positionEquation"></div>
+<div class="derivline"><span>v(t) =</span><select id="vSign" aria-label="Signo de velocidad" disabled><option value="">Signo</option><option value="+">+</option><option value="-">−</option></select><span id="vCoeff"></span> · <select id="vTrig" aria-label="Función de velocidad" disabled><option value="">Función</option><option value="sin">sen</option><option value="cos">cos</option></select><span id="vArgument"></span></div>
+<div class="derivline"><span>a(t) =</span><select id="aSign" aria-label="Signo de aceleración" disabled><option value="">Signo</option><option value="+">+</option><option value="-">−</option></select><span id="aCoeff"></span> · <select id="aTrig" aria-label="Función de aceleración" disabled><option value="">Función</option><option value="sin">sen</option><option value="cos">cos</option></select><span id="aArgument"></span></div>
+</div>
+<button class="edu-button" id="checkDerivatives" disabled type="button">Comprobar las tres ecuaciones</button><div id="feedbackDerivatives" aria-live="polite"></div>
+</section>
+<section class="step locked" id="step5"><h3>5. Determina la fase inicial φ₀</h3>
+<p class="helper">Utiliza las condiciones iniciales del enunciado para escoger la fase correcta.</p>
+<label class="edu-field">Fase inicial φ₀ <select id="answerPhi" disabled><option value="">Selecciona el ángulo</option></select></label>
+<button class="edu-button edu-button-secondary" id="hintButton" type="button" disabled>Mostrar pista</button>
+<div class="hintbox" id="hintText" hidden>Sustituye <strong>t = 0 s</strong> en la ecuación de posición y comprueba qué valores de φ₀ reproducen la posición inicial. Si hay dos posibilidades, sustituye también <strong>t = 0 s</strong> en la ecuación de velocidad: su signo debe coincidir con el sentido del movimiento indicado.</div>
+<button class="edu-button" id="checkEquation" disabled type="button">Comprobar fase inicial</button><div id="feedbackEquation" aria-live="polite"></div>
+</section>
+<section class="step locked" id="solutionBox"><h3>6. Compara las dos soluciones</h3>
+<p class="helper">La misma oscilación puede expresarse con seno o con coseno. Puedes mostrar u ocultar cada forma.</p>
+<div class="tools"><label><input type="checkbox" id="showSin" checked> Mostrar seno</label><label><input type="checkbox" id="showCos" checked> Mostrar coseno</label></div>
+<div class="eq-grid"><div class="eq-result" id="sinResult"></div><div class="eq-result" id="cosResult"></div></div>
+<p class="edu-note" id="explanation"></p><button class="edu-button edu-button-secondary" id="play" type="button">▶ Reproducir el movimiento</button>
+</section>
+</section>
+</div></main>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const rand=a=>a[Math.floor(Math.random()*a.length)];
+const fmt=x=>Number(x).toLocaleString('es-ES',{maximumFractionDigits:2,minimumFractionDigits:2});
+const signed=x=>Math.abs(x)<1e-8?'0':(x>0?'+':'−')+fmt(Math.abs(x));
+const piCoef=k=>k===.5?'π/2':k===1?'π':String(k)+'π';
+const phases=[-180,-150,-135,-120,-90,-60,-45,-30,0,30,45,60,90,120,135,150,180];
+const wrap=d=>{d=((d+180)%360+360)%360-180;return d===-180?180:d};
+const piAngle=d=>{if(d===0)return '0';const m={30:'π/6',45:'π/4',60:'π/3',90:'π/2',120:'2π/3',135:'3π/4',150:'5π/6',180:'π'};return(d<0?'−':'')+(m[Math.abs(d)]||Math.abs(d)+'°')};
+const phaseTerm=d=>d===0?'':(d<0?' − ':' + ')+piAngle(Math.abs(d));
+const levels=[[0,1,-1],[.5,-.5],[Math.SQRT1_2,-Math.SQRT1_2,Math.sqrt(3)/2,-Math.sqrt(3)/2]];
+const posText=p=>{
+ if(Math.abs(p)<1e-7)return '0';
+ if(Math.abs(p-1)<1e-7)return '+A';
+ if(Math.abs(p+1)<1e-7)return '−A';
+ if(Math.abs(Math.abs(p)-.5)<1e-7)return (p>0?'+':'−')+'A/2';
+ if(Math.abs(Math.abs(p)-Math.SQRT1_2)<1e-7)return (p>0?'+':'−')+'A√2/2';
+ return (p>0?'+':'−')+'A√3/2';
+};
+const positionStatement=p=>{
+ if(p===1)return 'se encuentra en el extremo superior de su trayectoria.';
+ if(p===-1)return 'se encuentra en el extremo inferior de su trayectoria.';
+ if(p===0)return 'se encuentra en la posición de equilibrio';
+ if(Math.abs(p)===.5)return 'se encuentra a una distancia vertical igual a la mitad de su amplitud, '+(p>0?'por encima':'por debajo')+' del equilibrio';
+ if(Math.abs(Math.abs(p)-Math.SQRT1_2)<1e-7)return 'tiene una elongación '+(p>0?'positiva':'negativa')+' de A√2/2';
+ return 'tiene una elongación '+(p>0?'positiva':'negativa')+' de A√3/2';
+};
+const coef=(a,k,power)=>{const value=Number((a*Math.pow(k,power)).toFixed(5));return fmt(value)+(power===1?'π':'π²')};
+const argument=w=>piCoef(w)+'t + φ₀';
+const sinPhase=(p,dir)=>{
+ if(p===1)return 90;if(p===-1)return -90;
+ const raw=Math.asin(p)*180/Math.PI;
+ const angle=Math.round(raw/15)*15;
+ return dir>=0?angle:wrap(180-angle);
+};
+let task,p=0,dir=1,stage=1,selected='sin',exercise=0,elapsed=0,raf=0,previous=null,playing=false,dragging=false;
+const mass=$('mass'),massText=$('massText'),spring=$('spring'),velocity=$('velocity');
+function springPath(top){let out='M250 27 L250 49',last=top-9;for(let i=1;i<=24;i++){const y=49+(last-49)*i/24;out+=' L'+(i===24?250:i%2?224:276)+' '+y.toFixed(1)}return out+' L250 '+top}
+function drawAt(value,velSign,staticMode){
+ const cy=315-205*value,top=cy-35;
+ spring.setAttribute('d',springPath(top));mass.setAttribute('y',top);massText.setAttribute('y',cy+7);
+ mass.setAttribute('aria-valuenow',Math.round(value*100)/100);mass.setAttribute('aria-valuetext',posText(value));
+ $('posLabel').setAttribute('y',Math.min(551,Math.max(40,cy+13)));
+ $('posLabel').textContent=(staticMode?'y₀ = '+posText(value):'y(t) = '+signed(value*task.A)+' m');
+ if(!velSign){
+  velocity.setAttribute('d','');$('vlabel').textContent=staticMode?'v₀ = 0':'v = 0';$('vlabel').setAttribute('y',cy-41);
+ }else{
+  const vy=cy-velSign*78;
+  velocity.setAttribute('d','M350 '+(cy+velSign*8)+' L350 '+vy+' M337 '+(vy+velSign*15)+' L350 '+vy+' L363 '+(vy+velSign*15));
+  $('vlabel').textContent=(staticMode?'v₀':'v')+(velSign===1?' ↑':' ↓');
+  $('vlabel').setAttribute('y',cy-velSign*94);
+ }
+}
+function render(){
+ drawAt(p,Math.abs(p)===1?0:dir,true);
+ $('actualPos').textContent='y₀ = '+posText(p);
+ $('actualVel').textContent=Math.abs(p)===1?'v₀ = 0':dir===1?'v₀ hacia arriba':'v₀ hacia abajo';
+}
+function setP(n){if(stage!==1||playing)return;p=task.allowed.reduce((a,b)=>Math.abs(b-n)<Math.abs(a-n)?b:a);render()}
+function flip(){if(stage!==1||playing||Math.abs(p)===1)return;dir=-dir;render()}
+$('flip').onclick=flip;$('velocity').addEventListener('click',flip);
+velocity.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();flip()}});
+$('home').onclick=()=>setP(0);
+function updatePointer(e){const pt=$('scene').createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const m=$('scene').getScreenCTM();if(!m)return;const loc=pt.matrixTransform(m.inverse());setP((315-loc.y)/205)}
+mass.addEventListener('pointerdown',e=>{if(stage!==1)return;dragging=true;mass.setPointerCapture(e.pointerId);updatePointer(e)});
+mass.addEventListener('pointermove',e=>{if(dragging)updatePointer(e)});
+mass.addEventListener('pointerup',()=>dragging=false);mass.addEventListener('pointercancel',()=>dragging=false);
+mass.addEventListener('keydown',e=>{let i=task.allowed.findIndex(v=>Math.abs(v-p)<1e-8);if(e.key==='ArrowUp'){e.preventDefault();setP(task.allowed[Math.min(task.allowed.length-1,i+1)])}if(e.key==='ArrowDown'){e.preventDefault();setP(task.allowed[Math.max(0,i-1)])}});
+for(const d of phases){const option=document.createElement('option');option.value=String(d);option.textContent=d+'° ('+piAngle(d)+')';$('answerPhi').append(option)}
+function feedback(id,msg,ok){$(id).innerHTML='';const div=document.createElement('div');div.className='edu-feedback '+(ok?'edu-ok':'edu-error');div.textContent=msg;$(id).append(div)}
+function lock(n){
+ stage=n;
+ for(const k of [2,3,4,5])$('step'+k).classList.toggle('locked',n<k);
+ $('solutionBox').classList.toggle('locked',n<6);
+ $('solutionBox').hidden=n<6;
+ $('choose').disabled=n!==2;
+ for(const id of ['answerA','answerOmega','checkParams'])$(id).disabled=n!==3;
+ for(const id of ['vSign','vTrig','aSign','aTrig','checkDerivatives'])$(id).disabled=n!==4;
+ for(const id of ['answerPhi','hintButton','checkEquation'])$(id).disabled=n!==5;
+ for(const id of ['flip','home','checkScene'])$(id).disabled=n!==1;
+}
+function makeTask(){
+ stop();const level=Math.min(2,Math.floor(exercise/3));exercise++;
+ const amps=[.2,.3,.4,.5,.6,.8],omegas=[.5,1,2,4],allowed=[...levels[level]].sort((a,b)=>a-b),q=rand(allowed);
+ task={p:q,A:rand(amps),omega:rand(omegas),kind:rand(['T','f','omega']),dir:Math.abs(q)===1?0:rand([-1,1]),allowed,level};
+ // El equilibrio se ofrece siempre como posición arrastrable, también en niveles avanzados.
+ task.allowed=[...new Set([-1,...allowed,0,1])].sort((a,b)=>a-b);
+ p=0;dir=1;elapsed=0;selected='sin';
+ const time=task.kind==='T'?'Su periodo es '+fmt(2/task.omega)+' s. ':task.kind==='f'?'Su frecuencia es '+fmt(task.omega/2)+' Hz. ':'Su frecuencia angular es '+piCoef(task.omega)+' rad/s. ';
+ let initial='En el instante t = 0 s, '+positionStatement(task.p);
+ if(task.dir!==0)initial+=', moviéndose hacia '+(task.dir>0?'arriba.':'abajo.');
+ $('statement').textContent='Un cuerpo unido a un muelle vertical realiza un movimiento armónico simple de amplitud '+fmt(task.A)+' m. '+time+initial+' Determina las ecuaciones de posición, velocidad y aceleración.';
+ $('levelLabel').textContent='Dificultad '+(level+1)+' de 3 · Ejercicio '+exercise;
+ for(const id of ['answerA','answerOmega','answerPhi','vSign','vTrig','aSign','aTrig'])$(id).value='';
+ for(const id of ['feedbackScene','feedbackParams','feedbackDerivatives','feedbackEquation'])$(id).textContent='';
+ $('hintText').hidden=true;$('showSin').checked=true;$('showCos').checked=true;
+ document.querySelector('input[name=trig][value=sin]').checked=true;refreshGeneral();lock(1);render();
+}
+function refreshGeneral(){
+ selected=document.querySelector('input[name=trig]:checked').value;
+ $('general').textContent='y(t) = A · '+(selected==='sin'?'sen':'cos')+'(ωt + φ₀)';
+}
+document.querySelectorAll('input[name=trig]').forEach(el=>el.addEventListener('change',refreshGeneral));
+$('checkScene').onclick=()=>{
+ if(Math.abs(p-task.p)>1e-6||(task.dir!==0&&dir!==task.dir)){feedback('feedbackScene','Revisa la posición inicial'+(task.dir===0?'.':' y el sentido de la velocidad.'),false);return}
+ feedback('feedbackScene','Estado inicial correcto.',true);lock(2);
+};
+$('choose').onclick=()=>{refreshGeneral();lock(3)};
+$('checkParams').onclick=()=>{
+ const txt=$('answerA').value.trim().replace(',','.');const A=txt===''?NaN:Number(txt),w=Number($('answerOmega').value);
+ const errors=[];
+ if(!Number.isFinite(A)||Math.abs(A-task.A)>.005)errors.push('amplitud');
+ if(!$('answerOmega').value||w!==task.omega)errors.push('frecuencia angular');
+ if(errors.length){feedback('feedbackParams','Revisa: '+errors.join(' y ')+'.',false);return}
+ feedback('feedbackParams','Parámetros correctos. Ahora deriva la posición.',true);
+ const inner=argument(task.omega);
+ $('positionEquation').textContent='y(t) = '+fmt(task.A)+' · '+(selected==='sin'?'sen':'cos')+'('+inner+') m';
+ $('vCoeff').textContent=coef(task.A,task.omega,1);
+ $('aCoeff').textContent=coef(task.A,task.omega,2);
+ $('vArgument').textContent='('+inner+') m/s';
+ $('aArgument').textContent='('+inner+') m/s²';
+ lock(4);
+};
+$('checkDerivatives').onclick=()=>{
+ const expected=selected==='sin'?{vs:'+',vt:'cos',as:'-',at:'sin'}:{vs:'-',vt:'sin',as:'-',at:'cos'};
+ if($('vSign').value!==expected.vs||$('vTrig').value!==expected.vt||$('aSign').value!==expected.as||$('aTrig').value!==expected.at){
+ feedback('feedbackDerivatives','Comprueba las derivadas: la primera derivada da la velocidad y la segunda la aceleración. Presta atención al signo.',false);return}
+ feedback('feedbackDerivatives','Las tres ecuaciones son correctas, con φ₀ aún desconocida.',true);lock(5);
+};
+$('hintButton').onclick=()=>{$('hintText').hidden=!$('hintText').hidden;$('hintButton').textContent=$('hintText').hidden?'Mostrar pista':'Ocultar pista'};
+$('checkEquation').onclick=()=>{
+ const val=$('answerPhi').value;
+ if(val===''){feedback('feedbackEquation','Selecciona una fase inicial.',false);return}
+ const phase=Number(val)*Math.PI/180,pred=selected==='sin'?Math.sin(phase):Math.cos(phase);
+ const vel=selected==='sin'?Math.cos(phase):-Math.sin(phase);
+ const correctP=Math.abs(pred-task.p)<1e-5;
+ const correctV=task.dir===0?Math.abs(vel)<1e-5:vel*task.dir>1e-6;
+ if(!correctP||!correctV){feedback('feedbackEquation','La fase escogida no cumple simultáneamente la posición y el sentido de la velocidad en t = 0 s. Puedes consultar la pista.',false);return}
+ feedback('feedbackEquation','Fase inicial correcta. Ya puedes comparar las dos soluciones.',true);lock(6);showSolutions();
+};
+function showSolutions(){
+ const sp=sinPhase(task.p,task.dir),cp=wrap(sp-90),w=piCoef(task.omega)+'t';
+ $('sinResult').textContent='y(t) = '+fmt(task.A)+' · sen('+w+phaseTerm(sp)+') m';
+ $('cosResult').textContent='y(t) = '+fmt(task.A)+' · cos('+w+phaseTerm(cp)+') m';
+ $('sinResult').hidden=!$('showSin').checked;$('cosResult').hidden=!$('showCos').checked;
+ $('sinResult').classList.toggle('active',selected==='sin');$('cosResult').classList.toggle('active',selected==='cos');
+ $('explanation').textContent='Las dos expresiones tienen amplitud '+fmt(task.A)+' m y frecuencia angular '+piCoef(task.omega)+' rad/s. Las fases difieren en π/2 rad y reproducen las mismas condiciones iniciales.';
+}
+$('showSin').onchange=showSolutions;$('showCos').onchange=showSolutions;
+function stop(){playing=false;previous=null;if(raf)cancelAnimationFrame(raf);raf=0;$('play').textContent='▶ Reproducir el movimiento'}
+function frame(ts){
+ if(!playing)return;
+ if(previous!==null)elapsed+=Math.min(.06,(ts-previous)/1000);
+ previous=ts;
+ const theta=task.omega*Math.PI*elapsed+sinPhase(task.p,task.dir)*Math.PI/180;
+ const y=Math.sin(theta),v=Math.cos(theta),sgn=Math.abs(v)<.008?0:Math.sign(v);
+ drawAt(y,sgn,false);
+ raf=requestAnimationFrame(frame);
+}
+$('play').onclick=()=>{if(playing){stop();return}elapsed=0;playing=true;previous=null;raf=requestAnimationFrame(frame);$('play').textContent='Ⅱ Pausar'};
+$('another').onclick=makeTask;
+makeTask();
+})();
+</script></body></html>

@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Descubriendo el movimiento armónico simple · Física 2.º Bachillerato</title>
+<style>
+:root{font-family:system-ui,-apple-system,Arial,sans-serif;color:#203a54;background:#eef3f8}*{box-sizing:border-box}body{margin:0;padding:17px}main{max-width:1320px;margin:auto}h1{font-size:clamp(23px,3vw,32px);margin:0 0 7px;color:#164a75}h2{font-size:19px;margin:0 0 8px}p{line-height:1.55}header{margin-bottom:15px}small,.muted{color:#687d8e}.layout{display:grid;grid-template-columns:minmax(350px,540px) minmax(330px,1fr);gap:16px;align-items:start}.card{background:white;border:1px solid #d8e4ed;border-radius:16px;padding:17px;box-shadow:0 4px 24px #20466a0a}.sceneWrap{background:#f9fcff;border-radius:12px;border:1px solid #dce7ef;overflow:hidden}.scene{display:block;width:100%;height:auto;touch-action:none;cursor:grab}.scene:active{cursor:grabbing}.controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.controls button{flex:1}button,input,select{font:inherit}button{border:1px solid #bdcedd;background:white;color:#245477;padding:10px 12px;border-radius:9px;cursor:pointer;font-weight:650}button.primary{background:#146db4;color:white;border-color:#146db4}button:disabled{opacity:.45;cursor:not-allowed}.readings{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.read{background:#eff5fb;border-radius:9px;padding:9px;text-align:center}.read small{display:block;font-size:11px}.read strong{display:block;font-size:20px;color:#1a5e93;font-variant-numeric:tabular-nums}.stepbar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}.stepbar button{padding:7px 10px;font-size:12px;border-radius:30px}.stepbar button.active{background:#176eae;color:white}.stepbar button.locked{opacity:.45}.question{font-size:16px;background:#f1f7fd;border-left:4px solid #1d76b6;border-radius:7px;padding:13px;margin:12px 0}.answers{display:grid;gap:10px;margin:12px 0}.answers label{display:flex;gap:9px;align-items:flex-start;padding:10px;background:#f8fbff;border:1px solid #d9e5ef;border-radius:9px;cursor:pointer}.answers input{margin-top:4px}.response{min-height:45px;padding:10px 12px;background:#f4f7fa;border-radius:9px;margin:11px 0;line-height:1.5;font-size:14px}.response.ok{background:#e8f5ef;color:#185c43}.response.bad{background:#fff1e8;color:#95481f}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}input[type=number]{width:135px;padding:9px;border:1px solid #b9cddb;border-radius:8px}input[type=range]{width:100%}.hidden{display:none!important}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:8px;border-bottom:1px solid #dfe8f0;text-align:center}th{background:#f1f6fa}canvas#graph{width:100%;height:auto;border:1px solid #dce7ef;border-radius:8px;background:#fff}.hint{font-size:13px;color:#5c7183}.status{display:inline-block;padding:5px 10px;border-radius:30px;background:#e9f4fd;color:#24669a;font-size:12px;font-weight:700}.lower{margin-top:16px}
+.capture-mode{grid-template-columns:minmax(300px,405px) minmax(390px,1fr)}
+.capture-mode .sceneWrap{max-width:335px;margin-inline:auto}
+.capture-mode .stepbar{margin-bottom:7px}
+.capture-mode .foot{display:none}
+.instructions-toggle{display:none;width:100%;text-align:left;justify-content:space-between;align-items:center;margin:8px 0}
+.capture-mode .instructions-toggle{display:flex}
+.capture-mode .instructions-body{display:none}
+.capture-mode .instructions-body.expanded{display:block}
+.capture-mode #feedback{margin:8px 0}
+.capture-mode #dataCard{border-top:1px solid #dae6ee;margin-top:12px;padding-top:12px}
+.capture-mode #dataCard h2{margin-bottom:5px}
+.capture-mode #dataCard .muted{margin:0 0 9px}
+.capture-mode .tablewrap{max-height:220px;overflow:auto;border:1px solid #dbe6ee;border-radius:8px}
+.capture-mode #dataCard thead{position:sticky;top:0;z-index:1}
+.capture-mode #dataCard .graphwrap{margin:8px 0 12px}
+.velocity-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:11px 0}
+.velocity-tabs button{flex:1 1 105px;padding:10px 8px}
+.velocity-tabs button.selected{background:#176eae;border-color:#176eae;color:white}
+.velocity-pair{background:#eff6fc;border:1px solid #d7e5f0;border-radius:10px;padding:12px;margin:10px 0}
+.velocity-readings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:10px 0}
+.velocity-readings div{background:white;border-radius:8px;padding:9px;line-height:1.7}
+.velocity-answer{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}
+.velocity-answer input{width:125px}
+.velocity-summary{width:100%;border-collapse:collapse;font-size:13px}
+.velocity-summary td,.velocity-summary th{padding:8px;border-bottom:1px solid #d8e6f1;text-align:left}
+
+@media(max-width:880px){.capture-mode{grid-template-columns:1fr}.capture-mode .sceneWrap{max-width:270px}.capture-mode .readings{max-width:470px;margin:auto}}
+.foot{font-size:12px;color:#687b8c;margin-top:12px}@media(max-width:880px){body{padding:8px}.layout{grid-template-columns:1fr}.card{padding:12px}.read strong{font-size:17px}}
+</style></head><body><main>
+<header><h1>Descubriendo el movimiento armónico simple</h1><p class="muted" style="margin:0">Laboratorio de exploración guiada · Física de 2.º de Bachillerato</p></header>
+<div class="layout" id="layout">
+<section class="card">
+<div class="row" style="justify-content:space-between;margin-bottom:10px"><strong>Escena experimental</strong><span class="status" id="state">Preparado</span></div>
+<div class="sceneWrap"><canvas id="scene" class="scene" width="520" height="760" aria-label="Muelle vertical con masa interactiva y sistema de referencia"></canvas></div>
+<div class="controls"><button class="primary" id="play">▶ Reproducir</button><button id="pause">Ⅱ Pausar</button><button id="back">−0,10 s</button><button id="forward">+0,10 s</button><button id="reset">↺ Reiniciar</button></div>
+<div class="readings"><div class="read"><small>Tiempo de simulación</small><strong id="time">0,00 s</strong></div><div class="read"><small>Cronómetro</small><strong id="clock">—</strong></div><div class="read"><small>Capturas</small><strong id="count">0</strong></div></div>
+<p class="hint" id="sceneHint">Arrastra la masa verticalmente y suéltala. El movimiento comienza al soltarla.</p>
+</section>
+<section class="card" id="activities">
+<div class="stepbar" id="steps"></div><div class="row" style="justify-content:space-between"><h2 id="stepTitle">1. Observa</h2><span class="status" id="progress">1 / 6</span></div>
+<button id="instructionsToggle" class="instructions-toggle" aria-expanded="false" aria-controls="instructionsBody">▸ Mostrar instrucciones del ejercicio <span>▾</span></button>
+<div id="instructionsBody" class="instructions-body expanded"><div id="stepBody"></div></div>
+<div id="feedback" class="response" role="status">Explora la escena para comenzar.</div>
+<div class="row"><button id="previous">← Anterior</button><button class="primary" id="next" disabled>Siguiente →</button></div>
+<p class="foot">El eje positivo se orienta hacia arriba. Las distancias se refieren al centro de la masa. El sistema oscila idealmente sin rozamiento alrededor de su posición de equilibrio.</p>
+<section class="lower hidden" id="dataCard"><h2>Cuaderno de posiciones</h2>
+<p class="muted">Captura el tiempo y la elongación con el movimiento pausado. La gráfica se actualiza con cada medida.</p>
+<div class="row" style="margin-bottom:9px"><button class="primary" id="capture">📷 Capturar posición</button><button id="clear">Vaciar capturas</button></div>
+<div class="graphwrap"><canvas id="graph" width="920" height="300" aria-label="Gráfica de elongación frente al tiempo"></canvas></div>
+<details id="tableDetails"><summary style="cursor:pointer;font-weight:650;padding:9px 0">Ver tabla de posiciones (<span id="tableCount">0</span> capturas)</summary>
+<div class="tablewrap"><table><thead><tr><th>N.º</th><th>t (s)</th><th>y (cm)</th></tr></thead><tbody id="rows"><tr><td colspan="3">Sin mediciones</td></tr></tbody></table></div>
+</details></section>
+<section class="lower hidden" id="velocityCard">
+<h2>Cuaderno de velocidades instantáneas</h2>
+<p class="muted">Pausa el movimiento, observa el vector velocidad y captura los valores. La gráfica muestra los puntos experimentales que vas registrando.</p>
+<div class="row" style="margin-bottom:9px"><button class="primary" id="velocityCapture">📷 Capturar velocidad</button><button id="velocityClear">Vaciar capturas</button></div>
+<div class="row" style="margin-bottom:10px"><button id="velocityTop">Ir a +A</button><button id="velocityDown">Equilibrio ↓</button><button id="velocityBottom">Ir a −A</button><button id="velocityUp">Equilibrio ↑</button></div>
+<div class="graphwrap"><canvas id="velocityGraph" width="920" height="310" style="width:100%;height:auto;border:1px solid #dce7ef;border-radius:8px" aria-label="Gráfica de velocidad instantánea frente al tiempo"></canvas></div>
+<details id="velocityDetails"><summary style="cursor:pointer;font-weight:650;padding:9px 0">Ver tabla de velocidades (<span id="velocityCount">0</span> capturas)</summary><div class="tablewrap"><table><thead><tr><th>N.º</th><th>t (s)</th><th>y (cm)</th><th>v (cm/s)</th></tr></thead><tbody id="velocityRows"><tr><td colspan="4">Sin capturas</td></tr></tbody></table></div></details>
+</section>
+<section class="lower hidden" id="accelCard">
+<h2>Cuaderno de aceleración</h2>
+<p class="muted">Pausa el movimiento y registra el valor de la aceleración en distintos instantes. La fuerza resultante y la aceleración apuntan siempre hacia la posición de equilibrio.</p>
+<div class="row" style="margin-bottom:9px"><button class="primary" id="accelCapture">📷 Capturar aceleración</button><button id="accelClear">Vaciar capturas</button></div>
+<div class="row" style="margin-bottom:10px"><button id="accelTop">Ir a +A</button><button id="accelDown">Equilibrio ↓</button><button id="accelBottom">Ir a −A</button><button id="accelUp">Equilibrio ↑</button></div>
+<div class="graphwrap"><canvas id="accelGraph" width="920" height="310" style="width:100%;height:auto;border:1px solid #dce7ef;border-radius:8px" aria-label="Gráfica de aceleración frente al tiempo"></canvas></div>
+<details><summary style="cursor:pointer;font-weight:650;padding:9px 0">Ver tabla de aceleraciones (<span id="accelCount">0</span> capturas)</summary>
+<div class="tablewrap"><table><thead><tr><th>N.º</th><th>t (s)</th><th>y (cm)</th><th>a (cm/s²)</th></tr></thead><tbody id="accelRows"><tr><td colspan="4">Sin capturas</td></tr></tbody></table></div></details>
+</section>
+</section></div>
+</main><script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id),c=$('scene').getContext('2d'),TAU=2*Math.PI;
+const W=520,H=760,eqY=390,centerX=276,pixCm=20,T=3.2,w=TAU/T;
+let amp=120,sign=1,t=0,running=false,lastFrame=null,raf=0,dragMode='',axisY=475,axisPlaced=false;
+let step=0,unlocked=0,passed=[false,false,false,false,false,false,false,false],samples=[],observed=false;
+let observationIndex=0,observationFinished=false;
+const observationQuestions=[
+ {question:'¿Qué forma tiene la trayectoria que describe el paquete?',answers:['Es rectilínea y vertical.','Es una curva que cambia de forma.','Es circular alrededor del soporte.'],correct:0,explain:'La trayectoria es una recta vertical: se trata de un movimiento rectilíneo.'},
+ {question:'¿El paquete se puede desplazar indefinidamente por la vertical?',answers:['Sí, puede alcanzar cualquier altura.','No. Oscila entre un extremo superior y otro inferior.','Solo puede moverse por encima del punto central.'],correct:1,explain:'El movimiento está acotado: la masa permanece entre dos posiciones extremas.'},
+ {question:'¿Se mueve siempre a la misma velocidad?',answers:['Sí, su velocidad es constante.','No, la velocidad cambia durante el movimiento.','Solo cambia la velocidad cuando se encuentra parado.'],correct:1,explain:'La velocidad no es constante: cambia de módulo y también de sentido durante cada oscilación.'},
+ {question:'¿Hay instantes en que el paquete está momentáneamente parado?',answers:['Sí, solo cuando pasa por el punto medio.','Sí, en el extremo superior y en el inferior.','No, nunca se detiene.','Sí, en cualquier punto de la trayectoria.'],correct:1,explain:'La velocidad es nula en los dos puntos de retorno; allí cambia el sentido del movimiento.'},
+ {question:'¿La dirección de la velocidad cambia durante el movimiento?',answers:['Sí, alterna entre una dirección horizontal y otra vertical.','No. Mientras se mueve, la velocidad tiene dirección vertical.','Sí, su dirección gira continuamente.'],correct:1,explain:'La dirección es siempre vertical. En los instantes de reposo la velocidad es nula y no tiene dirección definida.'},
+ {question:'¿El sentido de la velocidad es siempre el mismo?',answers:['Sí, siempre apunta hacia arriba.','Sí, siempre apunta hacia abajo.','No. Unas veces apunta hacia arriba y otras hacia abajo.'],correct:2,explain:'El sentido se invierte en cada extremo: al subir la velocidad apunta hacia arriba y al bajar, hacia abajo.'}
+];
+function observationHTML(){
+ if(observationFinished)return '<p>Has completado la observación del movimiento.</p><div class="question">Características identificadas</div><p><b>Trayectoria:</b> rectilínea y vertical.<br><b>Recorrido:</b> limitado por dos extremos.<br><b>Velocidad:</b> no es constante; cambian su módulo y sentido.<br><b>Reposo instantáneo:</b> en ambos extremos.<br><b>Velocidad:</b> dirección vertical, pero sentido alternante.</p><button id="observationRepeat">Repetir preguntas</button>';
+ const q=observationQuestions[observationIndex];
+ return '<p>Estira el paquete y suéltalo. Puedes utilizar pausa y avance para observar qué ocurre a lo largo del recorrido.</p>'+
+ '<span class="status">Pregunta '+(observationIndex+1)+' de '+observationQuestions.length+'</span>'+
+ '<div class="question">'+q.question+'</div>'+options(q.answers)+
+ '<button class="primary" id="observationCheck">Comprobar respuesta</button>'+
+ '<div id="observationContinue" class="hidden" style="margin-top:10px"><button class="primary" id="observationAdvance">'+(observationIndex===observationQuestions.length-1?'Ver conclusiones':'Siguiente pregunta →')+'</button></div>';
+}
+function bindObservation(){
+ if(observationFinished){$('observationRepeat').onclick=()=>{observationIndex=0;observationFinished=false;renderStep()};return}
+ $('observationCheck').onclick=()=>{
+   const v=chosen(),q=observationQuestions[observationIndex];
+   if(v<0)return setFeedback('Elige una respuesta.',false);
+   if(v!==q.correct)return setFeedback('Observa de nuevo la animación. Puedes detenerla y avanzar paso a paso.',false);
+   setFeedback('Correcto. '+q.explain,true);
+   document.querySelectorAll('input[name=answer]').forEach(x=>x.disabled=true);
+   $('observationCheck').disabled=true;
+   $('observationContinue').classList.remove('hidden');
+ };
+ $('observationAdvance').onclick=()=>{
+   if(observationIndex===observationQuestions.length-1){observationFinished=true;mark()}else observationIndex++;
+   renderStep();
+ };
+}
+
+let amplitudeCompared=false,comparison={a:72,b:140,correct:1,periodA:2.6,periodB:3.8,phaseA:.5,phaseB:2.1};
+let compareRunning=false,compareT=0,compareLast=null,compareRAF=0;
+let guideY=285,guideDrag=false;
+let periodPhase=-1,periodConceptDone=false,periodPairDone=false,firstCrossing=false,secondCrossing=false;
+let periodPair={a:2,b:4,phaseA:.6,phaseB:2.1,kind:'period',correct:1};
+let periodRunning=false,periodTime=0,periodLast=null,periodRAF=0;
+function newPeriodPair(){
+ const fast=1.6+Math.random()*.45,slow=3.7+Math.random()*.65;
+ const flip=Math.random()<.5;
+ const a=flip?slow:fast,b=flip?fast:slow;
+ periodPair={a,b,phaseA:Math.random()*TAU,phaseB:Math.random()*TAU,kind:Math.random()<.5?'period':'frequency',correct:0};
+ periodPair.correct=periodPair.kind==='period'?(a>b?0:1):(a<b?0:1);
+ periodTime=0;periodLast=null;
+}
+function periodStop(){periodRunning=false;periodLast=null;if(periodRAF)cancelAnimationFrame(periodRAF);periodRAF=0;periodControls()}
+function periodControls(){const btn=$('periodPlay');if(btn)btn.textContent=periodRunning?'Ⅱ Pausar':'▶ Reproducir'}
+function periodTick(now){if(!periodRunning)return;if(periodLast!==null)periodTime+=Math.min((now-periodLast)/1000,.08);periodLast=now;drawPeriodPair();periodRAF=requestAnimationFrame(periodTick)}
+function periodPlay(){if(periodRunning)return;periodRunning=true;periodLast=null;periodControls();periodRAF=requestAnimationFrame(periodTick)}
+function periodReset(){periodTime=0;periodLast=null;drawPeriodPair()}
+newPeriodPair();
+function newComparison(){
+ guideY=285;
+ let a=65+Math.floor(Math.random()*26),b=131+Math.floor(Math.random()*22);
+ if(Math.random()<.5)[a,b]=[b,a];
+ const periods=[2.5+Math.random()*.7,3.5+Math.random()*.8];
+ if(Math.random()<.5)periods.reverse();
+ comparison={a,b,correct:a>b?0:1,periodA:periods[0],periodB:periods[1],phaseA:Math.random()*TAU,phaseB:Math.random()*TAU};
+ compareT=0;compareLast=null;
+}
+function compareControls(){
+ const btn=$('comparePlay');if(btn)btn.textContent=compareRunning?'Ⅱ Pausar':'▶ Reproducir';
+}
+function compareStop(){compareRunning=false;compareLast=null;if(compareRAF)cancelAnimationFrame(compareRAF);compareRAF=0;compareControls()}
+function compareTick(now){if(!compareRunning)return;if(compareLast!==null)compareT+=Math.min((now-compareLast)/1000,.075);compareLast=now;drawComparison();compareRAF=requestAnimationFrame(compareTick)}
+function comparePlay(){if(compareRunning)return;compareRunning=true;compareLast=null;compareControls();compareRAF=requestAnimationFrame(compareTick)}
+function compareReset(){compareT=0;compareLast=null;drawComparison()}
+newComparison();
+const extrema={top:null,bottom:null};let pressPoint=null;
+const bothExtrema=()=>extrema.top!==null&&extrema.bottom!==null;
+function invalidateExtrema(){extrema.top=null;extrema.bottom=null;axisPlaced=false;passed[1]=false;if(unlocked>1){unlocked=1;passed=[passed[0],false,false,false,false,false,false,false]}}
+function markExtremum(){if(step!==1||bothExtrema())return;const cy=yScreen(),v=-sign*amp*w*Math.sin(w*t);if(Math.abs(v)>amp*w*.24){setFeedback('Todavía está moviéndose. Espera a que alcance un extremo y su velocidad sea prácticamente nula.',false);return}const side=cy<eqY?'top':'bottom';if(extrema[side]!==null){setFeedback('Ese extremo ya está marcado. Espera al extremo opuesto.',false);return}extrema[side]=side==='top'?eqY-amp:eqY+amp;draw();if(bothExtrema()){stop();setFeedback('Has identificado ambos puntos de retorno. Ahora arrastra el origen O hasta que sus coordenadas tengan el mismo valor absoluto y signos opuestos.',true);renderStep()}else setFeedback('Primer extremo marcado. La línea queda fija. Espera al extremo opuesto y vuelve a pulsar sobre la masa o «Marcar extremo».',true)}
+const names=['Observar','Extremos y origen','Coordenadas','Amplitud','Período','Posiciones','Velocidad','Aceleración'];
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const fmt=(n,d=2)=>n.toFixed(d).replace('.',',');
+const yScreen=()=>eqY-sign*amp*Math.cos(w*t);
+const yCm=()=>(eqY-yScreen())/pixCm;
+let velocitySamples=[],velocityPromptIndex=0,velocityAnswers=[false,false,false];
+const velocityCms=()=>-sign*(amp/pixCm)*w*Math.sin(w*t);
+const accelerationCms=()=>-w*w*yCm();
+let accelerationSamples=[],accelerationQuestionIndex=0;
+const accelerationQuestions=[
+ {question:'Cuando el paquete está por encima del equilibrio (y positivo), ¿hacia dónde apunta su aceleración?',answers:['Hacia arriba, alejándose del equilibrio.','Hacia abajo, hacia el equilibrio.','Siempre es cero.'],correct:1,explain:'La aceleración resultante es recuperadora y apunta hacia el equilibrio: por encima de él, hacia abajo.'},
+ {question:'Cuando el paquete está por debajo del equilibrio (y negativo), ¿hacia dónde apunta su aceleración?',answers:['Hacia arriba, hacia el equilibrio.','Hacia abajo, alejándose del equilibrio.','Siempre en el sentido de la velocidad.'],correct:0,explain:'Debajo del equilibrio, la aceleración recuperadora apunta hacia arriba, aunque la masa pueda estar bajando.'},
+ {question:'Si el muelle está estirado, ¿hacia dónde tira de la masa la fuerza elástica?',answers:['Hacia arriba, hacia su punto de sujeción.','Siempre hacia el equilibrio de la masa.','Hacia abajo, igual que el peso.'],correct:0,explain:'La fuerza elástica de un muelle estirado apunta hacia el soporte. La aceleración depende de la fuerza resultante, que incluye también el peso.'},
+ {question:'¿Cómo es el módulo de la fuerza resultante en la elongación máxima (+A)?',answers:['Es máximo y apunta hacia abajo.','Es cero porque la velocidad es cero.','Es máximo y apunta hacia arriba.'],correct:0,explain:'En +A el módulo de la fuerza resultante es máximo y apunta hacia el equilibrio: hacia abajo.'},
+ {question:'¿Cómo es la fuerza resultante en la posición de equilibrio (y = 0)?',answers:['Es máxima porque la velocidad es máxima.','Es nula: peso y fuerza elástica se compensan.','Es máxima y apunta hacia abajo.'],correct:1,explain:'En el equilibrio, la fuerza del muelle compensa exactamente al peso, por lo que la resultante y la aceleración son nulas.'},
+ {question:'¿Cómo es el módulo de la fuerza resultante en la elongación mínima (−A)?',answers:['Es cero porque la masa está detenida.','Es máximo y apunta hacia arriba.','Es máximo y apunta hacia abajo.'],correct:1,explain:'En −A el módulo de la fuerza resultante vuelve a ser máximo, ahora dirigido hacia arriba.'}
+];
+function accelerationGuide(pos){
+ stop();sign=1;t=pos===0?0:pos===1?T/4:pos===2?T/2:3*T/4;draw();
+ setFeedback('Instante preparado: observa hacia dónde apunta la aceleración y el valor del acelerómetro.',true);
+}
+function drawAccelerationGraph(){
+ const cv=$('accelGraph');if(!cv)return;
+ const ctx=cv.getContext('2d'),ww=cv.width,hh=cv.height,l=75,right=ww-26,top=29,bottom=hh-45;
+ const maxT=Math.max(T,...accelerationSamples.map(q=>q.t)),maxA=amp/pixCm*w*w*1.15,mid=(top+bottom)/2;
+ ctx.clearRect(0,0,ww,hh);ctx.fillStyle='#fff';ctx.fillRect(0,0,ww,hh);
+ ctx.beginPath();ctx.moveTo(l,top);ctx.lineTo(l,bottom);ctx.moveTo(l,mid);ctx.lineTo(right,mid);ctx.strokeStyle='#96acbc';ctx.lineWidth=1.4;ctx.stroke();
+ ctx.fillStyle='#587083';ctx.font='15px system-ui';ctx.fillText('a (cm/s²)',8,19);ctx.fillText('t (s)',right-30,bottom+28);
+ for(let i=0;i<=4;i++){let x=l+(right-l)*i/4;ctx.fillText(fmt(maxT*i/4,1),x-12,bottom+22)}
+ ctx.fillText('+'+fmt(maxA,1),6,top+8);ctx.fillText('0',51,mid+5);ctx.fillText('−'+fmt(maxA,1),6,bottom);
+ for(const q of accelerationSamples){const x=l+q.t/maxT*(right-l),y=mid-q.a/maxA*(bottom-top)/2;ctx.beginPath();ctx.arc(x,y,4.2,0,TAU);ctx.fillStyle=q.a>=0?'#17816f':'#c06385';ctx.fill()}
+}
+function renderAccelerationSamples(){
+ $('accelCount').textContent=String(accelerationSamples.length);$('accelRows').replaceChildren();
+ if(!accelerationSamples.length)$('accelRows').innerHTML='<tr><td colspan="4">Sin capturas</td></tr>';
+ accelerationSamples.forEach((q,i)=>{const tr=document.createElement('tr');[i+1,fmt(q.t,2),fmt(q.y,2),fmt(q.a,2)].forEach(value=>{const td=document.createElement('td');td.textContent=value;tr.append(td)});$('accelRows').append(tr)});
+ drawAccelerationGraph();
+}
+function accelerationQuestionHtml(){
+ if(accelerationQuestionIndex>=accelerationQuestions.length)return '<p>Has completado el análisis de la fuerza resultante y la aceleración.</p><button id="accelerationRepeat">Repetir preguntas</button>';
+ const q=accelerationQuestions[accelerationQuestionIndex];
+ return '<span class="status">Pregunta '+(accelerationQuestionIndex+1)+' de '+accelerationQuestions.length+'</span><div class="question">'+q.question+'</div>'+options(q.answers)+'<button class="primary" id="accelerationQuestionCheck">Comprobar respuesta</button>';
+}
+function bindAccelerationQuestions(){
+ if(accelerationQuestionIndex>=accelerationQuestions.length){$('accelerationRepeat').onclick=()=>{accelerationQuestionIndex=0;renderStep()};return}
+ $('accelerationQuestionCheck').onclick=()=>{
+  const v=chosen(),q=accelerationQuestions[accelerationQuestionIndex];
+  if(v<0)return setFeedback('Selecciona una respuesta.',false);
+  if(v!==q.correct)return setFeedback('Observa la masa detenida en las posiciones características y distingue la fuerza del muelle de la fuerza resultante.',false);
+  accelerationQuestionIndex++;if(accelerationQuestionIndex>=accelerationQuestions.length)mark();
+  renderStep();setFeedback('Correcto. '+q.explain,true);
+ };
+}
+
+const velocityQuestions=[
+ {question:'¿Cómo es la velocidad cuando la elongación es máxima (+A)?',answers:['Es nula.','Tiene el máximo valor positivo.','Tiene el máximo valor negativo.'],correct:0,explain:'En el extremo superior el objeto se detiene momentáneamente antes de invertir el sentido.'},
+ {question:'¿Cómo es la velocidad cuando la elongación es mínima (−A)?',answers:['Es máxima y positiva.','Es nula.','Es máxima y negativa.'],correct:1,explain:'En el extremo inferior la velocidad también se anula durante un instante.'},
+ {question:'¿Qué sucede con la velocidad al pasar por el equilibrio (y = 0)?',answers:['Siempre es cero.','Tiene máximo módulo; es positiva al subir y negativa al bajar.','Tiene siempre el mismo signo.'],correct:1,explain:'El módulo es máximo al pasar por el equilibrio. El signo depende del sentido de movimiento.'}
+];
+function velocityGuide(pos){
+ stop();sign=1;t=pos===0?0:pos===1?T/4:pos===2?T/2:3*T/4;draw();
+ if(step===6)setFeedback('Instante preparado. Observa el vector y el velocímetro; puedes capturarlo o ajustar el tiempo con los controles.',true);
+}
+function drawVelocityGraph(){
+ const cv=$('velocityGraph');if(!cv)return;
+ const ctx=cv.getContext('2d'),width=cv.width,height=cv.height,l=75,r=width-27,top=29,bottom=height-45;
+ ctx.clearRect(0,0,width,height);ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);
+ const maxT=Math.max(T,...velocitySamples.map(q=>q.t)),maxV=(amp/pixCm)*w*1.15,mid=(top+bottom)/2;
+ ctx.strokeStyle='#91a6b7';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(l,top);ctx.lineTo(l,bottom);ctx.moveTo(l,mid);ctx.lineTo(r,mid);ctx.stroke();
+ ctx.fillStyle='#4f6d84';ctx.font='15px system-ui';ctx.fillText('v (cm/s)',8,19);ctx.fillText('t (s)',r-32,bottom+28);
+ for(let i=0;i<=4;i++){const x=l+(r-l)*i/4;ctx.fillText(fmt(maxT*i/4,1),x-13,bottom+22)}
+ ctx.fillText('+'+fmt(maxV,1),7,top+9);ctx.fillText('0',51,mid+5);ctx.fillText('−'+fmt(maxV,1),7,bottom);
+ for(const q of velocitySamples){const x=l+q.t/maxT*(r-l),y=mid-q.v/maxV*(bottom-top)/2;ctx.beginPath();ctx.arc(x,y,4.2,0,TAU);ctx.fillStyle=q.v>=0?'#2078b8':'#c86f4b';ctx.fill()}
+}
+function renderVelocitySamples(){
+ $('velocityCount').textContent=String(velocitySamples.length);$('velocityRows').replaceChildren();
+ if(!velocitySamples.length)$('velocityRows').innerHTML='<tr><td colspan="4">Sin capturas</td></tr>';
+ velocitySamples.forEach((item,i)=>{const tr=document.createElement('tr');[i+1,fmt(item.t,2),fmt(item.y,2),fmt(item.v,2)].forEach(value=>{const td=document.createElement('td');td.textContent=value;tr.append(td)});$('velocityRows').append(tr)});
+ drawVelocityGraph();
+}
+function velocityQuestionHtml(){
+ if(velocityPromptIndex>=velocityQuestions.length)return '<p>Has completado las preguntas de velocidad instantánea. Repite los experimentos si quieres comprobar los resultados.</p><button id="velocityRepeat">Repetir preguntas</button>';
+ const q=velocityQuestions[velocityPromptIndex];
+ return '<span class="status">Pregunta '+(velocityPromptIndex+1)+' de '+velocityQuestions.length+'</span><div class="question">'+q.question+'</div>'+options(q.answers)+'<button class="primary" id="velocityQuestionCheck">Comprobar respuesta</button>';
+}
+function bindVelocityQuestions(){
+ if(velocityPromptIndex>=velocityQuestions.length){$('velocityRepeat').onclick=()=>{velocityPromptIndex=0;renderStep()};return}
+ $('velocityQuestionCheck').onclick=()=>{const q=velocityQuestions[velocityPromptIndex],v=chosen();if(v<0)return setFeedback('Selecciona una respuesta.',false);if(v!==q.correct)return setFeedback('Observa el vector velocidad y el velocímetro cerca de las posiciones indicadas.',false);
+ velocityAnswers[velocityPromptIndex]=true;velocityPromptIndex++;if(velocityPromptIndex>=velocityQuestions.length)mark();
+ renderStep();setFeedback('Correcto. '+q.explain,true);
+ };
+}
+function xy(e){const r=$('scene').getBoundingClientRect();return {x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
+function line(x,y,x2,y2,col='#9bb4c8',width=1,dash=[]){c.save();c.beginPath();c.setLineDash(dash);c.moveTo(x,y);c.lineTo(x2,y2);c.strokeStyle=col;c.lineWidth=width;c.stroke();c.restore()}
+function label(v,x,y,size=14,color='#45637b',align='left'){c.fillStyle=color;c.font='600 '+size+'px system-ui';c.textAlign=align;c.textBaseline='middle';c.fillText(v,x,y)}
+function rounded(x,y,ww,hh,r,col){c.beginPath();c.roundRect(x,y,ww,hh,r);c.fillStyle=col;c.fill()}
+function drawSpring(bottom){const top=69,lead=15,end=bottom-12,n=12,length=Math.max(50,end-top-lead);
+line(centerX,49,centerX,top,'#668297',3);c.beginPath();c.moveTo(centerX,top);for(let i=0;i<=240;i++){const f=i/240;c.lineTo(centerX+20*Math.sin(f*n*TAU),top+lead+f*length)}c.strokeStyle='#277cbe';c.lineWidth=4;c.lineCap='round';c.lineJoin='round';c.stroke();line(centerX,end,centerX,bottom,'#668297',3)}
+function drawRuler(){const rx=411,A=amp,top=eqY-A,bottom=eqY+A;
+rounded(rx-16,top-12,57,bottom-top+26,6,'#f7eac7');
+const count=Math.floor(A/pixCm);
+for(let j=-count;j<=count;j++){const yy=eqY-j*pixCm,major=j%2===0;line(rx+18-(major?15:8),yy,rx+29,yy,'#987947',major?1.5:1);if(major)label(String(j),rx-8,yy,12,'#6b573b','center')}
+label('cm',rx+7,top-29,13,'#806842','center');
+line(rx-27,eqY,rx+43,eqY,'#b17d43',1.5,[4,3]);label('0 = equilibrio',rx+2,bottom+28,11,'#94764f','center')}
+function drawComparison(){
+ const cv=$('comparisonCanvas');if(!cv)return;
+ const g=cv.getContext('2d'),width=cv.width;
+ g.clearRect(0,0,width,540);g.fillStyle='#f8fbff';g.fillRect(0,0,width,540);
+ for(const q of [
+ {x:165,A:comparison.a,name:'Muelle A',period:comparison.periodA,phase:comparison.phaseA},
+ {x:495,A:comparison.b,name:'Muelle B',period:comparison.periodB,phase:comparison.phaseB}
+ ]){
+  const cy=285-q.A*Math.cos(TAU*compareT/q.period+q.phase),top=53,end=cy-21;
+  g.fillStyle='#42627c';g.font='bold 18px system-ui';g.textAlign='center';g.fillText(q.name,q.x,26);
+  g.fillStyle='#9dafba';g.fillRect(q.x-60,37,120,9);
+  g.beginPath();g.moveTo(q.x,top);
+  for(let n=0;n<=180;n++){const u=n/180;g.lineTo(q.x+14*Math.sin(u*11*TAU),top+u*(end-top))}
+  g.strokeStyle='#227fbc';g.lineWidth=3;g.lineCap='round';g.lineJoin='round';g.stroke();
+  g.fillStyle='#2776b0';g.beginPath();g.roundRect(q.x-27,cy-20,54,40,6);g.fill();
+  g.fillStyle='#fff';g.font='bold 17px system-ui';g.fillText('m',q.x,cy+6);
+ }
+ g.save();g.beginPath();g.setLineDash([8,6]);g.strokeStyle='#b271c2';g.lineWidth=2.4;
+ g.moveTo(45,guideY);g.lineTo(615,guideY);g.stroke();g.setLineDash([]);
+ g.fillStyle='#fff7ff';g.strokeStyle='#b271c2';g.lineWidth=1.6;
+ g.beginPath();g.roundRect(17,guideY-15,29,30,7);g.fill();g.stroke();
+ g.textAlign='center';g.font='bold 17px system-ui';g.fillStyle='#8b509c';g.fillText('↕',31,guideY+6);g.restore();
+}
+function drawPeriodPair(){
+ const cv=$('periodCanvas');if(!cv)return;
+ const ctx=cv.getContext('2d');ctx.clearRect(0,0,660,445);ctx.fillStyle='#f8fbff';ctx.fillRect(0,0,660,445);
+ for(const q of [{x:165,T:periodPair.a,ph:periodPair.phaseA,name:'Muelle A'},{x:495,T:periodPair.b,ph:periodPair.phaseB,name:'Muelle B'}]){
+   const y=232-92*Math.cos(TAU*periodTime/q.T+q.ph),end=y-20;
+   ctx.fillStyle='#49637c';ctx.font='bold 18px system-ui';ctx.textAlign='center';ctx.fillText(q.name,q.x,25);
+   ctx.fillStyle='#92a7b6';ctx.fillRect(q.x-61,37,122,9);
+   ctx.beginPath();ctx.moveTo(q.x,53);
+   for(let n=0;n<=200;n++){const f=n/200;ctx.lineTo(q.x+14*Math.sin(f*11*TAU),53+f*(end-53))}
+   ctx.strokeStyle='#2979b8';ctx.lineWidth=3;ctx.lineJoin='round';ctx.stroke();
+   ctx.fillStyle='#2677b5';ctx.beginPath();ctx.roundRect(q.x-27,y-20,54,40,6);ctx.fill();
+   ctx.fillStyle='white';ctx.font='bold 18px system-ui';ctx.fillText('m',q.x,y+6);
+ }
+}
+function draw(){
+c.clearRect(0,0,W,H);c.fillStyle='#fafdff';c.fillRect(0,0,W,H);
+for(let yy=80;yy<H;yy+=40)line(16,yy,W-15,yy,'#edf2f7');
+rounded(184,29,184,17,3,'#889da9');for(let i=0;i<16;i++)line(187+i*11,29,195+i*11,21,'#8c9fab',1.2);
+const cy=yScreen(),massTop=cy-24;
+if(step>=2||axisPlaced){line(55,eqY,486,eqY,'#8eb7a5',1.6,[7,6]);label('Equilibrio',135,eqY-13,13,'#317761')}
+if(step===1){for(const side of ['top','bottom']){const yy=extrema[side];if(yy===null)continue;const color=side==='top'?'#9b70bb':'#d18c5b';line(112,yy,501,yy,color,2,[7,5]);label(side==='top'?'Extremo superior':'Extremo inferior',498,yy-14,12,color,'right');if(bothExtrema()&&step===1){const val=(axisY-yy)/pixCm;label('y = '+(val>0?'+':'')+fmt(val,1)+' cm',494,yy+13,13,color,'right')}}}
+if(step>=3&&step!==6&&step!==7){line(75,eqY-amp,490,eqY-amp,'#bed3e4',1.3,[6,5]);line(75,eqY+amp,490,eqY+amp,'#bed3e4',1.3,[6,5]);label('+A',472,eqY-amp-11,14,'#467ca9','right');label('−A',472,eqY+amp+12,14,'#467ca9','right')}
+if(step>=2||(step===1&&bothExtrema())){const ax=93;line(ax,630,ax,115,'#455f79',2);c.beginPath();c.moveTo(ax-6,128);c.lineTo(ax,114);c.lineTo(ax+6,128);c.fillStyle='#455f79';c.fill();line(ax-12,axisY,ax+40,axisY,'#315b7d',2);rounded(60,axisY-17,31,34,7,'#2678b6');label('O',76,axisY,14,'white','center');label('+y',ax+12,114,15,'#295a82');label('−y',ax+12,630,15,'#295a82');if(step===1&&!axisPlaced)label('Arrastra O',42,axisY+29,12,'#246eae')}
+if(step>=3&&step!==6&&step!==7)drawRuler();
+if(step===3&&amplitudeCompared)drawComparison();
+drawSpring(massTop);rounded(centerX-34,massTop,68,48,8,'#236ca9');
+label('m',centerX,cy,21,'white','center');
+if(step===7){
+ const acceleration=accelerationCms(),vx=centerX+62,arrow=clamp(acceleration*2.3,-110,110),end=cy-arrow;
+ if(Math.abs(arrow)>3){
+  const dir=Math.sign(arrow),tip=end-dir*12;
+  c.beginPath();c.moveTo(vx-3,cy);c.lineTo(vx-3,end);c.lineTo(vx-8,end);
+  c.lineTo(vx,tip);c.lineTo(vx+8,end);c.lineTo(vx+3,end);c.lineTo(vx+3,cy);c.closePath();
+  c.fillStyle='#17816f';c.fill();
+ }else{c.fillStyle='#17816f';c.beginPath();c.arc(vx,cy,4,0,TAU);c.fill()}
+ rounded(369,87,140,67,10,'#e3f6ee');
+ label('Acelerómetro',439,107,13,'#326858','center');
+ label((acceleration>0?'+':'')+fmt(acceleration,2)+' cm/s²',439,133,15,'#126c5a','center');
+}
+if(step===6){
+ const v=velocityCms(),vx=centerX+62,arrow=clamp(v*8,-102,102),end=cy-arrow;
+ if(Math.abs(arrow)>3){
+  line(vx,cy,vx,end,'#cc6c2b',4);
+  c.fillStyle='#cc6c2b';c.beginPath();c.moveTo(vx,end);c.lineTo(vx-7,end+(arrow>0?12:-12));c.lineTo(vx+7,end+(arrow>0?12:-12));c.closePath();c.fill();
+ }else{c.fillStyle='#cc6c2b';c.beginPath();c.arc(vx,cy,4,0,TAU);c.fill()}
+ rounded(382,87,127,67,10,'#e7f3fd');
+ label('Velocímetro',445,107,13,'#395e7e','center');
+ label((v>0?'+':'')+fmt(v,2)+' cm/s',445,133,17,'#155b92','center');
+}
+if(step>=2){line(centerX+43,eqY,centerX+43,cy,'#d08b3d',2);label('y',centerX+54,(eqY+cy)/2,14,'#a36a30')}
+$('time').textContent=fmt(t)+' s';$('clock').textContent=step>=4?fmt(t)+' s':'—';$('count').textContent=samples.length;
+$('state').textContent=running?'Oscilando':dragMode?'Arrastrando':'Pausado / preparado';
+}
+function stop(){running=false;lastFrame=null;if(raf)cancelAnimationFrame(raf);raf=0;draw()}
+function tick(now){if(!running)return;if(lastFrame!==null)t+=Math.min((now-lastFrame)/1000,.07);lastFrame=now;draw();raf=requestAnimationFrame(tick)}
+function play(){if(running)return;running=true;lastFrame=null;raf=requestAnimationFrame(tick);draw()}
+function resetMotion(){stop();t=0;draw()}
+function setFeedback(msg,ok){const f=$('feedback');f.textContent=msg;f.className='response '+(ok===true?'ok':ok===false?'bad':'')}
+function mark(){passed[step]=true;unlocked=Math.max(unlocked,Math.min(7,step+1));renderNav()}
+function options(items){const data=items.map((text,i)=>({text,i}));for(let i=data.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[data[i],data[j]]=[data[j],data[i]]}return '<div class="answers">'+data.map(item=>'<label><input type="radio" name="answer" value="'+item.i+'"><span>'+item.text+'</span></label>').join('')+'</div>'}
+function chosen(){const el=document.querySelector('input[name=answer]:checked');return el?Number(el.value):-1}
+function answer(correct,explain){const val=chosen();if(val===-1){setFeedback('Selecciona una respuesta antes de comprobar.');return}if(val===correct){mark();setFeedback('Correcto. '+explain,true)}else setFeedback('Revisa tu respuesta. Observa el movimiento y vuelve a intentarlo.',false)}
+function renderNav(){$('steps').replaceChildren();names.forEach((n,i)=>{const b=document.createElement('button');b.textContent=(i+1)+'. '+n;b.disabled=false;b.className=i===step?'active':'';b.setAttribute('aria-current',i===step?'step':'false');b.onclick=()=>go(i);$('steps').append(b)});$('progress').textContent=(step+1)+' / 8';$('next').disabled=step===7;$('previous').disabled=step===0}
+function go(i){if(i<0||i>7)return;compareStop();periodStop();step=i;stop();renderStep()}
+function renderStep(){
+$('stepTitle').textContent=(step+1)+'. '+names[step];$('dataCard').classList.toggle('hidden',step!==5);$('velocityCard').classList.toggle('hidden',step!==6);$('accelCard').classList.toggle('hidden',step!==7);
+$('layout').classList.toggle('capture-mode',step===5||step===6||step===7);
+$('instructionsToggle').setAttribute('aria-expanded',String(step!==5));
+$('instructionsBody').classList.toggle('expanded',step!==5);
+$('instructionsToggle').innerHTML=step===5?'▸ Mostrar instrucciones del ejercicio <span>▾</span>':'▾ Ocultar instrucciones <span>▴</span>';
+let h='';
+if(step===0){h=observationHTML()}
+if(step===1){
+ if(!bothExtrema())h='<p><b>Primero localiza los dos puntos de retorno.</b> En esos instantes la masa está momentáneamente parada (v = 0). Observa el movimiento y pulsa sobre la masa cuando llegue al extremo superior o inferior. Se conservará una línea horizontal punteada.</p><div class="question">Marca los dos extremos, uno arriba y otro abajo. Puedes usar también el botón de marcar, especialmente en el móvil.</div><p id="marksStatus" class="hint">Extremo superior: '+(extrema.top===null?'pendiente':'marcado')+' · Extremo inferior: '+(extrema.bottom===null?'pendiente':'marcado')+'</p><button class="primary" id="markExtreme">Marcar extremo ahora</button><p class="hint">Si no aciertas en el instante exacto, espera al siguiente punto de retorno. Puedes usar la pausa y los pasos pequeños para acercarte al extremo.</p>';
+ else h='<p>Has señalado las dos posiciones en que la masa se detiene momentáneamente. Ahora coloca el sistema de referencia: <b>arrastra el origen O</b> sobre el eje vertical.</p><div class="question">Busca una altura para O tal que las dos líneas punteadas tengan coordenadas de igual valor absoluto y signo opuesto.</div><p class="hint">Las coordenadas en cm se actualizan mientras desplazas el origen. El sentido positivo es hacia arriba.</p><button class="primary" id="check">Comprobar origen</button><button id="repeatExtrema" style="margin-left:8px">Repetir marcas</button>';
+}
+if(step===2){h='<p><b>Elongación:</b> es la posición del objeto medida respecto a su posición de equilibrio. Es una distancia con signo: indica cuánto y hacia qué lado se ha desplazado la masa desde el equilibrio. Se representa mediante <b>y</b>. Con el sentido positivo hacia arriba, vale cero en el equilibrio, es positiva encima y negativa debajo.</p><div class="question">Durante una oscilación completa, ¿qué signos puede tomar la elongación?</div>'+options(['Siempre es positiva.','Siempre es negativa.','Puede ser positiva, nula o negativa.'])+'<button class="primary" id="check">Comprobar</button>'}
+if(step===3){
+ if(!amplitudeCompared)h='<p>La posición de equilibrio se encuentra a igual distancia de los extremos. La <b>amplitud A</b> es la distancia desde el equilibrio hasta cualquiera de ellos.</p><div class="question">¿Qué velocidad tiene el objeto en y = +A y en y = −A?</div>'+options(['En ambos extremos su velocidad es momentáneamente nula.','En +A la velocidad es máxima y en −A es mínima.','En ambos extremos tiene la misma velocidad positiva.'])+'<button id="checkExtremeSpeed">Comprobar</button><div id="measureAmplitude" class="hidden"><div class="question">Utiliza la regla vertical para medir la amplitud de esta oscilación.</div><div class="row"><label for="amplitudeInput">A = </label><input type="number" id="amplitudeInput" min="0" max="20" step=".1" placeholder="cm"><strong>cm</strong><button class="primary" id="check">Comprobar</button></div><p class="hint">La regla está graduada en centímetros. Puedes cambiar la amplitud arrastrando el bloque y observar cómo varía la medida.</p></div>';
+ else h='<p><b>Compara ahora dos oscilaciones diferentes.</b> Observa cuánto se aleja cada masa de su posición de equilibrio.</p><div class="question">¿Cuál de los dos movimientos tiene mayor amplitud?</div><canvas id="comparisonCanvas" width="660" height="540" style="width:100%;height:auto;touch-action:none;cursor:ns-resize;border:1px solid #dae7f1;border-radius:10px;background:#f8fbff" aria-label="Dos muelles con oscilaciones de amplitud, fase y período diferentes"></canvas><div class="controls"><button class="primary" id="comparePlay">▶ Reproducir</button><button id="compareReset">↺ Reiniciar</button></div>'+options(['El movimiento del muelle A','El movimiento del muelle B'])+'<button class="primary" id="checkComparison" style="margin-top:10px">Comprobar comparación</button> <button id="repeatComparison">Otro ejemplo</button><p class="hint">Arrastra la línea violeta por su asa izquierda hasta la altura alcanzada por una de las masas en un extremo. Úsala como referencia para comparar ambos recorridos; sus posiciones extremas no se muestran automáticamente.</p>';
+}
+if(step===4){
+ if(periodPhase===-1)h='<p>Observa el paquete oscilando. En dos pasos consecutivos por el punto de equilibrio ocupa la misma posición, pero ¿lo hace con la misma velocidad?</p><div class="row"><button id="equilibriumStart" class="primary">▶ Observar oscilación</button><button id="crossingOne">Ver primer paso por el equilibrio</button><button id="crossingTwo">Ver siguiente paso</button></div><p class="hint">Los dos botones detienen la imagen en dos cruces consecutivos del equilibrio. Observa de dónde viene el objeto y hacia dónde se dirige.</p><div class="question">En ambos cruces consecutivos por el equilibrio, ¿cómo es la velocidad del paquete?</div>'+options(['Tiene el mismo módulo, pero sentidos opuestos.','Es exactamente la misma velocidad, incluido el sentido.','Es nula en ambos casos.'])+'<button class="primary" id="checkCrossing">Comprobar observación</button>';
+ else if(periodPhase===0)h='<p>El movimiento es periódico: tras un ciclo, el objeto recupera exactamente el mismo estado de movimiento.</p><div class="question">¿Qué condición permite afirmar que ha completado un ciclo?</div>'+options(['Que pasa otra vez por la misma posición, sin importar el sentido.','Que recupera la misma posición y velocidad (módulo y sentido).','Que pasa por la posición de equilibrio.'])+'<button id="cycleCheck">Comprobar concepto</button><hr style="border:0;border-top:1px solid #dce7ef;margin:14px 0"><p>Mide el tiempo de una oscilación completa usando «Reiniciar» y el cronómetro de la escena. Puedes detener o avanzar en pasos de 0,10 s.</p><div class="row"><label for="periodInput">Período T = </label><input type="number" id="periodInput" min=".1" step=".01" placeholder="segundos"><strong>s</strong><button class="primary" id="check">Comprobar período</button></div><p class="hint">Un ciclo completo termina cuando la masa vuelve al mismo extremo en el que comenzó, con la misma velocidad (cero). Otra posibilidad es medir diez ciclos y dividir el tiempo entre diez.</p>';
+ else if(periodPhase===1)h='<p>Ya has medido el período <b>T</b>: el tiempo necesario para completar una oscilación. Ahora introducimos la <b>frecuencia f</b>, el número de oscilaciones completas que se producen en un segundo.</p><div class="question">Como f = 1/T, si el período es de '+fmt(T,2)+' s, ¿cuál es la frecuencia del movimiento?</div><div class="row"><label for="frequencyInput">f = </label><input type="number" id="frequencyInput" min="0" step=".01" placeholder="Hz"><strong>Hz</strong><button class="primary" id="checkFrequency">Comprobar frecuencia</button></div><p class="hint">Recuerda: 1 Hz = 1 ciclo/s. Cuanto menor sea el período, mayor será la frecuencia.</p>';
+ else h='<p><b>Compara dos movimientos armónicos simples.</b> Ambos tienen la misma amplitud, pero períodos diferentes y fases iniciales distintas.</p><div class="question">¿Cuál de los dos movimientos tiene mayor '+(periodPair.kind==='period'?'período':'frecuencia')+'?</div><canvas id="periodCanvas" width="660" height="445" style="width:100%;height:auto;border:1px solid #dae7f1;border-radius:10px;background:#f8fbff" aria-label="Dos muelles oscilando a distinta frecuencia"></canvas><div class="controls"><button class="primary" id="periodPlay">▶ Reproducir</button><button id="periodReset">↺ Reiniciar</button></div>'+options(['El movimiento del muelle A','El movimiento del muelle B'])+'<div class="row" style="margin-top:10px"><button class="primary" id="checkPeriodPair">Comprobar comparación</button><button id="anotherPeriodPair">Otro ejercicio</button></div><p class="hint">Observa varios ciclos. El movimiento con mayor frecuencia completa más oscilaciones por segundo y tiene menor período.</p>';
+}
+if(step===5){h='<p>El movimiento es rectilíneo, pero ¿la elongación varía uniformemente con el tiempo?</p><div class="question">Registra al menos cuatro posiciones en distintos instantes, construye la gráfica y decide si se trata de un movimiento rectilíneo uniforme.</div>'+options(['Sí, porque describe una línea recta en el espacio.','No: la elongación no varía linealmente con el tiempo y la velocidad cambia.'])+'<button class="primary" id="check">Comprobar conclusión</button><p class="hint">Utiliza «Capturar posición» bajo la escena y observa la gráfica creada a partir de los datos. Este bloque prepara la investigación posterior de velocidad y aceleración.</p>'}
+if(step===6){h='<p>Observa el vector velocidad y el velocímetro de la escena. Captura tantos instantes como quieras para reconstruir la gráfica velocidad-tiempo y estudiar cómo cambia el módulo y el signo.</p><p class="hint">Usa los botones de reproducción y avance/retroceso de la animación. También puedes ir a situaciones concretas con los botones del cuaderno.</p>'+velocityQuestionHtml()}
+if(step===7){h='<p>Investiga la aceleración de la masa en el MAS. El vector verde indica la aceleración de la masa y el acelerómetro muestra su valor con signo. Compara el peso con la fuerza elástica: la <b>fuerza resultante</b> determina la aceleración.</p><p class="hint">Captura cuantos instantes quieras para reconstruir la gráfica a-t; las preguntas sobre la fuerza recuperadora y su módulo pueden responderse en cualquier momento.</p>'+accelerationQuestionHtml()}
+$('stepBody').innerHTML=h;renderNav();setFeedback(passed[step]?'Etapa completada. Puedes continuar o repetir la experiencia.':'Realiza la actividad y comprueba tu respuesta.');
+if(step===0)bindObservation();
+if(step===1){
+ if(!bothExtrema())$('markExtreme').onclick=markExtremum;
+ else {
+ $('check').onclick=()=>{const middle=(extrema.top+extrema.bottom)/2;const a=Math.abs(axisY-extrema.top),b=Math.abs(axisY-extrema.bottom);if(Math.abs(a-b)<12&&Math.abs(axisY-middle)<8){axisY=middle;axisPlaced=true;mark();setFeedback('Correcto. Los extremos son equidistantes del origen, con coordenadas opuestas: +'+fmt((axisY-extrema.top)/pixCm,1)+' cm y −'+fmt((extrema.bottom-axisY)/pixCm,1)+' cm. Este origen es el equilibrio.',true)}else setFeedback('Las dos distancias todavía no son iguales. Arrastra O hasta que las coordenadas sean opuestas y tengan igual módulo.',false);draw()};
+ $('repeatExtrema').onclick=()=>{invalidateExtrema();renderStep();play()};
+ }
+}
+if(step===2)$('check').onclick=()=>answer(2,'Con origen en equilibrio y eje positivo hacia arriba, y es positiva por encima, negativa por debajo y cero en el equilibrio.');
+if(step===3){
+ if(!amplitudeCompared){$('checkExtremeSpeed').onclick=()=>{if(chosen()===0){$('measureAmplitude').classList.remove('hidden');setFeedback('Correcto: el objeto se detiene un instante en ambos extremos y cambia de sentido.',true)}else setFeedback('Observa la masa en sus dos puntos de retorno. ¿Se detiene brevemente allí?',false)};$('check').onclick=()=>{const e=$('amplitudeInput');if(!e.value)return setFeedback('Introduce una medida en centímetros.');const v=Number(e.value.replace(',','.'));if(Math.abs(v-amp/pixCm)<=.25){amplitudeCompared=true;newComparison();renderStep();setFeedback('Correcto. La amplitud es '+fmt(amp/pixCm,1)+' cm. Ahora compara las amplitudes de dos movimientos.',true)}else setFeedback('Revisa qué distancia mide la amplitud: no es el recorrido completo entre los dos extremos.',false)};}
+ else{
+  $('comparePlay').onclick=()=>{if(compareRunning)compareStop();else comparePlay()};
+  const guideCanvas=$('comparisonCanvas');
+  function guidePosition(ev){const box=guideCanvas.getBoundingClientRect();return (ev.clientY-box.top)*guideCanvas.height/box.height}
+  guideCanvas.onpointerdown=ev=>{const y=guidePosition(ev);if(Math.abs(y-guideY)>40&&ev.offsetX>90)return;guideDrag=true;guideCanvas.setPointerCapture(ev.pointerId);guideY=clamp(y,82,490);drawComparison();ev.preventDefault()};
+  guideCanvas.onpointermove=ev=>{if(!guideDrag)return;guideY=clamp(guidePosition(ev),82,490);drawComparison();ev.preventDefault()};
+  guideCanvas.onpointerup=()=>{guideDrag=false};
+  guideCanvas.onpointercancel=()=>{guideDrag=false};
+  $('compareReset').onclick=compareReset;
+  compareControls();comparePlay();
+  $('checkComparison').onclick=()=>{const v=chosen();if(v<0)return setFeedback('Selecciona uno de los movimientos.');if(v===comparison.correct){mark();setFeedback('Correcto. La mayor amplitud corresponde al movimiento cuyo extremo está más alejado del equilibrio.',true)}else setFeedback('Revisa los extremos alcanzados por cada objeto. No basta con comparar sus posiciones en un instante.',false)};
+  $('repeatComparison').onclick=()=>{compareStop();newComparison();renderStep();setFeedback('Nuevo par de oscilaciones: observa sus amplitudes y elige la mayor.')};
+ }
+}
+if(step===4){
+ if(periodPhase===-1){
+  $('equilibriumStart').onclick=()=>{resetMotion();play();setFeedback('Observa los pasos sucesivos por el equilibrio. Después congela los dos instantes.',true)};
+  $('crossingOne').onclick=()=>{stop();sign=1;t=T/4;firstCrossing=true;draw();setFeedback('Primer paso: el paquete está en equilibrio y desciende.')};
+  $('crossingTwo').onclick=()=>{stop();sign=1;t=3*T/4;secondCrossing=true;draw();setFeedback('Segundo paso consecutivo: está de nuevo en equilibrio, pero asciende.')};
+  $('checkCrossing').onclick=()=>{if(!firstCrossing||!secondCrossing)return setFeedback('Observa primero ambos pasos consecutivos por el equilibrio.',false);if(chosen()===0){periodPhase=0;renderStep();setFeedback('Correcto: misma rapidez (módulo), pero velocidades de sentido contrario.',true)}else setFeedback('Piensa en la diferencia entre rapidez y velocidad: ambas pueden tener igual módulo, pero sentido contrario.',false)};
+ }else if(periodPhase===0){
+  $('cycleCheck').onclick=()=>{if(chosen()===1){periodConceptDone=true;setFeedback('Correcto: una vuelta completa exige recuperar posición y velocidad, incluido el sentido.',true)}else setFeedback('Para completar un ciclo debe repetirse el estado: misma posición y misma velocidad.',false)};
+  $('check').onclick=()=>{const e=$('periodInput');if(!periodConceptDone)return setFeedback('Primero comprueba qué significa completar un ciclo.',false);if(!e.value)return setFeedback('Introduce tu medida del período.');const v=Number(e.value.replace(',','.'));if(Math.abs(v-T)<=.25){periodPhase=1;renderStep();setFeedback('Correcto. El período es aproximadamente '+fmt(T,2)+' s. Ahora calcula la frecuencia.',true)}else setFeedback('Reinicia la oscilación y mide hasta recuperar el estado inicial.',false)};
+ }else if(periodPhase===1){
+  $('checkFrequency').onclick=()=>{const e=$('frequencyInput');if(!e.value)return setFeedback('Introduce la frecuencia en Hz.');const v=Number(e.value.replace(',','.'));if(Math.abs(v-1/T)<=.035){periodPhase=2;newPeriodPair();renderStep();setFeedback('Correcto: f = 1/T = '+fmt(1/T,3)+' Hz. Ahora compara dos movimientos.',true)}else setFeedback('Recuerda que f=1/T y que la unidad es Hz (ciclos por segundo).',false)};
+ }else{
+  $('periodPlay').onclick=()=>{if(periodRunning)periodStop();else periodPlay()};
+  $('periodReset').onclick=periodReset;
+  $('checkPeriodPair').onclick=()=>{const v=chosen();if(v<0)return setFeedback('Elige uno de los dos muelles.');if(v===periodPair.correct){periodPairDone=true;mark();setFeedback('Correcto. Mayor frecuencia equivale a menor período. Has completado la investigación del período y la frecuencia.',true)}else setFeedback('Observa varios ciclos y compara cuál tarda más en completar una oscilación.',false)};
+  $('anotherPeriodPair').onclick=()=>{periodStop();newPeriodPair();renderStep();setFeedback('Nuevo ejercicio: observa los movimientos y decide cuál tiene mayor '+(periodPair.kind==='period'?'período.':'frecuencia.'))};
+  drawPeriodPair();periodControls();periodPlay();
+ }
+}
+if(step===5)$('check').onclick=()=>{if(samples.length<4)return setFeedback('Necesitas al menos cuatro capturas en distintos instantes para contrastar tu conclusión.',false);answer(1,'Aunque la trayectoria es rectilínea, la elongación no sigue una función lineal del tiempo. La velocidad cambia.')};
+if(step===6){stop();sign=1;bindVelocityQuestions();renderVelocitySamples()}
+if(step===7){stop();sign=1;bindAccelerationQuestions();renderAccelerationSamples()}
+draw();plot();
+}
+const scene=$('scene');
+scene.addEventListener('pointerdown',e=>{
+ const p=xy(e);
+ if(step===1&&bothExtrema()&&Math.abs(p.x-76)<43&&Math.abs(p.y-axisY)<38){dragMode='axis';scene.setPointerCapture(e.pointerId);e.preventDefault();return}
+ if(step===6||step===7)return;
+ if(Math.abs(p.x-centerX)<58&&Math.abs(p.y-yScreen())<48){
+  if(step===1&&!bothExtrema()&&running){markExtremum();e.preventDefault();return}
+  if(step===1&&extrema.top!==null||step===1&&extrema.bottom!==null){setFeedback('Para conservar las marcas, termina primero esta etapa o pulsa «Repetir marcas».');return}
+  stop();dragMode='mass';scene.setPointerCapture(e.pointerId);e.preventDefault();
+ }
+});
+scene.addEventListener('pointermove',e=>{
+ if(!dragMode)return;const p=xy(e);
+ if(dragMode==='axis'){axisY=clamp(p.y,190,590);axisPlaced=false}
+ else{amp=clamp(Math.abs(eqY-p.y),40,170);sign=p.y<=eqY?1:-1;t=0;observed=true}
+ draw();e.preventDefault()
+});
+const release=()=>{if(dragMode==='mass'){dragMode='';play()}else if(dragMode==='axis'){dragMode='';draw()}};
+scene.addEventListener('pointerup',release);scene.addEventListener('pointercancel',release);
+$('play').onclick=play;$('pause').onclick=stop;$('back').onclick=()=>{stop();t=Math.max(0,t-.1);draw()};$('forward').onclick=()=>{stop();t+=.1;draw()};$('reset').onclick=resetMotion;
+$('previous').onclick=()=>go(step-1);$('next').onclick=()=>go(step+1);
+function plot(){const cv=$('graph'),g=cv.getContext('2d'),ww=cv.width,hh=cv.height;g.clearRect(0,0,ww,hh);g.fillStyle='#fff';g.fillRect(0,0,ww,hh);const left=75,right=ww-25,top=24,bottom=hh-47;const maxT=Math.max(4,...samples.map(x=>x.t)),range=Math.max(9,amp/pixCm+1);g.strokeStyle='#bacddd';g.lineWidth=1.5;g.beginPath();g.moveTo(left,top);g.lineTo(left,bottom);g.lineTo(right,bottom);g.stroke();g.setLineDash([5,5]);g.beginPath();g.moveTo(left,(top+bottom)/2);g.lineTo(right,(top+bottom)/2);g.stroke();g.setLineDash([]);g.fillStyle='#587286';g.font='14px system-ui';g.fillText('y (cm)',11,21);g.fillText('t (s)',right-28,bottom+30);for(let i=0;i<=4;i++){const xx=left+i*(right-left)/4;g.fillText(fmt(maxT*i/4,1),xx-12,bottom+21)}for(const it of samples){const xx=left+it.t/maxT*(right-left),yy=(top+bottom)/2-it.y/range*(bottom-top)/2;g.beginPath();g.arc(xx,yy,5,0,TAU);g.fillStyle='#1875b8';g.fill()}}
+function renderTable(){$('tableCount').textContent=String(samples.length);$('rows').replaceChildren();if(!samples.length){$('rows').innerHTML='<tr><td colspan="3">Sin mediciones</td></tr>'}else samples.forEach((a,i)=>{const tr=document.createElement('tr');[i+1,fmt(a.t),fmt(a.y)].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});$('rows').append(tr)});draw();plot()}
+$('capture').onclick=()=>{if(step!==5)return;if(samples.some(s=>Math.abs(s.t-t)<.015)){setFeedback('Ya has registrado este instante. Avanza o retrocede antes de capturar otro.');return}samples.push({t:t,y:yCm()});samples.sort((a,b)=>a.t-b.t);renderTable();setFeedback('Captura registrada. Compara la posición con el tiempo y continúa tomando medidas.',true)};
+$('clear').onclick=()=>{samples=[];renderTable();setFeedback('Se han borrado las capturas.')};
+$('velocityCapture').onclick=()=>{
+ if(step!==6)return;
+ velocitySamples.push({t,y:yCm(),v:velocityCms()});
+ velocitySamples.sort((a,b)=>a.t-b.t);
+ renderVelocitySamples();
+ setFeedback('Velocidad capturada: '+fmt(velocityCms(),2)+' cm/s. Observa el nuevo punto en la gráfica v-t.',true);
+};
+$('velocityClear').onclick=()=>{velocitySamples=[];velocityPromptIndex=0;velocityAnswers=[false,false,false];renderStep();setFeedback('Se han borrado las capturas de velocidad.')};
+$('velocityTop').onclick=()=>velocityGuide(0);
+$('velocityDown').onclick=()=>velocityGuide(1);
+$('velocityBottom').onclick=()=>velocityGuide(2);
+$('velocityUp').onclick=()=>velocityGuide(3);
+$('accelCapture').onclick=()=>{
+ if(step!==7)return;
+ accelerationSamples.push({t,y:yCm(),a:accelerationCms()});
+ accelerationSamples.sort((a,b)=>a.t-b.t);
+ renderAccelerationSamples();
+ setFeedback('Aceleración capturada: '+fmt(accelerationCms(),2)+' cm/s². Observa el nuevo punto en la gráfica a-t.',true);
+};
+$('accelClear').onclick=()=>{accelerationSamples=[];accelerationQuestionIndex=0;renderStep();setFeedback('Se han borrado las capturas de aceleración.')};
+$('accelTop').onclick=()=>accelerationGuide(0);
+$('accelDown').onclick=()=>accelerationGuide(1);
+$('accelBottom').onclick=()=>accelerationGuide(2);
+$('accelUp').onclick=()=>accelerationGuide(3);
+$('instructionsToggle').onclick=()=>{
+ const opened=$('instructionsBody').classList.toggle('expanded');
+ $('instructionsToggle').setAttribute('aria-expanded',String(opened));
+ $('instructionsToggle').innerHTML=opened?'▾ Ocultar instrucciones <span>▴</span>':'▸ Mostrar instrucciones del ejercicio <span>▾</span>';
+};
+renderStep();draw();plot();
+})();
+</script></body></html>

@@ -1,13 +1,24 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Iconos · IES El Majuelo</title>
-<style>body{margin:0;background:#f4f7fb;color:#123047;font:16px system-ui,Arial,sans-serif}header{background:#123d69;color:white;padding:2.4rem max(1rem,calc((100vw - 1050px)/2))}main{max-width:1050px;margin:auto;padding:2rem 1rem}h1{margin:.1rem 0}p{line-height:1.5}input{border:1px solid #c6d4e0;border-radius:10px;padding:.8rem;width:min(100%,360px);font:inherit}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1rem;margin-top:1.4rem}.card{background:white;padding:1rem;border-radius:14px;box-shadow:0 2px 10px #123d6915}.card img{width:100%;aspect-ratio:1;object-fit:contain}.card h2{font-size:1rem}.card p{color:#536a7b;font-size:.85rem}.card a{color:#125787}small{color:#64748b}</style></head>
+<style>body{margin:0;background:#f4f7fb;color:#123047;font:16px system-ui,Arial,sans-serif}header{background:#123d69;color:white;padding:2.4rem max(1rem,calc((100vw - 1050px)/2))}main{max-width:1050px;margin:auto;padding:2rem 1rem}h1{margin:.1rem 0}p{line-height:1.5}input,select{box-sizing:border-box;border:1px solid #c6d4e0;border-radius:10px;padding:.8rem;width:min(100%,360px);font:inherit}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1rem;margin-top:1.4rem}.card{background:white;padding:1rem;border-radius:14px;box-shadow:0 2px 10px #123d6915}.card img{width:100%;aspect-ratio:1;object-fit:contain}.card h2{font-size:1rem}.card p{color:#536a7b;font-size:.85rem}.card a{color:#125787}small{color:#64748b}</style></head>
 <body><header><h1>Biblioteca de iconos</h1><p>IES El Majuelo · Recursos gráficos institucionales</p></header>
 <main><label for="buscar">Buscar iconos</label> <input id="buscar" placeholder="Concepto o categoría…" autocomplete="off">
+<p><label for="orden">Ordenar por</label> <select id="orden"><option value="nombre-asc">Nombre: A–Z</option><option value="nombre-desc">Nombre: Z–A</option><option value="fecha-desc">Fecha de guardado: más recientes</option><option value="fecha-asc">Fecha de guardado: más antiguos</option></select></p>
 <p id="estado" role="status">Cargando catálogo…</p><div id="grid" class="grid"></div></main>
 <script>
 let iconos=[];
-const grid=document.querySelector('#grid'),estado=document.querySelector('#estado'),buscar=document.querySelector('#buscar');
+const grid=document.querySelector('#grid'),estado=document.querySelector('#estado'),buscar=document.querySelector('#buscar'),orden=document.querySelector('#orden');
+const compararNombre=(a,b)=>a.nombre.localeCompare(b.nombre,'es',{sensitivity:'base',numeric:true});
+function comparar(a,b){
+ if(orden.value.startsWith('fecha-')){
+  const fa=Date.parse(a.fecha_guardado),fb=Date.parse(b.fecha_guardado);
+  if(!Number.isFinite(fa))return Number.isFinite(fb)?1:compararNombre(a,b);
+  if(!Number.isFinite(fb))return -1;
+  return (orden.value==='fecha-desc'?fb-fa:fa-fb)||compararNombre(a,b);
+ }
+ return (orden.value==='nombre-desc'?-1:1)*compararNombre(a,b);
+}
 const normalizar=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 function pintar(){
  const q=normalizar(buscar.value).trim(),palabras=q.split(/\s+/).filter(Boolean);
@@ -15,7 +26,7 @@ function pintar(){
  const lista=iconos.filter(x=>{
   const texto=normalizar([x.nombre,x.categoria,x.descripcion,x.id,x.archivo,'icono iconos'].join(' '));
   return palabras.every(p=>texto.includes(p));
- });
+ }).sort(comparar);
  estado.textContent=lista.length+' de '+iconos.length+' iconos registrados';
  for(const x of lista){
   const card=document.createElement('article');card.className='card';
@@ -28,7 +39,8 @@ function pintar(){
  }
 }
 buscar.addEventListener('input',pintar);
-fetch('./catalogo.json?v=20261014-1',{cache:'no-store'})
+orden.addEventListener('change',pintar);
+fetch('./catalogo.json?v=20261105-1',{cache:'no-store'})
 .then(r=>{if(!r.ok)throw Error('Error HTTP '+r.status+' al cargar el catálogo');return r.json()})
 .then(d=>{iconos=(d.iconos||[]).filter(x=>x.estado==='aprobado');pintar()})
 .catch(e=>{estado.textContent='No se pudo cargar el catálogo: '+e.message;});

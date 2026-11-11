@@ -1,0 +1,70 @@
+---
+title: "Dinámica y energía"
+---
+
+# Dinámica y energía del MAS
+
+## Fuerza recuperadora
+
+La segunda ley de Newton y la condición del MAS permiten escribir
+
+$$F=ma=-m\omega^2x.$$
+
+El signo negativo expresa que la fuerza apunta al equilibrio. Para un muelle ideal que cumple la ley de Hooke,
+
+$$F=-Kx,\qquad K=m\omega^2.$$
+
+Usaremos $K$ para la constante elástica, en $\mathrm{N\,m^{-1}}$, y reservaremos $k$ para el número de onda.
+
+$$\boxed{\omega=\sqrt{\frac K m}},\qquad
+\boxed{T=2\pi\sqrt{\frac m K}}.$$
+
+Una masa mayor oscila más lentamente; un muelle más rígido oscila más deprisa. En el modelo ideal el período no depende de la amplitud. La masa del muelle se considera despreciable y se ignora el rozamiento.
+
+## Energía cinética
+
+Con $x=A\sin(\omega t+\varphi_0)$:
+
+$$E_c=\frac12mv_x^2=\frac12mA^2\omega^2\cos^2(\omega t+\varphi_0).$$
+
+Como $K=m\omega^2$, también resulta
+
+$$\boxed{E_c=\frac12K(A^2-x^2)}.$$
+
+Es máxima al pasar por el equilibrio y nula en los extremos.
+
+## Energía potencial elástica
+
+La fuerza elástica ideal es conservativa. Elegimos $E_p(0)=0$ e integramos:
+
+$$E_p(x)-E_p(0)=-\int_0^x(-K\xi)\,d\xi=\frac12Kx^2.$$
+
+Por tanto,
+
+$$\boxed{E_p=\frac12Kx^2}=\frac12KA^2\sin^2(\omega t+\varphi_0).$$
+
+Es nula en el equilibrio y máxima en ambos extremos. La variable $\xi$ de la integral es una variable auxiliar de integración.
+
+## Conservación de la energía mecánica
+
+Si no hay disipación:
+
+$$\boxed{E_m=E_c+E_p=\frac12KA^2=\frac12m\omega^2A^2}.$$
+
+La energía mecánica se mantiene constante mientras se transforma energía cinética en potencial y viceversa. Duplicar la amplitud multiplica la energía por cuatro. Las energías cinética y potencial se repiten cada $T/2$.
+
+![Energías del oscilador en función de la elongación.](images/energia.svg)
+
+| Situación | $E_c$ | $E_p$ |
+|---|---|---|
+| Equilibrio, $x=0$ | $E_m$ | $0$ |
+| Extremos, $x=\pm A$ | $0$ | $E_m$ |
+| $|x|=A/\sqrt2$ | $E_m/2$ | $E_m/2$ |
+
+::: {.callout-tip title="Ejemplo resuelto"}
+Una masa de $0{,}20\,\mathrm{kg}$ unida a un muelle de $K=80\,\mathrm{N\,m^{-1}}$ oscila con amplitud $0{,}10\,\mathrm m$:
+
+$$\omega=20\,\mathrm{rad\,s^{-1}},\quad T=\frac{\pi}{10}\,\mathrm s,\quad E_m=0{,}40\,\mathrm J.$$
+
+En $x=0{,}060\,\mathrm m$, $E_p=0{,}144\,\mathrm J$ y $E_c=0{,}256\,\mathrm J$. Su rapidez es $\sqrt{2E_c/m}=1{,}60\,\mathrm{m\,s^{-1}}$.
+:::

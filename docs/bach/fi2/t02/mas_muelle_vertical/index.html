@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Movimiento armónico simple · Muelle vertical</title>
+<style>
+:root{--ink:#182a3b;--muted:#65778b;--line:#dbe5ee;--paper:#fff;--page:#f1f5f9;--teal:#116a73;--teal-light:#e8f6f5;--blue:#2563eb;--orange:#d26916;--pink:#a24ac4;--radius:17px}
+*{box-sizing:border-box}html{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--page)}body{margin:0}button,select,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #7daae9;outline-offset:2px}
+.app{max-width:1510px;margin:0 auto;padding:20px 22px 30px}.intro{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap}.eyebrow{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--teal);font-weight:800}.intro h1{font-size:clamp(25px,2.6vw,34px);letter-spacing:-.04em;line-height:1.13;margin:4px 0 6px}.intro p{font-size:14px;color:var(--muted);margin:0;line-height:1.5}.physics-meta{display:flex;gap:8px;flex-wrap:wrap}.chip{background:white;border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:13px;color:var(--muted);white-space:nowrap}.chip strong{color:var(--ink);font-variant-numeric:tabular-nums}.workspace{display:grid;grid-template-columns:minmax(0,1fr) 326px;gap:16px;align-items:start}.left{min-width:0}.panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 5px 20px #22374a0a;overflow:hidden}.panel-header{padding:16px 19px 0;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}.panel-header h2,.graph-head h2{font-size:16px;letter-spacing:-.02em;margin:0}.state{font-size:12px;font-weight:700;border-radius:100px;padding:5px 11px;background:#e8f6f5;color:#17626b}.state.playing{background:#eaf0ff;color:#2859ae}.stage-wrap{position:relative;max-width:785px;margin:0 auto}.stage{width:100%;height:auto;display:block;aspect-ratio:760 / 620;touch-action:pan-y}.mass{cursor:grab;touch-action:none}.mass.dragging{cursor:grabbing}.stage-note{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);white-space:nowrap;background:#f9fbfded;color:#718195;border:1px solid #e1e7ed;padding:5px 10px;border-radius:20px;font-size:11px;pointer-events:none}.readings{border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;padding:12px 17px}.reading{border-radius:9px;background:#f4f8fb;padding:9px 12px;font-size:12px;color:var(--muted);flex:1;min-width:120px}.reading strong{font-size:17px;font-weight:750;display:block;color:var(--ink);margin-top:2px;font-variant-numeric:tabular-nums}.reading.blue strong{color:var(--blue)}.reading.orange strong{color:var(--orange)}.reading[hidden]{display:none}.timeline{padding:0 19px 17px;display:grid;grid-template-columns:90px 1fr 80px;gap:12px;align-items:center;font-size:12px;color:var(--muted)}input[type=range]{accent-color:var(--teal);width:100%;cursor:pointer;touch-action:pan-x}.timeline output{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink);font-weight:700}
+.sidebar{display:flex;flex-direction:column;gap:13px}.controls{padding:16px}.controls h2{font-size:15px;margin:0 0 12px;letter-spacing:-.02em}.button-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.button-grid button{min-height:39px;border:1px solid #cbd8e3;background:#fff;color:#263d50;border-radius:9px;font-size:12px;font-weight:700;padding:7px 5px;white-space:nowrap}.button-grid button:hover{background:#eaf4f5;border-color:#80b8bd}.button-grid button.primary{background:var(--teal);border-color:var(--teal);color:#fff}.button-grid button.primary:hover{background:#085660}.button-grid button:disabled{opacity:.45;cursor:not-allowed}.speed-button{width:100%;margin-top:9px;padding:10px 12px;border:1px solid #b7cdd4;background:#f7fbfc;color:#205a69;border-radius:10px;font-size:12px;font-weight:750;transition:background .12s ease}.speed-button:hover{background:#e9f5f6}.speed-button.is-active{background:#d9f2f0;border-color:#3b969a;color:#095b62;box-shadow:inset 0 0 0 1px #3b969a}.sec+.sec{border-top:1px solid var(--line);padding-top:15px;margin-top:15px}.subtle{color:var(--muted);font-size:12px;line-height:1.45;margin:9px 0 0}.choice{display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.35;cursor:pointer;margin:10px 0;color:#314359}.choice input{accent-color:var(--teal);width:16px;height:16px;margin:1px 0 0;flex:0 0 auto}.choice.disabled{opacity:.5}.subchoice{padding-left:25px;margin-top:-2px}.selector-label{display:block;font-weight:750;font-size:12px;margin-top:12px;margin-bottom:6px;color:var(--ink)}select{padding:10px 11px;width:100%;border:1px solid #cddce5;border-radius:9px;background:white;color:var(--ink);font-size:12px}.focus-block{background:#f2f8f8;border:1px solid #d7ebec;border-radius:12px;margin-top:10px;padding:0 11px 11px}.focus-block[hidden]{display:none}.focus-actions{display:flex;gap:7px;margin-top:10px}.focus-actions button{border:1px solid #9acbce;background:white;color:#175e66;font-size:11px;border-radius:8px;flex:1;padding:9px 6px;font-weight:700}.focus-message{font-size:12px;line-height:1.5;color:#37626c;margin:10px 0 0;min-height:32px}.formula{margin-top:11px;background:#f4f7f9;border-radius:9px;padding:10px;font-size:12px;line-height:1.6;color:var(--muted)}.formula b{color:var(--ink)}
+.graphs{margin-top:15px}.graph-head{display:flex;justify-content:space-between;align-items:center;padding:16px 19px 8px;gap:12px;flex-wrap:wrap}.graph-head small{color:var(--muted)}.graph-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:0 14px 14px}.plot-card{border:1px solid var(--line);border-radius:12px;overflow:hidden;min-width:0}.plot-card[hidden]{display:none}.plot-card h3{margin:11px 12px 1px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:4px}.plot-card h3 em{font-weight:600;font-style:normal;color:#8492a2;font-size:11px}.plot-canvas{display:block;width:100%;height:166px}.merged-plot{grid-column:1/-1}.merged-plot h3{flex-wrap:wrap;padding:0 2px}.merged-plot h3 em{font-size:11px}.overlay-canvas{height:252px}.overlay-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 22px;padding:7px 12px 15px;border-top:1px solid #edf2f5}.overlay-legend-item{display:flex;gap:7px;align-items:center;font-size:12px;color:#566679}.overlay-legend-item strong{color:#1e3345;font-weight:750;font-variant-numeric:tabular-nums}.legend-line{width:18px;height:0;border-top:3px solid;display:inline-block;border-radius:4px}.legend-line.teal{border-color:#13858e}.legend-line.blue{border-color:#2563eb}.legend-line.orange{border-color:#d26916}.empty-plots{padding:25px 15px;color:var(--muted);font-size:13px;text-align:center;line-height:1.5}.empty-plots[hidden]{display:none}.footnote{font-size:12px;line-height:1.6;color:var(--muted);margin:13px 2px 0}.note-strong{font-weight:700;color:#395268}
+@media(max-width:1120px){.workspace{grid-template-columns:minmax(0,1fr) 295px}.stage-note{font-size:10px}.graph-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){.app{padding:13px}.workspace{grid-template-columns:1fr}.sidebar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.sidebar .controls:first-child{grid-row:span 2}.graph-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:550px){.intro h1{font-size:26px}.sidebar{display:flex}.graph-grid{grid-template-columns:1fr}.stage-note{bottom:0;font-size:9px;max-width:95%;white-space:normal;text-align:center}.timeline{grid-template-columns:68px 1fr 56px;padding:2px 12px 15px;gap:8px}.readings{padding:8px;gap:6px}.reading{padding:8px;min-width:100px}.reading strong{font-size:15px}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="intro">
+    <div><div class="eyebrow">Laboratorio de física · Simulación interactiva</div><h1>Movimiento armónico simple</h1><p>Muelle vertical · oscilaciones respecto a la posición de equilibrio</p></div>
+    <div class="physics-meta" aria-label="Parámetros del sistema"><div class="chip">Amplitud <strong id="amplitudeChip">0,50 m</strong></div><div class="chip">Período <strong id="periodChip">3,14 s</strong></div><div class="chip">Masa <strong>1,00 kg</strong></div><div class="chip">Constante elástica <strong>4,00 N/m</strong></div></div>
+  </header>
+  <div class="workspace">
+    <div class="left">
+      <section class="panel" aria-label="Simulación del muelle">
+        <div class="panel-header"><h2>Oscilador vertical</h2><span class="state" id="stateLabel">En pausa</span></div>
+        <div class="stage-wrap">
+          <svg id="scene" class="stage" viewBox="0 0 760 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Muelle vertical unido a un bloque. El bloque se puede arrastrar para variar la amplitud.">
+            <defs>
+              <linearGradient id="bodyGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6d9aa8"/><stop offset="1" stop-color="#285768"/></linearGradient>
+              <linearGradient id="upperBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f8fbfd"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
+            </defs>
+            <rect x="12" y="10" width="736" height="591" rx="18" fill="url(#upperBg)" stroke="#e5edf2"/>
+            <g id="referenceLayer"><text x="78" y="70" fill="#617185" font-size="16" font-weight="750">y (m)</text><line x1="154" y1="128" x2="154" y2="558" stroke="#667f90" stroke-width="2"/><path d="M148 136 L154 122 L160 136" stroke="#667f90" stroke-width="2.2" fill="none"/><g id="rulerTicks"></g><line x1="154" y1="347" x2="550" y2="347" stroke="#249297" stroke-width="1.5" stroke-dasharray="7 7" opacity="0.7"/><text x="175" y="338" fill="#11848b" font-size="14" font-weight="750">Equilibrio · y = 0</text></g>
+            <g id="focusGuide" visibility="hidden"><line id="guideLine" x1="190" y1="347" x2="546" y2="347" stroke="#a24ac4" stroke-width="2" stroke-dasharray="5 6" opacity="0.8"/><text id="guideLabel" x="197" y="335" font-size="14" fill="#a24ac4" font-weight="750"></text></g>
+            <g><path d="M339 85 H554" stroke="#637887" stroke-width="13" stroke-linecap="round"/><path d="M343 72 V91 M361 72 V91 M379 72 V91 M397 72 V91 M415 72 V91 M433 72 V91 M451 72 V91 M469 72 V91 M487 72 V91 M505 72 V91 M523 72 V91 M541 72 V91" stroke="#a2b2bd" stroke-width="2"/><line x1="445" y1="90" x2="445" y2="106" stroke="#586e7e" stroke-width="6" stroke-linecap="round"/></g>
+            <path id="springShadow" d="" fill="none" stroke="#c2d6da" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity=".4"/>
+            <path id="springPath" d="" fill="none" stroke="#356c7c" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+            <g id="massGroup" class="mass" tabindex="0" role="slider" aria-label="Posición inicial del bloque, arrastrable" aria-valuemin="-0.8" aria-valuemax="0.8" aria-valuenow="-0.5">
+              <rect x="-58" y="-35" width="116" height="70" rx="13" fill="url(#bodyGradient)" stroke="#265160" stroke-width="2"/>
+              <path d="M-43 -24 H43" stroke="#ffffff" stroke-width="2" opacity=".26"/>
+              <text text-anchor="middle" y="8" fill="white" font-size="26" font-weight="750">m</text>
+            </g>
+            <g id="velocityLayer" visibility="hidden"><line id="velocityArrow" x1="575" x2="575" stroke="#2563eb" stroke-width="5.5" stroke-linecap="round"/><polygon id="velocityHead" fill="#2563eb" visibility="hidden"/><text id="velocityCaption" x="585" y="0" font-size="15" font-weight="750" fill="#2563eb">v</text><text id="velocityValue" x="585" y="0" font-size="12" fill="#2563eb" visibility="hidden"></text></g>
+            <g id="accelerationLayer" visibility="hidden"><line id="accelerationArrow" x1="674" x2="674" stroke="#d26916" stroke-width="5.5" stroke-linecap="round"/><polygon id="accelerationHead" fill="#d26916" visibility="hidden"/><text id="accelerationCaption" x="684" y="0" font-size="15" font-weight="750" fill="#d26916">a</text><text id="accelerationValue" x="684" y="0" font-size="12" fill="#d26916" visibility="hidden"></text></g>
+          </svg>
+          <div class="stage-note">Arrastra el bloque y suéltalo para iniciar una nueva oscilación</div>
+        </div>
+        <div class="readings" aria-live="off">
+          <div class="reading">Tiempo <strong id="clockReading">0,00 s</strong></div>
+          <div class="reading">Elongación, y <strong id="positionReading">−0,50 m</strong></div>
+          <div class="reading blue" id="velocityReadingBox" hidden>Velocidad, v <strong id="velocityReading">+0,00 m/s</strong></div>
+          <div class="reading orange" id="accelReadingBox" hidden>Aceleración, a <strong id="accelReading">+2,00 m/s²</strong></div>
+        </div>
+        <div class="timeline"><label for="timeSlider">Tiempo</label><input id="timeSlider" type="range" min="0" max="18.85" step="0.005" value="0" aria-label="Seleccionar tiempo de la simulación"><output id="timelineEnd">18,85 s</output></div>
+      </section>
+      <section class="panel graphs" aria-label="Gráficas del movimiento">
+        <div class="graph-head"><h2>Gráficas del movimiento</h2><small>El punto coloreado indica el instante actual</small></div>
+        <div id="emptyPlots" class="empty-plots">Activa una o varias gráficas en el panel de control.</div>
+        <div class="graph-grid" id="graphGrid">
+          <section class="plot-card" id="positionPlotCard" hidden><h3><span style="color:#13858e">Posición · tiempo</span><em>y (m)</em></h3><canvas class="plot-canvas" id="positionPlot" role="img" aria-label="Gráfica de posición frente al tiempo"></canvas></section>
+          <section class="plot-card" id="velocityPlotCard" hidden><h3><span style="color:#2563eb">Velocidad · tiempo</span><em>v (m/s)</em></h3><canvas class="plot-canvas" id="velocityPlot" role="img" aria-label="Gráfica de velocidad frente al tiempo"></canvas></section>
+          <section class="plot-card" id="accelPlotCard" hidden><h3><span style="color:#d26916">Aceleración · tiempo</span><em>a (m/s²)</em></h3><canvas class="plot-canvas" id="accelPlot" role="img" aria-label="Gráfica de aceleración frente al tiempo"></canvas></section>
+          <section class="plot-card merged-plot" id="overlayPlotCard" hidden>
+            <h3><span>Superposición de las gráficas seleccionadas</span><em>Amplitudes normalizadas · eje vertical de −1 a +1</em></h3>
+            <canvas class="plot-canvas overlay-canvas" id="overlayPlot" role="img" aria-label="Superposición de las gráficas seleccionadas, normalizadas por su amplitud sobre un eje temporal común"></canvas>
+            <div class="overlay-legend" aria-live="off"><span class="overlay-legend-item"><i class="legend-line teal"></i><span>y/A</span><strong id="overlayPositionValue">0,00 m</strong></span><span class="overlay-legend-item"><i class="legend-line blue"></i><span>v/(Aω)</span><strong id="overlayVelocityValue">0,00 m/s</strong></span><span class="overlay-legend-item"><i class="legend-line orange"></i><span>a/(Aω²)</span><strong id="overlayAccelValue">0,00 m/s²</strong></span></div>
+          </section>
+        </div>
+      </section>
+      <p class="footnote"><span class="note-strong">Modelo ideal sin rozamiento:</span> el origen está en el equilibrio; <b>hacia arriba es positivo y hacia abajo negativo</b>. La gravedad determina la posición de equilibrio, pero la aceleración respecto a ella cumple <b>a = −ω²y</b>. No se representa la deformación estática del muelle a escala.</p>
+    </div>
+    <aside class="sidebar" aria-label="Panel del profesor">
+      <section class="panel controls"><h2>Reproducción</h2>
+        <div class="button-grid">
+          <button id="playButton" class="primary" type="button">▶ Play</button><button id="pauseButton" type="button">Ⅱ Pausa</button><button id="restartButton" type="button">↺ Reinicio</button>
+          <button id="backButton" type="button">◀ −0,10 s</button><button id="forwardButton" type="button">+0,10 s ▶</button><button id="initialButton" type="button" title="Regresar al instante inicial">⏮ Inicio</button>
+        </div>
+        <button id="slowButton" class="speed-button" type="button" aria-pressed="false">◷ Cámara lenta · ×0,20</button>
+        <p class="subtle">Avanza o retrocede en intervalos de 0,10 s. Arrastra el deslizador para elegir cualquier instante.</p>
+        <div class="sec"><h2>Sistema de referencia</h2><label class="choice"><input id="showReference" type="checkbox" checked><span>Mostrar regla vertical y posición de equilibrio</span></label></div>
+        <div class="sec"><h2>Gráficas</h2><label class="choice"><input id="showPositionGraph" type="checkbox"><span>Posición–tiempo, y(t)</span></label><label class="choice"><input id="showVelocityGraph" type="checkbox"><span>Velocidad–tiempo, v(t)</span></label><label class="choice"><input id="showAccelGraph" type="checkbox"><span>Aceleración–tiempo, a(t)</span></label><label class="choice"><input id="showCombinedGraph" type="checkbox"><span><b>Superposición de gráficas</b> (solo las seleccionadas)</span></label><p class="subtle" id="combinedNote" hidden>Se representan únicamente las curvas marcadas, cada una normalizada por su amplitud y con una escala vertical común de −1 a +1.</p></div>
+      </section>
+      <section class="panel controls"><h2>Vectores y valores</h2>
+        <label class="choice"><input id="showVelocity" type="checkbox"><span>Mostrar vector velocidad</span></label>
+        <label class="choice subchoice disabled" id="velocityValueLabel"><input id="showVelocityValue" type="checkbox" disabled><span>Mostrar su valor (m/s) y signo</span></label>
+        <label class="choice"><input id="showAcceleration" type="checkbox"><span>Mostrar vector aceleración</span></label>
+        <label class="choice subchoice disabled" id="accelValueLabel"><input id="showAccelerationValue" type="checkbox" disabled><span>Mostrar su valor (m/s²) y signo</span></label>
+        <p class="subtle">El vector de velocidad apunta en el sentido del movimiento. El de aceleración siempre apunta hacia el equilibrio.</p>
+      </section>
+      <section class="panel controls"><h2>Zoom temporal · puntos clave</h2>
+        <label class="choice"><input id="enableFocus" type="checkbox"><span>Activar observación de puntos clave</span></label>
+        <div class="focus-block" id="focusBlock" hidden>
+          <label class="selector-label" for="focusSelect">Punto que quieres observar</label>
+          <select id="focusSelect"><option value="upper">Elongación máxima (+A)</option><option value="lower">Elongación mínima (−A)</option><option value="up">Equilibrio, subiendo (v positiva)</option><option value="down">Equilibrio, bajando (v negativa)</option></select>
+          <label class="choice"><input id="slowMotion" type="checkbox" checked><span>Cámara lenta (velocidad ×0,20)</span></label>
+          <div class="focus-actions"><button id="approachButton" type="button">▶ Repetir aproximación</button><button id="exactButton" type="button">◎ Instante exacto</button></div>
+          <p class="focus-message" id="focusMessage" aria-live="polite">Selecciona uno de los cuatro puntos clave.</p>
+        </div>
+        <p class="subtle">La aproximación empieza 0,75 s antes del acontecimiento. «Instante exacto» detiene la simulación justo en él.</p>
+        <div class="formula"><b>Relaciones del MAS</b><div>y = A cos(ωt + φ)</div><div>v = −Aω sen(ωt + φ)</div><div>a = −Aω² cos(ωt + φ) = −ω²y</div></div>
+      </section>
+    </aside>
+  </div>
+</main>
+<script>
+'use strict';
+(() => {
+  // Modelo ideal: m = 1 kg, k = 4 N/m; g desplaza el equilibrio, pero no altera ω.
+  const MASS = 1, K = 4, OMEGA = Math.sqrt(K/MASS), PERIOD = 2*Math.PI/OMEGA;
+  const EQUILIBRIUM_Y = 347, PX_PER_METRE = 230, SPRING_TOP = 105;
+  const MAX_AMPLITUDE = .80, MIN_AMPLITUDE = .08, DT_STEP = .1;
+  const $ = id => document.getElementById(id);
+  const state = {time:0, amplitude:.5, phase:Math.PI, playing:false, dragging:false, lastStamp:null, focusEvent:null, focusTarget:'upper',slowPlayback:false,scrubbing:false};
+  const optionIds = ['showReference','showPositionGraph','showVelocityGraph','showAccelGraph','showCombinedGraph','showVelocity','showVelocityValue','showAcceleration','showAccelerationValue','enableFocus','slowMotion'];
+  const options = Object.fromEntries(optionIds.map(id=>[id,$(id)]));
+  const svg = $('scene');
+  const fmt = (number,digits=2) => (Math.abs(number)<0.000001?0:number).toFixed(digits).replace('.',',');
+  const signed = (number, digits=2) => (number < -0.000001?'−':'+')+fmt(Math.abs(number),digits);
+  const coordsAt = t => {const theta=OMEGA*t+state.phase; return {y:state.amplitude*Math.cos(theta),v:-state.amplitude*OMEGA*Math.sin(theta),a:-OMEGA*OMEGA*state.amplitude*Math.cos(theta)};};
+  const posY = y => EQUILIBRIUM_Y-y*PX_PER_METRE;
+  const clamp = (n,lo,hi)=>Math.max(lo,Math.min(hi,n));
+  const setAttrs = (element,values)=>{for(const [key,value] of Object.entries(values))element.setAttribute(key,String(value));};
+
+  // Sistema de referencia: escala positiva por encima del equilibrio.
+  const ruler = $('rulerTicks');
+  for(let j=-8;j<=8;j+=2){const yPos=posY(j/10);const label=document.createElementNS('http://www.w3.org/2000/svg','text');label.textContent=(j>0?'+':'')+fmt(j/10,1);setAttrs(label,{x:137,y:yPos+5,'text-anchor':'end','font-size':14,fill:j===0?'#0e858e':'#6e8293','font-weight':j===0?750:500});ruler.appendChild(label);const tick=document.createElementNS('http://www.w3.org/2000/svg','line');setAttrs(tick,{x1:148,x2:160,y1:yPos,y2:yPos,stroke:j===0?'#118d91':'#7893a4','stroke-width':j===0?2.5:1.4});ruler.appendChild(tick);}
+  function springD(bottomY){const top=SPRING_TOP, start=top+9, finish=Math.max(start+22,bottomY-6), count=18, increment=(finish-start)/(count+1);let d=`M445 ${top} L445 ${start}`;for(let i=1;i<=count;i++){d+=` L${445+(i%2?19:-19)} ${(start+increment*i).toFixed(3)}`;}d+=` L445 ${finish} L445 ${bottomY}`;return d;}
+  function drawVector(prefix,value,bodyY,x,unit,showValue){
+    const layer=$(prefix+'Layer'),arrow=$(prefix+'Arrow'),head=$(prefix+'Head'),label=$(prefix+'Caption'),reading=$(prefix+'Value');
+    const maxValue=state.amplitude*(prefix==='velocity'?OMEGA:OMEGA*OMEGA);
+    const ratio=clamp(value/maxValue,-1,1);
+    const isZero=Math.abs(ratio)<.003;
+    const direction=value>0?-1:1; // Coordenadas SVG: hacia arriba es y decreciente.
+    const totalLength=isZero?0:clamp(Math.abs(ratio)*125,32,125);
+    const tipY=bodyY+direction*totalLength;
+    const headLength=17,halfHeadWidth=8;
+    const baseY=tipY-direction*headLength;
+    // La punta es un triángulo independiente situado a continuación del segmento.
+    // La base de la punta (16 px) es más ancha que el trazo (5,5 px).
+    setAttrs(arrow,{x1:x,x2:x,y1:bodyY,y2:baseY,visibility:isZero?'hidden':'visible'});
+    setAttrs(head,{points:`${x-halfHeadWidth},${baseY} ${x+halfHeadWidth},${baseY} ${x},${tipY}`,visibility:isZero?'hidden':'visible'});
+    setAttrs(label,{x:x+13,y:tipY+(value>0?-8:20),visibility:isZero?'hidden':'visible'});
+    reading.textContent=(prefix==='velocity'?'v = ':'a = ')+signed(value)+' '+unit;
+    setAttrs(reading,{x:570,y:prefix==='velocity'?115:142,'font-size':14,'font-weight':700,visibility:showValue?'visible':'hidden'});
+    layer.setAttribute('visibility','visible');
+  }
+  function renderScene(){const {y,v,a}=coordsAt(state.time),bodyY=posY(y),springBottom=bodyY-35;
+    $('springPath').setAttribute('d',springD(springBottom));$('springShadow').setAttribute('d',springD(springBottom));$('massGroup').setAttribute('transform',`translate(445 ${bodyY})`);$('massGroup').setAttribute('aria-valuenow',String(Number(y.toFixed(2))));
+    $('referenceLayer').setAttribute('visibility',options.showReference.checked?'visible':'hidden');
+    $('velocityLayer').setAttribute('visibility',options.showVelocity.checked?'visible':'hidden');$('accelerationLayer').setAttribute('visibility',options.showAcceleration.checked?'visible':'hidden');
+    if(options.showVelocity.checked)drawVector('velocity',v,bodyY,575,'m/s',options.showVelocityValue.checked);
+    if(options.showAcceleration.checked)drawVector('acceleration',a,bodyY,674,'m/s²',options.showAccelerationValue.checked);
+    $('clockReading').textContent=fmt(state.time)+' s';$('positionReading').textContent=signed(y)+' m';
+    $('velocityReading').textContent=signed(v)+' m/s';$('accelReading').textContent=signed(a)+' m/s²';
+    $('velocityReadingBox').hidden=!(options.showVelocity.checked&&options.showVelocityValue.checked);
+    $('accelReadingBox').hidden=!(options.showAcceleration.checked&&options.showAccelerationValue.checked);
+    const guideOn=options.enableFocus.checked;
+    $('focusGuide').setAttribute('visibility',guideOn?'visible':'hidden');
+    if(guideOn){const guideY=(state.focusTarget==='upper'?posY(state.amplitude):state.focusTarget==='lower'?posY(-state.amplitude):EQUILIBRIUM_Y);setAttrs($('guideLine'),{y1:guideY,y2:guideY});setAttrs($('guideLabel'),{y:guideY-11});$('guideLabel').textContent=state.focusTarget==='upper'?'+A':state.focusTarget==='lower'?'−A':'y = 0';}
+    const s=$('stateLabel');s.textContent=state.dragging?'Ajustando amplitud':state.playing?((state.slowPlayback||(options.enableFocus.checked&&options.slowMotion.checked))?'Cámara lenta':'Reproduciendo'):'En pausa';s.classList.toggle('playing',state.playing);
+    $('playButton').disabled=state.playing;$('pauseButton').disabled=!state.playing;
+    if(!state.scrubbing)$('timeSlider').value=Math.min(Number($('timeSlider').max),state.time);
+    const f=state.focusEvent;
+    if(guideOn&&f!==null){const dt=f-state.time;let message='';if(Math.abs(dt)<.02)message='● En el punto seleccionado: observa y, v y a.';else if(dt>0)message=`Faltan ${fmt(dt)} s de tiempo simulado para el punto seleccionado.`;else message=`Punto clave superado hace ${fmt(-dt)} s. Puedes volver a él.`;$('focusMessage').textContent=message;}
+  }
+  function updateGraphVisibility(){
+    const merged=options.showCombinedGraph.checked;
+    const settings=[['showPositionGraph','positionPlotCard'],['showVelocityGraph','velocityPlotCard'],['showAccelGraph','accelPlotCard']];
+    const selected=settings.filter(([opt])=>options[opt].checked).length;
+    for(const [opt,card] of settings){
+      $(card).hidden=merged||!options[opt].checked;
+      options[opt].disabled=false; // Permitir cambiar la selección mientras hay superposición.
+    }
+    $('overlayPlotCard').hidden=!merged||selected===0;
+    $('combinedNote').hidden=!merged;
+    $('emptyPlots').hidden=selected>0;
+    $('emptyPlots').textContent=merged
+      ? 'Marca al menos una de las tres gráficas para verla superpuesta.'
+      : 'Activa una o varias gráficas en el panel de control.';
+    $('overlayPositionValue').parentElement.style.display=options.showPositionGraph.checked?'flex':'none';
+    $('overlayVelocityValue').parentElement.style.display=options.showVelocityGraph.checked?'flex':'none';
+    $('overlayAccelValue').parentElement.style.display=options.showAccelGraph.checked?'flex':'none';
+  }
+  const graphs=[{key:'showPositionGraph',id:'positionPlot',type:'y',color:'#13858e',label:'y'},{key:'showVelocityGraph',id:'velocityPlot',type:'v',color:'#2563eb',label:'v'},{key:'showAccelGraph',id:'accelPlot',type:'a',color:'#d26916',label:'a'}];
+  function plot(graph){if(!options[graph.key].checked)return;const canvas=$(graph.id);const rect=canvas.getBoundingClientRect();const width=Math.max(100,rect.width),height=Math.max(100,rect.height),dpr=Math.min(window.devicePixelRatio||1,2);if(canvas.width!==Math.round(width*dpr)||canvas.height!==Math.round(height*dpr)){canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);}const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
+    const margin={l:43,r:14,t:16,b:31},pw=width-margin.l-margin.r,ph=height-margin.t-margin.b;
+    const yScale=graph.type==='y'?state.amplitude:graph.type==='v'?state.amplitude*OMEGA:state.amplitude*OMEGA*OMEGA;const lim=Math.max(.05,yScale*1.22);
+    const graphWindow=2*PERIOD;const start=Math.max(0,state.time-.86*graphWindow),end=start+graphWindow;
+    const X=t=>margin.l+(t-start)/graphWindow*pw,Y=v=>margin.t+(lim-v)/(2*lim)*ph;
+    ctx.strokeStyle='#e3eaf1';ctx.lineWidth=1;ctx.font='11px system-ui,Arial';ctx.fillStyle='#8594a5';ctx.textAlign='right';
+    for(let i=-1;i<=1;i++){const v=lim*i,py=Y(v);ctx.beginPath();ctx.moveTo(margin.l,py);ctx.lineTo(width-margin.r,py);ctx.stroke();ctx.fillText((i===0?'0':(i>0?'+':'−')+fmt(yScale,2)),margin.l-7,py+4);}
+    const tickEvery=PERIOD/2;for(let n=Math.ceil(start/tickEvery);n*tickEvery<=end+1e-5;n++){const t=n*tickEvery,px=X(t);ctx.strokeStyle='#edf0f3';ctx.beginPath();ctx.moveTo(px,margin.t);ctx.lineTo(px,height-margin.b);ctx.stroke();ctx.fillStyle='#758598';ctx.textAlign='center';ctx.fillText(fmt(t,1),px,height-13);}
+    ctx.fillStyle='#788b9b';ctx.textAlign='right';ctx.fillText('t (s)',width-13,height-3);
+    if(options.enableFocus.checked&&state.focusEvent!==null&&state.focusEvent>=start&&state.focusEvent<=end){const cx=X(state.focusEvent);ctx.fillStyle='#a24ac412';ctx.fillRect(X(Math.max(start,state.focusEvent-.12)),margin.t,Math.max(1,X(Math.min(end,state.focusEvent+.12))-X(Math.max(start,state.focusEvent-.12))),ph);ctx.strokeStyle='#b66dc9';ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(cx,margin.t);ctx.lineTo(cx,height-margin.b);ctx.stroke();ctx.setLineDash([]);}
+    ctx.beginPath();ctx.lineWidth=2.5;ctx.strokeStyle=graph.color;for(let i=0;i<=Math.max(120,Math.round(pw*1.5));i++){const t=start+(end-start)*i/Math.max(120,Math.round(pw*1.5));const v=coordsAt(t)[graph.type];if(i===0)ctx.moveTo(X(t),Y(v));else ctx.lineTo(X(t),Y(v));}ctx.stroke();
+    if(state.time>=start&&state.time<=end){const val=coordsAt(state.time)[graph.type],px=X(state.time),py=Y(val);ctx.strokeStyle=graph.color+'88';ctx.lineWidth=1.4;ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(px,margin.t);ctx.lineTo(px,height-margin.b);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.arc(px,py,5.6,0,2*Math.PI);ctx.fillStyle=graph.color;ctx.fill();ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();}
+    ctx.lineWidth=1;ctx.strokeStyle='#bdcbd4';ctx.strokeRect(margin.l,margin.t,pw,ph);
+  }
+  function plotOverlay(){
+    if(!options.showCombinedGraph.checked)return;
+    const canvas=$('overlayPlot'),rect=canvas.getBoundingClientRect();
+    const width=Math.max(160,rect.width),height=Math.max(130,rect.height),dpr=Math.min(window.devicePixelRatio||1,2);
+    if(canvas.width!==Math.round(width*dpr)||canvas.height!==Math.round(height*dpr)){canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);}
+    const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
+    const margin={l:51,r:23,t:19,b:35},pw=width-margin.l-margin.r,ph=height-margin.t-margin.b;
+    const windowTime=2*PERIOD,start=Math.max(0,state.time-.86*windowTime),end=start+windowTime;
+    const X=t=>margin.l+(t-start)/windowTime*pw,Y=q=>margin.t+(1.22-q)/2.44*ph;
+    ctx.font='11px system-ui,Arial';ctx.textAlign='right';ctx.fillStyle='#758598';
+    for(const val of [-1,-.5,0,.5,1]){
+      const py=Y(val);ctx.strokeStyle=val===0?'#b5c8d1':'#e8eef3';ctx.lineWidth=val===0?1.4:1;
+      ctx.beginPath();ctx.moveTo(margin.l,py);ctx.lineTo(width-margin.r,py);ctx.stroke();
+      ctx.fillText(val>0?'+'+fmt(val,1):val<0?'−'+fmt(-val,1):'0',margin.l-9,py+4);
+    }
+    const tick=PERIOD/2;
+    for(let n=Math.ceil(start/tick);n*tick<=end+1e-5;n++){
+      const t=n*tick,px=X(t);ctx.strokeStyle='#f0f3f7';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(px,margin.t);ctx.lineTo(px,height-margin.b);ctx.stroke();
+      ctx.fillStyle='#758598';ctx.textAlign='center';ctx.fillText(fmt(t,1),px,height-16);
+    }
+    ctx.fillStyle='#758598';ctx.textAlign='right';ctx.fillText('t (s)',width-23,height-4);
+    if(options.enableFocus.checked&&state.focusEvent!==null&&state.focusEvent>=start&&state.focusEvent<=end){
+      const p=X(state.focusEvent);ctx.fillStyle='#a24ac410';ctx.fillRect(X(Math.max(start,state.focusEvent-.12)),margin.t,Math.max(1,X(Math.min(end,state.focusEvent+.12))-X(Math.max(start,state.focusEvent-.12))),ph);
+      ctx.strokeStyle='#b66dc9';ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(p,margin.t);ctx.lineTo(p,height-margin.b);ctx.stroke();ctx.setLineDash([]);
+    }
+    const now=coordsAt(state.time),series=[{option:'showPositionGraph',key:'y',scale:state.amplitude,color:'#13858e'},{option:'showVelocityGraph',key:'v',scale:state.amplitude*OMEGA,color:'#2563eb'},{option:'showAccelGraph',key:'a',scale:state.amplitude*OMEGA*OMEGA,color:'#d26916'}].filter(item=>options[item.option].checked);
+    for(const item of series){
+      ctx.strokeStyle=item.color;ctx.lineWidth=2.6;ctx.lineJoin='round';ctx.beginPath();
+      const steps=Math.max(150,Math.round(pw*1.4));
+      for(let i=0;i<=steps;i++){
+        const t=start+(end-start)*i/steps,vertical=coordsAt(t)[item.key]/item.scale;
+        if(i===0)ctx.moveTo(X(t),Y(vertical));else ctx.lineTo(X(t),Y(vertical));
+      }
+      ctx.stroke();
+    }
+    if(state.time>=start&&state.time<=end){
+      const px=X(state.time);ctx.strokeStyle='#65798a';ctx.lineWidth=1.2;ctx.setLineDash([4,4]);
+      ctx.beginPath();ctx.moveTo(px,margin.t);ctx.lineTo(px,height-margin.b);ctx.stroke();ctx.setLineDash([]);
+      for(const item of series){ctx.beginPath();ctx.arc(px,Y(now[item.key]/item.scale),5,0,2*Math.PI);ctx.fillStyle=item.color;ctx.fill();ctx.lineWidth=1.8;ctx.strokeStyle='#fff';ctx.stroke();}
+    }
+    ctx.strokeStyle='#b7c9d5';ctx.lineWidth=1;ctx.strokeRect(margin.l,margin.t,pw,ph);
+    $('overlayPositionValue').textContent=signed(now.y)+' m';
+    $('overlayVelocityValue').textContent=signed(now.v)+' m/s';
+    $('overlayAccelValue').textContent=signed(now.a)+' m/s²';
+  }
+  function render(){renderScene();graphs.forEach(plot);plotOverlay();}
+  function refreshControls(){options.showVelocityValue.disabled=!options.showVelocity.checked;options.showAccelerationValue.disabled=!options.showAcceleration.checked;$('velocityValueLabel').classList.toggle('disabled',!options.showVelocity.checked);$('accelValueLabel').classList.toggle('disabled',!options.showAcceleration.checked);$('focusBlock').hidden=!options.enableFocus.checked;updateGraphVisibility();render();}
+  function ensureRange(){const slider=$('timeSlider');if(state.time>Number(slider.max)-PERIOD){slider.max=String(Math.ceil((state.time+4*PERIOD)/PERIOD)*PERIOD);$('timelineEnd').textContent=fmt(Number(slider.max))+' s';}}
+  function seek(time){state.time=Math.max(0,time);ensureRange();render();}
+  function play(){state.playing=true;state.lastStamp=null;render();}
+  function pause(){state.playing=false;render();}
+  function restart(){state.time=0;state.focusEvent=null;state.lastStamp=null;state.playing=false;render();}
+  $('playButton').addEventListener('click',play);$('pauseButton').addEventListener('click',pause);$('restartButton').addEventListener('click',restart);
+  $('slowButton').addEventListener('click',()=>{state.slowPlayback=!state.slowPlayback;const active=state.slowPlayback;const button=$('slowButton');button.classList.toggle('is-active',active);button.setAttribute('aria-pressed',String(active));button.textContent=active?'◷ Volver a velocidad ×1':'◷ Cámara lenta · ×0,20';render();});
+  $('initialButton').addEventListener('click',()=>{pause();seek(0);});
+  $('backButton').addEventListener('click',()=>{pause();seek(Math.round((state.time-DT_STEP)*1000)/1000);});
+  $('forwardButton').addEventListener('click',()=>{pause();seek(Math.round((state.time+DT_STEP)*1000)/1000);});
+  const slider=$('timeSlider');
+  slider.addEventListener('pointerdown',()=>{state.scrubbing=true;state.playing=false;});
+  slider.addEventListener('pointerup',()=>{state.scrubbing=false;render();});
+  slider.addEventListener('pointercancel',()=>{state.scrubbing=false;render();});
+  slider.addEventListener('change',()=>{state.scrubbing=false;});
+  slider.addEventListener('input',e=>{const selectedTime=Number(e.target.value);state.playing=false;state.lastStamp=null;seek(selectedTime);});
+  for(const checkbox of Object.values(options)){checkbox.addEventListener('change',()=>{if(checkbox===options.enableFocus){if(checkbox.checked){state.focusEvent=null;state.focusTarget=$('focusSelect').value;targetApproach();}else{state.focusEvent=null;}}refreshControls();});}
+  const eventAngles={upper:0,down:Math.PI/2,lower:Math.PI,up:3*Math.PI/2};
+  function nextTargetTime(){const target=eventAngles[state.focusTarget],now=OMEGA*state.time+state.phase;let delta=((target-now)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)/OMEGA;if(delta<.82)delta+=PERIOD;return state.time+delta;}
+  function targetApproach(){state.focusTarget=$('focusSelect').value;state.focusEvent=nextTargetTime();state.time=Math.max(0,state.focusEvent-.75);ensureRange();play();}
+  $('focusSelect').addEventListener('change',targetApproach);
+  $('approachButton').addEventListener('click',targetApproach);
+  $('exactButton').addEventListener('click',()=>{state.focusTarget=$('focusSelect').value;if(state.focusEvent===null)state.focusEvent=nextTargetTime();pause();seek(state.focusEvent);});
+  // Desplazamiento inicial: se suelta desde el reposo (extremo superior o inferior).
+  function pointerToSVG(event){const pt=svg.createSVGPoint();pt.x=event.clientX;pt.y=event.clientY;const matrix=svg.getScreenCTM();return matrix?pt.matrixTransform(matrix.inverse()):{x:0,y:EQUILIBRIUM_Y};}
+  function setDraggedY(event){const pt=pointerToSVG(event);let displacement=clamp((EQUILIBRIUM_Y-pt.y)/PX_PER_METRE,-MAX_AMPLITUDE,MAX_AMPLITUDE);if(Math.abs(displacement)<MIN_AMPLITUDE)displacement=displacement<0?-MIN_AMPLITUDE:MIN_AMPLITUDE;state.amplitude=Math.abs(displacement);state.phase=displacement>=0?0:Math.PI;state.time=0;state.focusEvent=null;$('amplitudeChip').textContent=fmt(state.amplitude)+' m';render();}
+  const massGroup=$('massGroup');
+  massGroup.addEventListener('pointerdown',e=>{if(e.button!==0&&e.pointerType==='mouse')return;e.preventDefault();state.dragging=true;pause();massGroup.classList.add('dragging');massGroup.setPointerCapture(e.pointerId);setDraggedY(e);});
+  massGroup.addEventListener('pointermove',e=>{if(state.dragging)setDraggedY(e);});
+  function release(){if(!state.dragging)return;state.dragging=false;massGroup.classList.remove('dragging');if(options.enableFocus.checked){state.focusTarget=$('focusSelect').value;targetApproach();}else play();}
+  massGroup.addEventListener('pointerup',release);massGroup.addEventListener('pointercancel',release);
+  massGroup.addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();pause();const current=state.amplitude*(state.phase===0?1:-1);const updated=clamp(current+(e.key==='ArrowUp'?.05:-.05),-MAX_AMPLITUDE,MAX_AMPLITUDE);state.amplitude=Math.max(MIN_AMPLITUDE,Math.abs(updated));state.phase=updated>=0?0:Math.PI;state.time=0;state.focusEvent=null;$('amplitudeChip').textContent=fmt(state.amplitude)+' m';render();}});
+  function tick(stamp){if(state.lastStamp===null)state.lastStamp=stamp;const deltaSeconds=clamp((stamp-state.lastStamp)/1000,0,.05);state.lastStamp=stamp;
+    if(state.playing&&!state.dragging){const factor=(state.slowPlayback||(options.enableFocus.checked&&options.slowMotion.checked))?.2:1;state.time+=deltaSeconds*factor;ensureRange();render();}
+    requestAnimationFrame(tick);
+  }
+  window.addEventListener('resize',()=>{graphs.forEach(plot);plotOverlay();});
+  $('periodChip').textContent=fmt(PERIOD)+' s';refreshControls();render();requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

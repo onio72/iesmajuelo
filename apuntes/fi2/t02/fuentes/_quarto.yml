@@ -1,0 +1,54 @@
+project:
+  type: website
+  output-dir: ..
+  resources:
+    - ../files/
+    - ../images/
+lang: es
+website:
+  title: "Vibraciones y ondas · Tema 2"
+  navbar:
+    left:
+      - href: index.qmd
+        text: "Inicio"
+      - href: vibraciones.qmd
+        text: "Vibraciones y MAS"
+      - href: energia.qmd
+        text: "Dinámica y energía"
+      - href: ondas.qmd
+        text: "Movimiento ondulatorio"
+      - href: ondas-armonicas.qmd
+        text: "Ondas armónicas"
+      - href: fenomenos.qmd
+        text: "Fenómenos ondulatorios"
+      - href: estacionarias.qmd
+        text: "Ondas estacionarias"
+      - href: problemas-ondas.qmd
+        text: "Problemas"
+  sidebar:
+    style: docked
+    contents:
+      - href: index.qmd
+        text: "Inicio"
+      - href: vibraciones.qmd
+        text: "Vibraciones y MAS"
+      - href: energia.qmd
+        text: "Dinámica y energía"
+      - href: ondas.qmd
+        text: "Movimiento ondulatorio"
+      - href: ondas-armonicas.qmd
+        text: "Ondas armónicas"
+      - href: fenomenos.qmd
+        text: "Fenómenos ondulatorios"
+      - href: estacionarias.qmd
+        text: "Ondas estacionarias"
+      - href: problemas-ondas.qmd
+        text: "Problemas"
+format:
+  html:
+    theme: cosmo
+    toc: true
+    html-math-method: mathjax
+    include-in-header:
+      text: |
+        <style>main { min-width: 0; } .math.display { display: block; max-width: 100%; overflow-x: auto; overflow-y: hidden; } .cell-output-display { overflow-x: auto; } main table { display: block; width: 100%; overflow-x: auto; }</style>

@@ -1,0 +1,78 @@
+---
+title: "Fenómenos ondulatorios"
+---
+
+# Fenómenos ondulatorios
+
+## Frentes de onda y principio de Huygens
+
+Un **frente de onda** reúne puntos de igual fase. Los **rayos** indican el sentido de propagación y, en un medio isótropo, son perpendiculares a los frentes. Un foco puntual puede producir frentes esféricos; una pequeña región de un frente muy alejado del foco puede aproximarse por un plano.
+
+**Principio de Huygens:** cada punto de un frente puede considerarse foco de ondas secundarias. La envolvente de estas ondas determina el nuevo frente.
+
+Un medio **homogéneo** tiene las mismas propiedades de un punto a otro; uno **isótropo**, las mismas propiedades en todas las direcciones. En el modelo homogéneo, isótropo y no dispersivo utilizado aquí, la rapidez se mantiene constante.
+
+## Reflexión
+
+Es el retorno total o parcial de una onda al medio de procedencia al encontrar una superficie de separación.
+
+El rayo incidente, la normal y el rayo reflejado están en el mismo plano. Los ángulos se miden **respecto a la normal**, y cumplen
+
+$$\boxed{\theta_i=\theta_r}.$$
+
+La construcción de Huygens lo explica porque los recorridos de los frentes incidente y reflejado, en un mismo intervalo, tienen igual longitud al propagarse en el mismo medio.
+
+Para una frontera fija y un medio sin cambios, se conservan la frecuencia, la rapidez y la longitud de onda. Puede cambiar la fase: en una cuerda, la reflexión en un extremo fijo invierte la perturbación; en un extremo libre ideal no la invierte.
+
+## Refracción
+
+Es el cambio de propagación al pasar a otro medio con diferente rapidez. Con incidencia oblicua suele cambiar la dirección; con incidencia normal no hay desviación angular aunque cambie la rapidez.
+
+El rayo incidente, la normal y el refractado están en un mismo plano. La ley de Snell es
+
+$$\boxed{\frac{\sin\theta_1}{\sin\theta_2}=\frac{v_1}{v_2}}.$$
+
+La construcción de Huygens compara las distancias $v_1\Delta t$ y $v_2\Delta t$ recorridas en un mismo intervalo. En óptica, con índices absolutos $n_j=c/v_j$:
+
+$$n_1\sin\theta_1=n_2\sin\theta_2.$$
+
+Si $v_2<v_1$, el rayo se acerca a la normal; si $v_2>v_1$, se aleja, siempre que exista onda refractada propagante. Para $v_2>v_1$, la condición límite es $\sin\theta_c=v_1/v_2$; por encima aparece reflexión total interna en el modelo óptico ideal.
+
+La frecuencia se mantiene al atravesar una frontera inmóvil. Por ello cambia la longitud de onda:
+
+$$\frac{\lambda_2}{\lambda_1}=\frac{v_2}{v_1}.$$
+
+| Fenómeno | Frecuencia | Rapidez | Longitud de onda |
+|---|---|---|---|
+| Reflexión en el mismo medio | Se conserva | Se conserva | Se conserva |
+| Refracción entre medios con distinta rapidez | Se conserva | Cambia | Cambia |
+
+::: {.callout-tip title="Ejemplo resuelto"}
+Una onda pasa de $v_1=100\,\mathrm{m\,s^{-1}}$ a $v_2=50\,\mathrm{m\,s^{-1}}$ con $\theta_1=30^\circ$ y $f=20\,\mathrm{Hz}$.
+
+$$\sin\theta_2=\frac{50}{100}\sin30^\circ=0{,}25,\quad\theta_2\simeq14{,}5^\circ.$$
+
+Las longitudes de onda son $\lambda_1=5\,\mathrm m$ y $\lambda_2=2{,}5\,\mathrm m$.
+:::
+
+## Difracción
+
+La difracción es la desviación y expansión de una onda al atravesar una abertura o rodear un obstáculo. Es especialmente apreciable cuando la dimensión característica es comparable con la longitud de onda, o menor.
+
+Si la abertura es mucho mayor que $\lambda$, la propagación sigue aproximadamente la dirección inicial, aunque también hay difracción en los bordes. Por tanto, la difracción no desaparece de forma abrupta al aumentar la abertura.
+
+El sonido puede rodear obstáculos cotidianos de tamaño comparable a sus longitudes de onda. La luz visible tiene longitudes de onda del orden de cientos de nanómetros; su difracción por objetos grandes suele ser mucho menos apreciable a simple vista.
+
+## Superposición e interferencia
+
+En un medio lineal, la perturbación resultante es la suma de las perturbaciones individuales:
+
+$$y=y_1+y_2.$$
+
+Las ondas continúan propagándose después del encuentro. Para ondas coherentes de igual frecuencia y amplitudes $A_1$ y $A_2$, con diferencia de fase $\delta$:
+
+$$A_R=\sqrt{A_1^2+A_2^2+2A_1A_2\cos\delta}.$$
+
+La interferencia es máximamente **constructiva** si $\delta=2\pi n$, con $A_R=A_1+A_2$, y máximamente **destructiva** si $\delta=(2n+1)\pi$, con $A_R=|A_1-A_2|$. La cancelación total requiere amplitudes iguales.
+
+Para focos en fase, en un mismo medio, estas condiciones equivalen a diferencias de caminos $\Delta r=n\lambda$ y $\Delta r=(n+1/2)\lambda$, respectivamente. Si hay desfase inicial entre los focos, debe incluirse en la diferencia de fase total.

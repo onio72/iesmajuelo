@@ -1,0 +1,75 @@
+---
+title: "Ondas estacionarias"
+---
+
+# Ondas estacionarias
+
+## Superposición de ondas contrapropagantes
+
+Dos ondas armónicas de igual amplitud y frecuencia que viajan en sentidos opuestos pueden formar una onda estacionaria:
+
+$$y_1=A\sin(\omega t-kx),\qquad y_2=A\sin(\omega t+kx).$$
+
+Aplicando $\sin(\alpha-\beta)+\sin(\alpha+\beta)=2\sin\alpha\cos\beta$:
+
+$$\boxed{y(x,t)=2A\cos(kx)\sin(\omega t)}.$$
+
+La dependencia espacial y temporal queda separada. Cada punto oscila con frecuencia $f=\omega/(2\pi)$, pero su amplitud depende de la posición:
+
+$$\boxed{A_R(x)=2A|\cos(kx)|}.$$
+
+El coeficiente $2A\cos(kx)$ puede ser negativo; la amplitud física es su valor absoluto. Puntos de zonas contiguas separadas por un nodo oscilan en oposición de fase.
+
+## Nodos y vientres
+
+Los **nodos** no oscilan nunca. Para la expresión anterior:
+
+$$\cos(kx)=0\quad\Longrightarrow\quad x=\frac{(2n+1)\lambda}{4}.$$
+
+Los **vientres** o antinodos tienen amplitud máxima, $2A$:
+
+$$|\cos(kx)|=1\quad\Longrightarrow\quad x=\frac{n\lambda}{2}.$$
+
+Aquí $n$ es entero. Dos nodos consecutivos están separados por $\lambda/2$; un nodo y su vientre más próximo, por $\lambda/4$. Si cambiamos el origen espacial, podemos obtener una expresión con $\sin(kx)$: cambiarán las coordenadas de nodos y vientres, pero no sus separaciones.
+
+Una onda estacionaria ideal tiene un patrón fijo y **no presenta transporte neto medio de energía** a lo largo de la cuerda: las ondas viajeras componentes transportan igual energía en sentidos opuestos. La ausencia de transporte neto no significa que el sistema carezca de energía.
+
+## Cuerda fija por ambos extremos
+
+Para una cuerda de longitud $L$, los extremos $x=0$ y $x=L$ deben ser nodos. Es conveniente escribir
+
+$$y(x,t)=B\sin(kx)\cos(\omega t+\varphi).$$
+
+La condición $\sin(kL)=0$ exige
+
+$$kL=n\pi,\qquad L=n\frac{\lambda_n}{2},\qquad n=1,2,3,\ldots$$
+
+Así, los modos normales admitidos tienen
+
+$$\boxed{\lambda_n=\frac{2L}{n}},\qquad
+\boxed{f_n=\frac{nv}{2L}=nf_1}.$$
+
+La frecuencia fundamental es $f_1=v/(2L)$. Los siguientes armónicos tienen frecuencias $2f_1$, $3f_1$, etc. El modo $n$ tiene $n$ vientres y $n+1$ nodos, contando los extremos.
+
+![Primeros tres modos de una cuerda fija por ambos extremos; se representan los perfiles extremos de vibración.](images/modos.svg)
+
+## Un extremo fijo y otro libre
+
+El extremo fijo es nodo y el libre ideal es vientre. Por tanto,
+
+$$L=(2n-1)\frac{\lambda_n}{4},\qquad n=1,2,3,\ldots$$
+
+Las longitudes de onda y las frecuencias permitidas son
+
+$$\boxed{\lambda_n=\frac{4L}{2n-1}},\qquad
+\boxed{f_n=\frac{(2n-1)v}{4L}=(2n-1)f_1}.$$
+
+La frecuencia fundamental es $f_1=v/(4L)$. Solo aparecen múltiplos impares: $f_1$, $3f_1$, $5f_1$, etc.
+
+::: {.callout-tip title="Ejemplo resuelto"}
+Una cuerda de $L=0{,}80\,\mathrm m$ transmite ondas a $v=40\,\mathrm{m\,s^{-1}}$.
+
+Con ambos extremos fijos, $f_1=25\,\mathrm{Hz}$; las tres primeras frecuencias son $25$, $50$ y $75\,\mathrm{Hz}$. Para el tercer modo, $\lambda_3=1{,}60/3\simeq0{,}533\,\mathrm m$.
+
+Con un extremo fijo y otro libre, $f_1=12{,}5\,\mathrm{Hz}$; las tres primeras frecuencias son $12{,}5$, $37{,}5$ y $62{,}5\,\mathrm{Hz}$.
+:::
