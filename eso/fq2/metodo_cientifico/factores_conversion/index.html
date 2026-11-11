@@ -43,7 +43,7 @@ if(mode==='area'){[from,to]=choosePair('m',2,[-9,9]);domain='surface'}
 if(mode==='volume'){[from,to]=choosePair('m',3,[-6,6]);domain='volume'}
 if(mode==='capacity'){let left=pick(['mL','cL','dL','L','daL','hL','kL','µL']),right=pick(['cm³','dm³','m³','mm³','dam³','km³']);[from,to]=Math.random()<.5?[left,right]:[right,left];domain='capacity'}
 if(mode==='double'){let options=[['km/h','m/s'],['m/s','km/h'],['cm/s','km/h'],['km/min','m/s'],['m/min','km/h'],['mg/L','g/m³'],['g/cm³','kg/m³'],['kg/m³','g/L'],['m/s','cm/min']];[from,to]=pick(options);domain='compound'}
-let amount=standardAmount(),exponent=0;if(Math.random()<.42)exponent=rand(-3,5);let value=amount*10**exponent;let answer=value*measure(from).factor/measure(to).factor;return{kind:'factor',mode,from,to,value,answer,domain,prompt:`Convierte <b>${exponent?`${fmt(amount)} · 10<sup>${exponent}</sup>`:fmt(amount)} ${from}</b> a <b>${to}</b> utilizando factores de conversión.`}}
+let amount=standardAmount(),exponent=0;if(Math.random()<.42)exponent=rand(-3,5);let value=amount*10**exponent;let answer=value*measure(from).factor/measure(to).factor;return{kind:'factor',mode,from,to,value,answer,domain,prompt:`Convierte <b>${exponent?sci(value).replace(/ · 10\^(-?\d+)/,' · 10<sup>$1</sup>'):fmt(value)} ${from}</b> a <b>${to}</b> utilizando factores de conversión.`}}
 let mode='prefix',current=null,score=0,correct=0,count=0,checked=false,penalized=false,factors=[];
 // El alumno escribe únicamente el símbolo base. El exponente se presenta como superíndice.
 function unitField(id,wide=false,label='Unidad'){
