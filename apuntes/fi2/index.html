@@ -1,44 +1,139 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FI2 - Temas</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 2rem auto;
-      max-width: 760px;
-      padding: 0 1rem;
-      line-height: 1.5;
-    }
-    h1 { margin-bottom: 0.5rem; }
-    ul { padding-left: 1.2rem; }
-    li { margin: 0.5rem 0; }
-    a { color: #0b57d0; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-  </style>
-</head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Apuntes, problemas y soluciones de Física de 2.º de Bachillerato organizados por temas.">
+<title>Apuntes de Física · 2.º de Bachillerato</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#1b3043;background:#f4f7fa;--blue:#21587d;--line:#dce5ec;--muted:#5b7081}
+*{box-sizing:border-box}
+body{margin:0;line-height:1.5}
+a{color:#135e95;text-decoration:none}a:hover{text-decoration:underline}
+button,input{font:inherit}
+a:focus-visible,summary:focus-visible,input:focus-visible,button:focus-visible{outline:3px solid #bf7b18;outline-offset:3px}
+.top{background:#142f48;color:white;padding:32px 20px 36px}
+.top-inner{max-width:1120px;margin:auto}
+.crumbs{font-size:.83rem;color:#d2e4f1;margin-bottom:18px}
+.crumbs a{color:#d2e4f1}
+h1{font-size:clamp(1.65rem,3vw,2.35rem);line-height:1.2;margin:0 0 10px;font-weight:750}
+.lead{font-size:1rem;max-width:690px;margin:0;color:#d6e4ef}
+.main{max-width:1120px;padding:25px 20px 48px;margin:auto}
+.utility{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:19px}
+.search{width:min(100%,390px);padding:11px 14px;border:1px solid #a8bac8;border-radius:9px;background:white;color:#20384b}
+.count{font-size:.87rem;color:var(--muted)}
+.section-title{font-size:1.05rem;margin:0 0 13px;color:#344e63}
+.topic-list{display:grid;gap:13px}
+.topic{background:white;border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 8px #1a40520a;overflow:hidden}
+.topic summary{list-style:none;display:flex;align-items:center;gap:17px;padding:19px 22px;cursor:pointer}
+.topic summary::-webkit-details-marker{display:none}
+.topic summary:after{content:"+";margin-left:auto;font-size:1.6rem;line-height:1;color:#2f668c;font-weight:400}
+.topic[open] summary:after{content:"−"}
+.topic[open] summary{border-bottom:1px solid var(--line);background:#f8fbfd}
+.number{width:46px;height:46px;flex:none;display:grid;place-items:center;border-radius:10px;background:#e8f1f8;color:#225b7f;font-weight:750;font-size:1.03rem}
+.topic-name{font-size:1.08rem;font-weight:720;color:#1b3043}
+.topic-sub{font-size:.84rem;color:var(--muted);margin-top:3px}
+.status{margin-left:auto;font-size:.72rem;border-radius:20px;border:1px solid #c9dcd4;color:#2e6653;padding:4px 9px;white-space:nowrap}
+.status.pending{border-color:#d9dfe4;color:#657786}
+.topic summary:has(.status):after{margin-left:0}
+.topic-content{padding:19px 22px 23px}
+.intro{color:#587080;font-size:.91rem;margin:0 0 15px}
+.primary-link{display:inline-flex;align-items:center;gap:7px;border:1px solid #1e5d86;background:#1e5d86;color:white;border-radius:8px;padding:10px 14px;font-weight:680;font-size:.9rem}
+.primary-link:hover{color:white;background:#164c70;text-decoration:none}
+.resource-label{font-size:.83rem;font-weight:700;color:#4d6272;margin:18px 0 9px}
+.resources{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.resources a{display:flex;align-items:center;min-height:43px;padding:10px 13px;border:1px solid var(--line);background:#f9fbfd;border-radius:8px;font-size:.89rem;font-weight:540}
+.resources a:hover{background:#eff6fb;text-decoration:none;border-color:#aacbdf}
+.pending-info{margin:0;color:var(--muted);font-size:.92rem}
+.quick-note{font-size:.85rem;color:var(--muted);margin:19px 0 0}
+.empty{padding:20px;text-align:center;color:var(--muted);background:white;border-radius:9px}
+.footer{border-top:1px solid var(--line);padding:23px 20px;color:#6b7e8c;font-size:.8rem;text-align:center}
+@media(max-width:640px){.top{padding:24px 18px 28px}.main{padding:19px 13px 32px}.topic summary{padding:15px 13px;gap:11px}.number{width:39px;height:39px}.topic-name{font-size:.97rem}.topic-content{padding:16px 13px}.resources{grid-template-columns:1fr}.status{font-size:.68rem;padding:3px 7px}.topic-sub{font-size:.76rem}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style></head>
 <body>
-  <h1>Física 2º Bachillerato</h1>
-  <p>Índice de temas:</p>
-  <ul>
-    <li>
-      <a href="./t00/">Tema 0 · Apuntes de repaso</a>
-      — <a href="./t00/boletin.html">Boletín de ejercicios</a>
-      — <a href="./t00/soluciones.html">Soluciones</a>
-    </li>
-    <li>
-      <a href="./t01/interaccion-gravitatoria.html">Tema 1 · Interacción gravitatoria</a>
-      — <a href="./t01/problemas-interaccion.html">Problemas</a>
-    </li>
-    <li>
-      <a href="./t02/">Tema 2 · Vibraciones y ondas</a>
-      — <a href="./t02/problemas-ondas.html">Problemas</a>
-    </li>
-    <li><a href="./t03/">Tema 3</a></li>
-    <li><a href="./t04/">Tema 4</a></li>
-    <li><a href="./t05/">Tema 5</a></li>
-  </ul>
-</body>
-</html>
+<header class="top"><div class="top-inner">
+<nav class="crumbs" aria-label="Ruta de navegación"><a href="../../bach/fi2/">Recursos de Física</a> <span aria-hidden="true">/</span> Apuntes</nav>
+<h1>Apuntes de Física · 2.º de Bachillerato</h1>
+<p class="lead">Teoría, ejercicios y soluciones organizados por temas. Abre el tema que necesites y accede directamente al material.</p>
+</div></header>
+<main class="main">
+<div class="utility"><h2 class="section-title">Índice de contenidos</h2><input class="search" id="filter" type="search" placeholder="Buscar un tema o material…" aria-label="Buscar temas y materiales"></div>
+<div id="topic-list" class="topic-list">
+<details class="topic" data-search="tema 0 repaso cinemática dinámica magnitudes vectores boletín soluciones">
+<summary><span class="number">00</span><span><span class="topic-name">Repaso de Física</span><span class="topic-sub">Tema 0 · Conceptos y herramientas fundamentales</span></span><span class="status">Disponible</span></summary>
+<div class="topic-content"><p class="intro">Magnitudes, vectores, cinemática y dinámica como base para el curso.</p>
+<a class="primary-link" href="./t00/">Leer los apuntes <span aria-hidden="true">↗</span></a>
+<p class="resource-label">Ejercicios y soluciones</p><div class="resources">
+<a href="./t00/boletin.html">Boletín de ejercicios</a><a href="./t00/soluciones.html">Soluciones del boletín</a>
+</div></div></details>
+
+<details class="topic" data-search="tema 1 interacción gravitatoria campo gravitatorio apuntes problemas">
+<summary><span class="number">01</span><span><span class="topic-name">Interacción gravitatoria</span><span class="topic-sub">Tema 1 · Gravitación y campo gravitatorio</span></span><span class="status">Disponible</span></summary>
+<div class="topic-content"><p class="intro">Estudia la interacción gravitatoria y practica su aplicación a problemas.</p>
+<a class="primary-link" href="./t01/interaccion-gravitatoria.html">Leer los apuntes <span aria-hidden="true">↗</span></a>
+<p class="resource-label">Práctica</p><div class="resources"><a href="./t01/problemas-interaccion.html">Problemas de interacción gravitatoria</a></div>
+</div></details>
+
+<details class="topic" data-search="tema 2 vibraciones ondas movimiento armónico simple ondas armónicas estacionarias energía fenómenos problemas">
+<summary><span class="number">02</span><span><span class="topic-name">Vibraciones y ondas</span><span class="topic-sub">Tema 2 · Oscilaciones y movimiento ondulatorio</span></span><span class="status">Disponible</span></summary>
+<div class="topic-content"><p class="intro">Un tema dividido en capítulos, desde el movimiento armónico simple hasta las ondas estacionarias.</p>
+<a class="primary-link" href="./t02/">Abrir el tema completo <span aria-hidden="true">↗</span></a>
+<p class="resource-label">Capítulos</p>
+<div class="resources">
+<a href="./t02/vibraciones.html">Vibraciones y MAS</a>
+<a href="./t02/ondas.html">Movimiento ondulatorio</a>
+<a href="./t02/ondas-armonicas.html">Ondas armónicas</a>
+<a href="./t02/energia.html">Dinámica y energía</a>
+<a href="./t02/fenomenos.html">Fenómenos ondulatorios</a>
+<a href="./t02/estacionarias.html">Ondas estacionarias</a>
+</div>
+<p class="resource-label">Práctica</p><div class="resources"><a href="./t02/problemas-ondas.html">Boletín de problemas</a></div>
+</div></details>
+
+<details class="topic" data-search="tema 3 contenido preparación">
+<summary><span class="number">03</span><span><span class="topic-name">Tema 3</span><span class="topic-sub">Material todavía no publicado</span></span><span class="status pending">En preparación</span></summary>
+<div class="topic-content"><p class="pending-info">El contenido de este tema está pendiente de publicación.</p></div>
+</details>
+
+<details class="topic" data-search="tema 4 contenido preparación">
+<summary><span class="number">04</span><span><span class="topic-name">Tema 4</span><span class="topic-sub">Material todavía no publicado</span></span><span class="status pending">En preparación</span></summary>
+<div class="topic-content"><p class="pending-info">El contenido de este tema está pendiente de publicación.</p></div>
+</details>
+
+<details class="topic" data-search="tema 5 física del siglo xx cuántica bohr espectros radiación cuerpo negro fotoeléctrico dualidad incertidumbre nuclear radiactividad">
+<summary><span class="number">05</span><span><span class="topic-name">Física del siglo XX</span><span class="topic-sub">Tema 5 · Física cuántica y nuclear</span></span><span class="status">Disponible</span></summary>
+<div class="topic-content"><p class="intro">Accede directamente a los capítulos sobre física moderna y estructura nuclear.</p>
+<a class="primary-link" href="./t05/">Abrir el tema completo <span aria-hidden="true">↗</span></a>
+<p class="resource-label">Capítulos</p>
+<div class="resources">
+<a href="./t05/cuerpo-negro.html">Radiación del cuerpo negro</a>
+<a href="./t05/efecto-fotoelectrico.html">Efecto fotoeléctrico</a>
+<a href="./t05/modelo-bohr.html">Modelo atómico de Bohr</a>
+<a href="./t05/espectros-bohr.html">Espectros atómicos</a>
+<a href="./t05/dualidad-incertidumbre.html">Dualidad e incertidumbre</a>
+<a href="./t05/estructura-nuclear.html">Estructura nuclear</a>
+<a href="./t05/radiactividad.html">Radiactividad y reacciones nucleares</a>
+</div></div></details>
+</div>
+<p id="empty" class="empty" hidden>No hay temas que coincidan con la búsqueda.</p>
+<p class="quick-note">Los temas se muestran cerrados inicialmente para facilitar la navegación. Puedes abrir varios temas y comparar sus contenidos.</p>
+</main>
+<footer class="footer">Material educativo · Física de 2.º de Bachillerato</footer>
+<script>
+(function(){
+'use strict';
+const input=document.getElementById('filter'),cards=[...document.querySelectorAll('.topic')],empty=document.getElementById('empty');
+input.addEventListener('input',()=>{
+ const query=input.value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+ let visible=0;
+ for(const card of cards){
+  const text=(card.dataset.search+' '+card.textContent).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const match=text.includes(query);
+  card.hidden=!match;
+  if(match)visible++;
+ }
+ empty.hidden=visible!==0;
+});
+})();
+</script>
+</body></html>
