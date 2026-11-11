@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../../../../herramientas/estilos/v1/cuestiones.css">
 <style>
 .edu-app .edu-shell{max-width:1050px}.topline{display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:16px}.score{min-width:145px;text-align:center;padding:12px 18px;border:1px solid var(--line);border-radius:8px;background:#fff}.score strong{display:block;font-size:2rem;font-variant-numeric:tabular-nums}.score small{color:var(--muted)}.progress-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:20px}.progress-item{padding:12px;background:#fff;border:1px solid var(--line);border-radius:8px}.progress-item b{display:block;font-size:.88rem;font-weight:600}.progress-item span{font-variant-numeric:tabular-nums;color:var(--muted)}.track{height:7px;background:#e7edf1;border-radius:9px;margin-top:10px;overflow:hidden}.track i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}.exercise-title{font-size:.83rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:650}.question{font-size:clamp(1.2rem,2.5vw,1.65rem);line-height:1.65;margin:18px 0}.number{font-variant-numeric:tabular-nums;white-space:nowrap;font-family:Georgia,serif}.number sup{font-size:.7em}.answer-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:end}.answer-row.single{grid-template-columns:1fr}.edu-app .edu-options{grid-template-columns:repeat(3,minmax(0,1fr))}.edu-app .edu-option{text-align:center}.edu-app .edu-option[aria-pressed=true]{background:#e8f2f8}.edu-app .edu-field{margin:0}.edu-app .edu-feedback{line-height:1.6}.hint{margin-top:18px;font-size:.9rem;color:var(--muted)}.compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:20px 0}.compare-box{border:1px solid var(--line);border-radius:8px;padding:20px 10px;text-align:center;min-width:0;overflow:auto}.compare-box label{display:block;color:var(--muted);font-size:.85rem}.compare-box .number{font-size:clamp(1rem,2.5vw,1.45rem)}.edu-app .edu-actions{align-items:center}.edu-app .edu-actions button{min-width:155px}.note{font-size:.88rem;color:var(--muted)}.edu-app .edu-header p{max-width:700px}.scientific-answer{display:flex;align-items:center;gap:12px;margin:25px 0;font:clamp(1.6rem,4vw,2.3rem) Georgia,serif;max-width:100%}.scientific-answer input{border:1px solid #9baebd;border-radius:6px;background:white;color:var(--ink);text-align:center;min-width:0}.scientific-answer .mantissa{width:clamp(90px,27vw,180px);height:56px;font:inherit}.scientific-answer .power{display:inline-flex;align-items:flex-start;white-space:nowrap}.scientific-answer .power input{width:58px;height:39px;font:500 18px system-ui;margin:-14px 0 0 3px}.scientific-answer input:focus-visible{outline:3px solid #b36b00;outline-offset:3px}@media(max-width:600px){.progress-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.score{min-width:115px}.compare-box{padding:14px 5px}.edu-app .edu-options{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.edu-app .edu-option{padding:12px 5px}}@media(max-width:350px){.progress-grid{grid-template-columns:1fr}}
+.pdf-config{margin-top:22px;padding:16px;border:1px solid var(--line);border-radius:9px;background:#f7fafc}.pdf-config h3{font-size:1.05rem;margin:0 0 14px}.pdf-config .edu-field{display:block;margin:12px 0}.pdf-config input[type=number],.pdf-config select{display:block;max-width:100%;width:100%;padding:9px;border:1px solid #9baebd;border-radius:6px;background:#fff;color:var(--ink)}.pdf-types{display:grid;gap:9px;margin:10px 0}.pdf-types label,.pdf-solution{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:.91rem}.pdf-types input,.pdf-solution input{width:17px;height:17px;flex:none;accent-color:#087c90}.pdf-select-actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}.pdf-select-actions button{padding:5px 10px;background:white;border:1px solid #a8bdc9;border-radius:6px;cursor:pointer;color:#183447}.pdf-solution{margin:15px 0!important}.pdf-config>.edu-button{width:100%}
 </style>
 </head>
 <body class="edu-app">
@@ -37,7 +38,26 @@
 <p>Si la expresión está normalizada, el exponente indica su <strong>orden de magnitud decimal</strong> en el sentido trabajado en esta actividad (potencia de diez que acompaña al coeficiente).</p>
 <p class="note">Se admiten coma o punto decimal. Por ejemplo, 2,5 × 10³ puede introducirse como 2,5 y 3 en las dos casillas.</p>
 <div class="hint">Cada bloque requiere 5 aciertos netos: acierto +1; error −1, sin bajar de 0. La puntuación máxima de cada bloque es 1 punto. Los bloques completados dejan de aparecer.</div>
-<div class="edu-actions"><button class="edu-button edu-button-secondary" type="button" id="restart">Reiniciar práctica</button><button class="edu-button edu-button-secondary" type="button" id="worksheet">Lista de ejercicios (PDF)</button></div><p class="note">Genera 25 ejercicios nuevos, cinco de cada tipo, con espacio para contestar. En la ventana de impresión selecciona «Guardar como PDF».</p>
+<div class="edu-actions"><button class="edu-button edu-button-secondary" type="button" id="restart">Reiniciar práctica</button></div>
+<div class="pdf-config" aria-labelledby="pdf-title">
+<h3 id="pdf-title">Generar boletín de ejercicios (PDF)</h3>
+<label class="edu-field">Número de ejercicios (1–100)<input id="pdf-count" type="number" min="1" max="100" step="1" value="25"></label>
+<p class="note">Selecciona uno, varios o todos los tipos:</p>
+<div class="pdf-types" id="pdf-types">
+<label><input type="checkbox" value="0" checked> 1. Decimal → científica</label>
+<label><input type="checkbox" value="1" checked> 2. Científica → decimal</label>
+<label><input type="checkbox" value="2" checked> 3. Notación correcta</label>
+<label><input type="checkbox" value="3" checked> 4. Mayor o menor que 1</label>
+<label><input type="checkbox" value="4" checked> 5. Comparar cantidades</label>
+</div>
+<div class="pdf-select-actions"><button type="button" id="pdf-all">Seleccionar todos</button><button type="button" id="pdf-none">Desmarcar todos</button></div>
+<label class="edu-field">Grado de dificultad
+<select id="pdf-level"><option value="basic">Básica</option><option value="medium" selected>Intermedia</option><option value="advanced">Avanzada</option><option value="mixed">Mixta</option></select>
+</label>
+<label class="pdf-solution"><input id="pdf-solutions" type="checkbox" checked> Incluir soluciones al final, en página independiente</label>
+<button class="edu-button" type="button" id="worksheet">Generar boletín PDF</button>
+<p class="note">Distribución equilibrada entre los tipos elegidos. Se abre una hoja imprimible para guardar como PDF.</p>
+</div>
 </aside>
 </div>
 </main>
@@ -169,33 +189,107 @@ $('answerForm').addEventListener('submit',e=>{
 $('next').addEventListener('click',nextExercise);
 $('restart').addEventListener('click',()=>{if(!confirm('¿Reiniciar todos los puntos de esta práctica?'))return;counts.fill(0);correct=0;errors=0;signQueues.forEach(q=>q.splice(0));nextExercise()});
 
-function worksheetHtml(){
- const blocks=labels.map((label,t)=>{
-  const signs=(t<2||t===3)?fiveBalancedSigns():null;
-  const rows=Array.from({length:5},(_,j)=>{
-   const q=make(t,signs?signs[j]:null);let text='';
-   if(t===0)text='Escribe en notación científica: '+dec(q.a);
-   if(t===1)text='Escribe en notación decimal: '+sci(q.a);
-   if(t===2)text='¿Está correctamente escrita? '+q.shown;
-   if(t===3){q.scientific=j%2===0;text='¿Es mayor o menor que 1? '+(q.scientific?sci(q.a):dec(q.a));}
-   if(t===4){
-    q.variant=j%3;q.scienceFirst=j%2===0;
-    const left=q.variant===0?sci(q.a):q.variant===1?dec(q.a):(q.scienceFirst?sci(q.a):dec(q.a));
-    const right=q.variant===0?sci(q.b):q.variant===1?dec(q.b):(q.scienceFirst?dec(q.b):sci(q.b));
-    text='¿Cuál es mayor? A: '+left+' &nbsp;&nbsp; B: '+right;
-   }
-   const response=t===2?'<p class="choices">☐ Sí &nbsp; ☐ No</p>':t===3?'<p class="choices">☐ Mayor que 1 &nbsp; ☐ Menor que 1</p>':t===4?'<p class="choices">☐ A &nbsp; ☐ B &nbsp; ☐ Son iguales</p>':'<div class="answerline"></div>';
-   return '<div class="questionrow"><strong>'+(j+1)+'.</strong><div>'+text+response+'</div></div>';
-  }).join('');
-  return '<section><h2>'+(t+1)+'. '+label+'</h2>'+rows+'</section>';
- }).join('');
- const css='@page{size:A4;margin:16mm}*{box-sizing:border-box}body{font:12pt/1.5 Arial,sans-serif;color:#162536}h1{font-size:20pt;margin:0 0 3mm}h2{font-size:14pt;border-bottom:1px solid #789;margin:8mm 0 5mm;padding-bottom:2mm}p{margin:0 0 5mm}.ident{display:flex;gap:8mm;margin:7mm 0}.ident span{flex:1;border-bottom:1px solid #888}.number{font-family:Georgia,serif;white-space:nowrap}.questionrow{display:grid;grid-template-columns:8mm 1fr;gap:2mm;min-height:23mm;margin:1mm 0;break-inside:avoid}.answerline{border-bottom:1px solid #bbb;height:13mm}.choices{margin:5mm 0 0;font-size:11pt}section{break-inside:avoid}section:nth-of-type(3){break-before:page}.tools{padding:12px;border:1px solid #aaa;margin-bottom:18px}@media screen{body{max-width:190mm;margin:20px auto;padding:20px}section{break-inside:auto}section:nth-of-type(3){break-before:auto}}@media print{.tools{display:none}}';
- return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Lista de ejercicios · Notación científica</title><style>'+css+'</style></head><body><div class="tools"><button onclick="window.print()">Imprimir o guardar como PDF</button> &nbsp; Elige «Guardar como PDF» en el destino de impresión.</div><h1>Notación científica · 2.º ESO</h1><p>Lista de ejercicios · cinco de cada tipo</p><div class="ident">Nombre: <span></span> Grupo: <span></span> Fecha: <span></span></div>'+blocks+'</body></html>';
+
+function worksheetNumber(level,sign=null){
+ const range=level==='basic'?3:level==='advanced'?11:7;
+ const length=level==='basic'?1:level==='advanced'?rnd(2,4):rnd(2,3);
+ const digits=String(rnd(1,9))+Array.from({length:length-1},()=>String(rnd(0,9))).join('');
+ const exp=sign===1?rnd(1,range):sign===-1?rnd(-range,-1):rnd(-range,range);
+ const power=exp-(length-1);
+ let decimal;
+ if(power>=0)decimal=digits+'0'.repeat(power);
+ else{const position=digits.length+power;decimal=position>0?digits.slice(0,position)+','+digits.slice(position):'0,'+'0'.repeat(-position)+digits}
+ return {digits,exp,coefficient:digits[0]+(length>1?','+digits.slice(1):''),decimal,value:Number(digits)*10**power};
 }
+function worksheetComparison(level){
+ if(level==='basic'){
+  const exponent=rnd(-3,3);
+  const a=comparisonNumber(rnd(120,360),exponent);
+  const b=comparisonNumber(rnd(650,950),exponent);
+  return Math.random()<.5?[a,b]:[b,a];
+ }
+ if(level==='advanced'){
+  const exponent=rnd(-9,9),aHundredths=rnd(160,940),delta=rnd(1,5);
+  const a=comparisonNumber(aHundredths,exponent);
+  const b=comparisonNumber(aHundredths+delta,exponent);
+  return Math.random()<.5?[a,b]:[b,a];
+ }
+ return comparisonPair();
+}
+function worksheetItem(type,level,sign,index){
+ let q;
+ if(type===0||type===1||type===3){
+  q={type,a:worksheetNumber(level,sign),scientific:index%2===0};
+ }else if(type===4){
+  const [a,b]=worksheetComparison(level);
+  q={type,a,b,variant:index%3,scienceFirst:index%2===0};
+ }else{
+  q=make(2);
+  if(level==='basic' && index%2===0)q={...q,shown:sci(q.a),valid:true};
+  if(level==='advanced' && index%2===0){
+   const coeff='0,'+q.a.digits;
+   q={...q,shown:'<span class="number">'+coeff+' × 10<sup>'+q.a.exp+'</sup></span>',valid:false};
+  }
+ }
+ let prompt='',answer='',explanation='';
+ if(type===0){
+  prompt='Escribe en notación científica normalizada: '+dec(q.a);
+  answer=sci(q.a);
+  explanation='Se coloca la coma después de la primera cifra y se determina la potencia de diez correspondiente.';
+ }else if(type===1){
+  prompt='Escribe en notación decimal: '+sci(q.a);
+  answer=dec(q.a);
+  explanation=q.a.exp>=0?'Desplaza la coma '+q.a.exp+' posiciones a la derecha.':'Desplaza la coma '+(-q.a.exp)+' posiciones a la izquierda.';
+ }else if(type===2){
+  prompt='¿Está correctamente escrita en notación científica normalizada? '+q.shown;
+  answer=q.valid?'Sí':'No';
+  explanation='La mantisa debe cumplir 1 ≤ |a| &lt; 10.';
+ }else if(type===3){
+  prompt='¿Es mayor o menor que 1? '+(q.scientific?sci(q.a):dec(q.a));
+  answer=q.a.value>1?'Mayor que 1':'Menor que 1';
+  explanation='Comprueba si el valor numérico queda por encima o por debajo de la unidad.';
+ }else{
+  const left=q.variant===0?sci(q.a):q.variant===1?dec(q.a):(q.scienceFirst?sci(q.a):dec(q.a));
+  const right=q.variant===0?sci(q.b):q.variant===1?dec(q.b):(q.scienceFirst?dec(q.b):sci(q.b));
+  prompt='¿Cuál es mayor? A: '+left+' &nbsp;&nbsp; B: '+right;
+  answer=equal(q.a.value,q.b.value)?'Son iguales':q.a.value>q.b.value?'A':'B';
+  explanation='A = '+sci(q.a)+'; B = '+sci(q.b)+'. Se comparan las potencias y después los coeficientes.';
+ }
+ return {type,prompt,answer,explanation};
+}
+function worksheetHtml(selected,requested,level,solutions){
+ const types=shuffle(selected.slice());
+ const distribution=Array.from({length:requested},(_,i)=>types[i%types.length]);
+ shuffle(distribution);
+ const occurrences=[0,0,0,0,0],items=distribution.map(type=>{
+  const index=occurrences[type]++;
+  const actualLevel=level==='mixed'?choose(['basic','medium','advanced']):level;
+  const sign=(type===0||type===1||type===3)?index%2===0?1:-1:null;
+  return worksheetItem(type,actualLevel,sign,index);
+ });
+ const blocks=items.map((item,i)=>{
+  const response=item.type===2?'<p class="choices">☐ Sí &nbsp; ☐ No</p>':
+   item.type===3?'<p class="choices">☐ Mayor que 1 &nbsp; ☐ Menor que 1</p>':
+   item.type===4?'<p class="choices">☐ A &nbsp; ☐ B &nbsp; ☐ Son iguales</p>':'<div class="answerline"></div>';
+  return '<div class="questionrow"><strong>'+(i+1)+'.</strong><div><span class="typehint">Tipo '+(item.type+1)+' · '+labels[item.type]+'</span><div>'+item.prompt+'</div>'+response+'</div></div>';
+ }).join('');
+ const key=solutions?'<div class="solutions"><h2>Solucionario</h2><p>Respuestas correspondientes exactamente a los ejercicios anteriores, en el mismo orden.</p>'+items.map((item,i)=>'<div class="solutionrow"><strong>'+(i+1)+'.</strong> <b>'+item.answer+'</b><div class="explain">'+item.explanation+'</div></div>').join('')+'</div>':'';
+ const names={basic:'Básica',medium:'Intermedia',advanced:'Avanzada',mixed:'Mixta'};
+ const css='@page{size:A4;margin:16mm}*{box-sizing:border-box}body{font:11.5pt/1.5 Arial,sans-serif;color:#162536}h1{font-size:20pt;margin:0 0 3mm}h2{font-size:15pt;border-bottom:1px solid #789;padding-bottom:2mm}p{margin:0 0 5mm}.ident{display:flex;gap:8mm;margin:7mm 0}.ident span{flex:1;border-bottom:1px solid #888}.number{font-family:Georgia,serif;white-space:nowrap}.number sup{font-size:.7em}.questionrow{display:grid;grid-template-columns:9mm 1fr;gap:2mm;min-height:25mm;margin:3mm 0 4mm;break-inside:avoid}.answerline{border-bottom:1px solid #bbb;height:14mm}.choices{margin:6mm 0 0;font-size:10pt}.typehint{font-size:9pt;color:#566c7c;display:block;margin-bottom:2mm}.solutions{break-before:page;page-break-before:always}.solutionrow{padding:3mm 0;border-bottom:1px solid #ddd;break-inside:avoid}.explain{font-size:10pt;color:#405363;margin-top:1mm}.tools{padding:12px;border:1px solid #aaa;margin-bottom:18px}@media screen{body{max-width:190mm;margin:20px auto;padding:20px}}@media print{.tools{display:none}}';
+ return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Boletín · Notación científica</title><style>'+css+'</style></head><body><div class="tools"><button onclick="window.print()">Imprimir o guardar como PDF</button> &nbsp; En el destino de impresión, selecciona «Guardar como PDF».</div><h1>Notación científica · 2.º ESO</h1><p>'+requested+' ejercicios · Dificultad '+names[level]+'</p><div class="ident">Nombre: <span></span> Grupo: <span></span> Fecha: <span></span></div>'+blocks+key+'</body></html>';
+}
+$('pdf-all').addEventListener('click',()=>document.querySelectorAll('#pdf-types input').forEach(x=>x.checked=true));
+$('pdf-none').addEventListener('click',()=>document.querySelectorAll('#pdf-types input').forEach(x=>x.checked=false));
 $('worksheet').addEventListener('click',()=>{
- const page=worksheetHtml();const w=window.open('','_blank');
- if(!w){alert('Permite ventanas emergentes para preparar la lista de ejercicios.');return}
- w.document.open();w.document.write(page);w.document.close();w.focus();w.setTimeout(()=>w.print(),350);
+ const selected=[...document.querySelectorAll('#pdf-types input:checked')].map(x=>Number(x.value));
+ const value=Number($('pdf-count').value);
+ if(!selected.length){alert('Selecciona al menos un tipo de ejercicio.');return}
+ if(!Number.isInteger(value)||value<1||value>100){alert('Indica un número entero de ejercicios entre 1 y 100.');return}
+ const page=worksheetHtml(selected,value,$('pdf-level').value,$('pdf-solutions').checked);
+ const w=window.open('','_blank');
+ if(!w){alert('Permite ventanas emergentes para preparar el boletín.');return}
+ w.document.open();w.document.write(page);w.document.close();w.focus();
+ w.setTimeout(()=>w.print(),350);
 });
 
 nextExercise();
