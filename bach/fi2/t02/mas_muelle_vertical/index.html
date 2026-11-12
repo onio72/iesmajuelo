@@ -12,24 +12,24 @@
 <div class="layout"><section class="panel"><div class="canvas-wrap"><canvas id="scene" width="980" height="800" aria-label="Simulación de un muelle vertical: arrastra la masa, observa su movimiento y los vectores de fuerza"></canvas></div>
 <div class="legend"><span><i class="sw" style="background:#dc8730"></i>Peso</span><span><i class="sw" style="background:#1678b6"></i>Fuerza elástica</span><span><i class="sw" style="background:#8a53b4"></i>Fuerza resultante</span><span><i class="sw" style="background:#168673"></i>Equilibrio</span></div>
 <p class="note" id="gestureHelp">Arrastra la masa hasta el extremo inferior del muelle para colgarla.</p></section>
-<aside class="stack"><section class="panel"><span class="step" id="stepName">Etapa 1 de 3 · Preparación</span><h2 id="stepTitle">Cuelga una masa del muelle</h2><p class="instruction" id="instruction">Observa la longitud natural del muelle. Después, arrastra la masa hasta su extremo y suéltala.</p>
+<aside class="stack"><section class="panel" id="preparation"><span class="step" id="stepName">Etapa 1 de 3 · Preparación</span><h2 id="stepTitle">Cuelga una masa del muelle</h2><p class="instruction" id="instruction">Observa la longitud natural del muelle. Después, arrastra la masa hasta su extremo y suéltala.</p>
 <div class="field"><label for="mass">Masa</label><input id="mass" type="range" min="0.25" max="0.80" step="0.05" value="0.45"><strong id="massText">0,45 kg</strong></div><div class="stats"><div class="stat"><small>Longitud natural L₀</small><strong id="naturalText">0,65 m</strong></div><div class="stat"><small>Masa m</small><strong id="readMass">0,45 kg</strong></div><div class="stat"><small>Gravedad g</small><strong>9,8 m/s²</strong></div></div>
 <div class="buttons"><button id="settle" disabled>Dejar en reposo</button><button id="restart">Reiniciar experiencia</button></div><p class="status" id="stageStatus" aria-live="polite"></p></section>
-<section class="panel hidden" id="calculation"><span class="step">Etapa 2 de 3 · Investigación</span><h2>Determina la constante elástica</h2><p>Usa las longitudes medidas y aplica la condición de equilibrio. Introduce tus respuestas con dos o tres cifras significativas.</p><div class="formula">En equilibrio: <b>k · ΔL = m · g</b> &nbsp; → &nbsp; <b>k = mg/ΔL</b></div>
+<section class="panel hidden" id="calculation"><span class="step">Etapa 2 de 3 · Investigación</span><h2>Determina la constante elástica</h2><p>Usa las longitudes medidas y aplica la condición de equilibrio. Introduce tus respuestas con dos o tres cifras significativas.</p><div class="stats"><div class="stat"><small>L₀</small><strong>0,65 m</strong></div><div class="stat"><small>L de equilibrio</small><strong id="calEq">—</strong></div><div class="stat"><small>Masa</small><strong id="calMass">—</strong></div></div><div class="formula">En equilibrio: <b>k · ΔL = m · g</b> &nbsp; → &nbsp; <b>k = mg/ΔL</b></div>
 <div class="question"><label for="elongation">1. Alargamiento ΔL = L<sub>eq</sub> − L₀ (m)</label><div class="qrow"><input id="elongation" type="number" step="0.001" min="0" placeholder="m"><button id="checkElongation">Comprobar</button></div><div class="feedback" id="fbElongation" aria-live="polite"></div></div>
 <div class="question"><label for="weight">2. Peso P = mg (N)</label><div class="qrow"><input id="weight" type="number" step="0.01" min="0" placeholder="N" disabled><button id="checkWeight" disabled>Comprobar</button></div><div class="feedback" id="fbWeight" aria-live="polite"></div></div>
 <div class="question"><label for="springK">3. Constante elástica k (N/m)</label><div class="qrow"><input id="springK" type="number" step="0.1" min="0" placeholder="N/m" disabled><button id="checkK" disabled>Comprobar</button></div><div class="feedback" id="fbK" aria-live="polite"></div></div>
 <button class="primary hidden" id="enterForces">Explorar las fuerzas</button></section>
 <section class="panel hidden" id="forces"><span class="step">Etapa 3 de 3 · Dinámica</span><h2>¿Qué ocurre al desplazar la masa?</h2><p class="instruction" id="forceInstruction">Arrastra la masa hacia arriba o hacia abajo. Los vectores aparecen a la derecha, separados de las etiquetas, y no se amortiguan las oscilaciones.</p><div class="check-grid"><label><input type="checkbox" id="showWeight" checked> Peso P</label><label><input type="checkbox" id="showElastic" checked> Fuerza elástica Fₑ</label><label><input type="checkbox" id="showNet" checked> Fuerza resultante ΣF</label><label><input type="checkbox" id="showValues" checked> Valores numéricos</label></div>
 <div class="buttons"><button class="primary" id="release">Soltar y oscilar</button><button id="pause">Pausar</button><button id="atEquilibrium">Situar en equilibrio</button></div><div class="stats" style="margin-top:12px"><div class="stat"><small>Desplazamiento x</small><strong id="readX">0,000 m</strong></div><div class="stat"><small>Resultante ΣF</small><strong id="readNet">0,00 N</strong></div><div class="stat"><small>Aceleración a</small><strong id="readAccel">0,00 m/s²</strong></div></div><p class="note">Convención de signos: el eje vertical es positivo hacia abajo y x = L − L<sub>eq</sub>. La fuerza resultante cumple ΣF = −kx.</p></section>
-</aside></div><p class="footer">Modelo ideal: muelle de masa despreciable, gravedad uniforme y movimiento vertical. El amortiguamiento se emplea únicamente durante el asentamiento inicial de la masa. En la etapa 3 el movimiento es ideal, sin rozamiento ni amortiguamiento. La ley de Hooke se considera válida en todo el recorrido representado.</p></main>
+</aside></div><p class="footer">Modelo ideal: muelle de masa despreciable, gravedad uniforme y movimiento vertical. El amortiguamiento se emplea únicamente durante el asentamiento inicial de la masa. En la etapa 3 el movimiento es ideal, sin rozamiento ni amortiguamiento. La ley de Hooke se considera válida en todo el recorrido representado. La longitud del muelle nunca puede ser negativa: al alcanzar el límite de compresión se aplica un tope ideal.</p></main>
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext('2d');
-const G=9.8,L0=.65,K=18,PX=300,anchorY=88,centerX=285,naturalY=anchorY+L0*PX;
-const DRAG_MIN=anchorY+65,DRAG_MAX=735,FORCE_SCALE=9;
+const G=9.8,L0=.65,K=18,PX=300,anchorY=88,centerX=285,massHalfHeight=27,naturalY=anchorY+massHalfHeight+L0*PX;
+const DRAG_MIN=anchorY+massHalfHeight,DRAG_MAX=735,FORCE_SCALE=9;
 const s={phase:0,m:.45,y:naturalY+10,v:0,hung:false,moving:false,drag:false,dragOffset:0,hover:false,answered:0,time:0,last:0};
-const eqY=()=>anchorY+(L0+s.m*G/K)*PX;
+const eqY=()=>naturalY+(s.m*G/K)*PX;
 const cm=n=>n.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:3});
 function line(x1,y1,x2,y2,color,width=1,dash=[]){ctx.save();ctx.beginPath();ctx.setLineDash(dash);ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke();ctx.restore()}
 function text(t,x,y,color='#425468',size=15,align='left',weight=500){ctx.save();ctx.fillStyle=color;ctx.font=`${weight} ${size}px system-ui,sans-serif`;ctx.textAlign=align;ctx.fillText(t,x,y);ctx.restore()}
@@ -46,7 +46,23 @@ function forceReadout(x,title,force,color){
  text(title,x,62,color,16,'center',700);
  if($('showValues').checked)text(`${signed(force)} N`,x,87,color,15,'center',650);
 }
-function spring(y){const start=anchorY+12,end=y-27;ctx.save();ctx.strokeStyle='#53687f';ctx.lineWidth=3;ctx.lineJoin='round';ctx.lineCap='round';ctx.beginPath();ctx.moveTo(centerX,start);ctx.lineTo(centerX,start+12);const top=start+12,bottom=Math.max(top+10,end-9),n=16;for(let i=0;i<=n;i++){const py=top+(bottom-top)*i/n;ctx.lineTo(centerX+(i===0||i===n?0:i%2?20:-20),py)}ctx.lineTo(centerX,end);ctx.stroke();ctx.restore()}
+function spring(y){
+ const top=anchorY,bottom=Math.max(top,y-massHalfHeight),length=bottom-top;
+ ctx.save();ctx.strokeStyle='#5b7187';ctx.lineWidth=3.3;ctx.lineJoin='round';ctx.lineCap='round';
+ ctx.beginPath();ctx.moveTo(centerX,60);ctx.lineTo(centerX,top);ctx.stroke();
+ if(length>0.05){
+  const straight=Math.min(10,length*.20),coilTop=top+straight,coilBottom=bottom-straight;
+  const coilLength=Math.max(0,coilBottom-coilTop),amp=Math.min(19,coilLength*.18);
+  ctx.beginPath();ctx.moveTo(centerX,top);ctx.lineTo(centerX,coilTop);
+  const points=312,turns=13;
+  for(let i=0;i<=points;i++){
+   const t=i/points, envelope=Math.min(1,t*12,(1-t)*12);
+   ctx.lineTo(centerX+amp*Math.sin(2*Math.PI*turns*t)*Math.max(0,envelope),coilTop+coilLength*t);
+  }
+  ctx.lineTo(centerX,bottom);ctx.stroke();
+ }
+ ctx.restore();
+}
 function massDraw(x,y,loose=false){ctx.save();ctx.shadowColor='#152e4966';ctx.shadowBlur=12;ctx.shadowOffsetY=5;ctx.fillStyle=loose?'#4f88bb':'#27669a';ctx.strokeStyle='#174f7f';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(x-38,y-27,76,54,8);ctx.fill();ctx.shadowBlur=0;ctx.stroke();ctx.restore();text(`${cm(s.m)} kg`,x,y+6,'white',16,'center',700)}
 function measure(x,y,label,color){line(x,anchorY+8,x,y,color,1.7,[4,4]);line(x-8,anchorY+8,x+8,anchorY+8,color,2);line(x-8,y,x+8,y,color,2);text(label,x+12,(anchorY+y)/2,color,15,'left',650)}
 function draw(){
@@ -62,7 +78,7 @@ function draw(){
   line(490,yBase,944,yBase,'#bbc9d8',1.5,[4,6]);
   text('Origen de los vectores',712,yBase+25,'#718399',12,'center');
   if(s.hung){
-   const weight=s.m*G,elastic=-K*((s.y-anchorY)/PX-L0),net=weight+elastic;
+   const weight=s.m*G,elastic=-K*((s.y-massHalfHeight-anchorY)/PX-L0),net=weight+elastic;
    for(const item of [
     {on:'showWeight',x:557,val:weight,c:'#d1832e',label:'Peso P'},
     {on:'showElastic',x:715,val:elastic,c:'#177bb9',label:'F. elástica'},
@@ -75,11 +91,11 @@ function draw(){
  }
  ctx.fillStyle='#60758a';ctx.fillRect(centerX-100,44,200,16);
  for(let i=0;i<9;i++)line(centerX-90+i*21,44,centerX-78+i*21,59,'#e0e9f2',2);
- line(42,naturalY,448,naturalY,'#7c92a8',1.5,[6,6]);
- text('Longitud natural',35,naturalY-12,'#63788f',13);
- if(s.hung){line(38,eqY(),450,eqY(),'#18856b',2,[7,6]);text('Equilibrio',35,eqY()-12,'#14745d',14,'left',650)}
- measure(70,naturalY,'L₀ = 0,65 m','#647a91');
- if(s.hung){measure(382,eqY(),`L eq = ${cm(L0+s.m*G/K)} m`,'#117663')}
+ line(42,naturalY-massHalfHeight,448,naturalY-massHalfHeight,'#7c92a8',1.5,[6,6]);
+ text('Longitud natural',35,naturalY-massHalfHeight-12,'#63788f',13);
+ if(s.hung){line(38,eqY()-massHalfHeight,450,eqY()-massHalfHeight,'#18856b',2,[7,6]);text('Equilibrio',35,eqY()-massHalfHeight-12,'#14745d',14,'left',650)}
+ measure(70,naturalY-massHalfHeight,'L₀ = 0,65 m','#647a91');
+ if(s.hung){measure(382,eqY()-massHalfHeight,`L eq = ${cm(L0+s.m*G/K)} m`,'#117663')}
  spring(s.hung?s.y:naturalY);
  if(s.hung){massDraw(centerX,s.y)}else massDraw(s.drag?s.looseX:390,s.drag?s.looseY:650,true);
  if(!s.hung){
@@ -89,14 +105,15 @@ function draw(){
  }
 }
 function refresh(){
+ $('calEq').textContent=cm(L0+s.m*G/K)+' m';$('calMass').textContent=cm(s.m)+' kg';
  $('massText').textContent=cm(s.m)+' kg';$('readMass').textContent=cm(s.m)+' kg';
  $('readX').textContent=signed((s.y-eqY())/PX,3)+' m';
  const net=-K*(s.y-eqY())/PX;
  $('readNet').textContent=signed(net)+' N';$('readAccel').textContent=signed(net/s.m)+' m/s²';draw()
 }
 function startSettle(){s.moving=true;s.v=0;$('settle').disabled=true;$('stageStatus').textContent='El muelle oscila mientras se amortigua hasta llegar al reposo.'}
-function finishSettling(){s.y=eqY();s.v=0;s.moving=false;s.phase=1;$('calculation').classList.remove('hidden');$('stepName').textContent='Etapa 2 de 3 · Medidas';$('stepTitle').textContent='El muelle está en equilibrio';$('instruction').textContent='Mide las longitudes y calcula el alargamiento, el peso y la constante elástica. Resuelve las tres preguntas por orden.';$('stageStatus').textContent='La fuerza elástica compensa exactamente el peso.';$('gestureHelp').textContent='Consulta las marcas de L₀ y L eq y completa las preguntas.';refresh()}
-function tick(t){let dt=Math.min((t-s.last)/1000||0,.035);s.last=t;if(s.moving&&!s.drag){const damping=s.phase===0?3.3:0;let n=Math.max(1,Math.ceil(dt/.008)),h=dt/n;for(let i=0;i<n;i++){let a=-(K/s.m)*(s.y-eqY())-(damping/s.m)*s.v;const vHalf=s.v+a*h/2;s.y+=vHalf*h;const aNew=-(K/s.m)*(s.y-eqY())-(damping/s.m)*vHalf;s.v=vHalf+aNew*h/2}if(s.phase===0&&Math.abs(s.y-eqY())<.45&&Math.abs(s.v)<.015)finishSettling()}refresh();requestAnimationFrame(tick)}
+function finishSettling(){s.y=eqY();s.v=0;s.moving=false;s.phase=1;$('preparation').classList.add('hidden');$('calculation').classList.remove('hidden');$('stageStatus').textContent='La fuerza elástica compensa exactamente el peso.';$('gestureHelp').textContent='Consulta las marcas de L₀ y L eq y completa las preguntas.';refresh()}
+function tick(t){let dt=Math.min((t-s.last)/1000||0,.035);s.last=t;if(s.moving&&!s.drag){const damping=s.phase===0?3.3:0;let n=Math.max(1,Math.ceil(dt/.008)),h=dt/n;for(let i=0;i<n;i++){let a=-(K/s.m)*(s.y-eqY())-(damping/s.m)*s.v;const vHalf=s.v+a*h/2;s.y+=vHalf*h;if(s.y<DRAG_MIN){s.y=DRAG_MIN+(DRAG_MIN-s.y);s.v=Math.abs(vHalf)}else if(s.y>DRAG_MAX){s.y=DRAG_MAX-(s.y-DRAG_MAX);s.v=-Math.abs(vHalf)}const aNew=-(K/s.m)*(s.y-eqY())-(damping/s.m)*vHalf;s.v=(s.y<=DRAG_MIN||s.y>=DRAG_MAX?s.v:vHalf)+aNew*h/2}if(s.phase===0&&Math.abs(s.y-eqY())<.45&&Math.abs(s.v)<.015)finishSettling()}refresh();requestAnimationFrame(tick)}
 $('mass').addEventListener('input',e=>{if(s.hung)return;s.m=Number(e.target.value);refresh()});
 function coords(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*980/r.width,y:(e.clientY-r.top)*800/r.height}}
 canvas.addEventListener('pointerdown',e=>{let p=coords(e),mx=s.hung?centerX:390,my=s.hung?s.y:650;if(s.drag)return;if(Math.abs(p.x-mx)<=46&&Math.abs(p.y-my)<=38&&(!s.hung||s.phase===2)){s.drag=true;s.moving=false;s.dragOffset=p.y-my;s.looseX=p.x;s.looseY=p.y;canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';e.preventDefault()}});
@@ -108,11 +125,11 @@ function grade(input,answer,tol,fb,next){const v=Number($(input).value);if(!$(in
 $('checkElongation').addEventListener('click',()=>{if(grade('elongation',s.m*G/K,.006,'fbElongation','checkElongation')){$('weight').disabled=false;$('checkWeight').disabled=false}});
 $('checkWeight').addEventListener('click',()=>{if(grade('weight',s.m*G,.06,'fbWeight','checkWeight')){$('springK').disabled=false;$('checkK').disabled=false}});
 $('checkK').addEventListener('click',()=>{if(grade('springK',K,.5,'fbK','checkK')){$('enterForces').classList.remove('hidden');$('stageStatus').textContent='Has obtenido la constante elástica. Ya puedes estudiar la dinámica.'}});
-$('enterForces').addEventListener('click',()=>{s.phase=2;s.y=eqY();s.v=0;s.moving=false;$('forces').classList.remove('hidden');$('stepName').textContent='Etapa 3 de 3 · Fuerzas';$('stepTitle').textContent='Explora el movimiento';$('instruction').textContent='Compara las fuerzas al desplazar la masa. En esta etapa no existe amortiguamiento; los vectores se representan en un diagrama independiente para que sus etiquetas no se solapen.';$('gestureHelp').textContent='Arrastra la masa verticalmente. Los tres vectores aparecen a la derecha, con un origen gráfico común y una escala fija de 9 px/N. No se limita su longitud artificialmente.';$('forces').scrollIntoView({behavior:'smooth',block:'nearest'});refresh()});
+$('enterForces').addEventListener('click',()=>{s.phase=2;s.y=eqY();s.v=0;s.moving=false;$('calculation').classList.add('hidden');$('forces').classList.remove('hidden');$('gestureHelp').textContent='Arrastra la masa verticalmente. Los tres vectores aparecen a la derecha, con un origen gráfico común y una escala fija de 9 px/N. No se limita su longitud artificialmente.';refresh()});
 $('release').addEventListener('click',()=>{s.moving=true;s.v=0;$('forceInstruction').textContent='Oscilación ideal sin amortiguamiento: la amplitud permanece constante. Puedes pausarla o arrastrarla.'});
 $('pause').addEventListener('click',()=>{s.moving=false;$('forceInstruction').textContent='Simulación pausada. Arrastra la masa para estudiar una posición concreta.'});
 $('atEquilibrium').addEventListener('click',()=>{s.moving=false;s.y=eqY();s.v=0;$('forceInstruction').textContent='En equilibrio, las fuerzas peso y elástica se compensan. La resultante es nula.';refresh()});
-$('restart').addEventListener('click',()=>{s.phase=0;s.moving=false;s.hung=false;s.drag=false;s.y=naturalY+10;s.v=0;$('mass').disabled=false;$('settle').disabled=true;$('calculation').classList.add('hidden');$('forces').classList.add('hidden');$('enterForces').classList.add('hidden');$('stepName').textContent='Etapa 1 de 3 · Preparación';$('stepTitle').textContent='Cuelga una masa del muelle';$('instruction').textContent='Observa la longitud natural del muelle. Después, arrastra la masa hasta su extremo y suéltala.';$('stageStatus').textContent='';$('gestureHelp').textContent='Arrastra la masa hasta el extremo inferior del muelle para colgarla.';for(const id of ['elongation','weight','springK']){$(id).value='';$(id).disabled=id!=='elongation'}$('weight').disabled=true;$('elongation').disabled=false;$('springK').disabled=true;for(const id of ['checkElongation','checkWeight','checkK'])$(id).disabled=id!=='checkElongation';for(const id of ['fbElongation','fbWeight','fbK'])$(id).textContent='';refresh()});
+$('restart').addEventListener('click',()=>{s.phase=0;s.moving=false;s.hung=false;s.drag=false;s.y=naturalY+10;s.v=0;$('preparation').classList.remove('hidden');$('mass').disabled=false;$('settle').disabled=true;$('calculation').classList.add('hidden');$('forces').classList.add('hidden');$('enterForces').classList.add('hidden');$('stepName').textContent='Etapa 1 de 3 · Preparación';$('stepTitle').textContent='Cuelga una masa del muelle';$('instruction').textContent='Observa la longitud natural del muelle. Después, arrastra la masa hasta su extremo y suéltala.';$('stageStatus').textContent='';$('gestureHelp').textContent='Arrastra la masa hasta el extremo inferior del muelle para colgarla.';for(const id of ['elongation','weight','springK']){$(id).value='';$(id).disabled=id!=='elongation'}$('weight').disabled=true;$('elongation').disabled=false;$('springK').disabled=true;for(const id of ['checkElongation','checkWeight','checkK'])$(id).disabled=id!=='checkElongation';for(const id of ['fbElongation','fbWeight','fbK'])$(id).textContent='';refresh()});
 for(const id of ['showWeight','showElastic','showNet','showValues'])$(id).addEventListener('change',refresh);
 refresh();requestAnimationFrame(tick);
 })();
