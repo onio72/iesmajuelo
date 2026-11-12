@@ -110,23 +110,23 @@ function draw(){
  for(let yy=45;yy<790;yy+=40)line(0,yy,980,yy,'#e4ebf3',1);
  // Dos zonas distintas: sistema mecánico y diagrama comparativo de fuerzas.
  if(s.phase===2){
-  ctx.fillStyle='#ffffffc9';ctx.fillRect(465,15,495,767);
-  line(465,17,465,780,'#cad8e6',2);
-  text('FUERZAS · ESCALA COMÚN',712,34,'#435b75',16,'center',750);
-  text('Vectores trasladados para compararlos',712,115,'#657789',13,'center');
+  ctx.fillStyle='#ffffffc9';ctx.fillRect(510,15,450,767);
+  line(510,17,510,780,'#cad8e6',2);
+  text('FUERZAS · ESCALA COMÚN',735,34,'#435b75',16,'center',750);
+  text('Vectores trasladados para compararlos',735,115,'#657789',13,'center');
   const yBase=428;
-  line(490,yBase,944,yBase,'#bbc9d8',1.5,[4,6]);
-  text('Origen de los vectores',712,yBase+25,'#718399',12,'center');
+  line(530,yBase,940,yBase,'#bbc9d8',1.5,[4,6]);
+  text('Origen de los vectores',735,yBase+25,'#718399',12,'center');
   if(s.hung){
    const weight=s.m*G,elastic=-K*((s.y-massHalfHeight-anchorY)/PX-L0),net=weight+elastic;
    for(const item of [
-    {on:'showWeight',x:557,val:weight,c:'#d1832e',label:'Peso P'},
-    {on:'showElastic',x:715,val:elastic,c:'#177bb9',label:'F. elástica'},
-    {on:'showNet',x:873,val:net,c:'#8a4fb2',label:'Resultante'}]){
+    {on:'showWeight',x:585,val:weight,c:'#d1832e',label:'Peso P'},
+    {on:'showElastic',x:730,val:elastic,c:'#177bb9',label:'F. elástica'},
+    {on:'showNet',x:875,val:net,c:'#8a4fb2',label:'Resultante'}]){
      if($(item.on).checked){forceReadout(item.x,item.label,item.val,item.c);arrow(item.x,yBase,item.val,item.c)}
    }
-   text(`x = ${signed((s.y-eqY())/PX,3)} m`,712,750,'#365a77',17,'center',700);
-   text(Math.abs(s.y-eqY())<.3?'Equilibrio · ΣF = 0':s.y>eqY()?'Resultante restauradora hacia arriba':'Resultante restauradora hacia abajo',712,774,'#4d677b',14,'center',650);
+   text(`x = ${signed((s.y-eqY())/PX,3)} m`,735,750,'#365a77',17,'center',700);
+   text(Math.abs(s.y-eqY())<.3?'Equilibrio · ΣF = 0':s.y>eqY()?'Resultante restauradora hacia arriba':'Resultante restauradora hacia abajo',735,774,'#4d677b',14,'center',650);
   }
  }
  ctx.fillStyle='#60758a';ctx.fillRect(centerX-100,44,200,16);
