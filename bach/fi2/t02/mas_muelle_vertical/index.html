@@ -47,6 +47,16 @@
 <option value="onlyforce">Aumenta la fuerza, pero la aceleración no cambia</option>
 </select>
 </div>
+<div class="question" style="margin:12px 0">
+<label for="qRelation"><strong>5. ¿Qué relación existe entre la elongación respecto a la posición de equilibrio y la aceleración?</strong></label>
+<select id="qRelation" style="display:block;width:100%;margin-top:7px;padding:9px">
+<option value="">Selecciona una respuesta</option>
+<option value="same">Son directamente proporcionales y tienen el mismo signo</option>
+<option value="opposite">Son proporcionales, pero tienen signos opuestos</option>
+<option value="independent">No existe ninguna relación entre ellas</option>
+<option value="constant">La aceleración es constante aunque cambie la elongación</option>
+</select>
+</div>
 <button class="primary" id="checkForcesQuiz" type="button">Comprobar respuestas</button>
 <div id="forcesQuizFeedback" class="feedback" role="status" aria-live="polite" style="margin-top:10px"></div>
 </div></section>
@@ -157,13 +167,40 @@ $('enterForces').addEventListener('click',()=>{s.phase=2;s.y=eqY();s.v=0;s.movin
 $('release').addEventListener('click',()=>{s.moving=true;s.v=0;$('forceInstruction').textContent='Oscilación ideal sin amortiguamiento: la amplitud permanece constante. Puedes pausarla o arrastrarla.'});
 $('pause').addEventListener('click',()=>{s.moving=false;$('forceInstruction').textContent='Simulación pausada. Arrastra la masa para estudiar una posición concreta.'});
 $('atEquilibrium').addEventListener('click',()=>{s.moving=false;s.y=eqY();s.v=0;$('forceInstruction').textContent='En equilibrio, las fuerzas peso y elástica se compensan. La resultante es nula.';refresh()});
+const forceQuizItems=[
+ ['qBelow','up','Por debajo del equilibrio, la resultante apunta hacia arriba.'],
+ ['qAbove','down','Por encima del equilibrio, la resultante apunta hacia abajo.'],
+ ['qGeneral','restore','La fuerza resultante apunta hacia el equilibrio; en él es nula.'],
+ ['qMagnitude','increase','Al aumentar |x| aumenta |ΣF| = k|x| y también |a| = (k/m)|x|.'],
+ ['qRelation','opposite','La aceleración y la elongación respecto al equilibrio son proporcionales, pero de signos opuestos: a = −(k/m)x.']
+];
+for(const [id] of forceQuizItems){
+ const selector=$(id);
+ const indicator=document.createElement('span');
+ indicator.id=id+'Mark';
+ indicator.setAttribute('aria-live','polite');
+ indicator.style.cssText='display:inline-block;margin-left:9px;font-weight:800;font-size:21px;vertical-align:middle';
+ selector.insertAdjacentElement('afterend',indicator);
+ selector.addEventListener('change',()=>{indicator.textContent='';indicator.removeAttribute('title');indicator.style.color='';$('forcesQuizFeedback').textContent='';});
+}
 $('checkForcesQuiz').addEventListener('click',()=>{
- const items=[['qBelow','up','Por debajo del equilibrio, el muelle ejerce una fuerza elástica mayor que el peso: la resultante es hacia arriba.'],['qAbove','down','Por encima del equilibrio, la fuerza elástica es menor que el peso: la resultante es hacia abajo.'],['qGeneral','restore','La fuerza resultante es recuperadora: apunta hacia el equilibrio cuando x ≠ 0 y es cero en el equilibrio.'],['qMagnitude','increase','Cuanto mayor es |x| respecto al equilibrio, mayor es |ΣF| = k|x| y, con masa constante, mayor es |a| = (k/m)|x|. No debe confundirse x con el alargamiento respecto a la longitud natural.']];
- const box=$('forcesQuizFeedback');
- if(items.some(([id])=>!$(id).value)){box.className='feedback err';box.textContent='Responde las cuatro preguntas antes de comprobar.';return}
- let correct=0;const messages=items.map(([id,answer,explanation],i)=>{const ok=$(id).value===answer;if(ok)correct++;return (ok?'✓ ':'✗ ')+(i+1)+'. '+explanation});
- box.className='feedback '+(correct===4?'ok':'err');box.textContent=correct+'/4 respuestas correctas. '+messages.join(' ');
+ let correct=0,answered=0;
+ for(const [id,answer,explanation] of forceQuizItems){
+  const selector=$(id),mark=$(id+'Mark'),chosen=selector.value;
+  if(!chosen){mark.textContent='';mark.removeAttribute('title');continue}
+  answered++;
+  const ok=chosen===answer;
+  if(ok)correct++;
+  mark.textContent=ok?'✓':'✗';
+  mark.style.color=ok?'#16803b':'#bb2933';
+  mark.title=ok?'Correcto':explanation;
+  mark.setAttribute('aria-label',ok?'Correcto':'Incorrecto. '+explanation);
+ }
+ const fb=$('forcesQuizFeedback');
+ fb.className='feedback '+(answered===5&&correct===5?'ok':'err');
+ fb.textContent=answered<5?'Responde las cinco preguntas. '+correct+' de '+answered+' correctas hasta ahora.':correct+' de 5 respuestas correctas.';
 });
+
 $('restart').addEventListener('click',()=>{s.phase=0;s.moving=false;s.hung=false;s.drag=false;s.y=naturalY+10;s.v=0;$('preparation').classList.remove('hidden');$('mass').disabled=false;$('settle').disabled=true;$('calculation').classList.add('hidden');$('forces').classList.add('hidden');$('enterForces').classList.add('hidden');$('stepName').textContent='Etapa 1 de 3 · Preparación';$('stepTitle').textContent='Cuelga una masa del muelle';$('instruction').textContent='Observa la longitud natural del muelle. Después, arrastra la masa hasta su extremo y suéltala.';$('stageStatus').textContent='';$('gestureHelp').textContent='Arrastra la masa hasta el extremo inferior del muelle para colgarla.';for(const id of ['elongation','weight','springK']){$(id).value='';$(id).disabled=id!=='elongation'}$('weight').disabled=true;$('elongation').disabled=false;$('springK').disabled=true;for(const id of ['checkElongation','checkWeight','checkK'])$(id).disabled=id!=='checkElongation';for(const id of ['fbElongation','fbWeight','fbK'])$(id).textContent='';refresh()});
 for(const id of ['showWeight','showElastic','showNet','showValues'])$(id).addEventListener('change',refresh);
 refresh();requestAnimationFrame(tick);
