@@ -196,6 +196,37 @@
   #graphGrid[data-visible-count="3"] {grid-template-columns:repeat(3,minmax(0,1fr);}
 }
 
+
+/* Selectores verticales junto a las gráficas: toda la altura queda para dibujar. */
+.graph-content {display:grid;grid-template-columns:minmax(0,1fr) 128px;gap:0;flex:1 1 auto;min-height:0;min-width:0;}
+.graph-visual {display:flex;flex-direction:column;flex:1 1 auto;min-width:0;min-height:0;}
+.graph-visual .graph-grid {flex:1 1 auto;min-width:0;min-height:0;width:100%;}
+.graph-visual .empty-plots {margin:auto 0;}
+.graph-side {display:flex;flex-direction:column;min-width:0;border-left:1px solid var(--line);padding:11px 9px;gap:8px;background:#fbfcfe;}
+.graph-side .graph-toolbar {display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;flex-wrap:nowrap;gap:14px;border:0;padding:0;}
+.graph-side .graph-toolbar label {display:flex;align-items:flex-start;gap:7px;white-space:normal;line-height:1.25;font-size:11px;}
+.graph-side .graph-toolbar input {flex:0 0 14px;height:14px;width:14px;margin:0;}
+.graph-side .graph-note {font-size:9px;line-height:1.3;text-align:left;color:var(--muted);padding:0;margin:2px 0 0;}
+@media(min-width:850px) and (min-height:540px) {
+  .graphs:has(#emptyPlots:not([hidden])) {flex-basis:151px;}
+}
+@media(min-width:850px) and (min-height:540px) and (max-height:720px) {
+  .graph-side {padding:7px 7px;}
+  .graph-side .graph-toolbar {gap:10px;}
+  .graph-side .graph-toolbar label {font-size:10px;}
+  .graphs:has(#emptyPlots:not([hidden])) {flex-basis:129px;}
+}
+@media(max-width:849px) {
+  .graph-content {grid-template-columns:minmax(0,1fr) 115px;}
+  .graph-side {padding:8px 6px;}
+  .graph-side .graph-toolbar {gap:11px;}
+}
+@media(max-width:520px) {
+  .graph-content {grid-template-columns:minmax(0,1fr) 96px;}
+  .graph-side .graph-toolbar label {gap:4px;font-size:10px;}
+  .graph-side .graph-toolbar input {width:12px;height:12px;flex-basis:12px;}
+}
+
 </style>
 </head>
 <body>
@@ -233,9 +264,10 @@
       </section>
       <section class="panel graphs" aria-label="Gráficas del movimiento">
         <div class="graph-head"><h2>Gráficas del movimiento</h2><small>El punto coloreado indica el instante actual</small></div>
-        <div class="graph-toolbar" aria-label="Seleccionar gráficas"><label><input id="showPositionGraph" type="checkbox"> Posición y(t)</label><label><input id="showVelocityGraph" type="checkbox"> Velocidad v(t)</label><label><input id="showAccelGraph" type="checkbox"> Aceleración a(t)</label><label><input id="showCombinedGraph" type="checkbox"> <b>Superponer</b></label></div><p class="graph-note" id="combinedNote" hidden>Curvas seleccionadas normalizadas respecto a sus amplitudes.</p>
-        <div id="emptyPlots" class="empty-plots">Activa una o varias gráficas en el panel de control.</div>
-        <div class="graph-grid" id="graphGrid">
+        <div class="graph-content">
+          <div class="graph-visual">
+            <div id="emptyPlots" class="empty-plots">Marca a la derecha las gráficas que quieras mostrar.</div>
+            <div class="graph-grid" id="graphGrid">
           <section class="plot-card" id="positionPlotCard" hidden><h3><span style="color:#13858e">Posición · tiempo</span><em>y (m)</em></h3><canvas class="plot-canvas" id="positionPlot" role="img" aria-label="Gráfica de posición frente al tiempo"></canvas></section>
           <section class="plot-card" id="velocityPlotCard" hidden><h3><span style="color:#2563eb">Velocidad · tiempo</span><em>v (m/s)</em></h3><canvas class="plot-canvas" id="velocityPlot" role="img" aria-label="Gráfica de velocidad frente al tiempo"></canvas></section>
           <section class="plot-card" id="accelPlotCard" hidden><h3><span style="color:#d26916">Aceleración · tiempo</span><em>a (m/s²)</em></h3><canvas class="plot-canvas" id="accelPlot" role="img" aria-label="Gráfica de aceleración frente al tiempo"></canvas></section>
@@ -244,6 +276,11 @@
             <canvas class="plot-canvas overlay-canvas" id="overlayPlot" role="img" aria-label="Superposición de las gráficas seleccionadas, normalizadas por su amplitud sobre un eje temporal común"></canvas>
             <div class="overlay-legend" aria-live="off"><span class="overlay-legend-item"><i class="legend-line teal"></i><span>y/A</span><strong id="overlayPositionValue">0,00 m</strong></span><span class="overlay-legend-item"><i class="legend-line blue"></i><span>v/(Aω)</span><strong id="overlayVelocityValue">0,00 m/s</strong></span><span class="overlay-legend-item"><i class="legend-line orange"></i><span>a/(Aω²)</span><strong id="overlayAccelValue">0,00 m/s²</strong></span></div>
           </section>
+            </div>
+          </div>
+          <aside class="graph-side" aria-label="Controles de las gráficas">
+            <div class="graph-toolbar" aria-label="Seleccionar gráficas"><label><input id="showPositionGraph" type="checkbox"> Posición y(t)</label><label><input id="showVelocityGraph" type="checkbox"> Velocidad v(t)</label><label><input id="showAccelGraph" type="checkbox"> Aceleración a(t)</label><label><input id="showCombinedGraph" type="checkbox"> <b>Superponer</b></label></div><p class="graph-note" id="combinedNote" hidden>Curvas normalizadas para compararlas.</p>
+          </aside>
         </div>
       </section>
       <p class="footnote"><span class="note-strong">Modelo ideal sin rozamiento:</span> el origen está en el equilibrio; <b>hacia arriba es positivo y hacia abajo negativo</b>. La gravedad determina la posición de equilibrio, pero la aceleración respecto a ella cumple <b>a = −ω²y</b>. No se representa la deformación estática del muelle a escala.</p>
@@ -364,7 +401,7 @@
     $('overlayPlotCard').hidden=!merged||count===0;
     $('combinedNote').hidden=!merged;
     $('emptyPlots').hidden=count>0;
-    $('emptyPlots').textContent=merged?'Selecciona al menos una gráfica para superponer.':'Activa una o varias gráficas en el panel de control.';
+    $('emptyPlots').textContent=merged?'Selecciona al menos una gráfica para superponer.':'Marca a la derecha una o varias gráficas para representarlas.';
     $('overlayPositionValue').parentElement.style.display=options.showPositionGraph.checked?'flex':'none';
     $('overlayVelocityValue').parentElement.style.display=options.showVelocityGraph.checked?'flex':'none';
     $('overlayAccelValue').parentElement.style.display=options.showAccelGraph.checked?'flex':'none';
