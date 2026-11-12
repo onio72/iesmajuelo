@@ -21,7 +21,25 @@
 <div class="question"><label for="springK">3. Constante elástica k (N/m)</label><div class="qrow"><input id="springK" type="number" step="0.1" min="0" placeholder="N/m" disabled><button id="checkK" disabled>Comprobar</button></div><div class="feedback" id="fbK" aria-live="polite"></div></div>
 <button class="primary hidden" id="enterForces">Explorar las fuerzas</button></section>
 <section class="panel hidden" id="forces"><span class="step">Etapa 3 de 3 · Dinámica</span><h2>¿Qué ocurre al desplazar la masa?</h2><p class="instruction" id="forceInstruction">Arrastra la masa hacia arriba o hacia abajo. Los vectores aparecen a la derecha, separados de las etiquetas, y no se amortiguan las oscilaciones.</p><div class="check-grid"><label><input type="checkbox" id="showWeight" checked> Peso P</label><label><input type="checkbox" id="showElastic" checked> Fuerza elástica Fₑ</label><label><input type="checkbox" id="showNet" checked> Fuerza resultante ΣF</label><label><input type="checkbox" id="showValues" checked> Valores numéricos</label></div>
-<div class="buttons"><button class="primary" id="release">Soltar y oscilar</button><button id="pause">Pausar</button><button id="atEquilibrium">Situar en equilibrio</button></div><div class="stats" style="margin-top:12px"><div class="stat"><small>Desplazamiento x</small><strong id="readX">0,000 m</strong></div><div class="stat"><small>Resultante ΣF</small><strong id="readNet">0,00 N</strong></div><div class="stat"><small>Aceleración a</small><strong id="readAccel">0,00 m/s²</strong></div></div><p class="note">Convención de signos: el eje vertical es positivo hacia abajo y x = L − L<sub>eq</sub>. La fuerza resultante cumple ΣF = −kx.</p></section>
+<div class="buttons"><button class="primary" id="release">Soltar y oscilar</button><button id="pause">Pausar</button><button id="atEquilibrium">Situar en equilibrio</button></div><div class="stats" style="margin-top:12px"><div class="stat"><small>Desplazamiento x</small><strong id="readX">0,000 m</strong></div><div class="stat"><small>Resultante ΣF</small><strong id="readNet">0,00 N</strong></div><div class="stat"><small>Aceleración a</small><strong id="readAccel">0,00 m/s²</strong></div></div><p class="note">Convención de signos: el eje vertical es positivo hacia abajo y x = L − L<sub>eq</sub>. La fuerza resultante cumple ΣF = −kx.</p>
+<div class="quiz" id="forceQuiz" style="margin-top:20px;padding-top:16px;border-top:1px solid #dbe5ee">
+<h3 style="margin:0 0 8px">Comprueba lo aprendido</h3>
+<p style="margin-top:0">Puedes desplazar y pausar la masa para investigar cada situación antes de contestar.</p>
+<div class="question" style="margin:12px 0">
+<label for="qBelow"><strong>1. Cuando la masa está por debajo de la posición de equilibrio, ¿hacia dónde apunta la fuerza resultante?</strong></label>
+<select id="qBelow" style="display:block;width:100%;margin-top:7px;padding:9px"><option value="">Selecciona una respuesta</option><option value="up">Hacia arriba</option><option value="down">Hacia abajo</option><option value="zero">Es nula</option></select>
+</div>
+<div class="question" style="margin:12px 0">
+<label for="qAbove"><strong>2. Cuando la masa está por encima de la posición de equilibrio, ¿hacia dónde apunta la fuerza resultante?</strong></label>
+<select id="qAbove" style="display:block;width:100%;margin-top:7px;padding:9px"><option value="">Selecciona una respuesta</option><option value="up">Hacia arriba</option><option value="down">Hacia abajo</option><option value="zero">Es nula</option></select>
+</div>
+<div class="question" style="margin:12px 0">
+<label for="qGeneral"><strong>3. ¿Cuál de estas afirmaciones describe la fuerza resultante durante el MAS?</strong></label>
+<select id="qGeneral" style="display:block;width:100%;margin-top:7px;padding:9px"><option value="">Selecciona una respuesta</option><option value="down">Siempre apunta hacia abajo</option><option value="motion">Siempre apunta en el sentido del movimiento</option><option value="restore">Cuando hay desplazamiento, apunta hacia el equilibrio; en él es nula</option><option value="zero">Es nula durante toda la oscilación</option></select>
+</div>
+<button class="primary" id="checkForcesQuiz" type="button">Comprobar respuestas</button>
+<div id="forcesQuizFeedback" class="feedback" role="status" aria-live="polite" style="margin-top:10px"></div>
+</div></section>
 </aside></div><p class="footer">Modelo ideal: muelle de masa despreciable, gravedad uniforme y movimiento vertical. El amortiguamiento se emplea únicamente durante el asentamiento inicial de la masa. En la etapa 3 el movimiento es ideal, sin rozamiento ni amortiguamiento. La ley de Hooke se considera válida en todo el recorrido representado. La longitud del muelle nunca puede ser negativa: al alcanzar el límite de compresión se aplica un tope ideal.</p></main>
 <script>
 (()=>{'use strict';
@@ -129,6 +147,13 @@ $('enterForces').addEventListener('click',()=>{s.phase=2;s.y=eqY();s.v=0;s.movin
 $('release').addEventListener('click',()=>{s.moving=true;s.v=0;$('forceInstruction').textContent='Oscilación ideal sin amortiguamiento: la amplitud permanece constante. Puedes pausarla o arrastrarla.'});
 $('pause').addEventListener('click',()=>{s.moving=false;$('forceInstruction').textContent='Simulación pausada. Arrastra la masa para estudiar una posición concreta.'});
 $('atEquilibrium').addEventListener('click',()=>{s.moving=false;s.y=eqY();s.v=0;$('forceInstruction').textContent='En equilibrio, las fuerzas peso y elástica se compensan. La resultante es nula.';refresh()});
+$('checkForcesQuiz').addEventListener('click',()=>{
+ const items=[['qBelow','up','Por debajo del equilibrio, el muelle ejerce una fuerza elástica mayor que el peso: la resultante es hacia arriba.'],['qAbove','down','Por encima del equilibrio, la fuerza elástica es menor que el peso: la resultante es hacia abajo.'],['qGeneral','restore','La fuerza resultante es recuperadora: apunta hacia el equilibrio cuando x ≠ 0 y es cero en el equilibrio.']];
+ const box=$('forcesQuizFeedback');
+ if(items.some(([id])=>!$(id).value)){box.className='feedback err';box.textContent='Responde las tres preguntas antes de comprobar.';return}
+ let correct=0;const messages=items.map(([id,answer,explanation],i)=>{const ok=$(id).value===answer;if(ok)correct++;return (ok?'✓ ':'✗ ')+(i+1)+'. '+explanation});
+ box.className='feedback '+(correct===3?'ok':'err');box.textContent=correct+'/3 respuestas correctas. '+messages.join(' ');
+});
 $('restart').addEventListener('click',()=>{s.phase=0;s.moving=false;s.hung=false;s.drag=false;s.y=naturalY+10;s.v=0;$('preparation').classList.remove('hidden');$('mass').disabled=false;$('settle').disabled=true;$('calculation').classList.add('hidden');$('forces').classList.add('hidden');$('enterForces').classList.add('hidden');$('stepName').textContent='Etapa 1 de 3 · Preparación';$('stepTitle').textContent='Cuelga una masa del muelle';$('instruction').textContent='Observa la longitud natural del muelle. Después, arrastra la masa hasta su extremo y suéltala.';$('stageStatus').textContent='';$('gestureHelp').textContent='Arrastra la masa hasta el extremo inferior del muelle para colgarla.';for(const id of ['elongation','weight','springK']){$(id).value='';$(id).disabled=id!=='elongation'}$('weight').disabled=true;$('elongation').disabled=false;$('springK').disabled=true;for(const id of ['checkElongation','checkWeight','checkK'])$(id).disabled=id!=='checkElongation';for(const id of ['fbElongation','fbWeight','fbK'])$(id).textContent='';refresh()});
 for(const id of ['showWeight','showElastic','showNet','showValues'])$(id).addEventListener('change',refresh);
 refresh();requestAnimationFrame(tick);
