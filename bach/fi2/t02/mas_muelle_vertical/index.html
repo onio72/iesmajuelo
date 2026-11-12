@@ -37,6 +37,16 @@
 <label for="qGeneral"><strong>3. ¿Cuál de estas afirmaciones describe la fuerza resultante durante el MAS?</strong></label>
 <select id="qGeneral" style="display:block;width:100%;margin-top:7px;padding:9px"><option value="">Selecciona una respuesta</option><option value="down">Siempre apunta hacia abajo</option><option value="motion">Siempre apunta en el sentido del movimiento</option><option value="restore">Cuando hay desplazamiento, apunta hacia el equilibrio; en él es nula</option><option value="zero">Es nula durante toda la oscilación</option></select>
 </div>
+<div class="question" style="margin:12px 0">
+<label for="qMagnitude"><strong>4. Al alejar más la masa de la posición de equilibrio, ¿qué ocurre con los módulos de la fuerza restauradora y de la aceleración?</strong></label>
+<select id="qMagnitude" style="display:block;width:100%;margin-top:7px;padding:9px">
+<option value="">Selecciona una respuesta</option>
+<option value="constant">Ambos permanecen constantes</option>
+<option value="increase">Ambos aumentan al aumentar la distancia al equilibrio</option>
+<option value="decrease">Ambos disminuyen al aumentar la distancia al equilibrio</option>
+<option value="onlyforce">Aumenta la fuerza, pero la aceleración no cambia</option>
+</select>
+</div>
 <button class="primary" id="checkForcesQuiz" type="button">Comprobar respuestas</button>
 <div id="forcesQuizFeedback" class="feedback" role="status" aria-live="polite" style="margin-top:10px"></div>
 </div></section>
@@ -148,11 +158,11 @@ $('release').addEventListener('click',()=>{s.moving=true;s.v=0;$('forceInstructi
 $('pause').addEventListener('click',()=>{s.moving=false;$('forceInstruction').textContent='Simulación pausada. Arrastra la masa para estudiar una posición concreta.'});
 $('atEquilibrium').addEventListener('click',()=>{s.moving=false;s.y=eqY();s.v=0;$('forceInstruction').textContent='En equilibrio, las fuerzas peso y elástica se compensan. La resultante es nula.';refresh()});
 $('checkForcesQuiz').addEventListener('click',()=>{
- const items=[['qBelow','up','Por debajo del equilibrio, el muelle ejerce una fuerza elástica mayor que el peso: la resultante es hacia arriba.'],['qAbove','down','Por encima del equilibrio, la fuerza elástica es menor que el peso: la resultante es hacia abajo.'],['qGeneral','restore','La fuerza resultante es recuperadora: apunta hacia el equilibrio cuando x ≠ 0 y es cero en el equilibrio.']];
+ const items=[['qBelow','up','Por debajo del equilibrio, el muelle ejerce una fuerza elástica mayor que el peso: la resultante es hacia arriba.'],['qAbove','down','Por encima del equilibrio, la fuerza elástica es menor que el peso: la resultante es hacia abajo.'],['qGeneral','restore','La fuerza resultante es recuperadora: apunta hacia el equilibrio cuando x ≠ 0 y es cero en el equilibrio.'],['qMagnitude','increase','Cuanto mayor es |x| respecto al equilibrio, mayor es |ΣF| = k|x| y, con masa constante, mayor es |a| = (k/m)|x|. No debe confundirse x con el alargamiento respecto a la longitud natural.']];
  const box=$('forcesQuizFeedback');
- if(items.some(([id])=>!$(id).value)){box.className='feedback err';box.textContent='Responde las tres preguntas antes de comprobar.';return}
+ if(items.some(([id])=>!$(id).value)){box.className='feedback err';box.textContent='Responde las cuatro preguntas antes de comprobar.';return}
  let correct=0;const messages=items.map(([id,answer,explanation],i)=>{const ok=$(id).value===answer;if(ok)correct++;return (ok?'✓ ':'✗ ')+(i+1)+'. '+explanation});
- box.className='feedback '+(correct===3?'ok':'err');box.textContent=correct+'/3 respuestas correctas. '+messages.join(' ');
+ box.className='feedback '+(correct===4?'ok':'err');box.textContent=correct+'/4 respuestas correctas. '+messages.join(' ');
 });
 $('restart').addEventListener('click',()=>{s.phase=0;s.moving=false;s.hung=false;s.drag=false;s.y=naturalY+10;s.v=0;$('preparation').classList.remove('hidden');$('mass').disabled=false;$('settle').disabled=true;$('calculation').classList.add('hidden');$('forces').classList.add('hidden');$('enterForces').classList.add('hidden');$('stepName').textContent='Etapa 1 de 3 · Preparación';$('stepTitle').textContent='Cuelga una masa del muelle';$('instruction').textContent='Observa la longitud natural del muelle. Después, arrastra la masa hasta su extremo y suéltala.';$('stageStatus').textContent='';$('gestureHelp').textContent='Arrastra la masa hasta el extremo inferior del muelle para colgarla.';for(const id of ['elongation','weight','springK']){$(id).value='';$(id).disabled=id!=='elongation'}$('weight').disabled=true;$('elongation').disabled=false;$('springK').disabled=true;for(const id of ['checkElongation','checkWeight','checkK'])$(id).disabled=id!=='checkElongation';for(const id of ['fbElongation','fbWeight','fbK'])$(id).textContent='';refresh()});
 for(const id of ['showWeight','showElastic','showNet','showValues'])$(id).addEventListener('change',refresh);
