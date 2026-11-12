@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dinámica del MAS · Muelle vertical</title>
+<meta name="sim-version" content="2026-11-12-5">
+<style>
+:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172b44;background:#f4f7fb;--blue:#176aa6;--green:#18816d;--border:#dbe3ef}
+*{box-sizing:border-box}body{margin:0}.wrap{max-width:1280px;margin:auto;padding:24px}header{margin-bottom:18px}h1{font-size:clamp(1.5rem,3vw,2.15rem);margin:0 0 6px;color:#123e62}header p{margin:0;color:#53647a}.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(310px,.9fr);gap:18px}.panel{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 4px 18px #1333540b;padding:18px}.canvas-wrap{background:linear-gradient(#fbfdff,#f1f6fa);border:1px solid #dae4ed;border-radius:12px;overflow:hidden;touch-action:none}canvas{display:block;width:100%;height:auto;touch-action:none;cursor:grab}.legend{display:flex;flex-wrap:wrap;gap:12px 18px;margin-top:12px;font-size:.85rem;color:#475569}.sw{display:inline-block;width:13px;height:13px;vertical-align:-1px;margin-right:5px;border-radius:3px}.stack{display:grid;gap:16px}.step{font-size:.73rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#3f769e}h2{font-size:1.13rem;margin:5px 0 10px}p{line-height:1.5}.instruction{background:#eef7fb;border-left:4px solid #2781af;padding:12px 14px;border-radius:7px;margin:12px 0;font-size:.94rem}.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stat{background:#f5f8fc;border:1px solid #e5edf4;padding:9px;border-radius:9px;min-width:0}.stat small{display:block;color:#607185;margin-bottom:3px;font-size:.76rem}.stat strong{font-variant-numeric:tabular-nums;font-size:1.04rem}label{font-size:.9rem;font-weight:600}.field{display:flex;align-items:center;gap:10px;justify-content:space-between;margin:10px 0}.field input[type=range]{flex:1;min-width:70px;accent-color:var(--blue)}input[type=number]{width:100%;padding:9px 11px;border:1px solid #c8d5e4;border-radius:8px;font-size:1rem}input:disabled{background:#f3f5f8;color:#8995a6}button{border:1px solid #c8d8e6;border-radius:9px;padding:10px 13px;background:white;color:#214b69;font-weight:700;cursor:pointer}button.primary{background:#136da3;border-color:#136da3;color:white}button:disabled{opacity:.46;cursor:not-allowed}.buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.check-grid label{font-weight:500;display:flex;align-items:center;gap:7px}.check-grid input{accent-color:#176aa6;width:17px;height:17px}.question{padding:12px 0;border-top:1px solid #ebeff4}.question label{display:block;margin-bottom:6px}.qrow{display:flex;gap:8px}.qrow input{max-width:190px}.feedback{min-height:24px;font-size:.9rem;font-weight:650;margin-top:7px}.ok{color:#11795e}.err{color:#af4a29}.hidden{display:none!important}.formula{margin-top:8px;color:#475569;background:#f5f8fc;border-radius:7px;padding:9px;font-size:.9rem}.note{font-size:.83rem;color:#697789;margin:8px 0 0}.status{font-weight:650;color:#385b75}.footer{font-size:.82rem;color:#657486;margin-top:14px}@media(max-width:890px){.layout{grid-template-columns:1fr}.wrap{padding:12px}.panel{padding:12px}}@media(max-width:420px){.stats{grid-template-columns:1fr 1fr}.check-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main class="wrap"><header><h1>Dinámica del movimiento armónico simple</h1><p>Laboratorio interactivo · Física de 2.º de Bachillerato · Muelle vertical</p></header>
+<div class="layout"><section class="panel"><div class="canvas-wrap"><canvas id="scene" width="980" height="800" aria-label="Simulación de un muelle vertical: arrastra la masa, observa su movimiento y los vectores de fuerza"></canvas></div>
+<div class="legend"><span><i class="sw" style="background:#dc8730"></i>Peso</span><span><i class="sw" style="background:#1678b6"></i>Fuerza elástica</span><span><i class="sw" style="background:#8a53b4"></i>Fuerza resultante</span><span><i class="sw" style="background:#168673"></i>Equilibrio</span></div>
+<p class="note" id="gestureHelp">Arrastra la masa hasta el extremo inferior del muelle para colgarla.</p></section>
+<aside class="stack"><section class="panel" id="preparation"><span class="step" id="stepName">Etapa 1 de 3 · Preparación</span><h2 id="stepTitle">Cuelga una masa del muelle</h2><p class="instruction" id="instruction">Observa la longitud natural del muelle. Después, arrastra la masa hasta su extremo y suéltala.</p>
+<div class="field"><label for="mass">Masa</label><input id="mass" type="range" min="0.25" max="0.80" step="0.05" value="0.45"><strong id="massText">0,45 kg</strong></div><div class="stats"><div class="stat"><small>Longitud natural L₀</small><strong id="naturalText">0,65 m</strong></div><div class="stat"><small>Masa m</small><strong id="readMass">0,45 kg</strong></div><div class="stat"><small>Gravedad g</small><strong>9,8 m/s²</strong></div></div>
+<div class="buttons"><button id="settle" disabled>Dejar en reposo</button><button id="restart">Reiniciar experiencia</button></div><p class="status" id="stageStatus" aria-live="polite"></p></section>
+<section class="panel hidden" id="calculation"><span class="step">Etapa 2 de 3 · Investigación</span><h2>Determina la constante elástica</h2><p>Usa las longitudes medidas y aplica la condición de equilibrio. Introduce tus respuestas con dos o tres cifras significativas.</p><div class="stats"><div class="stat"><small>L₀</small><strong>0,65 m</strong></div><div class="stat"><small>L de equilibrio</small><strong id="calEq">—</strong></div><div class="stat"><small>Masa</small><strong id="calMass">—</strong></div></div><div class="formula">En equilibrio: <b>k · ΔL = m · g</b> &nbsp; → &nbsp; <b>k = mg/ΔL</b></div>
+<div class="question"><label for="elongation">1. Alargamiento ΔL = L<sub>eq</sub> − L₀ (m)</label><div class="qrow"><input id="elongation" type="number" step="0.001" min="0" placeholder="m"><button id="checkElongation">Comprobar</button></div><div class="feedback" id="fbElongation" aria-live="polite"></div></div>
+<div class="question"><label for="weight">2. Peso P = mg (N)</label><div class="qrow"><input id="weight" type="number" step="0.01" min="0" placeholder="N" disabled><button id="checkWeight" disabled>Comprobar</button></div><div class="feedback" id="fbWeight" aria-live="polite"></div></div>
+<div class="question"><label for="springK">3. Constante elástica k (N/m)</label><div class="qrow"><input id="springK" type="number" step="0.1" min="0" placeholder="N/m" disabled><button id="checkK" disabled>Comprobar</button></div><div class="feedback" id="fbK" aria-live="polite"></div></div>
+<button class="primary hidden" id="enterForces">Explorar las fuerzas</button></section>
+<section class="panel hidden" id="forces"><span class="step">Etapa 3 de 3 · Dinámica</span><h2>¿Qué ocurre al desplazar la masa?</h2><p class="instruction" id="forceInstruction">Arrastra la masa hacia arriba o hacia abajo. Los vectores aparecen a la derecha, separados de las etiquetas, y no se amortiguan las oscilaciones.</p><div class="check-grid"><label><input type="checkbox" id="showWeight" checked> Peso P</label><label><input type="checkbox" id="showElastic" checked> Fuerza elástica Fₑ</label><label><input type="checkbox" id="showNet" checked> Fuerza resultante ΣF</label><label><input type="checkbox" id="showValues" checked> Valores numéricos</label></div>
+<div class="buttons"><button class="primary" id="release">Soltar y oscilar</button><button id="pause">Pausar</button><button id="atEquilibrium">Situar en equilibrio</button></div><div class="stats" style="margin-top:12px"><div class="stat"><small>Desplazamiento x</small><strong id="readX">0,000 m</strong></div><div class="stat"><small>Resultante ΣF</small><strong id="readNet">0,00 N</strong></div><div class="stat"><small>Aceleración a</small><strong id="readAccel">0,00 m/s²</strong></div></div><p class="note">Convención de signos: el eje vertical es positivo hacia abajo y x = L − L<sub>eq</sub>. La fuerza resultante cumple ΣF = −kx.</p>
+<div class="quiz" id="forceQuiz" style="margin-top:20px;padding-top:16px;border-top:1px solid #dbe5ee">
+<h3 style="margin:0 0 8px">Comprueba lo aprendido</h3>
+<p style="margin-top:0">Puedes desplazar y pausar la masa para investigar cada situación antes de contestar.</p>
+<div class="question" style="margin:12px 0">
+<label for="qBelow"><strong>1. Cuando la masa está por debajo de la posición de equilibrio, ¿hacia dónde apunta la fuerza resultante?</strong></label>
+<select id="qBelow" style="display:block;width:100%;margin-top:7px;padding:9px"><option value="">Selecciona una respuesta</option><option value="up">Hacia arriba</option><option value="down">Hacia abajo</option><option value="zero">Es nula</option></select>
+</div>
+<div class="question" style="margin:12px 0">
+<label for="qAbove"><strong>2. Cuando la masa está por encima de la posición de equilibrio, ¿hacia dónde apunta la fuerza resultante?</strong></label>
+<select id="qAbove" style="display:block;width:100%;margin-top:7px;padding:9px"><option value="">Selecciona una respuesta</option><option value="up">Hacia arriba</option><option value="down">Hacia abajo</option><option value="zero">Es nula</option></select>
+</div>
+<div class="question" style="margin:12px 0">
+<label for="qGeneral"><strong>3. ¿Cuál de estas afirmaciones describe la fuerza resultante durante el MAS?</strong></label>
+<select id="qGeneral" style="display:block;width:100%;margin-top:7px;padding:9px"><option value="">Selecciona una respuesta</option><option value="down">Siempre apunta hacia abajo</option><option value="motion">Siempre apunta en el sentido del movimiento</option><option value="restore">Cuando hay desplazamiento, apunta hacia el equilibrio; en él es nula</option><option value="zero">Es nula durante toda la oscilación</option></select>
+</div>
+<div class="question" style="margin:12px 0">
+<label for="qMagnitude"><strong>4. Al alejar más la masa de la posición de equilibrio, ¿qué ocurre con los módulos de la fuerza restauradora y de la aceleración?</strong></label>
+<select id="qMagnitude" style="display:block;width:100%;margin-top:7px;padding:9px">
+<option value="">Selecciona una respuesta</option>
+<option value="constant">Ambos permanecen constantes</option>
+<option value="increase">Ambos aumentan al aumentar la distancia al equilibrio</option>
+<option value="decrease">Ambos disminuyen al aumentar la distancia al equilibrio</option>
+<option value="onlyforce">Aumenta la fuerza, pero la aceleración no cambia</option>
+</select>
+</div>
+<div class="question" style="margin:12px 0">
+<label for="qRelation"><strong>5. ¿Qué relación existe entre la elongación respecto a la posición de equilibrio y la aceleración?</strong></label>
+<select id="qRelation" style="display:block;width:100%;margin-top:7px;padding:9px">
+<option value="">Selecciona una respuesta</option>
+<option value="same">Son directamente proporcionales y tienen el mismo signo</option>
+<option value="opposite">Son proporcionales, pero tienen signos opuestos</option>
+<option value="independent">No existe ninguna relación entre ellas</option>
+<option value="constant">La aceleración es constante aunque cambie la elongación</option>
+</select>
+</div>
+<button class="primary" id="checkForcesQuiz" type="button">Comprobar respuestas</button>
+<div id="forcesQuizFeedback" class="feedback" role="status" aria-live="polite" style="margin-top:10px"></div>
+</div></section>
+</aside></div><p class="footer">Modelo ideal: muelle de masa despreciable, gravedad uniforme y movimiento vertical. El amortiguamiento se emplea únicamente durante el asentamiento inicial de la masa. En la etapa 3 el movimiento es ideal, sin rozamiento ni amortiguamiento. La ley de Hooke se considera válida en todo el recorrido representado. La longitud del muelle nunca puede ser negativa: al alcanzar el límite de compresión se aplica un tope ideal.</p></main>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext('2d');
+const G=9.8,L0=.65,K=18,PX=300,anchorY=88,centerX=285,massHalfHeight=27,naturalY=anchorY+massHalfHeight+L0*PX;
+const DRAG_MIN=anchorY+massHalfHeight,DRAG_MAX=735,FORCE_SCALE=9;
+const randomMass=()=>Math.round((0.25+0.05*Math.floor(Math.random()*12))*100)/100;
+const s={phase:0,m:randomMass(),y:naturalY+10,v:0,hung:false,moving:false,drag:false,dragOffset:0,hover:false,answered:0,time:0,last:0};
+const eqY=()=>naturalY+(s.m*G/K)*PX;
+const cm=n=>n.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:3});
+function line(x1,y1,x2,y2,color,width=1,dash=[]){ctx.save();ctx.beginPath();ctx.setLineDash(dash);ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke();ctx.restore()}
+function text(t,x,y,color='#425468',size=15,align='left',weight=500){ctx.save();ctx.fillStyle=color;ctx.font=`${weight} ${size}px system-ui,sans-serif`;ctx.textAlign=align;ctx.fillText(t,x,y);ctx.restore()}
+function signed(n,d=2){const z=Number(n.toFixed(d));return `${z>0?'+':z<0?'−':''}${Math.abs(z).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d})}`}
+function arrow(x,base,force,color){
+ const magnitude=Math.abs(force), len=magnitude*FORCE_SCALE;
+ ctx.save();ctx.lineCap='round';ctx.strokeStyle=color;ctx.fillStyle=color;
+ if(magnitude<.005){ctx.beginPath();ctx.arc(x,base,6,0,Math.PI*2);ctx.fill();ctx.restore();return}
+ const sign=Math.sign(force),end=base+sign*len;
+ ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(x,base);ctx.lineTo(x,end-sign*Math.min(15,len*.45));ctx.stroke();
+ const head=Math.min(17,len*.55);ctx.beginPath();ctx.moveTo(x,end);ctx.lineTo(x-9,end-sign*head);ctx.lineTo(x+9,end-sign*head);ctx.closePath();ctx.fill();ctx.restore();
+}
+function forceReadout(x,title,force,color){
+ text(title,x,62,color,16,'center',700);
+ if($('showValues').checked)text(`${signed(force)} N`,x,87,color,15,'center',650);
+}
+function spring(y){
+ const top=anchorY,bottom=Math.max(top,y-massHalfHeight),length=bottom-top;
+ ctx.save();ctx.strokeStyle='#5b7187';ctx.lineWidth=3.3;ctx.lineJoin='round';ctx.lineCap='round';
+ ctx.beginPath();ctx.moveTo(centerX,60);ctx.lineTo(centerX,top);ctx.stroke();
+ if(length>0.05){
+  const straight=Math.min(10,length*.20),coilTop=top+straight,coilBottom=bottom-straight;
+  const coilLength=Math.max(0,coilBottom-coilTop),amp=Math.min(19,coilLength*.18);
+  ctx.beginPath();ctx.moveTo(centerX,top);ctx.lineTo(centerX,coilTop);
+  const points=312,turns=13;
+  for(let i=0;i<=points;i++){
+   const t=i/points, envelope=Math.min(1,t*12,(1-t)*12);
+   ctx.lineTo(centerX+amp*Math.sin(2*Math.PI*turns*t)*Math.max(0,envelope),coilTop+coilLength*t);
+  }
+  ctx.lineTo(centerX,bottom);ctx.stroke();
+ }
+ ctx.restore();
+}
+function massDraw(x,y,loose=false){ctx.save();ctx.shadowColor='#152e4966';ctx.shadowBlur=9;ctx.shadowOffsetY=3;ctx.fillStyle=loose?'#4f88bb':'#27669a';ctx.strokeStyle='#174f7f';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(x-38,y-27,76,54,8);ctx.fill();ctx.shadowBlur=0;ctx.stroke();ctx.restore();text(`${cm(s.m)} kg`,x,y+6,'white',16,'center',700)}
+function measure(x,y,label,color){line(x,anchorY+8,x,y,color,1.7,[4,4]);line(x-8,anchorY+8,x+8,anchorY+8,color,2);line(x-8,y,x+8,y,color,2);text(label,x+12,(anchorY+y)/2,color,15,'left',650)}
+function draw(){
+ ctx.clearRect(0,0,980,800);ctx.fillStyle='#f4f8fc';ctx.fillRect(0,0,980,800);
+ for(let yy=45;yy<790;yy+=40)line(0,yy,980,yy,'#e4ebf3',1);
+ // Dos zonas distintas: sistema mecánico y diagrama comparativo de fuerzas.
+ if(s.phase===2){
+  ctx.fillStyle='#ffffffc9';ctx.fillRect(510,15,450,767);
+  line(510,17,510,780,'#cad8e6',2);
+  text('FUERZAS · ESCALA COMÚN',735,34,'#435b75',16,'center',750);
+  text('Vectores trasladados para compararlos',735,115,'#657789',13,'center');
+  const yBase=428;
+  line(530,yBase,940,yBase,'#bbc9d8',1.5,[4,6]);
+  text('Origen de los vectores',735,yBase+25,'#718399',12,'center');
+  if(s.hung){
+   const weight=s.m*G,elastic=-K*((s.y-massHalfHeight-anchorY)/PX-L0),net=weight+elastic;
+   for(const item of [
+    {on:'showWeight',x:585,val:weight,c:'#d1832e',label:'Peso P'},
+    {on:'showElastic',x:730,val:elastic,c:'#177bb9',label:'F. elástica'},
+    {on:'showNet',x:875,val:net,c:'#8a4fb2',label:'Resultante'}]){
+     if($(item.on).checked){forceReadout(item.x,item.label,item.val,item.c);arrow(item.x,yBase,item.val,item.c)}
+   }
+   text(`x = ${signed((s.y-eqY())/PX,3)} m`,735,750,'#365a77',17,'center',700);
+   text(Math.abs(s.y-eqY())<.3?'Equilibrio · ΣF = 0':s.y>eqY()?'Resultante restauradora hacia arriba':'Resultante restauradora hacia abajo',735,774,'#4d677b',14,'center',650);
+  }
+ }
+ ctx.fillStyle='#60758a';ctx.fillRect(centerX-100,44,200,16);
+ for(let i=0;i<9;i++)line(centerX-90+i*21,44,centerX-78+i*21,59,'#e0e9f2',2);
+ line(42,naturalY-massHalfHeight,448,naturalY-massHalfHeight,'#7c92a8',1.5,[6,6]);
+ text('Longitud natural',35,naturalY-massHalfHeight-12,'#63788f',13);
+ if(s.hung){line(38,eqY()-massHalfHeight,450,eqY()-massHalfHeight,'#18856b',2,[7,6]);text('Equilibrio',35,eqY()-massHalfHeight-12,'#14745d',14,'left',650)}
+ measure(70,naturalY-massHalfHeight,'L₀ = 0,65 m','#647a91');
+ if(s.hung){measure(382,eqY()-massHalfHeight,`L eq = ${cm(L0+s.m*G/K)} m`,'#117663')}
+ spring(s.hung?s.y:naturalY);
+ if(s.hung){massDraw(centerX,s.y)}else massDraw(s.drag?s.looseX:390,s.drag?s.looseY:650,true);
+ if(!s.hung){
+  ctx.save();ctx.strokeStyle='#71a9c5';ctx.setLineDash([5,5]);ctx.lineWidth=2;
+  ctx.beginPath();ctx.roundRect(centerX-38,naturalY-27,76,54,8);ctx.stroke();ctx.restore();
+  text('Arrastra aquí',centerX,naturalY+49,'#28739e',15,'center',650);
+ }
+}
+function refresh(){
+ $('calEq').textContent=cm(L0+s.m*G/K)+' m';$('calMass').textContent=cm(s.m)+' kg';
+ $('massText').textContent=cm(s.m)+' kg';$('readMass').textContent=cm(s.m)+' kg';
+ $('readX').textContent=signed((s.y-eqY())/PX,3)+' m';
+ const net=-K*(s.y-eqY())/PX;
+ $('readNet').textContent=signed(net)+' N';$('readAccel').textContent=signed(net/s.m)+' m/s²';draw()
+}
+function startSettle(){s.moving=true;s.v=0;$('settle').disabled=true;$('stageStatus').textContent='El muelle oscila mientras se amortigua hasta llegar al reposo.'}
+function finishSettling(){s.y=eqY();s.v=0;s.moving=false;s.phase=1;$('preparation').classList.add('hidden');$('calculation').classList.remove('hidden');$('stageStatus').textContent='La fuerza elástica compensa exactamente el peso.';$('gestureHelp').textContent='Consulta las marcas de L₀ y L eq y completa las preguntas.';refresh()}
+function tick(t){let dt=Math.min((t-s.last)/1000||0,.035);s.last=t;if(s.moving&&!s.drag){const damping=s.phase===0?3.3:0;let n=Math.max(1,Math.ceil(dt/.008)),h=dt/n;for(let i=0;i<n;i++){let a=-(K/s.m)*(s.y-eqY())-(damping/s.m)*s.v;let vHalf=s.v+a*h/2;s.y+=vHalf*h;if(s.y<DRAG_MIN){s.y=DRAG_MIN+(DRAG_MIN-s.y);vHalf=Math.abs(vHalf)}else if(s.y>DRAG_MAX){s.y=DRAG_MAX-(s.y-DRAG_MAX);vHalf=-Math.abs(vHalf)}const aNew=-(K/s.m)*(s.y-eqY())-(damping/s.m)*vHalf;s.v=vHalf+aNew*h/2}if(s.phase===0&&Math.abs(s.y-eqY())<.45&&Math.abs(s.v)<.015)finishSettling()}refresh();requestAnimationFrame(tick)}
+$('mass').addEventListener('input',e=>{if(s.hung)return;s.m=Number(e.target.value);refresh()});
+function coords(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*980/r.width,y:(e.clientY-r.top)*800/r.height}}
+canvas.addEventListener('pointerdown',e=>{let p=coords(e),mx=s.hung?centerX:390,my=s.hung?s.y:650;if(s.drag)return;if(Math.abs(p.x-mx)<=46&&Math.abs(p.y-my)<=38&&(!s.hung||s.phase===2)){s.drag=true;s.moving=false;s.dragOffset=p.y-my;s.looseX=p.x;s.looseY=p.y;canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';e.preventDefault()}});
+canvas.addEventListener('pointermove',e=>{if(!s.drag)return;let p=coords(e);if(s.hung){s.y=Math.min(DRAG_MAX,Math.max(DRAG_MIN,p.y-s.dragOffset));s.v=0}else{s.looseX=p.x;s.looseY=p.y-s.dragOffset}refresh()});
+function releaseDrag(){if(!s.drag)return;s.drag=false;canvas.style.cursor='grab';if(!s.hung&&Math.abs(s.looseX-centerX)<65&&Math.abs(s.looseY-naturalY)<60){s.hung=true;s.y=naturalY+8;$('mass').disabled=true;$('settle').disabled=false;$('instruction').textContent='La masa ya está colgada. Observa cómo se estira el muelle y alcanza la posición de equilibrio.';$('stageStatus').textContent='Has colgado la masa.';$('gestureHelp').textContent='El muelle se alarga por efecto del peso.';startSettle()}else if(!s.hung){s.looseX=390;s.looseY=650}else{s.v=0; $('forceInstruction').textContent='Masa desplazada. Pulsa «Soltar y oscilar» o arrástrala de nuevo.'}refresh()}
+canvas.addEventListener('pointerup',releaseDrag);canvas.addEventListener('pointercancel',releaseDrag);
+$('settle').addEventListener('click',()=>{if(s.hung&&s.phase===0)finishSettling()});
+function grade(input,answer,tol,fb,next){const v=Number($(input).value);if(!$(input).value.trim()||!Number.isFinite(v)){ $(fb).textContent='Introduce un número válido.';$(fb).className='feedback err';return}if(Math.abs(v-answer)<=tol){$(fb).textContent='✓ Correcto.';$(fb).className='feedback ok';$(input).disabled=true;$(next).disabled=true;return true}$(fb).textContent='No coincide. Revisa las unidades y la expresión utilizada.';$(fb).className='feedback err';return false}
+$('checkElongation').addEventListener('click',()=>{if(grade('elongation',s.m*G/K,.006,'fbElongation','checkElongation')){$('weight').disabled=false;$('checkWeight').disabled=false}});
+$('checkWeight').addEventListener('click',()=>{if(grade('weight',s.m*G,.06,'fbWeight','checkWeight')){$('springK').disabled=false;$('checkK').disabled=false}});
+$('checkK').addEventListener('click',()=>{if(grade('springK',K,.5,'fbK','checkK')){$('enterForces').classList.remove('hidden');$('stageStatus').textContent='Has obtenido la constante elástica. Ya puedes estudiar la dinámica.'}});
+$('enterForces').addEventListener('click',()=>{s.phase=2;s.y=eqY();s.v=0;s.moving=false;$('calculation').classList.add('hidden');$('forces').classList.remove('hidden');$('gestureHelp').textContent='Arrastra la masa verticalmente. Los tres vectores aparecen a la derecha, con un origen gráfico común y una escala fija de 9 px/N. No se limita su longitud artificialmente.';refresh()});
+$('release').addEventListener('click',()=>{s.moving=true;s.v=0;$('forceInstruction').textContent='Oscilación ideal sin amortiguamiento: la amplitud permanece constante. Puedes pausarla o arrastrarla.'});
+$('pause').addEventListener('click',()=>{s.moving=false;$('forceInstruction').textContent='Simulación pausada. Arrastra la masa para estudiar una posición concreta.'});
+$('atEquilibrium').addEventListener('click',()=>{s.moving=false;s.y=eqY();s.v=0;$('forceInstruction').textContent='En equilibrio, las fuerzas peso y elástica se compensan. La resultante es nula.';refresh()});
+const forceQuizItems=[
+ ['qBelow','up','Por debajo del equilibrio, la resultante apunta hacia arriba.'],
+ ['qAbove','down','Por encima del equilibrio, la resultante apunta hacia abajo.'],
+ ['qGeneral','restore','La fuerza resultante apunta hacia el equilibrio; en él es nula.'],
+ ['qMagnitude','increase','Al aumentar |x| aumenta |ΣF| = k|x| y también |a| = (k/m)|x|.'],
+ ['qRelation','opposite','La aceleración y la elongación respecto al equilibrio son proporcionales, pero de signos opuestos: a = −(k/m)x.']
+];
+for(const [id] of forceQuizItems){
+ const selector=$(id);
+ const indicator=document.createElement('span');
+ indicator.id=id+'Mark';
+ indicator.setAttribute('aria-live','polite');
+ indicator.style.cssText='display:inline-block;margin-left:9px;font-weight:800;font-size:21px;vertical-align:middle';
+ selector.insertAdjacentElement('afterend',indicator);
+ selector.addEventListener('change',()=>{indicator.textContent='';indicator.removeAttribute('title');indicator.style.color='';$('forcesQuizFeedback').textContent='';});
+}
+$('checkForcesQuiz').addEventListener('click',()=>{
+ let correct=0,answered=0;
+ for(const [id,answer,explanation] of forceQuizItems){
+  const selector=$(id),mark=$(id+'Mark'),chosen=selector.value;
+  if(!chosen){mark.textContent='';mark.removeAttribute('title');continue}
+  answered++;
+  const ok=chosen===answer;
+  if(ok)correct++;
+  mark.textContent=ok?'✓':'✗';
+  mark.style.color=ok?'#16803b':'#bb2933';
+  mark.title=ok?'Correcto':explanation;
+  mark.setAttribute('aria-label',ok?'Correcto':'Incorrecto. '+explanation);
+ }
+ const fb=$('forcesQuizFeedback');
+ fb.className='feedback '+(answered===5&&correct===5?'ok':'err');
+ fb.textContent=answered<5?'Responde las cinco preguntas. '+correct+' de '+answered+' correctas hasta ahora.':correct+' de 5 respuestas correctas.';
+});
+
+$('restart').addEventListener('click',()=>{s.m=randomMass();$('mass').value=String(s.m);s.phase=0;s.moving=false;s.hung=false;s.drag=false;s.y=naturalY+10;s.v=0;$('preparation').classList.remove('hidden');$('mass').disabled=false;$('settle').disabled=true;$('calculation').classList.add('hidden');$('forces').classList.add('hidden');$('enterForces').classList.add('hidden');$('stepName').textContent='Etapa 1 de 3 · Preparación';$('stepTitle').textContent='Cuelga una masa del muelle';$('instruction').textContent='Observa la longitud natural del muelle. Después, arrastra la masa hasta su extremo y suéltala.';$('stageStatus').textContent='';$('gestureHelp').textContent='Arrastra la masa hasta el extremo inferior del muelle para colgarla.';for(const id of ['elongation','weight','springK']){$(id).value='';$(id).disabled=id!=='elongation'}$('weight').disabled=true;$('elongation').disabled=false;$('springK').disabled=true;for(const id of ['checkElongation','checkWeight','checkK'])$(id).disabled=id!=='checkElongation';for(const id of ['fbElongation','fbWeight','fbK'])$(id).textContent='';refresh()});
+for(const id of ['showWeight','showElastic','showNet','showValues'])$(id).addEventListener('change',refresh);
+$('mass').value=String(s.m);refresh();requestAnimationFrame(tick);
+})();
+</script></body></html>
