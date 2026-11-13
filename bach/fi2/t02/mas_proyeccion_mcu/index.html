@@ -270,11 +270,9 @@
       line(point(755,yy),point(1006,yy+33),'rgba(255,255,255,.19)',1);
     }
     if(activeFocus==='left'){
-      diskScreenShadow(879,cy,'left');
-      var spot=ctx.createRadialGradient(909,y,6,909,y,58);
+      var spot=ctx.createRadialGradient(903,y,6,903,y,58);
       spot.addColorStop(0,'rgba(255,232,172,.065)');spot.addColorStop(1,'rgba(255,232,172,0)');
-      ctx.fillStyle=spot;ctx.fillRect(891,y-52,56,104);
-      shadow(909,y,'left');
+      ctx.fillStyle=spot;ctx.fillRect(885,y-52,56,104);
     }
     ctx.restore();
     ctx.beginPath();ctx.moveTo(755,54);ctx.lineTo(1006,87);ctx.lineTo(1006,477);ctx.lineTo(755,444);ctx.closePath();
@@ -297,11 +295,9 @@
       line(point(234-(yy-438)*.3,yy),point(722-(yy-438)*.3,yy),'rgba(255,255,255,.12)',1);
     }
     if(activeFocus==='top'){
-      diskScreenShadow(cx,486,'top');
-      var spot=ctx.createRadialGradient(x,508,3,x,508,52);
+      var spot=ctx.createRadialGradient(x,503,3,x,503,52);
       spot.addColorStop(0,'rgba(255,229,166,.055)');spot.addColorStop(1,'rgba(255,229,166,0)');
-      ctx.fillStyle=spot;ctx.fillRect(x-58,492,116,34);
-      shadow(x,508,'top');
+      ctx.fillStyle=spot;ctx.fillRect(x-58,488,116,36);
     }
     ctx.restore();
     ctx.beginPath();ctx.moveTo(235,438);ctx.lineTo(722,438);ctx.lineTo(691,544);ctx.lineTo(203,544);ctx.closePath();
@@ -385,17 +381,17 @@
     ctx.restore();
   }
   function drawScreenSilhouettes(pos,type) {
-    // The occluded-light corridor stops inside the screen at the ball's own
-    // depth. Draw the receiving surface's silhouettes over it (no dark bend).
+    // One ball shadow, next to the full-height disk strip; do not double draw.
+    // The penumbra just touches the strip on the screen's depth dimension.
     ctx.save();
     if(type==='left'){
       ctx.beginPath();ctx.moveTo(755,54);ctx.lineTo(1006,87);ctx.lineTo(1006,477);ctx.lineTo(755,444);ctx.closePath();ctx.clip();
       diskScreenShadow(879,cy,'left');
-      shadow(936,pos.y,'left');
+      shadow(903,pos.y,'left');
     }else{
       ctx.beginPath();ctx.moveTo(235,438);ctx.lineTo(722,438);ctx.lineTo(691,544);ctx.lineTo(203,544);ctx.closePath();ctx.clip();
       diskScreenShadow(cx,486,'top');
-      shadow(pos.x,521,'top');
+      shadow(pos.x,503,'top');
     }
     ctx.restore();
   }
