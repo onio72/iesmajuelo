@@ -51,8 +51,8 @@ const transfer=[
  {q:'Ahora la posición es y(t) = A sen(ωt). ¿Cómo se expresa utilizando el coseno?',opts:[['w1','y(t) = A cos(ωt + π/2)'],['yes','y(t) = A cos(ωt − π/2)'],['w2','y(t) = A cos(ωt − π)']],answer:'yes',explain:'El coseno con fase inicial −π/2 reproduce el seno.'},
  {q:'Entonces, ¿qué función matemática podemos utilizar para describir un movimiento armónico simple?',opts:[['w1','Solo la función seno'],['w2','Solo la función coseno'],['yes','Tanto seno como coseno, eligiendo adecuadamente la fase inicial']],answer:'yes',explain:'Ambas funciones describen la misma familia de oscilaciones; basta ajustar la fase inicial.'}
 ];
-const S={method:null,phase:'identify',index:0,shift:0,selection:null,passed:false,attempts:0,feedback:'',revealed:[],ident:0,transfer:0,serial:0,alpha:37};
-function reset(mode){S.serial++;S.method=mode;S.phase='identify';S.index=0;S.shift=0;S.selection=null;S.passed=false;S.attempts=0;S.feedback='';S.revealed=[];S.ident=0;S.transfer=0;S.alpha=37;$('alpha-range').value='37';$('choose').hidden=!!mode;$('activity').hidden=!mode;$('restart').hidden=!mode;$('method-back').hidden=!mode;if(mode)render()}
+const S={method:null,phase:'identify',index:0,shift:0,selection:null,passed:false,attempts:0,feedback:'',revealed:[],ident:0,transfer:0,serial:0,alpha:37,optionKey:null,optionOrder:[]};
+function reset(mode){S.serial++;S.method=mode;S.phase='identify';S.index=0;S.shift=0;S.selection=null;S.passed=false;S.attempts=0;S.feedback='';S.revealed=[];S.ident=0;S.transfer=0;S.alpha=37;S.optionKey=null;S.optionOrder=[];$('alpha-range').value='37';$('choose').hidden=!!mode;$('activity').hidden=!mode;$('restart').hidden=!mode;$('method-back').hidden=!mode;if(mode)render()}
 function askMethod(){if(!S.method||S.phase==='final'||window.confirm('¿Cambiar de método? Se reiniciará la investigación actual.'))reset(null)}
 $('choose').addEventListener('click',e=>{const b=e.target.closest('[data-method]');if(b)reset(b.dataset.method)});
 $('method-back').addEventListener('click',askMethod);
@@ -139,7 +139,19 @@ $('match').textContent=identify?'Identifica primero la función o segmento solic
 $('compare').innerHTML=S.method==='circle'&&!identify&&!observe?compareView():'';
 if(S.method==='graph')drawGraph();else drawCircle();
 }
-function responses(options){return '<div class="options" role="group" aria-label="Opciones de respuesta">'+options.map(([k,t])=>`<button type="button" data-action="choose" data-choice="${k}" class="opt${S.selection===k?' selected':''}${S.passed&&S.selection===k?' correct':''}" aria-pressed="${S.selection===k}" ${S.passed?'disabled':''}>${t}</button>`).join('')+'</div>'}
+// El orden se sortea al entrar en cada pregunta y no cambia al seleccionar ni al comprobar.
+function responses(options){
+ const key=[S.method,S.phase,S.index,S.transfer].join('|');
+ if(S.optionKey!==key||S.optionOrder.length!==options.length){
+   S.optionKey=key;
+   S.optionOrder=options.map((_,i)=>i);
+   for(let i=S.optionOrder.length-1;i>0;i--){
+     const j=Math.floor(Math.random()*(i+1));
+     [S.optionOrder[i],S.optionOrder[j]]=[S.optionOrder[j],S.optionOrder[i]];
+   }
+ }
+ return '<div class="options" role="group" aria-label="Opciones de respuesta">'+S.optionOrder.map(i=>options[i]).map(([k,t])=>`<button type="button" data-action="choose" data-choice="${k}" class="opt${S.selection===k?' selected':''}${S.passed&&S.selection===k?' correct':''}" aria-pressed="${S.selection===k}" ${S.passed?'disabled':''}>${t}</button>`).join('')+'</div>';
+}
 function feedback(){let str=S.feedback?`<div class="feedback${S.passed?' good':''}" role="status">${S.feedback}</div>`:'';
 if(S.attempts>=2&&!S.passed){const h=S.phase==='rotate'?'Sigue la dirección indicada y observa cuándo se igualan las dos proyecciones.':S.phase==='sign'?S.method==='graph'?'Izquierda: sumar en el argumento. Derecha: restar.':'Antihorario: sumar al ángulo. Horario: restar.':S.phase==='identify'?'Para un ángulo agudo, el seno es la coordenada vertical del punto; en la gráfica, sen(0) = 0.':'Comprueba el sentido, el valor del desplazamiento y cuál de las dos funciones se ha transformado.';str+=`<div class="hint"><strong>Pista:</strong> ${h}</div>`}return str}
 function buttons(){return S.passed?`<div class="actions"><button class="btn primary" type="button" data-action="next">${S.phase==='identity'&&S.index===3?'Aplicar al MAS':S.phase==='transfer'&&S.transfer===2?'Ver la conclusión':'Continuar'} →</button></div>`:`<div class="actions"><button class="btn primary" type="button" data-action="check" ${S.selection===null?'disabled':''}>Comprobar respuesta</button></div>`}
