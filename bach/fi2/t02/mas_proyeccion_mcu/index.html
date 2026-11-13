@@ -265,11 +265,11 @@
     ctx.save();ctx.beginPath();ctx.moveTo(805,65);ctx.lineTo(897,102);ctx.lineTo(897,480);ctx.lineTo(805,443);ctx.clip();
     for(var k=0;k<9;k++){line(point(806,101+k*39),point(897,136+k*39),'rgba(255,255,255,.11)',1);}
     if (activeFocus==='left') {
-      var spot=ctx.createRadialGradient(845,y+16,6,845,y+16,83);
+      var spot=ctx.createRadialGradient(817,y+5,6,817,y+5,73);
       spot.addColorStop(0,'rgba(255,226,164,.13)');spot.addColorStop(1,'rgba(255,226,164,0)');
-      ctx.fillStyle=spot;ctx.fillRect(805,y-75,95,165);
-      shadowContinuation(805,y,845,y+16,'left');
-      shadow(845,y+16,'left');
+      ctx.fillStyle=spot;ctx.fillRect(805,y-62,90,140);
+      // The shadow lies on the near face, at the ball's projected height.
+      shadow(817,y+5,'left');
     }
     ctx.restore();
     label('PANTALLA VERTICAL',853,49,12,'#5c7581','center','750');
@@ -286,51 +286,19 @@
     ctx.beginPath();ctx.moveTo(240,466);ctx.lineTo(712,466);ctx.strokeStyle='rgba(255,255,255,.92)';ctx.lineWidth=3.5;ctx.stroke();
     if(activeFocus==='top') {
       ctx.save();ctx.beginPath();ctx.moveTo(240,465);ctx.lineTo(712,465);ctx.lineTo(683,527);ctx.lineTo(207,527);ctx.closePath();ctx.clip();
-      var spot=ctx.createRadialGradient(x,491,4,x,491,74);
+      var spot=ctx.createRadialGradient(x,476,4,x,476,65);
       spot.addColorStop(0,'rgba(255,225,152,.13)');spot.addColorStop(1,'rgba(255,225,152,0)');
-      ctx.fillStyle=spot;ctx.fillRect(x-76,466,152,61);
-      shadowContinuation(x,465,x,491,'top');
-      shadow(x,491,'top');ctx.restore();
+      ctx.fillStyle=spot;ctx.fillRect(x-70,465,140,48);
+      // The shadow is at the near edge of the horizontal face.
+      shadow(x,476,'top');ctx.restore();
     }
     label('PANTALLA HORIZONTAL',cx,557,12,'#5d7680','center','750');
     line(point(cx,468),point(cx,525),'rgba(96,117,127,.29)',1,[5,6]);
   }
-  function shadowContinuation(x0,y0,x1,y1,type) {
-    // A connected part of the occluded light reaches the inclined screen face.
-    // It is clipped by each screen, and fades into the projected shadow.
-    ctx.save();
-    if (type === 'left') {
-      // Slant by the same slope as the visible face (37 px over 92 px).
-      ctx.translate(x0,y0);
-      ctx.transform(1,(y1-y0)/(x1-x0),0,1,0,0);
-      var g=ctx.createLinearGradient(0,-28,0,28);
-      g.addColorStop(0,'rgba(40,56,64,0)');
-      g.addColorStop(.20,'rgba(39,53,63,.09)');
-      g.addColorStop(.38,'rgba(33,47,57,.28)');
-      g.addColorStop(.5,'rgba(30,44,56,.42)');
-      g.addColorStop(.62,'rgba(33,47,57,.28)');
-      g.addColorStop(.80,'rgba(39,53,63,.09)');
-      g.addColorStop(1,'rgba(40,56,64,0)');
-      ctx.fillStyle=g;
-      ctx.fillRect(-1,-28,x1-x0+9,56);
-    } else {
-      var g=ctx.createLinearGradient(x0-28,0,x0+28,0);
-      g.addColorStop(0,'rgba(40,56,64,0)');
-      g.addColorStop(.20,'rgba(39,53,63,.09)');
-      g.addColorStop(.38,'rgba(33,47,57,.28)');
-      g.addColorStop(.5,'rgba(30,44,56,.42)');
-      g.addColorStop(.62,'rgba(33,47,57,.28)');
-      g.addColorStop(.80,'rgba(39,53,63,.09)');
-      g.addColorStop(1,'rgba(40,56,64,0)');
-      ctx.fillStyle=g;
-      ctx.fillRect(x0-28,y0-1,56,y1-y0+9);
-    }
-    ctx.restore();
-  }
   function shadow(x,y,type) {
     // Dark umbra with a smooth penumbra, foreshortened to the oblique screen face.
-    ctx.save();ctx.translate(x,y);ctx.rotate(type==='left'?.04:-.06);
-    ctx.scale(type==='left'?.62:1.12,type==='left'?1:.48);
+    ctx.save();ctx.translate(x,y);ctx.rotate(type==='left'?.02:-.04);
+    ctx.scale(type==='left'?.70:1.08,type==='left'?.92:.44);
     var glow=ctx.createRadialGradient(0,0,8,0,0,39);
     glow.addColorStop(0,'rgba(242,187,85,.03)');
     glow.addColorStop(.48,'rgba(235,175,58,.04)');
