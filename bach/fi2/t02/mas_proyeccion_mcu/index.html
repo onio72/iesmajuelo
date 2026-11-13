@@ -61,6 +61,11 @@
     @media(max-height:700px) and (min-width:851px){.app{padding-top:7px;padding-bottom:7px;gap:7px}.sub{display:none}.control-card{padding:8px 10px}.side-panel{gap:6px}.notes .note{padding:5px 8px}.note p{display:none}.explain{display:none}.sliders{gap:5px}}
     @media(max-width:850px){html,body{height:auto;overflow:auto}.app{height:auto;min-height:100dvh;overflow:visible}.workspace{grid-template-columns:1fr}.stage-panel{min-height:390px}.stage-wrap{height:auto;min-height:310px}.side-panel{display:grid;grid-template-columns:1fr 1fr;align-items:start}.notes{grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr))}header{flex-wrap:wrap}.chip{white-space:normal}.stage-toolbar{align-items:flex-start}}
     @media(max-width:540px){.app{padding:8px;gap:8px}.sub{display:none}.stage-panel{min-height:305px}.stage-wrap{min-height:220px}.side-panel{display:flex}.notes{grid-template-columns:1fr}.stage-toolbar .status{font-size:10px}.panel-bottom{padding:7px 9px}}
+    .app-credit{flex:0 0 auto;min-height:14px;display:flex;align-items:center;justify-content:flex-end;gap:4px;padding:0 3px;color:#647b84;font-size:10px;line-height:1.2;text-align:right}
+    .app-credit a{color:var(--teal-dark);font-weight:650;text-decoration:underline;text-decoration-color:#9cbdc0;text-underline-offset:2px}
+    .app-credit a:hover{color:#034753;text-decoration-color:currentColor}
+    .app-credit a:focus-visible{outline:2px solid #edbc53;outline-offset:2px}
+    @media(max-width:850px){.app-credit{justify-content:center;text-align:center;flex-wrap:wrap;padding:5px 4px}}
     @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
   </style>
 </head>
@@ -134,6 +139,7 @@
       </div>
     </aside>
   </div>
+  <footer class="app-credit" aria-label="Créditos y referencia de la animación">Inspirada en la animación <a href="https://www.educaplus.org/game/Movimiento-arm%C3%B3nico-simple" target="_blank" rel="noopener noreferrer">«Movimiento armónico simple»</a>, de Jesús Peñas Cano (EducaPlus).</footer>
 </main>
 
 <script>
