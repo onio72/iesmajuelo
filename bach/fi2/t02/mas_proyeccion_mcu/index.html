@@ -63,8 +63,6 @@
     @media(max-width:540px){.app{padding:8px;gap:8px}.sub{display:none}.stage-panel{min-height:305px}.stage-wrap{min-height:220px}.side-panel{display:flex}.notes{grid-template-columns:1fr}.stage-toolbar .status{font-size:10px}.panel-bottom{padding:7px 9px}}
     .app-credit{flex:0 0 auto;min-height:14px;display:flex;align-items:center;justify-content:flex-end;gap:4px;padding:0 3px;color:#647b84;font-size:10px;line-height:1.2;text-align:right}
     .app-credit a{color:var(--teal-dark);font-weight:650;text-decoration:underline;text-decoration-color:#9cbdc0;text-underline-offset:2px}
-    .app-credit a:hover{color:#034753;text-decoration-color:currentColor}
-    .app-credit a:focus-visible{outline:2px solid #edbc53;outline-offset:2px}
     @media(max-width:850px){.app-credit{justify-content:center;text-align:center;flex-wrap:wrap;padding:5px 4px}}
     @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
   </style>
@@ -139,7 +137,7 @@
       </div>
     </aside>
   </div>
-  <footer class="app-credit" aria-label="Créditos y referencia de la animación">Inspirada en la animación <a href="https://www.educaplus.org/game/Movimiento-arm%C3%B3nico-simple" target="_blank" rel="noopener noreferrer">«Movimiento armónico simple»</a>, de Jesús Peñas Cano (EducaPlus).</footer>
+  <footer class="app-credit">Inspirada en la animación <a href="https://www.educaplus.org/game/Movimiento-arm%C3%B3nico-simple" target="_blank" rel="noopener noreferrer">«Movimiento armónico simple»</a>, de Jesús Peñas Cano (EducaPlus).</footer>
 </main>
 
 <script>
@@ -149,7 +147,7 @@
   var ctx = canvas.getContext('2d');
   var W = 1040, H = 570;
   var cx = 450, cy = 259, radius = 153;
-  var screenX = 805, screenY = 465;
+  var screenX = 755, screenY = 438;
   var omega = -1, phi0 = 0, time = 0;
   var maxTime = 60, step = 0.25;
   var running = false, lastTs = null, raf = null;
@@ -207,18 +205,22 @@
   }
   function beam(type) {
     if (activeFocus !== type) return;
-    // Parallel rays with visible golden cores, softer halos, and no broad coloured rectangle.
+    // Parallel rays stop at the opaque disk rather than passing through it.
+    // Only rays outside its silhouette continue to the receiving screen.
     ctx.save();ctx.lineCap='round';
-    for(var n=-9;n<=9;n++){
-      var v=n*16.5,k=Math.pow(Math.max(0,1-Math.abs(n)/11),.85);
+    for(var n=-11;n<=11;n++){
+      var v=n*19,k=Math.pow(Math.max(0,1-Math.abs(n)/13),.8);
+      var hit=Math.abs(v)<radius;
       var a=type==='left'?point(26,cy+v):point(cx+v,20);
-      var b=type==='left'?point(screenX-1,cy+v):point(cx+v,screenY+1);
-      line(a,b,'rgba(242,185,74,'+(0.055+0.07*k)+')',5.2);
-      var gradient=type==='left'?ctx.createLinearGradient(a.x,0,b.x,0):ctx.createLinearGradient(0,a.y,0,b.y);
-      gradient.addColorStop(0,'rgba(187,133,41,'+(0.17+0.13*k)+')');
-      gradient.addColorStop(.52,'rgba(208,150,43,'+(0.24+0.19*k)+')');
-      gradient.addColorStop(1,'rgba(196,143,44,'+(0.19+0.14*k)+')');
-      line(a,b,gradient,n%3===0?1.8:1.3);
+      var b=type==='left'
+        ?point(hit?cx-Math.sqrt(radius*radius-v*v)-2:screenX,cy+v)
+        :point(cx+v,hit?cy-Math.sqrt(radius*radius-v*v)-2:screenY);
+      line(a,b,'rgba(246,190,77,'+(0.055+0.085*k)+')',4.2);
+      var grad=type==='left'?ctx.createLinearGradient(a.x,0,b.x,0):ctx.createLinearGradient(0,a.y,0,b.y);
+      grad.addColorStop(0,'rgba(192,139,45,'+(0.16+0.14*k)+')');
+      grad.addColorStop(.65,'rgba(208,150,43,'+(0.25+0.18*k)+')');
+      grad.addColorStop(1,'rgba(190,139,40,'+(0.21+0.13*k)+')');
+      line(a,b,grad,n%3===0?1.8:1.2);
     }
     ctx.restore();
   }
@@ -252,117 +254,148 @@
     ctx.restore();
   }
   function drawLeftScreen(y) {
-    // Screen as a tilted, thick, frosted-glass panel (oblique view).
-    ctx.save();ctx.shadowColor='rgba(30,53,66,.30)';ctx.shadowBlur=17;ctx.shadowOffsetX=10;ctx.shadowOffsetY=12;
-    ctx.beginPath();ctx.moveTo(805,65);ctx.lineTo(897,102);ctx.lineTo(897,480);ctx.lineTo(805,443);ctx.closePath();
-    var g=ctx.createLinearGradient(805,0,898,0);
-    g.addColorStop(0,'#ecf0f1');g.addColorStop(.55,'#cdd9dd');g.addColorStop(1,'#9cacb3');ctx.fillStyle=g;ctx.fill();ctx.restore();
-    ctx.beginPath();ctx.moveTo(805,65);ctx.lineTo(897,102);ctx.lineTo(897,480);ctx.lineTo(805,443);ctx.closePath();
-    ctx.strokeStyle='#6c8891';ctx.lineWidth=3;ctx.stroke();
-    ctx.beginPath();ctx.moveTo(897,102);ctx.lineTo(909,112);ctx.lineTo(909,489);ctx.lineTo(897,480);ctx.closePath();
-    ctx.fillStyle='#758a94';ctx.fill();
-    ctx.beginPath();ctx.moveTo(805,65);ctx.lineTo(897,102);ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=4;ctx.stroke();
-    ctx.save();ctx.beginPath();ctx.moveTo(805,65);ctx.lineTo(897,102);ctx.lineTo(897,480);ctx.lineTo(805,443);ctx.clip();
-    for(var k=0;k<9;k++){line(point(806,101+k*39),point(897,136+k*39),'rgba(255,255,255,.11)',1);}
-    if (activeFocus==='left') {
-      diskScreenShadow(818,cy+4,'left');
-      var spot=ctx.createRadialGradient(817,y+5,6,817,y+5,73);
-      spot.addColorStop(0,'rgba(255,226,164,.13)');spot.addColorStop(1,'rgba(255,226,164,0)');
-      ctx.fillStyle=spot;ctx.fillRect(805,y-62,90,140);
-      // The shadow lies on the near face, at the ball's projected height.
-      shadow(817,y+5,'left');
+    // The wide visible face spans depth on BOTH sides of the disk's plane.
+    // Its midline represents the disk depth; the ball protrudes towards the viewer.
+    ctx.save();ctx.shadowColor='rgba(30,53,66,.22)';ctx.shadowBlur=18;ctx.shadowOffsetX=8;ctx.shadowOffsetY=9;
+    ctx.beginPath();ctx.moveTo(755,54);ctx.lineTo(1006,87);ctx.lineTo(1006,477);ctx.lineTo(755,444);ctx.closePath();
+    var g=ctx.createLinearGradient(755,0,1006,0);
+    g.addColorStop(0,'#f3f6f5');g.addColorStop(.46,'#e5eaeb');g.addColorStop(1,'#afbec5');
+    ctx.fillStyle=g;ctx.fill();ctx.restore();
+    ctx.beginPath();ctx.moveTo(1006,87);ctx.lineTo(1015,93);ctx.lineTo(1015,483);ctx.lineTo(1006,477);ctx.closePath();
+    ctx.fillStyle='#8da2ab';ctx.fill();
+    ctx.save();ctx.beginPath();ctx.moveTo(755,54);ctx.lineTo(1006,87);ctx.lineTo(1006,477);ctx.lineTo(755,444);ctx.closePath();ctx.clip();
+    ctx.strokeStyle='#7f989f';ctx.lineWidth=2;ctx.strokeRect(755,54,251,420);
+    for(var k=0;k<7;k++){
+      var yy=90+k*52;
+      line(point(755,yy),point(1006,yy+33),'rgba(255,255,255,.19)',1);
+    }
+    if(activeFocus==='left'){
+      diskScreenShadow(879,cy,'left');
+      var spot=ctx.createRadialGradient(936,y,6,936,y,65);
+      spot.addColorStop(0,'rgba(255,232,172,.065)');spot.addColorStop(1,'rgba(255,232,172,0)');
+      ctx.fillStyle=spot;ctx.fillRect(899,y-56,95,112);
+      shadow(936,y,'left');
     }
     ctx.restore();
-    label('PANTALLA VERTICAL',853,49,12,'#5c7581','center','750');
-    line(point(805,cy),point(880,cy+29),'rgba(85,112,122,.30)',1,[5,6]);
+    ctx.beginPath();ctx.moveTo(755,54);ctx.lineTo(1006,87);ctx.lineTo(1006,477);ctx.lineTo(755,444);ctx.closePath();
+    ctx.strokeStyle='#78919a';ctx.lineWidth=2.4;ctx.stroke();
+    line(point(755,54),point(1006,87),'rgba(255,255,255,.92)',3);
+    label('PANTALLA VERTICAL',881,38,12,'#5c7581','center','750');
   }
   function drawBottomScreen(x) {
-    // Floor-like screen: oblique face, rim and thickness.
-    ctx.save();ctx.shadowColor='rgba(31,54,65,.24)';ctx.shadowBlur=16;ctx.shadowOffsetY=12;
-    ctx.beginPath();ctx.moveTo(240,465);ctx.lineTo(712,465);ctx.lineTo(683,527);ctx.lineTo(207,527);ctx.closePath();
-    var g=ctx.createLinearGradient(0,462,0,529);
-    g.addColorStop(0,'#f0f4f4');g.addColorStop(.75,'#c1d0d5');g.addColorStop(1,'#8b9fa8');ctx.fillStyle=g;ctx.fill();ctx.restore();
-    ctx.beginPath();ctx.moveTo(207,527);ctx.lineTo(683,527);ctx.lineTo(683,535);ctx.lineTo(207,535);ctx.closePath();ctx.fillStyle='#7d929a';ctx.fill();
-    ctx.beginPath();ctx.moveTo(240,465);ctx.lineTo(712,465);ctx.lineTo(683,527);ctx.lineTo(207,527);ctx.closePath();ctx.strokeStyle='#76919b';ctx.lineWidth=2.4;ctx.stroke();
-    ctx.beginPath();ctx.moveTo(240,466);ctx.lineTo(712,466);ctx.strokeStyle='rgba(255,255,255,.92)';ctx.lineWidth=3.5;ctx.stroke();
-    if(activeFocus==='top') {
-      ctx.save();ctx.beginPath();ctx.moveTo(240,465);ctx.lineTo(712,465);ctx.lineTo(683,527);ctx.lineTo(207,527);ctx.closePath();ctx.clip();
-      diskScreenShadow(cx,483,'top');
-      var spot=ctx.createRadialGradient(x,476,4,x,476,65);
-      spot.addColorStop(0,'rgba(255,225,152,.13)');spot.addColorStop(1,'rgba(255,225,152,0)');
-      ctx.fillStyle=spot;ctx.fillRect(x-70,465,140,48);
-      // The shadow is at the near edge of the horizontal face.
-      shadow(x,476,'top');ctx.restore();
+    // A deeper horizontal plane: disk strip in the middle; protruding ball in front.
+    ctx.save();ctx.shadowColor='rgba(31,54,65,.24)';ctx.shadowBlur=14;ctx.shadowOffsetY=10;
+    ctx.beginPath();ctx.moveTo(235,438);ctx.lineTo(722,438);ctx.lineTo(691,544);ctx.lineTo(203,544);ctx.closePath();
+    var g=ctx.createLinearGradient(0,438,0,544);
+    g.addColorStop(0,'#edf2f1');g.addColorStop(.5,'#d6e1e3');g.addColorStop(1,'#a2b3ba');
+    ctx.fillStyle=g;ctx.fill();ctx.restore();
+    ctx.beginPath();ctx.moveTo(203,544);ctx.lineTo(691,544);ctx.lineTo(691,549);ctx.lineTo(203,549);ctx.closePath();
+    ctx.fillStyle='#7d929a';ctx.fill();
+    ctx.save();ctx.beginPath();ctx.moveTo(235,438);ctx.lineTo(722,438);ctx.lineTo(691,544);ctx.lineTo(203,544);ctx.closePath();ctx.clip();
+    for(var k=0;k<5;k++){
+      var yy=451+k*20;
+      line(point(234-(yy-438)*.3,yy),point(722-(yy-438)*.3,yy),'rgba(255,255,255,.12)',1);
     }
-    label('PANTALLA HORIZONTAL',cx,557,12,'#5d7680','center','750');
-    line(point(cx,468),point(cx,525),'rgba(96,117,127,.29)',1,[5,6]);
+    if(activeFocus==='top'){
+      diskScreenShadow(cx,486,'top');
+      var spot=ctx.createRadialGradient(x,521,3,x,521,58);
+      spot.addColorStop(0,'rgba(255,229,166,.055)');spot.addColorStop(1,'rgba(255,229,166,0)');
+      ctx.fillStyle=spot;ctx.fillRect(x-63,491,126,55);
+      shadow(x,521,'top');
+    }
+    ctx.restore();
+    ctx.beginPath();ctx.moveTo(235,438);ctx.lineTo(722,438);ctx.lineTo(691,544);ctx.lineTo(203,544);ctx.closePath();
+    ctx.strokeStyle='#78919a';ctx.lineWidth=2.4;ctx.stroke();
+    line(point(235,438),point(722,438),'rgba(255,255,255,.92)',3);
+    label('PANTALLA HORIZONTAL',450,564,11,'#5d7680','center','750');
   }
   function diskScreenShadow(x,y,type) {
-    // Faint silhouette of the whole disk, clipped to the receiving screen.
-    // Deliberately translucent: a real opaque disk would obscure the MAS
-    // shadow of the ball, which is the main educational focus.
-    ctx.save();ctx.translate(x,y);ctx.rotate(type==='left'?.02:-.04);
-    ctx.scale(type==='left'?.74:1.12,type==='left'?.98:.44);
-    var g=ctx.createRadialGradient(0,0,22,0,0,165);
-    g.addColorStop(0,'rgba(26,40,51,.08)');
-    g.addColorStop(.48,'rgba(31,46,56,.065)');
-    g.addColorStop(.76,'rgba(37,53,62,.025)');
-    g.addColorStop(1,'rgba(41,57,64,0)');
-    circle(0,0,165,g);
-    var core=ctx.createRadialGradient(-8,-10,8,0,0,118);
-    core.addColorStop(0,'rgba(18,30,39,.04)');
-    core.addColorStop(.70,'rgba(24,38,47,.025)');
-    core.addColorStop(1,'rgba(24,38,47,0)');
-    circle(0,0,118,core);
+    // Orthogonal projection of the DISK: a narrow rectangular strip of full
+    // diameter (2R). Its screen-depth position never depends on angular phase.
+    ctx.save();
+    ctx.shadowColor='rgba(31,49,62,.14)';ctx.shadowBlur=5;
+    if(type==='left'){
+      var g=ctx.createLinearGradient(x-11,0,x+11,0);
+      g.addColorStop(0,'rgba(47,62,72,.39)');
+      g.addColorStop(.5,'rgba(40,56,69,.49)');
+      g.addColorStop(1,'rgba(47,62,72,.39)');
+      ctx.fillStyle=g;
+      roundedRect(x-11,y-radius,22,2*radius,7);ctx.fill();
+    }else{
+      var g=ctx.createLinearGradient(0,y-10,0,y+10);
+      g.addColorStop(0,'rgba(47,62,72,.38)');
+      g.addColorStop(.5,'rgba(40,56,69,.48)');
+      g.addColorStop(1,'rgba(47,62,72,.38)');
+      ctx.fillStyle=g;
+      roundedRect(x-radius,y-10,2*radius,20,7);ctx.fill();
+    }
     ctx.restore();
   }
   function shadow(x,y,type) {
-    // Dark umbra with a smooth penumbra, foreshortened to the oblique screen face.
-    ctx.save();ctx.translate(x,y);ctx.rotate(type==='left'?.02:-.04);
-    ctx.scale(type==='left'?.70:1.08,type==='left'?.92:.44);
-    var glow=ctx.createRadialGradient(0,0,8,0,0,39);
-    glow.addColorStop(0,'rgba(242,187,85,.03)');
-    glow.addColorStop(.48,'rgba(235,175,58,.04)');
-    glow.addColorStop(1,'rgba(242,187,85,0)');
-    circle(0,0,39,glow);
-    var g=ctx.createRadialGradient(-1,-1,1,0,0,30);
-    g.addColorStop(0,'rgba(23,35,46,.88)');
-    g.addColorStop(.36,'rgba(27,42,54,.84)');
-    g.addColorStop(.52,'rgba(36,52,63,.70)');
-    g.addColorStop(.70,'rgba(41,56,66,.32)');
-    g.addColorStop(.88,'rgba(43,55,62,.09)');
-    g.addColorStop(1,'rgba(43,55,62,0)');
-    circle(0,0,30,g);ctx.restore();
+    // Separate, darker silhouette of the protruding ball. It does not overlap
+    // the disk strip in the screen's depth dimension.
+    ctx.save();ctx.translate(x,y);ctx.rotate(type==='left'?.015:0);
+    ctx.scale(type==='left'?.73:1.13,type==='left'?.95:.46);
+    var glow=ctx.createRadialGradient(0,0,10,0,0,37);
+    glow.addColorStop(0,'rgba(37,50,61,.13)');
+    glow.addColorStop(1,'rgba(37,50,61,0)');
+    circle(0,0,37,glow);
+    var g=ctx.createRadialGradient(0,0,3,0,0,25);
+    g.addColorStop(0,'rgba(23,34,46,.93)');
+    g.addColorStop(.55,'rgba(28,41,53,.88)');
+    g.addColorStop(.82,'rgba(32,48,59,.45)');
+    g.addColorStop(1,'rgba(32,48,59,0)');
+    circle(0,0,25,g);ctx.restore();
   }
   function lightOcclusion(p,type) {
     if(activeFocus!==type)return;
-    // The ball blocks a strip of the parallel beam; two tangent rays mark its boundary.
+    // The ball blocks a narrow strip of the parallel beam. Two tangent rays
+    // delimit this strip; the old central ray cannot continue through the ball.
     ctx.save();ctx.lineCap='round';
     var lim,grad,start;
-    if(type==='left'){
-      start=p.x+14;lim=screenX;
+    if(type==='left') {
+      start=p.x+14;lim=936;
       if(start<lim){
         grad=ctx.createLinearGradient(0,p.y-24,0,p.y+24);
         grad.addColorStop(0,'rgba(61,75,77,0)');
         grad.addColorStop(.24,'rgba(71,79,77,.03)');
-        grad.addColorStop(.5,'rgba(68,78,81,.24)');
+        grad.addColorStop(.5,'rgba(68,78,81,.16)');
         grad.addColorStop(.76,'rgba(71,79,77,.03)');
         grad.addColorStop(1,'rgba(61,75,77,0)');
         ctx.fillStyle=grad;ctx.fillRect(start,p.y-24,lim-start,48);
-        [-16,16].forEach(function(d){line(point(start,p.y+d),point(lim,p.y+d),'rgba(244,177,56,.26)',1.65)});
+        [-16,16].forEach(function(d){
+          line(point(start,p.y+d),point(lim,p.y+d),'rgba(244,177,56,.20)',1.65);
+        });
       }
     }else{
-      start=p.y+14;lim=screenY;
+      start=p.y+14;lim=521;
       if(start<lim){
         grad=ctx.createLinearGradient(p.x-24,0,p.x+24,0);
         grad.addColorStop(0,'rgba(61,75,77,0)');
         grad.addColorStop(.24,'rgba(71,79,77,.03)');
-        grad.addColorStop(.5,'rgba(68,78,81,.24)');
+        grad.addColorStop(.5,'rgba(68,78,81,.16)');
         grad.addColorStop(.76,'rgba(71,79,77,.03)');
         grad.addColorStop(1,'rgba(61,75,77,0)');
         ctx.fillStyle=grad;ctx.fillRect(p.x-24,start,48,lim-start);
-        [-16,16].forEach(function(d){line(point(p.x+d,start),point(p.x+d,lim),'rgba(244,177,56,.26)',1.65)});
+        [-16,16].forEach(function(d){
+          line(point(p.x+d,start),point(p.x+d,lim),'rgba(244,177,56,.20)',1.65);
+        });
       }
+    }
+    ctx.restore();
+  }
+  function drawScreenSilhouettes(pos,type) {
+    // The occluded-light corridor stops inside the screen at the ball's own
+    // depth. Draw the receiving surface's silhouettes over it (no dark bend).
+    ctx.save();
+    if(type==='left'){
+      ctx.beginPath();ctx.moveTo(755,54);ctx.lineTo(1006,87);ctx.lineTo(1006,477);ctx.lineTo(755,444);ctx.closePath();ctx.clip();
+      diskScreenShadow(879,cy,'left');
+      shadow(936,pos.y,'left');
+    }else{
+      ctx.beginPath();ctx.moveTo(235,438);ctx.lineTo(722,438);ctx.lineTo(691,544);ctx.lineTo(203,544);ctx.closePath();ctx.clip();
+      diskScreenShadow(cx,486,'top');
+      shadow(pos.x,521,'top');
     }
     ctx.restore();
   }
@@ -410,14 +443,18 @@
     ctx.fillStyle='#a4b9bf';roundedRect(cx-58,425,116,17,6);ctx.fill();
     ctx.fillStyle='#7f969e';roundedRect(cx-44,438,88,8,3);ctx.fill();ctx.restore();
     disk(angle);drawArrowClockwise();
-    // Draw the occluded-light corridor AFTER the disk. Otherwise, when the
-    // ball is on the illuminated half, the opaque disk hides the corridor
-    // and creates a false gap. It stops precisely at the screen's near edge.
-    if (visibleFocus==='left') lightOcclusion(pos,'left');
-    else lightOcclusion(pos,'top');
+    // The shadow corridor is painted over the disk so it cannot disappear
+    // when the ball moves onto the illuminated half of the circle.
+    if (visibleFocus==='left') {
+      lightOcclusion(pos,'left');
+      drawScreenSilhouettes(pos,'left');
+    } else {
+      lightOcclusion(pos,'top');
+      drawScreenSilhouettes(pos,'top');
+    }
     line(point(cx,cy),pos,'rgba(40,85,92,.66)',2.6);
     ball(pos);
-    // Single compact caption at top left, clear of both screens.
+    // A single unobtrusive top-left caption never overlaps either screen.
     roundedRect(22,18,265,32,8);
     ctx.fillStyle='rgba(246,250,250,.95)';ctx.fill();
     ctx.strokeStyle='rgba(213,229,229,.88)';ctx.lineWidth=1;ctx.stroke();
