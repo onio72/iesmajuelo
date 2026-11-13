@@ -268,6 +268,7 @@
       var spot=ctx.createRadialGradient(845,y+16,6,845,y+16,83);
       spot.addColorStop(0,'rgba(255,226,164,.13)');spot.addColorStop(1,'rgba(255,226,164,0)');
       ctx.fillStyle=spot;ctx.fillRect(805,y-75,95,165);
+      shadowContinuation(805,y,845,y+16,'left');
       shadow(845,y+16,'left');
     }
     ctx.restore();
@@ -288,10 +289,43 @@
       var spot=ctx.createRadialGradient(x,491,4,x,491,74);
       spot.addColorStop(0,'rgba(255,225,152,.13)');spot.addColorStop(1,'rgba(255,225,152,0)');
       ctx.fillStyle=spot;ctx.fillRect(x-76,466,152,61);
+      shadowContinuation(x,465,x,491,'top');
       shadow(x,491,'top');ctx.restore();
     }
     label('PANTALLA HORIZONTAL',cx,557,12,'#5d7680','center','750');
     line(point(cx,468),point(cx,525),'rgba(96,117,127,.29)',1,[5,6]);
+  }
+  function shadowContinuation(x0,y0,x1,y1,type) {
+    // A connected part of the occluded light reaches the inclined screen face.
+    // It is clipped by each screen, and fades into the projected shadow.
+    ctx.save();
+    if (type === 'left') {
+      // Slant by the same slope as the visible face (37 px over 92 px).
+      ctx.translate(x0,y0);
+      ctx.transform(1,(y1-y0)/(x1-x0),0,1,0,0);
+      var g=ctx.createLinearGradient(0,-28,0,28);
+      g.addColorStop(0,'rgba(40,56,64,0)');
+      g.addColorStop(.20,'rgba(39,53,63,.09)');
+      g.addColorStop(.38,'rgba(33,47,57,.28)');
+      g.addColorStop(.5,'rgba(30,44,56,.42)');
+      g.addColorStop(.62,'rgba(33,47,57,.28)');
+      g.addColorStop(.80,'rgba(39,53,63,.09)');
+      g.addColorStop(1,'rgba(40,56,64,0)');
+      ctx.fillStyle=g;
+      ctx.fillRect(-1,-28,x1-x0+9,56);
+    } else {
+      var g=ctx.createLinearGradient(x0-28,0,x0+28,0);
+      g.addColorStop(0,'rgba(40,56,64,0)');
+      g.addColorStop(.20,'rgba(39,53,63,.09)');
+      g.addColorStop(.38,'rgba(33,47,57,.28)');
+      g.addColorStop(.5,'rgba(30,44,56,.42)');
+      g.addColorStop(.62,'rgba(33,47,57,.28)');
+      g.addColorStop(.80,'rgba(39,53,63,.09)');
+      g.addColorStop(1,'rgba(40,56,64,0)');
+      ctx.fillStyle=g;
+      ctx.fillRect(x0-28,y0-1,56,y1-y0+9);
+    }
+    ctx.restore();
   }
   function shadow(x,y,type) {
     // Dark umbra with a smooth penumbra, foreshortened to the oblique screen face.
