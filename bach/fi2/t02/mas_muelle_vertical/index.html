@@ -340,62 +340,64 @@
 }
 
 
-/* Diseño estable ajustado al área útil; conserva tres zonas incluso con zoom elevado. */
-html:has(.app.fit-screen),body:has(.app.fit-screen){margin:0!important;height:100%!important;width:100%!important;overflow:hidden!important}
-.app.fit-screen{width:1280px!important;height:760px!important;max-width:none!important;min-height:0!important;margin:0!important;padding:8px 10px!important;display:flex!important;flex-direction:column!important;gap:7px!important;overflow:hidden!important}
-.app.fit-screen .intro{flex:0 0 auto!important;min-height:39px!important;margin:0!important;gap:6px!important}
-.app.fit-screen .intro h1{font-size:19px!important;line-height:1.13!important}
-.app.fit-screen .intro p{font-size:10px!important}
-.app.fit-screen .eyebrow{display:none!important}
-.app.fit-screen .physics-meta{gap:4px!important}
-.app.fit-screen .chip{font-size:10px!important;padding:5px 6px!important}
-.app.fit-screen .workspace{flex:1 1 auto!important;min-height:0!important;min-width:0!important;display:grid!important;grid-template-columns:minmax(0,1fr) 278px!important;gap:8px!important;align-items:stretch!important;height:auto!important}
-.app.fit-screen .left{display:grid!important;min-height:0!important;min-width:0!important;height:100%!important;grid-template-columns:minmax(0,0.9fr) minmax(0,1.5fr)!important;grid-template-rows:minmax(0,1fr) 11px!important;gap:7px!important}
-.app.fit-screen .left>.panel:first-child{grid-column:1!important;grid-row:1!important;min-height:0!important;min-width:0!important;height:100%!important;flex:none!important;display:flex!important;flex-direction:column!important}
-.app.fit-screen .left>.graphs,.app.fit-screen .left>.graphs:has(#emptyPlots:not([hidden])),.app.fit-screen .left>.graphs:has(#overlayPlotCard:not([hidden])){grid-column:2!important;grid-row:1!important;min-height:0!important;min-width:0!important;height:100%!important;max-height:none!important;flex:none!important;display:flex!important;flex-direction:column!important;margin:0!important}
-.app.fit-screen .left>.footnote{grid-column:1/-1!important;grid-row:2!important;font-size:8px!important;line-height:1.1!important;overflow:hidden!important;margin:0!important;white-space:nowrap!important}
-.app.fit-screen .panel-header{flex:0 0 auto!important;padding:7px 10px 2px!important}
-.app.fit-screen .stage-wrap{display:flex!important;flex:1 1 0!important;align-items:center!important;justify-content:center!important;min-height:0!important;min-width:0!important;overflow:hidden!important;max-width:none!important;width:100%!important}
-.app.fit-screen .stage{height:auto!important;width:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important}
-.app.fit-screen .stage-note{font-size:9px!important;white-space:normal!important;text-align:center!important;width:auto!important;max-width:95%!important}
-.app.fit-screen .graph-head{padding:6px 9px 4px!important;flex:0 0 auto!important}
-.app.fit-screen .graph-head small{font-size:9px!important}
-.app.fit-screen .graph-content{display:flex!important;flex-direction:column!important;flex:1 1 0!important;min-height:0!important;min-width:0!important}
-.app.fit-screen .graph-visual{display:flex!important;flex:1 1 0!important;flex-direction:column!important;min-height:0!important;min-width:0!important}
-.app.fit-screen #graphGrid{flex:1 1 0!important;min-height:0!important;height:100%!important;width:100%!important;padding:0 7px 7px!important;gap:6px!important;grid-template-columns:minmax(0,1fr)!important;align-content:stretch!important}
-.app.fit-screen #graphGrid[data-visible-count="1"],.app.fit-screen #graphGrid[data-visible-count="2"],.app.fit-screen #graphGrid[data-visible-count="3"],.app.fit-screen #graphGrid[data-visible-count="overlay"]{grid-template-columns:minmax(0,1fr)!important}
-.app.fit-screen #graphGrid[data-visible-count="1"],.app.fit-screen #graphGrid[data-visible-count="overlay"]{grid-template-rows:minmax(0,1fr)!important}
-.app.fit-screen #graphGrid[data-visible-count="2"]{grid-template-rows:repeat(2,minmax(0,1fr))!important}
-.app.fit-screen #graphGrid[data-visible-count="3"]{grid-template-rows:repeat(3,minmax(0,1fr))!important}
-.app.fit-screen #graphGrid .plot-card{min-height:0!important;height:100%!important;display:flex!important;flex-direction:column!important}
-.app.fit-screen #graphGrid .plot-card[hidden]{display:none!important}
-.app.fit-screen #graphGrid .plot-card h3{flex:0 0 auto!important;font-size:10px!important;margin:5px 7px 1px!important}
-.app.fit-screen #graphGrid .plot-canvas{flex:1 1 0!important;height:100%!important;min-height:0!important;display:block!important}
-.app.fit-screen .overlay-legend{flex:0 0 auto!important;gap:4px 8px!important;padding:4px!important}
-.app.fit-screen .sidebar{height:100%!important;min-height:0!important;min-width:0!important;display:flex!important;flex-direction:column!important;gap:6px!important;overflow:hidden!important}
-.app.fit-screen .sidebar>.controls,.app.fit-screen .sidebar>.controls:first-child,.app.fit-screen .sidebar>.controls:nth-child(2),.app.fit-screen .sidebar>.controls:nth-child(3),.app.fit-screen .sidebar>.controls:nth-child(4){flex:0 0 auto!important;min-height:0!important;min-width:0!important;overflow:visible!important;padding:7px 9px!important;grid-column:auto!important;grid-row:auto!important}
-.app.fit-screen .sidebar .controls h2{font-size:12px!important;margin:0 0 4px!important}
-.app.fit-screen .sidebar .button-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:4px!important}
-.app.fit-screen .sidebar .button-grid button{font-size:10px!important;min-height:27px!important;padding:4px 2px!important}
-.app.fit-screen .sidebar .speed-button{font-size:10px!important;min-height:25px!important;margin:5px 0 0!important;padding:4px!important}
-.app.fit-screen .sidebar .choice{font-size:10px!important;line-height:1.2!important;margin:4px 0!important}
-.app.fit-screen .sidebar .choice input{width:13px!important;height:13px!important}
-.app.fit-screen .sidebar .subchoice{padding-left:14px!important}
-.app.fit-screen .sidebar .subtle{display:none!important}
-.app.fit-screen .playback-monitor{margin:5px 0 0!important;padding-top:5px!important}
-.app.fit-screen .playback-monitor .readings{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:4px!important;padding:0!important}
-.app.fit-screen .playback-monitor .reading{font-size:9px!important;padding:4px!important}
-.app.fit-screen .playback-monitor .reading strong{font-size:11px!important}
-.app.fit-screen .playback-monitor .timeline{padding:4px 1px 0!important;grid-template-columns:33px minmax(0,1fr) 50px!important;gap:5px!important;font-size:9px!important}
-.app.fit-screen .graph-selector-panel .graph-toolbar{display:flex!important;flex-direction:column!important;gap:5px!important;padding:0!important;border:0!important}
-.app.fit-screen .graph-selector-panel .graph-toolbar label{font-size:10px!important;line-height:1.15!important;white-space:normal!important}
-.app.fit-screen .graph-selector-panel .graph-note{margin-top:4px!important;font-size:9px!important}
-.app.fit-screen .sidebar .focus-block{margin-top:4px!important;padding:4px 6px!important}
-.app.fit-screen .sidebar .formula{font-size:9px!important;line-height:1.2!important;margin-top:4px!important;padding:5px!important}
-.app.fit-screen .sidebar .focus-actions{margin-top:4px!important}
-.app.fit-screen .sidebar .focus-actions button{padding:4px 3px!important;font-size:9px!important}
-.app.fit-screen .sidebar .focus-message{font-size:9px!important;line-height:1.2!important;margin:3px 0 0!important;min-height:0!important}
-.app.fit-screen .sidebar select{font-size:10px!important;padding:4px!important}
+/* VERSION 2: Tres zonas como hijos DIRECTOS, sin rejilla anidada. */
+html:has(.mas-v2),body:has(.mas-v2){height:100%!important;width:100%!important;overflow:hidden!important; margin:0!important;}
+.app.mas-v2{box-sizing:border-box!important;width:1440px!important;height:760px!important;max-width:none!important;min-height:0!important; margin:0!important;padding:8px 10px!important;display:flex!important;flex-direction:column!important;gap:7px!important;position:absolute!important;top:0!important;left:0!important;overflow:hidden!important;transform-origin:top left!important;}
+.app.mas-v2 .intro{flex:0 0 42px!important;min-height:0!important;margin:0!important;padding:0!important;gap:6px!important;align-items:center!important;}
+.app.mas-v2 .intro h1{font-size:19px!important;line-height:1.15!important;margin:0!important;}
+.app.mas-v2 .intro p{font-size:10px!important;line-height:1.3!important;}
+.app.mas-v2 .eyebrow{display:none!important;}
+.app.mas-v2 .physics-meta{gap:4px!important;}
+.app.mas-v2 .chip{font-size:10px!important;padding:5px 7px!important;}
+.app.mas-v2 .workspace{display:grid!important;flex:1 1 auto!important;min-height:0!important;min-width:0!important;height:0!important;align-items:stretch!important;grid-template-columns: minmax(0,0.88fr) minmax(0,1.25fr) 294px!important;grid-template-rows:minmax(0,1fr)!important;gap:8px!important;}
+.app.mas-v2 .workspace>.left{grid-column:1!important;grid-row:1!important;display:flex!important;flex-direction:column!important;min-width:0!important;min-height:0!important;height:100%!important;overflow:hidden!important;gap:5px!important;}
+.app.mas-v2 .workspace>.graphs{grid-column:2!important;grid-row:1!important;display:flex!important;flex-direction:column!important;min-height:0!important;min-width:0!important;height:100%!important;max-height:none!important;margin:0!important;flex:none!important;overflow:hidden!important;}
+.app.mas-v2 .workspace>.sidebar{grid-column:3!important;grid-row:1!important;display:flex!important;flex-direction:column!important;height:100%!important;min-height:0!important;min-width:0!important;gap:6px!important;overflow:hidden!important;}
+.app.mas-v2 .left>.panel:first-child{min-width:0!important;min-height:0!important;height:0!important;flex:1 1 auto!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;}
+.app.mas-v2 .left>.footnote{font-size:8px!important;line-height:1.2!important;margin:0!important;flex:0 0 auto!important;max-height:20px!important;overflow:hidden!important;}
+.app.mas-v2 .panel{border-radius:11px!important;}
+.app.mas-v2 .panel-header{flex:0 0 auto!important;padding:8px 10px 2px!important;}
+.app.mas-v2 .panel-header h2,.app.mas-v2 .graph-head h2{font-size:13px!important;}
+.app.mas-v2 .stage-wrap{display:flex!important;min-height:0!important;min-width:0!important;width:100%!important;max-width:none!important;height:0!important;flex:1 1 auto!important;justify-content:center!important;align-items:center!important;overflow:hidden!important;}
+.app.mas-v2 .stage{display:block!important;height:auto!important;width:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;}
+.app.mas-v2 .stage-note{font-size:9px!important;max-width:98%!important;white-space:normal!important;text-align:center!important;}
+.app.mas-v2 .graph-head{padding:7px 10px 4px!important;flex:0 0 auto!important;}
+.app.mas-v2 .graph-head small{font-size:9px!important;}
+.app.mas-v2 .graph-content{display:flex!important;flex-direction:column!important;min-height:0!important;min-width:0!important;flex:1 1 auto!important;}
+.app.mas-v2 .graph-visual{display:flex!important;flex-direction:column!important;min-height:0!important;min-width:0!important;flex:1 1 auto!important;}
+.app.mas-v2 #graphGrid{width:100%!important;min-width:0!important;min-height:0!important;height:0!important;flex:1 1 auto!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;align-content:stretch!important;padding:0 7px 7px!important;gap:6px!important;}
+.app.mas-v2 #graphGrid[data-visible-count="0"],.app.mas-v2 #graphGrid[data-visible-count="1"],.app.mas-v2 #graphGrid[data-visible-count="overlay"]{grid-template-rows:minmax(0,1fr)!important;}
+.app.mas-v2 #graphGrid[data-visible-count="2"]{grid-template-rows:repeat(2,minmax(0,1fr))!important;}
+.app.mas-v2 #graphGrid[data-visible-count="3"]{grid-template-rows:repeat(3,minmax(0,1fr))!important;}
+.app.mas-v2 #graphGrid>.plot-card{display:flex!important;flex-direction:column!important;min-height:0!important;height:100%!important;grid-column:1!important;}
+.app.mas-v2 #graphGrid>.plot-card[hidden]{display:none!important;}
+.app.mas-v2 #graphGrid .plot-card h3{font-size:10px!important;margin:4px 7px 0!important;flex:0 0 auto!important;}
+.app.mas-v2 #graphGrid .plot-card h3 em{font-size:9px!important;}
+.app.mas-v2 #graphGrid .plot-canvas{display:block!important;flex:1 1 auto!important;min-height:0!important;height:0!important;}
+.app.mas-v2 .overlay-legend{flex:0 0 auto!important;gap:4px 8px!important;padding:4px!important;}
+.app.mas-v2 .sidebar>.controls,.app.mas-v2 .sidebar>.controls:first-child,.app.mas-v2 .sidebar>.controls:nth-child(2),.app.mas-v2 .sidebar>.controls:nth-child(3),.app.mas-v2 .sidebar>.controls:nth-child(4){min-width:0!important;min-height:0!important;flex:0 0 auto!important;overflow:visible!important;padding:8px 9px!important;grid-column:auto!important;grid-row:auto!important;}
+.app.mas-v2 .sidebar .controls h2{font-size:12px!important;margin:0 0 5px!important;}
+.app.mas-v2 .sidebar .button-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:4px!important;}
+.app.mas-v2 .sidebar .button-grid button{font-size:10px!important;min-height:28px!important;padding:4px 2px!important;}
+.app.mas-v2 .sidebar .speed-button{margin-top:5px!important;padding:4px!important;font-size:10px!important;min-height:26px!important;}
+.app.mas-v2 .sidebar .choice{font-size:10px!important;line-height:1.15!important;margin:4px 0!important;gap:5px!important;}
+.app.mas-v2 .sidebar .choice input{width:13px!important;height:13px!important;flex:0 0 13px!important;}
+.app.mas-v2 .sidebar .subchoice{padding-left:14px!important;}
+.app.mas-v2 .sidebar .subtle{display:none!important;}
+.app.mas-v2 .playback-monitor{margin-top:5px!important;padding-top:5px!important;}
+.app.mas-v2 .playback-monitor .readings{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:4px!important;padding:0!important;}
+.app.mas-v2 .playback-monitor .reading{font-size:9px!important;padding:4px 5px!important;}
+.app.mas-v2 .playback-monitor .reading strong{font-size:11px!important;}
+.app.mas-v2 .playback-monitor .timeline{font-size:9px!important;padding:5px 1px 0!important;grid-template-columns:35px minmax(0,1fr) 49px!important;gap:5px!important;}
+.app.mas-v2 .graph-selector-panel .graph-toolbar{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:6px!important;padding:0!important;border:0!important;}
+.app.mas-v2 .graph-selector-panel .graph-toolbar label{font-size:10px!important;line-height:1.2!important;white-space:normal!important;}
+.app.mas-v2 .graph-selector-panel .graph-note{margin:5px 0 0!important;padding:0!important;text-align:left!important;font-size:9px!important;}
+.app.mas-v2 .sidebar .focus-block{margin-top:5px!important;padding:4px 7px!important;}
+.app.mas-v2 .sidebar select{font-size:10px!important;padding:5px!important;}
+.app.mas-v2 .sidebar .focus-actions{margin-top:5px!important;}
+.app.mas-v2 .sidebar .focus-actions button{font-size:9px!important;padding:5px 3px!important;}
+.app.mas-v2 .sidebar .focus-message{margin-top:4px!important;min-height:0!important;font-size:9px!important;line-height:1.2!important;}
+.app.mas-v2 .sidebar .formula{font-size:9px!important;line-height:1.2!important;margin-top:5px!important;padding:5px!important;}
 
 </style>
 </head>
@@ -432,6 +434,8 @@ html:has(.app.fit-screen),body:has(.app.fit-screen){margin:0!important;height:10
           <div class="stage-note">Arrastra el bloque y suéltalo para iniciar una nueva oscilación</div>
         </div>
       </section>
+      <p class="footnote"><span class="note-strong">Modelo ideal sin rozamiento:</span> el origen está en el equilibrio; <b>hacia arriba es positivo y hacia abajo negativo</b>. La gravedad determina la posición de equilibrio, pero la aceleración respecto a ella cumple <b>a = −ω²y</b>. No se representa la deformación estática del muelle a escala.</p>
+    </div>
       <section class="panel graphs" aria-label="Gráficas del movimiento">
         <div class="graph-head"><h2>Gráficas del movimiento</h2><small>El punto coloreado indica el instante actual</small></div>
         <div class="graph-content">
@@ -451,8 +455,6 @@ html:has(.app.fit-screen),body:has(.app.fit-screen){margin:0!important;height:10
           
         </div>
       </section>
-      <p class="footnote"><span class="note-strong">Modelo ideal sin rozamiento:</span> el origen está en el equilibrio; <b>hacia arriba es positivo y hacia abajo negativo</b>. La gravedad determina la posición de equilibrio, pero la aceleración respecto a ella cumple <b>a = −ω²y</b>. No se representa la deformación estática del muelle a escala.</p>
-    </div>
     <aside class="sidebar" aria-label="Panel del profesor">
       <section class="panel controls"><h2>Reproducción</h2>
         <div class="button-grid">
@@ -677,22 +679,20 @@ html:has(.app.fit-screen),body:has(.app.fit-screen){margin:0!important;height:10
     if(state.playing&&!state.dragging){const factor=(state.slowPlayback||(options.enableFocus.checked&&options.slowMotion.checked))?.2:1;state.time+=deltaSeconds*factor;ensureRange();render();}
     requestAnimationFrame(tick);
   }
-  const updateVersionInfo=()=>{
-    const label=$('layoutVersion');
-    if(!label)return;
-    const style=getComputedStyle(document.querySelector('.left'));
-    const threeColumns=style.gridTemplateColumns.split(' ').filter(Boolean).length>=2;
-    label.textContent='Edición 13/11 · ventana '+innerWidth+' × '+innerHeight+' · '+(threeColumns?'tres zonas':'disposición reducida');
-  };
-  const fitViewport=()=>{
+  function fitViewport(){
     const app=document.querySelector('.app');
-    app.classList.add('fit-screen');
-    const scale=Math.min(window.innerWidth/1280,window.innerHeight/760);
-    app.style.zoom=scale.toFixed(5);
+    app.classList.remove('fit-screen');
+    app.classList.add('mas-v2');
+    app.style.zoom='1';
+    const scale=Math.min(window.innerWidth/1440,window.innerHeight/760);
+    app.style.transform='scale('+scale.toFixed(6)+')';
     const label=$('layoutVersion');
-    if(label)label.textContent='Edición 13/11 · tres zonas · ventana '+innerWidth+' × '+innerHeight+' · escala '+scale.toFixed(2);
+    if(label){
+      const cols=getComputedStyle(document.querySelector('.workspace')).gridTemplateColumns;
+      label.textContent='Versión 13/11 · diseño 3 columnas · escala '+scale.toFixed(2)+' · columnas '+cols;
+    }
     render();
-  };
+  }
   window.addEventListener('resize',fitViewport);
   fitViewport();
   $('periodChip').textContent=fmt(PERIOD)+' s';refreshControls();render();requestAnimationFrame(tick);
