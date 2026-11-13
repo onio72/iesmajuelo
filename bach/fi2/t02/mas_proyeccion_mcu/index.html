@@ -446,7 +446,7 @@
   $('reset').addEventListener('click',function(){setRunning(false);time=0;render()});
   $('omega').addEventListener('input',function(){omega=Number(this.value);render()});
   $('phase').addEventListener('input',function(){phi0=Number(this.value)*Math.PI/180;render()});
-  $('time').addEventListener('input',function(){setRunning(false);time=Number(this.value);render()});
+  $('time').addEventListener('input',function(){var requestedTime=Number(this.value);setRunning(false);time=requestedTime;render()});
   $('leftFocus').addEventListener('click',function(){setFocus('left')});
   $('topFocus').addEventListener('click',function(){setFocus('top')});
   $('noFocus').addEventListener('click',function(){setFocus(null)});
