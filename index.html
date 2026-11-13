@@ -535,6 +535,7 @@
                     ] }
                 ]},
                 { name: "Vibraciones y ondas", links: [
+                    { name: "MAS como proyección del MCU", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/mas_proyeccion_mcu/" },
                     { name: "Descubriendo el movimiento armónico simple · Itinerario guiado", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/descubriendo_mas/" },
                     { name: "MAS · Muelle vertical y gráficas de elongación, velocidad y aceleración", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/mas_muelle_vertical/visualizacion_20261113.html" },
                     { name: "Dinámica del MAS · Muelle vertical", url: "https://onio72.github.io/iesmajuelo/bach/fi2/t02/dinamica_mas_muelle_vertical/" },
@@ -708,9 +709,11 @@
         const sectionsFor = group => {
             if (group.sections) return group.sections;
             if (group.name === 'Vibraciones y ondas') {
+                const firstWaveIndex = group.links.findIndex(link => link.name === 'Principio de Huygens');
+                const boundary = firstWaveIndex >= 0 ? firstWaveIndex : group.links.length;
                 return [
-                    { name:'Movimiento armónico simple', links:group.links.slice(0,10) },
-                    { name:'Ondas', links:group.links.slice(10) }
+                    { name:'Movimiento armónico simple', links:group.links.slice(0,boundary) },
+                    { name:'Ondas', links:group.links.slice(boundary) }
                 ];
             }
             return [{ name:'Recursos del tema', links:group.links || [] }];
