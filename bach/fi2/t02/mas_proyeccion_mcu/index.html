@@ -379,9 +379,9 @@
     var angle=currentAngle();
     var pos=point(cx+radius*Math.cos(angle),cy-radius*Math.sin(angle));
     if(visibleFocus==='left'){
-      beam('left');lightOcclusion(pos,'left');drawLeftScreen(pos.y);
+      beam('left');drawLeftScreen(pos.y);
     }else{
-      beam('top');lightOcclusion(pos,'top');drawBottomScreen(pos.x);
+      beam('top');drawBottomScreen(pos.x);
     }
     // Central shaft and small support create a tangible rotating apparatus.
     ctx.save();
@@ -389,6 +389,11 @@
     ctx.fillStyle='#a4b9bf';roundedRect(cx-58,425,116,17,6);ctx.fill();
     ctx.fillStyle='#7f969e';roundedRect(cx-44,438,88,8,3);ctx.fill();ctx.restore();
     disk(angle);drawArrowClockwise();
+    // Draw the occluded-light corridor AFTER the disk. Otherwise, when the
+    // ball is on the illuminated half, the opaque disk hides the corridor
+    // and creates a false gap. It stops precisely at the screen's near edge.
+    if (visibleFocus==='left') lightOcclusion(pos,'left');
+    else lightOcclusion(pos,'top');
     line(point(cx,cy),pos,'rgba(40,85,92,.66)',2.6);
     ball(pos);
     // Single compact caption at top left, clear of both screens.
