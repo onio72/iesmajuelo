@@ -6,59 +6,62 @@
   <meta name="color-scheme" content="light">
   <title>MAS como proyección del MCU · Física 2.º Bachillerato</title>
   <style>
-    :root {--ink:#173c4a; --ink-soft:#5e7780; --line:#d8e4e6; --paper:#fff; --bg:#f1f6f7;--teal:#067a86; --teal-dark:#075c69; --teal-light:#e4f4f3; --amber:#d89021; --amber-light:#fff2d7; --blue:#2d7eaa; --gray:#738791;}
-    * {box-sizing:border-box}
-    body {margin:0;background:linear-gradient(140deg,#eff5f5,#f9faf9 65%,#edf2f5);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.45;}
-    button,input {font:inherit}
-    button {cursor:pointer;}
-    button:focus-visible,input:focus-visible,canvas:focus-visible {outline:3px solid #edbc53;outline-offset:3px}
-    .app {max-width:1200px;margin:auto;padding:22px 24px 38px}
-    header {display:flex;gap:16px;align-items:flex-start;justify-content:space-between;margin-bottom:18px;}
-    .eyebrow {font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:var(--teal);margin-bottom:5px;}
-    h1 {margin:0;font-size:clamp(1.4rem,2.4vw,2.05rem);line-height:1.18;letter-spacing:-.025em}
-    .sub {margin:9px 0 0;color:var(--ink-soft);font-size:14px;max-width:780px}
-    .chip {white-space:nowrap;display:flex;align-items:center;gap:8px;color:#166675;border:1px solid #c3dedc;background:#eaf6f4;border-radius:40px;padding:8px 13px;font-size:12px;font-weight:800;}
-    .panel {background:var(--paper);border:1px solid var(--line);box-shadow:0 10px 38px #12394c0a;border-radius:18px;overflow:hidden}
-    .stage-toolbar {display:flex;justify-content:space-between;gap:10px;align-items:center;padding:13px 18px;border-bottom:1px solid var(--line);background:#fbfdfd;}
-    .stage-toolbar strong {font-size:13px}
-    .stage-toolbar .status {color:var(--ink-soft);font-size:12px;text-align:right}
-    .stage-wrap {width:100%;overflow-x:auto;position:relative}
-    canvas {display:block;width:100%;min-width:730px;height:auto;aspect-ratio:1040 / 570;background:#fbfdfc;touch-action:pan-x pan-y;}
-    .mobile-tip {display:none; padding:7px 14px; background:#f8fbfa; color:#657f88; font-size:12px; border-top:1px solid #e7eeee}
-    .panel-bottom {border-top:1px solid var(--line);background:#f7fbfa;padding:14px 18px;display:flex;gap:20px;flex-wrap:wrap;align-items:center;justify-content:space-between}
-    .readout {display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:15px}
-    .readout span.label {color:var(--ink-soft);font-size:12px;font-weight:700}
-    .formula {font-size:clamp(16px,2vw,21px);font-weight:750;color:var(--teal-dark);letter-spacing:.002em}
-    .small-readout {font-size:12px;color:var(--ink-soft)}
-    .controls {display:grid;grid-template-columns:1.02fr 1.24fr;gap:14px;margin-top:14px}
-    .control-card {padding:19px 20px 20px}
-    h2 {margin:0 0 14px;font-size:15px;letter-spacing:-.01em}
-    .button-row {display:flex;flex-wrap:wrap;gap:8px}
-    .btn {border:1px solid #ccdcde;background:#fff;border-radius:9px;color:var(--ink);padding:10px 14px;min-height:42px;font-weight:720;font-size:13px;display:inline-flex;align-items:center;gap:6px;justify-content:center;}
-    .btn:hover {background:#eef6f6;border-color:#99c6c9}
-    .btn.primary {background:var(--teal-dark);color:#fff;border-color:var(--teal-dark)}
-    .btn.primary:hover {background:#034753}
-    .btn:disabled {opacity:.36;cursor:not-allowed}
-    .focus-row {display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
-    .focus-btn {padding:8px 12px;border-radius:8px;border:1px solid #cbdcdf;background:#fff;font-size:12px;font-weight:740;color:var(--ink-soft);}
-    .focus-btn[aria-pressed="true"] {background:var(--amber-light);border-color:#efc772;color:#82540e;}
-    .explain {color:var(--ink-soft);margin:12px 0 0;font-size:12px}
-    .sliders {display:grid;gap:14px}
-    .slider-label {display:flex;justify-content:space-between;gap:14px;align-items:baseline;font-size:13px;font-weight:740}
-    output {color:var(--teal-dark);font-size:14px;font-variant-numeric:tabular-nums;font-weight:820;white-space:nowrap}
-    input[type=range] {width:100%;margin:9px 0 0;accent-color:var(--teal);cursor:pointer}
-    .range-bottom {display:flex;justify-content:space-between;color:#8a9fa7;font-size:10px;font-variant-numeric:tabular-nums;margin-top:1px}
-    .notes {display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
-    .note {border:1px solid #d8e5e5;background:#f8fbfa;padding:13px 15px;border-radius:12px;min-height:90px}
-    .note strong {display:block;font-size:12px;margin-bottom:5px;color:#236572}
-    .note p {margin:0;font-size:12px;color:#536e78}
-    .chip.still {background:#f2f4f6;color:#59717a;border-color:#d8e3e6}
-    #omega {accent-color:#137e91}
-    .stage-wrap canvas{cursor:default}
-    .sr-only {position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-    @media (max-width:840px){.controls{grid-template-columns:1fr}.app{padding:15px 13px 25px} .notes{grid-template-columns:1fr} header{flex-wrap:wrap}.chip{white-space:normal} .stage-toolbar{align-items:flex-start} .panel-bottom{gap:8px}.control-card{padding:16px} }
-    @media (max-width:760px){.mobile-tip {display:block}}
-    @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+    :root {--ink:#173c4a;--ink-soft:#5e7780;--line:#d8e4e6;--paper:#fff;--bg:#f1f6f7;--teal:#067a86;--teal-dark:#075c69;--teal-light:#e4f4f3;--amber:#d89021;--amber-light:#fff2d7;--blue:#2d7eaa;--gray:#738791}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;overflow:hidden}
+    body{background:linear-gradient(140deg,#eff5f5,#f9faf9 65%,#edf2f5);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.35}
+    button,input{font:inherit}
+    button{cursor:pointer}
+    button:focus-visible,input:focus-visible,canvas:focus-visible{outline:3px solid #edbc53;outline-offset:2px}
+    .app{width:100%;max-width:none;height:100vh;height:100dvh;padding:10px 13px 12px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-shrink:0;min-height:54px}
+    .eyebrow{font-size:10px;letter-spacing:.11em;text-transform:uppercase;font-weight:800;color:var(--teal);margin-bottom:2px}
+    h1{margin:0;font-size:clamp(20px,1.85vw,27px);line-height:1.12;letter-spacing:-.025em}
+    .sub{margin:4px 0 0;color:var(--ink-soft);font-size:11px;max-width:900px}
+    .chip{white-space:nowrap;display:flex;align-items:center;gap:8px;color:#166675;border:1px solid #c3dedc;background:#eaf6f4;border-radius:40px;padding:6px 10px;font-size:11px;font-weight:800;flex-shrink:0}
+    .chip.still{background:#f2f4f6;color:#59717a;border-color:#d8e3e6}
+    .workspace{display:grid;grid-template-columns:minmax(0,1fr) clamp(305px,26vw,365px);gap:10px;flex:1;min-height:0;min-width:0}
+    .panel{background:var(--paper);border:1px solid var(--line);box-shadow:0 6px 20px #12394c08;border-radius:13px;overflow:hidden;min-width:0}
+    .stage-panel{display:flex;flex-direction:column;min-height:0}
+    .stage-toolbar{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:7px 12px;border-bottom:1px solid var(--line);background:#fbfdfd;flex-shrink:0;min-height:35px}
+    .stage-toolbar strong{font-size:12px}
+    .stage-toolbar .status{color:var(--ink-soft);font-size:11px;text-align:right}
+    .stage-wrap{width:100%;flex:1;min-height:0;min-width:0;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:#fbfdfc}
+    canvas{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:1040 / 570;background:#fbfdfc;touch-action:manipulation;cursor:default;flex-shrink:0}
+    .panel-bottom{border-top:1px solid var(--line);background:#f7fbfa;padding:6px 12px;display:flex;gap:6px 15px;flex-wrap:wrap;align-items:center;justify-content:space-between;min-height:45px;flex-shrink:0}
+    .readout{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
+    .readout span.label{color:var(--ink-soft);font-size:10px;font-weight:750}
+    .formula{font-size:clamp(14px,1.45vw,19px);font-weight:750;color:var(--teal-dark);letter-spacing:.002em}
+    .small-readout{font-size:11px;color:var(--ink-soft)}
+    .side-panel{display:flex;flex-direction:column;gap:9px;min-height:0;min-width:0}
+    .control-card{padding:11px 12px}
+    h2{margin:0 0 8px;font-size:13px;letter-spacing:-.01em}
+    .button-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+    .btn{border:1px solid #ccdcde;background:#fff;border-radius:8px;color:var(--ink);padding:5px 2px;min-height:42px;font-weight:720;font-size:10px;display:flex;align-items:center;flex-direction:column;gap:1px;justify-content:center;white-space:nowrap}
+    .btn-icon{display:block;font-size:17px;line-height:18px}
+    .btn:hover{background:#eef6f6;border-color:#99c6c9}
+    .btn.primary{background:var(--teal-dark);color:#fff;border-color:var(--teal-dark)}
+    .btn.primary:hover{background:#034753}
+    .btn:disabled{opacity:.36;cursor:not-allowed}
+    .focus-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:0}
+    .focus-btn{padding:6px 2px;border-radius:7px;border:1px solid #cbdcdf;background:#fff;font-size:10px;font-weight:740;color:var(--ink-soft);min-width:0}
+    .focus-btn[aria-pressed="true"]{background:var(--amber-light);border-color:#efc772;color:#82540e}
+    .explain{color:var(--ink-soft);margin:7px 0 0;font-size:10px;line-height:1.25}
+    .sliders{display:grid;gap:9px}
+    .slider-label{display:flex;justify-content:space-between;gap:6px;align-items:baseline;font-size:11px;font-weight:740}
+    output{color:var(--teal-dark);font-size:12px;font-variant-numeric:tabular-nums;font-weight:820;white-space:nowrap}
+    input[type=range]{width:100%;margin:4px 0 0;accent-color:var(--teal);cursor:pointer;display:block;height:16px}
+    .range-bottom{display:flex;justify-content:space-between;color:#8a9fa7;font-size:9px;font-variant-numeric:tabular-nums;margin-top:0}
+    #omega{accent-color:#137e91}
+    .notes{display:grid;grid-template-columns:1fr;gap:6px;min-height:0;align-content:start}
+    .note{border:1px solid #d8e5e5;background:#f8fbfa;padding:7px 10px;border-radius:9px;min-height:0}
+    .note strong{display:block;font-size:10.5px;margin-bottom:2px;color:#236572}
+    .note p{margin:0;font-size:10px;line-height:1.3;color:#536e78}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    @media(max-height:700px) and (min-width:851px){.app{padding-top:7px;padding-bottom:7px;gap:7px}.sub{display:none}.control-card{padding:8px 10px}.side-panel{gap:6px}.notes .note{padding:5px 8px}.note p{display:none}.explain{display:none}.sliders{gap:5px}}
+    @media(max-width:850px){html,body{height:auto;overflow:auto}.app{height:auto;min-height:100dvh;overflow:visible}.workspace{grid-template-columns:1fr}.stage-panel{min-height:390px}.stage-wrap{height:auto;min-height:310px}.side-panel{display:grid;grid-template-columns:1fr 1fr;align-items:start}.notes{grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr))}header{flex-wrap:wrap}.chip{white-space:normal}.stage-toolbar{align-items:flex-start}}
+    @media(max-width:540px){.app{padding:8px;gap:8px}.sub{display:none}.stage-panel{min-height:305px}.stage-wrap{min-height:220px}.side-panel{display:flex}.notes{grid-template-columns:1fr}.stage-toolbar .status{font-size:10px}.panel-bottom{padding:7px 9px}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
   </style>
 </head>
 <body>
@@ -72,64 +75,65 @@
     <div class="chip" id="directionChip" aria-live="polite">↻ &nbsp; Giro horario</div>
   </header>
 
-  <section class="panel" aria-label="Simulación interactiva">
-    <div class="stage-toolbar"><strong>Disco giratorio y proyección de la sombra</strong><span class="status" id="modeStatus" aria-live="polite">Foco lateral encendido · Proyección vertical</span></div>
-    <div class="stage-wrap">
-      <canvas id="scene" width="1040" height="570" role="img" aria-label="Disco vertical dividido en cuatro sectores alternos; una esfera en su borde gira según el signo de la velocidad angular y un foco proyecta su sombra sobre una pantalla"></canvas>
-    </div>
-    <div class="mobile-tip">↔ Desliza la ilustración hacia la izquierda para ver la pantalla donde aparece la sombra.</div>
-    <div class="panel-bottom">
-      <div class="readout"><span class="label">ECUACIÓN DE LA SOMBRA</span><span class="formula" id="formula">y(t) = R · sen(φ₀ + ωt)</span></div>
-      <div class="small-readout" id="coordinates" aria-live="off">φ = 0,00 rad &nbsp; · &nbsp; y = +1,00 · sen(φ) = 0,00 m</div>
-    </div>
-  </section>
-
-  <div class="controls">
-    <section class="panel control-card" aria-label="Control de reproducción e iluminación">
-      <h2>Reproducción</h2>
-      <div class="button-row">
-        <button class="btn primary" id="play" type="button">▶ Reproducir</button>
-        <button class="btn" id="pause" type="button" disabled>Ⅱ Pausar</button>
-        <button class="btn" id="back" type="button" aria-label="Retroceder 0,25 segundos">↶ Retroceder</button>
-        <button class="btn" id="forward" type="button" aria-label="Avanzar 0,25 segundos">↷ Avanzar</button>
-        <button class="btn" id="reset" type="button">↺ Reiniciar</button>
+  <div class="workspace">
+    <section class="panel stage-panel" aria-label="Simulación interactiva">
+      <div class="stage-toolbar"><strong>Disco giratorio y proyección de la sombra</strong><span class="status" id="modeStatus" aria-live="polite">Foco lateral encendido · Proyección vertical</span></div>
+      <div class="stage-wrap">
+        <canvas id="scene" width="1040" height="570" role="img" aria-label="Disco vertical dividido en cuatro sectores alternos; una esfera en su borde gira según el signo de la velocidad angular y un foco proyecta su sombra sobre una pantalla"></canvas>
       </div>
-      <h2 style="margin-top:21px;margin-bottom:8px">Iluminación</h2>
-      <div class="focus-row" role="group" aria-label="Selecciona el foco de luz">
-        <button class="focus-btn" id="leftFocus" type="button" aria-pressed="true">◉ Foco lateral</button>
-        <button class="focus-btn" id="topFocus" type="button" aria-pressed="false">◉ Foco superior</button>
-        <button class="focus-btn" id="noFocus" type="button" aria-pressed="false">◌ Apagar luz</button>
-      </div>
-      <p class="explain" id="hint">También puedes pulsar directamente sobre el foco dibujado. Al apagarlo, aparecerá el otro foco, listo para encenderlo.</p>
-    </section>
-
-    <section class="panel control-card" aria-label="Controles de las magnitudes">
-      <h2>Magnitudes del movimiento</h2>
-      <div class="sliders">
-        <div>
-          <label class="slider-label" for="omega"><span>Velocidad angular, ω</span><output id="omegaOut" for="omega">−1,00 rad/s</output></label>
-          <input id="omega" type="range" min="-4" max="4" step="0.05" value="-1" aria-label="Velocidad angular con signo, en radianes por segundo">
-          <div class="range-bottom"><span>−4,00 rad/s (horario)</span><span>+4,00 rad/s (antihorario)</span></div>
-        </div>
-        <div>
-          <label class="slider-label" for="phase"><span>Fase inicial, φ₀</span><output id="phaseOut" for="phase">0°</output></label>
-          <input id="phase" type="range" min="0" max="360" step="5" value="0" aria-label="Fase inicial en grados">
-          <div class="range-bottom"><span>0°</span><span>360°</span></div>
-        </div>
-        <div>
-          <label class="slider-label" for="time"><span>Tiempo, t</span><output id="timeOut" for="time">0,00 s</output></label>
-          <input id="time" type="range" min="0" max="60" step="0.01" value="0" aria-label="Tiempo transcurrido en segundos">
-          <div class="range-bottom"><span>0 s</span><span>60 s</span></div>
-        </div>
+      <div class="panel-bottom">
+        <div class="readout"><span class="label">ECUACIÓN DE LA SOMBRA</span><span class="formula" id="formula">y(t) = R · sen(φ₀ + ωt)</span></div>
+        <div class="small-readout" id="coordinates" aria-live="off">φ = 0,00 rad · y = 0,00 m</div>
       </div>
     </section>
+
+    <aside class="side-panel" aria-label="Controles y claves didácticas">
+      <section class="panel control-card" aria-label="Control de reproducción e iluminación">
+        <h2>Reproducción</h2>
+        <div class="button-row" role="group" aria-label="Controles de reproducción">
+          <button class="btn primary" id="play" type="button" title="Reproducir" aria-label="Reproducir"><span class="btn-icon" aria-hidden="true">▶</span><span>Play</span></button>
+          <button class="btn" id="pause" type="button" disabled title="Pausar" aria-label="Pausar"><span class="btn-icon" aria-hidden="true">Ⅱ</span><span>Pausa</span></button>
+          <button class="btn" id="back" type="button" title="Retroceder 0,25 segundos" aria-label="Retroceder 0,25 segundos"><span class="btn-icon" aria-hidden="true">↶</span><span>−0,25 s</span></button>
+          <button class="btn" id="forward" type="button" title="Avanzar 0,25 segundos" aria-label="Avanzar 0,25 segundos"><span class="btn-icon" aria-hidden="true">↷</span><span>+0,25 s</span></button>
+          <button class="btn" id="reset" type="button" title="Reiniciar" aria-label="Reiniciar"><span class="btn-icon" aria-hidden="true">↺</span><span>Reinicio</span></button>
+        </div>
+        <h2 style="margin-top:10px;margin-bottom:6px">Iluminación</h2>
+        <div class="focus-row" role="group" aria-label="Selecciona el foco de luz">
+          <button class="focus-btn" id="leftFocus" type="button" aria-pressed="true" title="Encender foco lateral">◉ Lateral</button>
+          <button class="focus-btn" id="topFocus" type="button" aria-pressed="false" title="Encender foco superior">◉ Superior</button>
+          <button class="focus-btn" id="noFocus" type="button" aria-pressed="false" title="Apagar ambos focos">◌ Apagar</button>
+        </div>
+        <p class="explain" id="hint">También puedes pulsar directamente sobre el foco dibujado para cambiar la iluminación.</p>
+      </section>
+
+      <section class="panel control-card" aria-label="Controles de las magnitudes">
+        <h2>Magnitudes del movimiento</h2>
+        <div class="sliders">
+          <div>
+            <label class="slider-label" for="omega"><span>Velocidad angular, ω</span><output id="omegaOut" for="omega">−1,00 rad/s</output></label>
+            <input id="omega" type="range" min="-4" max="4" step="0.05" value="-1" aria-label="Velocidad angular con signo, en radianes por segundo">
+            <div class="range-bottom"><span>−4 (horario)</span><span>+4 (antihorario) rad/s</span></div>
+          </div>
+          <div>
+            <label class="slider-label" for="phase"><span>Fase inicial, φ₀</span><output id="phaseOut" for="phase">0°</output></label>
+            <input id="phase" type="range" min="0" max="360" step="5" value="0" aria-label="Fase inicial en grados">
+            <div class="range-bottom"><span>0°</span><span>360°</span></div>
+          </div>
+          <div>
+            <label class="slider-label" for="time"><span>Tiempo, t</span><output id="timeOut" for="time">0,00 s</output></label>
+            <input id="time" type="range" min="0" max="60" step="0.01" value="0" aria-label="Tiempo transcurrido en segundos">
+            <div class="range-bottom"><span>0 s</span><span>60 s</span></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="notes" aria-label="Claves didácticas">
+        <div class="note"><strong>Foco lateral → proyección vertical</strong><p>Los rayos horizontales trasladan la coordenada vertical de la bola a la pantalla: <b>y = R · sen φ</b>.</p></div>
+        <div class="note"><strong>Foco superior → proyección horizontal</strong><p>Los rayos verticales trasladan la coordenada horizontal de la bola a la pantalla: <b>x = R · cos φ</b>.</p></div>
+        <div class="note"><strong>Sentido del giro</strong><p><b>φ(t) = φ₀ + ωt</b>; <b>ω negativo</b> indica giro horario, y positivo, antihorario. <b>R = 1,00 m</b>.</p></div>
+      </div>
+    </aside>
   </div>
-
-  <aside class="notes" aria-label="Claves didácticas">
-    <div class="note"><strong>Foco lateral → proyección vertical</strong><p>Los rayos horizontales trasladan la coordenada vertical de la bola a la pantalla: <b>y = R · sen φ</b>.</p></div>
-    <div class="note"><strong>Foco superior → proyección horizontal</strong><p>Los rayos verticales trasladan la coordenada horizontal de la bola a la pantalla: <b>x = R · cos φ</b>.</p></div>
-    <div class="note"><strong>Sentido del giro</strong><p><b>φ(t) = φ₀ + ωt</b>. Un valor de <b>ω negativo</b> produce giro horario y uno <b>positivo</b>, antihorario. Amplitud: <b>R = 1,00 m</b>.</p></div>
-  </aside>
 </main>
 
 <script>
@@ -458,18 +462,28 @@
   }
   canvas.addEventListener('click',function(evt){if(overLamp(evt))clickLamp()});
   canvas.addEventListener('mousemove',function(evt){canvas.style.cursor=overLamp(evt)?'pointer':'default'});
+  // Scale the drawing uniformly to the actual, scroll-free space available.
+  function fitCanvas() {
+    var area = canvas.parentElement.getBoundingClientRect();
+    if (!(area.width > 0 && area.height > 0)) return;
+    var scale = Math.min(area.width / W, area.height / H);
+    canvas.style.width = Math.max(1, Math.floor(W * scale)) + 'px';
+    canvas.style.height = Math.max(1, Math.floor(H * scale)) + 'px';
+  }
   // High-DPI rendering with a fixed logical coordinate system; no external dependencies.
   function prepareCanvas() {
     var dpr=Math.min(window.devicePixelRatio || 1, 2);
     canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);
     ctx.setTransform(dpr,0,0,dpr,0,0);
+    fitCanvas();
     render();
   }
   window.addEventListener('resize',prepareCanvas);
+  if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(canvas.parentElement);
   prepareCanvas();
 })();
 </script>
 </body>
 </html>
 
-<!-- Versión mejorada, noviembre de 2026 -->
+<!-- Diseño compacto a pantalla completa, noviembre de 2026 -->
