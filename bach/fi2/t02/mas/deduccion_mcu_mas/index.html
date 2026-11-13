@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Del movimiento circular uniforme al MAS · Deducción guiada</title>
+<title>Gráficas del MAS · Física 2.º de Bachillerato</title>
 <style>
 :root{color-scheme:dark;--bg:#091321;--panel:#111f31;--panel2:#16273a;--stroke:#30445c;--muted:#9ab0c9;--ink:#f0f6ff;--cyan:#60ebd7;--gold:#ffd17d;--violet:#c3aaff;--bad:#ff8a9a;--shadow:0 20px 54px rgba(0,0,0,.20)}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}body{background:radial-gradient(ellipse at 20% 0%,#18314c 0%,transparent 42%),linear-gradient(155deg,#091421,#09101c);font:15px/1.4 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}.app{height:100vh;height:100dvh;width:100%;display:flex;flex-direction:column;overflow:hidden}.topbar{height:84px;flex:0 0 84px;display:flex;align-items:center;gap:16px;padding:13px clamp(16px,2.5vw,40px);border-bottom:1px solid rgba(163,195,230,.12)}.brandmark{width:47px;height:47px;flex:none;display:grid;place-items:center;border-radius:15px;background:linear-gradient(145deg,#193c53,#12334b);color:var(--cyan);border:1px solid #386175;font-size:25px;font-weight:700}.brand{min-width:0}.eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:10px;font-weight:800;color:var(--cyan)}h1{font-size:clamp(16px,1.5vw,23px);line-height:1.17;letter-spacing:-.025em;margin:3px 0 0;font-weight:780}.topright{display:flex;gap:12px;align-items:center;margin-left:auto;flex-shrink:0}.level{font-size:12px;font-weight:650;color:#d0e0f0;background:#1c3044;border:1px solid #2a4660;padding:7px 12px;border-radius:22px}.iconbtn{border:1px solid #345069;background:#14283c;color:#dce9f8;border-radius:12px;min-height:38px;padding:7px 12px;font-weight:700}.iconbtn:hover{background:#1d3a52}.content{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:16px;padding:16px clamp(16px,2.5vw,40px) 10px}.laboratory,.lesson{border:1px solid var(--stroke);background:linear-gradient(170deg,rgba(22,39,59,.98),rgba(14,27,43,.98));box-shadow:var(--shadow);border-radius:21px;min-height:0;overflow:hidden}.laboratory{display:flex;flex-direction:column}.panelhead{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:16px 19px 7px;flex:none}.paneltitle{text-transform:uppercase;font-size:11px;letter-spacing:.12em;color:#a9bed2;font-weight:800}.livebadge{border:1px solid #3a5e62;color:var(--cyan);background:#12363e;padding:4px 9px;border-radius:99px;font-size:11px;font-weight:750;white-space:nowrap}.stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0 4px}.stage svg{display:block;width:100%;height:100%;max-height:100%;overflow:visible}.meters{padding:7px 18px 9px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;flex:none}.meter{border:1px solid #314b62;background:#0c1b2d;border-radius:10px;padding:6px 9px;min-width:0}.meter .mlabel{display:block;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.02em}.meter strong{display:block;margin-top:1px;font-size:clamp(12px,1.18vw,17px);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meter:nth-child(1) strong{color:var(--gold)}.meter:nth-child(2) strong{color:var(--cyan)}.meter:nth-child(3) strong{color:var(--violet)}.labcontrols{flex:none;display:grid;grid-template-columns:1.12fr .95fr .95fr;gap:12px;padding:11px 17px 14px;border-top:1px solid #30465d;background:#0e1d2f}.controlgroup{min-width:0}.controlrow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px;white-space:nowrap}.controlrow label{font-size:11px;font-weight:750;color:#c9d8e7}.controlrow output{font-size:11px;color:var(--cyan);font-variant-numeric:tabular-nums;font-weight:800}.range{display:block;width:100%;height:18px;accent-color:var(--cyan);cursor:pointer}.lesson{position:relative;display:flex;flex-direction:column;padding:clamp(17px,2vw,26px);gap:0}.lessonhead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none}.stepid{color:var(--cyan);font-size:11px;text-transform:uppercase;font-weight:850;letter-spacing:.1em}.stepfraction{font-size:12px;color:#c2d1e2;background:#21354a;border-radius:20px;padding:5px 9px;font-variant-numeric:tabular-nums}.stepbar{display:flex;gap:4px;margin:14px 0 17px;flex:none}.stepbar span{height:4px;background:#2d435a;flex:1;border-radius:9px;transition:background .22s ease}.stepbar span.active{background:var(--cyan)}.stepbar span.done{background:#547f84}.slidebody{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;overflow:hidden;opacity:1;transform:translateY(0);transition:opacity .17s ease,transform .17s ease}.slidebody.fading{opacity:0;transform:translateY(10px)}.slidebody h2{font-size:clamp(21px,2.25vw,37px);line-height:1.15;letter-spacing:-.035em;margin:0 0 12px}.description{font-size:clamp(13px,1.18vw,16px);color:#bfd0df;line-height:1.53;margin:0 0 15px;max-width:63ch}.formula{border:1px solid #34516a;background:radial-gradient(ellipse at 95% 0%,#233e54,transparent 60%),#0b1b2b;border-radius:17px;padding:clamp(14px,2.1vw,26px) 14px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;min-height:124px;margin-bottom:14px;box-shadow:inset 0 0 24px rgba(0,0,0,.09)}.line{font-size:clamp(17px,2vw,30px);font-weight:500;line-height:1.48;text-align:center;letter-spacing:-.02em;white-space:normal}.line.small{font-size:clamp(14px,1.45vw,23px)}.math{font-family:Cambria,"STIX Two Math","Times New Roman",serif}.mathvar{font-style:italic}.varcyan{color:var(--cyan)}.vargold{color:var(--gold)}.varpurple{color:var(--violet)}.frac{display:inline-flex;flex-direction:column;vertical-align:middle;align-items:center;line-height:1.12;font-size:.85em;margin:0 .1em}.frac>span:first-child{border-bottom:1.7px solid currentColor;padding:0 .15em .1em}.frac>span:last-child{padding-top:.08em}.vector{position:relative;display:inline-block;font-style:italic;padding-top:.08em}.vector::before{position:absolute;content:'→';top:-.7em;left:0;right:0;font-size:.72em;font-weight:700;text-align:center}.line sup,.line sub{font-size:.59em}.formula .transition{font-size:12px;color:#a7c3d8;font-weight:750}.note{font-size:clamp(12px,1.05vw,14px);color:#b4c7db;line-height:1.5;background:#16293e;border-left:3px solid var(--cyan);padding:11px 13px;border-radius:0 10px 10px 0;max-width:100%}.note strong{color:var(--ink)}.units{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px 10px;margin-top:7px}.units div{display:flex;justify-content:space-between;gap:5px;padding:5px 7px;background:rgba(38,64,82,.55);border-radius:7px;font-size:11px}.units b{color:var(--gold)}.recap{border:1px solid #375369;background:#112438;border-radius:10px;padding:9px 12px;margin:2px 0 0;font-size:12px;color:#b6cadc}.recap strong{color:var(--cyan)}.lessonfoot{border-top:1px solid #334b62;padding-top:11px;display:flex;gap:9px;align-items:center;justify-content:space-between;flex:none;margin-top:11px}.action{display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:11px;min-height:40px;padding:7px 12px;font-weight:750;border:1px solid #3c556d;background:#182b40;color:#f1f8ff;font-size:13px}.action:hover:not(:disabled){background:#25435e}.action:disabled{opacity:.28;cursor:not-allowed}.action.primary{background:#5ae4cf;border-color:#5ae4cf;color:#09202a;flex:1;max-width:168px}.action.primary:hover{background:#8aefdf}.toolbar{height:76px;flex:0 0 76px;display:flex;align-items:center;gap:14px;padding:9px clamp(16px,2.5vw,40px) 13px;border-top:1px solid rgba(163,195,230,.13);background:rgba(10,23,39,.67)}.playbutton{border:1px solid #35746f;background:#163d43;color:#7df9e5;white-space:nowrap;min-width:127px}.transport{display:flex;gap:8px;flex:none}.timeline{display:flex;align-items:center;gap:11px;min-width:0;flex:1}.timeline input{flex:1;min-width:20px}.timeline .time{font-size:12px;white-space:nowrap;color:#c7d9e7;min-width:78px;text-align:right;font-variant-numeric:tabular-nums}.hint{color:#9bafc4;font-size:11px;text-align:right;max-width:195px}.controlseg{display:flex;gap:4px;align-items:center}.controlseg button{min-height:32px;background:#1c3045;border:1px solid #39546b;color:#d9e8f7;border-radius:8px;padding:5px 9px;font-size:12px;font-weight:750}.controlseg button.on{background:#23625c;color:#d9fff3;border-color:#419c8a}
@@ -77,6 +77,23 @@ h1{color:#182a3b}
 #arc{stroke:#c78b13;stroke-linecap:round;stroke-linejoin:round}
 #alabel{fill:#c93857}
 /* La jerarquía cromática también ayuda a distinguir círculo y oscilación. */
+.stage-badges{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.sense-indicator{font-size:11px;font-weight:750;color:#18618c;border:1px solid #d3e4f1;background:#f1f8fd;border-radius:99px;padding:4px 9px;white-space:nowrap}
+.eq-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch;gap:8px;margin-bottom:10px;min-height:0}
+.eq-layout .formula{min-height:0;margin:0;padding:9px 7px;gap:7px}
+.eq-layout .line{font-size:clamp(13px,1.4vw,20px);line-height:1.28}
+.eq-layout .line.small{font-size:clamp(12px,1.14vw,18px)}
+.example-eq{min-width:0;border:1px solid #c9dfed;border-radius:14px;background:#ecf7ff;padding:10px 9px;display:flex;flex-direction:column;justify-content:center;gap:8px}
+.example-heading{font-size:10px;font-weight:850;color:#176694;text-transform:uppercase;letter-spacing:.06em;line-height:1.25}
+.example-params{font-size:11px;line-height:1.4;color:#41647b}
+.example-lines{display:flex;flex-direction:column;gap:9px;color:#18476a}
+.example-line{font-size:clamp(12px,1.14vw,17px);line-height:1.32;font-family:Cambria,"STIX Two Math","Times New Roman",serif;overflow-wrap:anywhere}
+.example-line .frac{font-size:.82em}
+.example-line small{color:#58778d;font:10px system-ui,sans-serif;white-space:nowrap}
+.slidebody .eq-layout + .note{padding:8px 10px}
+@media(max-width:1130px){.eq-layout{grid-template-columns:1fr;gap:5px;margin-bottom:5px}.example-eq{padding:6px 8px;gap:3px}.example-lines{gap:3px}.example-line{font-size:13px}.eq-layout .formula{padding:6px;gap:4px}}
+@media(max-width:700px){.stage-badges{gap:3px}.sense-indicator{font-size:9px;padding:2px 5px}.eq-layout{gap:4px}.example-eq{padding:4px 6px}.example-heading{font-size:9px}.example-line{font-size:12px}.example-params{font-size:10px}}
+@media(max-width:700px) and (max-height:750px){.slidebody .eq-layout + .note{font-size:9px;padding:2px 6px}.example-lines{gap:2px}}
 
 </style>
 </head>
@@ -84,12 +101,12 @@ h1{color:#182a3b}
 <div class="app" id="app">
   <header class="topbar">
     <div class="brandmark" aria-hidden="true">∿</div>
-    <div class="brand"><div class="eyebrow">Física · Oscilaciones</div><h1>Del movimiento circular uniforme al MAS</h1></div>
+    <div class="brand"><div class="eyebrow">Física · Oscilaciones</div><h1>Gráficas del MAS</h1></div>
     <div class="topright"><span class="level">2.º de Bachillerato</span><button class="iconbtn" id="fullscreen" title="Alternar pantalla completa">⛶ Pantalla completa</button></div>
   </header>
   <main class="content">
     <section class="laboratory" aria-label="Animación sincronizada del MCU y el MAS">
-      <div class="panelhead"><span class="paneltitle">Dos movimientos, una misma proyección</span><span class="livebadge">● Sincronizados</span></div>
+      <div class="panelhead"><span class="paneltitle">Dos movimientos, una misma proyección</span><div class="stage-badges"><span class="livebadge">● Sincronizados</span><span class="sense-indicator" id="sense">↺ Antihorario</span></div></div>
       <div class="stage"><svg id="diagram" viewBox="0 0 800 490" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Punto que gira y masa suspendida de un muelle cuya posición vertical coincide con la proyección del giro">
         <defs>
           <radialGradient id="massShade" cx="26%" cy="20%"><stop offset="0" stop-color="#d7effc"/><stop offset="1" stop-color="#5dade0"/></radialGradient>
@@ -128,8 +145,8 @@ h1{color:#182a3b}
       <div class="meters" aria-live="off"><div class="meter"><span class="mlabel">Ángulo φ (mód. 2π)</span><strong id="phase-reading">0,52 rad</strong></div><div class="meter"><span class="mlabel">Elongación y(t)</span><strong id="pos-reading">0,60 m</strong></div><div class="meter"><span class="mlabel" id="dynamics-label">La dinámica aparecerá después</span><strong id="vel-reading">—</strong></div></div>
       <div class="labcontrols">
         <div class="controlgroup"><div class="controlrow"><label for="amp" id="amp-label">Radio R</label><output id="ampvalue">1,20 m</output></div><input class="range" id="amp" type="range" min="0.5" max="1.5" step="0.05" value="1.2"></div>
-        <div class="controlgroup"><div class="controlrow"><label for="omega">Vel. angular ω</label><output id="omegavalue">1,20 rad/s</output></div><input class="range" id="omega" type="range" min="0.4" max="3" step="0.05" value="1.2"></div>
-        <div class="controlgroup"><div class="controlrow"><label for="phi0">Fase inicial φ₀</label><output id="phi0value">0,52 rad</output></div><input class="range" id="phi0" type="range" min="-3.14" max="3.14" step="0.01" value="0.52"></div>
+        <div class="controlgroup"><div class="controlrow"><label for="omega">Vel. angular ω</label><output id="omegavalue">π/2 rad/s</output></div><input class="range" id="omega" type="range" min="-3.141593" max="3.141593" step="any" value="1.57079632679" aria-label="Velocidad angular con sentido horario y antihorario"></div>
+        <div class="controlgroup"><div class="controlrow"><label for="phi0">Fase inicial φ₀</label><output id="phi0value">π/6 rad</output></div><input class="range" id="phi0" type="range" min="-3.141593" max="3.141593" step="any" value="0.52359877559" aria-label="Fase inicial con atracción a fracciones de pi"></div>
       </div>
     </section>
     <section class="lesson" aria-label="Deducción guiada paso a paso">
@@ -159,20 +176,20 @@ const y='<span class="varcyan">y</span>', v='<span class="varcyan">v</span>', a=
 const math=(html,small=false)=>`<div class="line math${small?' small':''}">${html}</div>`;
 const steps=[
  {title:'Un giro y una oscilación',description:'El punto dorado realiza un movimiento circular uniforme. Su proyección sobre el eje Y sube y baja exactamente como la masa del muelle.',lines:[math('MCU  <span class="varcyan">⟶</span>  proyección vertical  <span class="varcyan">⟶</span>  MAS',true)],note:'Observa que ambos tienen <strong>la misma altura en cada instante</strong>. El sentido positivo del eje Y es hacia arriba.'},
- {title:'¿Cómo evoluciona el ángulo?',description:'En un MCU, la fase φ aumenta a ritmo constante con el tiempo.',lines:[math('φ(t) = <span class="varpurple">φ<sub>0</sub></span> + <span class="varpurple">ω</span>t')],note:'Desde +X, el arco sigue creciendo tras π y vuelve a cero en 2π. Con Y positivo hacia arriba, el sentido angular positivo es antihorario.',units:true},
+ {title:'¿Cómo evoluciona el ángulo?',description:'En un MCU, la fase φ varía linealmente con el tiempo. Su sentido de evolución depende del signo de ω.',lines:[math('φ(t) = <span class="varpurple">φ<sub>0</sub></span> + <span class="varpurple">ω</span>t')],note:'El ángulo se mide desde +X: φ positivo en sentido antihorario y φ negativo en sentido horario. Cada arco se reinicia al completar una vuelta (2π rad).',units:true},
  {title:'Descomponemos el radio vector',description:'Expresamos el vector de posición del punto circular como la suma de sus componentes cartesianas.',lines:[math(`${vv('R')}(t) = ${R} cos φ(t) ${vv('i')} + ${R} sen φ(t) ${vv('j')}`,true)],note:'<strong>î</strong> y <strong>ĵ</strong> son los vectores unitarios de los ejes X e Y. No tienen unidades; los dos términos del vector se expresan en metros.'},
  {title:'Solo nos interesa la componente Y',description:'El objeto unido al muelle oscila verticalmente. Por eso conservamos la componente vertical del vector y prescindimos de la horizontal.',lines:[math(`${y}(t) = ${R} sen φ(t)`) ],note:'La elongación y se mide respecto de la posición de equilibrio (y = 0); positiva hacia arriba y negativa hacia abajo.'},
  {title:'Sustituimos la expresión de la fase',description:'Recordamos que el ángulo de giro es φ(t) = ωt + φ₀ y lo sustituimos directamente en la componente vertical.',lines:[math(`${y}(t) = ${R} sen[φ(t)]`,true),'<span class="transition">SUSTITUIMOS φ(t)</span>',math(`${y}(t) = ${R} sen${u}`)],note:'El argumento del seno es un ángulo en radianes. Tanto ωt como φ₀ son adimensionales en el cálculo trigonométrico.'},
  {title:'Del radio a la amplitud',description:'La máxima proyección vertical del radio es su propia longitud. En el MAS, esa elongación máxima se denomina amplitud.',lines:[math(`${A} = ${R}`),math(`${y}(t) = ${A} sen${u}`)],note:'<strong>A</strong> se mide en metros. La masa oscila entre y = +A e y = −A, alrededor del equilibrio.'},
  {title:'La velocidad se obtiene derivando',description:'La velocidad instantánea en el MAS es la derivada de la elongación con respecto al tiempo.',lines:[math(`${v}(t) = ${frac('d'+y,'dt')}`,true),math(`${v}(t) = ${frac('d','dt')} [${A} sen${u}]`,true)],note:'La amplitud A es una constante, pero el argumento del seno depende de t. Necesitaremos la <strong>regla de la cadena</strong>.'},
  {title:'Velocidad: regla de la cadena',description:'Derivamos el seno como coseno y, después, multiplicamos por la derivada de su argumento.',lines:[math(`u = ${U}  &nbsp;⇒&nbsp; ${frac('du','dt')} = ${w}`,true),math(`${v}(t) = ${A} cos(u) ${dot} ${frac('du','dt')}`,true)],note:'Como φ₀ es constante, su derivada es 0; la derivada de ωt es ω.'},
- {title:'La ecuación de la velocidad',description:'Sustituimos u y su derivada en la expresión anterior. Así obtenemos la velocidad del movimiento armónico simple.',lines:[math(`${v}(t) = ${A}${w} cos${u}`)],note:'La velocidad máxima en valor absoluto es <strong>vₘₐₓ = Aω</strong>, en m/s. Al pasar por el equilibrio, su módulo es máximo.'},
+ {title:'La ecuación de la velocidad',description:'Sustituimos u y su derivada en la expresión anterior. Así obtenemos la velocidad del movimiento armónico simple.',lines:[math(`${v}(t) = ${A}${w} cos${u}`)],note:'La rapidez máxima es <strong>|v|ₘₐₓ = A|ω|</strong>, en m/s. Al pasar por el equilibrio, su módulo es máximo.'},
  {title:'Derivamos una segunda vez',description:'La aceleración es la derivada de la velocidad. Partimos de la ecuación que acabamos de obtener.',lines:[math(`${a}(t) = ${frac('d'+v,'dt')}`,true),math(`${a}(t) = ${A}${w} ${frac('d','dt')}[cos${u}]`,true)],note:'A y ω son constantes: quedan multiplicando fuera de la derivada. Solo derivamos el coseno compuesto.'},
  {title:'Aceleración: regla de la cadena',description:'La derivada de cos u es −sen u. Multiplicamos de nuevo por la derivada del argumento: du/dt = ω.',lines:[math(`${frac('d','dt')}[cos(u)] = -sen(u) ${dot} ${frac('du','dt')}`,true),math(`${a}(t) = -${A}${w} sen(u) ${dot} ${w}`,true)],note:'El signo negativo surge de derivar el coseno; la segunda ω aparece por la regla de la cadena.'},
  {title:'La ecuación de la aceleración',description:'Agrupamos las dos velocidades angulares. La aceleración siempre tiene sentido opuesto a la elongación.',lines:[math(`${a}(t) = -${A}${w}<sup>2</sup> sen${u}`),math(`${a}(t) = -${w}<sup>2</sup>${y}(t)`,true)],note:'<strong>a = −ω²y</strong> es la relación característica del MAS. La aceleración apunta siempre hacia el equilibrio y se expresa en m/s².'},
  {title:'Las tres ecuaciones del MAS',description:'Hemos llegado a las ecuaciones de posición, velocidad y aceleración a partir de la proyección de un movimiento circular uniforme.',lines:[math(`${y}(t) = ${A} sen${u}`,true),math(`${v}(t) = ${A}${w} cos${u}`,true),math(`${a}(t) = -${A}${w}<sup>2</sup> sen${u}`,true)],note:'<strong>Resultado fundamental:</strong> la velocidad está desfasada π/2 respecto de y, y la aceleración es opuesta a la elongación.'}
 ];
-let step=0,Amp=1.2,omega=1.2,phi0=.52,t=0,playing=false,previousTick=null,advanceTimer=null;
+let step=0,Amp=1.2,omega=Math.PI/2,phi0=Math.PI/6,t=0,playing=false,previousTick=null,advanceTimer=null;
 const circleX=205,circleY=265,springX=612;
 function setOverlay(id,show){$(id).classList.toggle('visible',!!show)}
 function springPath(top,bottom,x){const coils=11;const padding=Math.min(14,Math.max(2,(bottom-top)*.12));const start=top+padding,finish=bottom-padding;let path=`M${x} ${top} L${x} ${start}`;for(let i=1;i<=coils*2;i++){let xx=i===coils*2?x:x+(i%2? -1:1)*13.5;let yy=start+(finish-start)*i/(coils*2);path+=` L${xx.toFixed(2)} ${yy.toFixed(2)}`};path+=` L${x} ${bottom}`;return path}
@@ -185,15 +202,15 @@ function normalizedAngle(theta){
  return ((theta%tau)+tau)%tau;
 }
 function angleArc(theta){
- const p=normalizedAngle(theta),r=37;
+ const p=theta>=0?normalizedAngle(theta):-normalizedAngle(-theta),r=37;
  const arc=$('arc');
- if(p<0.0005 || 2*Math.PI-p<0.0005){
+ if(Math.abs(p)<0.0005 || 2*Math.PI-Math.abs(p)<0.0005){
   arc.setAttribute('d','');
   $('phitext').style.opacity='0';
   return;
  }
  // Construcción progresiva con segmentos suaves: funciona también para arcos >π.
- const segments=Math.max(2,Math.ceil(p*20));
+ const segments=Math.max(2,Math.ceil(Math.abs(p)*20));
  let d=`M ${(circleX+r).toFixed(3)} ${circleY.toFixed(3)}`;
  for(let i=1;i<=segments;i++){
   const alpha=p*i/segments;
@@ -217,23 +234,57 @@ function redraw(){const phase=phi0+omega*t,r=93*Amp,xx=circleX+r*Math.cos(phase)
  $('amptop').setAttribute('y1',circleY-r);$('amptop').setAttribute('y2',circleY-r);$('ampbottom').setAttribute('y1',circleY+r);$('ampbottom').setAttribute('y2',circleY+r);$('ampline').setAttribute('y1',circleY-r);$('ampline').setAttribute('y2',circleY+r);$('ampplus').setAttribute('y',circleY-r-5);$('ampminus').setAttribute('y',circleY+r+15);
  const vlength=Math.min(62,17+Math.abs(vel)*18),vs=Math.abs(vel)<.015?0:Math.sign(vel);$('vline').setAttribute('x1',674);$('vline').setAttribute('x2',674);$('vline').setAttribute('y1',centerMassY);$('vline').setAttribute('y2',centerMassY-vlength*vs);$('vlabel').setAttribute('x',683);$('vlabel').setAttribute('y',centerMassY-vlength*vs-5*(vs||1));
  const alength=Math.min(62,17+Math.abs(acc)*11),as=Math.abs(acc)<.02?0:Math.sign(acc);$('aline').setAttribute('x1',546);$('aline').setAttribute('x2',546);$('aline').setAttribute('y1',centerMassY);$('aline').setAttribute('y2',centerMassY-alength*as);$('alabel').setAttribute('x',519);$('alabel').setAttribute('y',centerMassY-alength*as-5*(as||1));
- $('phase-reading').textContent=`${fmt(normalizedAngle(phase))} rad`;$('pos-reading').textContent=`${fmt(Amp*Math.sin(phase))} m`;$('vel-reading').textContent=step<8?'—':step>=11?`${fmt(acc)} m/s²`:`${fmt(vel)} m/s`;$('timetext').textContent=`t = ${fmt(t)} s`;$('time').value=t.toFixed(3);
+ $('phase-reading').textContent=`${fmt(phase>=0?normalizedAngle(phase):-normalizedAngle(-phase))} rad`;$('pos-reading').textContent=`${fmt(Amp*Math.sin(phase))} m`;$('vel-reading').textContent=step<8?'—':step>=11?`${fmt(acc)} m/s²`:`${fmt(vel)} m/s`;$('timetext').textContent=`t = ${fmt(t)} s`;$('time').value=t.toFixed(3);
 }
 function unitGrid(){return `<div class="units"><div><span>R (radio)</span><b>m</b></div><div><span>φ (ángulo)</span><b>rad</b></div><div><span>φ₀ (inicial)</span><b>rad</b></div><div><span>ω (angular)</span><b>rad/s</b></div><div><span>t (tiempo)</span><b>s</b></div><div><span>x, y (pos.)</span><b>m</b></div></div>`}
+// Ajuste magnético a fracciones de π: pasos de π/12 (incluye π/6, π/4, π/3 y π/2).
+const piSnaps=Array.from({length:25},(_,i)=>(i-12)*Math.PI/12);
+function snapPi(raw,threshold,nonzero){
+ if(nonzero&&Math.abs(raw)<Math.PI/12) return (raw<0?-1:1)*Math.PI/12;
+ let near=piSnaps.reduce((best,val)=>Math.abs(raw-val)<Math.abs(raw-best)?val:best,piSnaps[0]);
+ if(Math.abs(raw-near)<=threshold && !(nonzero && near===0)) return near;
+ return raw;
+}
+function gcd(a,b){while(b){let t=b;b=a%b;a=t}return a}
+function piRatio(n){const k=Math.round(12*Math.abs(n)/Math.PI);if(Math.abs(Math.abs(n)-k*Math.PI/12)>.002)return null;const d=gcd(k,12);return [k/d,12/d]}
+function formatPi(n){if(Math.abs(n)<.0001)return '0';const r=piRatio(n);if(!r)return fmt(n,2);const [num,den]=r;return (n<0?'−':'')+(num===1?'':num)+'π'+(den===1?'':'/'+den)}
+function piHTML(n){const r=piRatio(n);if(!r)return fmt(n,2);const [num,den]=r;if(num===0)return '0';const core=(num===1?'':num)+'π';return den===1?core:frac(core,den)}
+function argumentHTML(){
+ const w=omega<0?'−'+piHTML(Math.abs(omega)):piHTML(omega);
+ const wterm=(Math.abs(omega)>0.0001?w:'0')+'t';
+ if(Math.abs(phi0)<.0001) return wterm;
+ return wterm+(phi0<0?' − ':' + ')+piHTML(Math.abs(phi0));
+}
+function exampleRows(){
+ const phase='('+argumentHTML()+')';
+ const rows=[`<div class="example-line">y(t) = ${fmt(Amp)} sen${phase} <small>m</small></div>`];
+ if(step>=8) rows.push(`<div class="example-line">v(t) = ${fmt(Amp*omega)} cos${phase} <small>m/s</small></div>`);
+ if(step>=11) rows.push(`<div class="example-line">a(t) = ${fmt(-Amp*omega*omega)} sen${phase} <small>m/s²</small></div>`);
+ return rows.join('');
+}
+function exampleHTML(){
+ if(step<2)return '';
+ const values=`R = ${fmt(Amp)} m · ω = ${formatPi(omega)} rad/s · φ₀ = ${formatPi(phi0)} rad`;
+ if(step<5)return `<aside class="example-eq" id="example-live"><div class="example-heading">Valores de esta simulación</div><div class="example-params">${values}</div></aside>`;
+ return `<aside class="example-eq" id="example-live"><div class="example-heading">Ecuaciones de esta simulación</div><div class="example-lines">${exampleRows()}</div><div class="example-params">${values}</div></aside>`;
+}
+function refreshExample(){
+ const aside=$('example-live');if(aside)aside.outerHTML=exampleHTML();
+}
 function updateStepGraphics(){$('amp-label').textContent=step>=5?'Radio R = amplitud A':'Radio R';$('dynamics-label').textContent=step<8?'Velocidad / aceleración':step>=11?'Aceleración a(t)':'Velocidad v(t)';setOverlay('components-x',step===2);setOverlay('components-y',step===2||step===3||step===4);setOverlay('amplitude-layer',step>=5);setOverlay('velocity-arrow',step>=8&&step!==11&&step!==12);setOverlay('acceleration-arrow',step>=11);$('from-circle').style.opacity=step>=9?'.43':'.85';$('rline').style.opacity=step>=6?'.75':'1';}
-function changeStep(n,immediate=false){n=Math.max(0,Math.min(steps.length-1,n));if(n===step&&!immediate)return;step=n;const dest=$('slidebody');dest.classList.add('fading');if(advanceTimer)clearTimeout(advanceTimer);const populate=()=>{const s=steps[step];dest.innerHTML=`<h2>${s.title}</h2><p class="description">${s.description}</p><div class="formula">${s.lines.join('')}</div><div class="note">${s.note}${s.units?unitGrid():''}</div>`;dest.classList.remove('fading');$('stepfraction').textContent=`Paso ${step+1} de ${steps.length}`;$('previous').disabled=step===0;$('next').textContent=step===steps.length-1?'Volver al inicio ↺':'Siguiente →';[...$('stepbar').children].forEach((item,i)=>{item.className=i===step?'active':i<step?'done':''});updateStepGraphics();redraw()};if(immediate)populate();else advanceTimer=setTimeout(populate,135)}
-function timeMax(){return 4*Math.PI/omega}
+function changeStep(n,immediate=false){n=Math.max(0,Math.min(steps.length-1,n));if(n===step&&!immediate)return;step=n;const dest=$('slidebody');dest.classList.add('fading');if(advanceTimer)clearTimeout(advanceTimer);const populate=()=>{const s=steps[step];dest.innerHTML=`<h2>${s.title}</h2><p class="description">${s.description}</p>${step>=2?`<div class="eq-layout"><div class="formula">${s.lines.join('')}</div>${exampleHTML()}</div>`:`<div class="formula">${s.lines.join('')}</div>`}<div class="note">${s.note}${s.units?unitGrid():''}</div>`;dest.classList.remove('fading');$('stepfraction').textContent=`Paso ${step+1} de ${steps.length}`;$('previous').disabled=step===0;$('next').textContent=step===steps.length-1?'Volver al inicio ↺':'Siguiente →';[...$('stepbar').children].forEach((item,i)=>{item.className=i===step?'active':i<step?'done':''});updateStepGraphics();redraw()};if(immediate)populate();else advanceTimer=setTimeout(populate,135)}
+function timeMax(){return 4*Math.PI/Math.abs(omega)}
 function syncTimeMax(){const max=timeMax();$('time').max=max.toFixed(4);if(t>max)t=max;redraw()}
 function togglePlay(){playing=!playing;previousTick=null;$('play').textContent=playing?'Ⅱ Pausar':'▶ Reproducir';$('play').setAttribute('aria-pressed',playing?'true':'false');}
 function tick(ts){if(previousTick!==null&&playing){const dt=Math.min((ts-previousTick)/1000,.08);t+=dt;if(t>timeMax())t=t%timeMax();redraw()}previousTick=ts;requestAnimationFrame(tick)}
 $('play').addEventListener('click',togglePlay);$('resettime').addEventListener('click',()=>{t=0;redraw()});$('time').addEventListener('input',e=>{t=parseFloat(e.target.value);redraw()});
-$('amp').addEventListener('input',e=>{Amp=parseFloat(e.target.value);$('ampvalue').textContent=`${fmt(Amp)} m`;redraw()});
-$('omega').addEventListener('input',e=>{omega=parseFloat(e.target.value);$('omegavalue').textContent=`${fmt(omega)} rad/s`;syncTimeMax()});
-$('phi0').addEventListener('input',e=>{phi0=parseFloat(e.target.value);$('phi0value').textContent=`${fmt(phi0)} rad`;redraw()});
+$('amp').addEventListener('input',e=>{Amp=parseFloat(e.target.value);$('ampvalue').textContent=`${fmt(Amp)} m`;refreshExample();redraw()});
+$('omega').addEventListener('input',e=>{const raw=parseFloat(e.target.value);omega=snapPi(raw,.065,true);e.target.value=omega;$('omegavalue').textContent=`${formatPi(omega)} rad/s`;$('sense').textContent=omega>0?'↺ Antihorario':'↻ Horario';refreshExample();syncTimeMax()});
+$('phi0').addEventListener('input',e=>{phi0=snapPi(parseFloat(e.target.value),.065,false);e.target.value=phi0;$('phi0value').textContent=`${formatPi(phi0)} rad`;refreshExample();redraw()});
 $('next').addEventListener('click',()=>changeStep(step===steps.length-1?0:step+1));$('previous').addEventListener('click',()=>changeStep(step-1));$('restartsteps').addEventListener('click',()=>changeStep(0));
 $('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen()}catch(e){/* fullscreen may be denied by host */}});
 document.addEventListener('keydown',e=>{const target=e.target;if(target&&(['INPUT','BUTTON','TEXTAREA','SELECT'].includes(target.tagName)))return;if(e.key==='ArrowRight'){e.preventDefault();changeStep(step+1)}else if(e.key==='ArrowLeft'){e.preventDefault();changeStep(step-1)}else if(e.code==='Space'){e.preventDefault();togglePlay()}});
-for(let i=0;i<steps.length;i++){$('stepbar').appendChild(document.createElement('span'))}changeStep(0,true);syncTimeMax();requestAnimationFrame(tick);
+for(let i=0;i<steps.length;i++){$('stepbar').appendChild(document.createElement('span'))}changeStep(0,true);$('omega').value=omega;$('phi0').value=phi0;$('sense').textContent='↺ Antihorario';syncTimeMax();requestAnimationFrame(tick);
 })();
 </script>
 </body>
