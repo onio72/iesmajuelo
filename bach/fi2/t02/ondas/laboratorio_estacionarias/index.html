@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resonancia de una cuerda bajo tensión</title>
+<style>body{margin:0}footer{font:13px system-ui,sans-serif;text-align:center;padding:12px;color:#515b6b;background:#f6f4ef}footer a{color:#1d4e89}</style>
+</head>
+<body>
+<!-- ===================================================================
+     Stationary Waves on a String - investigation
+     Single-file, embed-safe HTML. All CSS/JS scoped under #sw-sim-root.
+     f0 = (1/2l) sqrt(T/mu).  Length graph: 1/f vs l. Tension graph: f^2 vs T.
+     British English throughout. Canvas-based apparatus + animation.
+     =================================================================== -->
+<div id="sw-sim-root">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+
+  <style>
+    #sw-sim-root, #sw-sim-root * { box-sizing: border-box; }
+    #sw-sim-root {
+      --ink: #1f2632; --ink-soft: #515b6b; --ink-faint: #8a93a3;
+      --line: #e3e7ee; --line-soft: #eef1f6; --surface: #ffffff; --paper: #f6f4ef;
+      --accent: #1d4e89; --accent-soft: #e8eef6;
+      --wave: #0f766e; --wave-soft: #d9efec;
+      --string: #b5651d;
+      --good: #15803d; --warn: #b45309;
+      --shadow: 0 1px 2px rgba(31,38,50,.05), 0 8px 26px rgba(31,38,50,.07);
+      width: 100%; min-height: 520px; margin: 0; padding: 0;
+      font-family: "IBM Plex Sans", system-ui, sans-serif; color: var(--ink);
+      background: radial-pendiente(120% 80% at 0% 0%, #fbfaf7 0%, #f3f1ec 60%, #eceae4 100%);
+      -webkit-font-smoothing: antialiased; line-height: 1.5;
+    }
+    #sw-sim-root .sw-wrap { max-width: 1180px; margin: 0 auto; padding: 16px 16px 20px; }
+
+    #sw-sim-root .sw-head { margin-bottom: 12px; }
+    #sw-sim-root .sw-eyebrow {
+      font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .2em;
+      text-transform: uppercase; color: var(--accent); margin: 0 0 3px; font-weight: 500;
+    }
+    #sw-sim-root h1.sw-title {
+      font-family: "Fraunces", Georgia, serif; font-weight: 600;
+      font-size: clamp(20px, 2.6vw, 28px); line-height: 1.05; color: var(--ink);
+      margin: 0; letter-spacing: -.01em;
+    }
+
+    #sw-sim-root .sw-card {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+      box-shadow: var(--shadow); overflow: hidden;
+    }
+    #sw-sim-root .sw-card + .sw-card { margin-top: 14px; }
+    #sw-sim-root .sw-card-h {
+      padding: 10px 14px; border-bottom: 1px solid var(--line-soft);
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    #sw-sim-root .sw-card-h h2, #sw-sim-root .sw-card-h h3 {
+      font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 15px;
+      color: var(--ink); margin: 0; letter-spacing: -.005em;
+    }
+    #sw-sim-root .sw-eq-mini { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-faint); }
+    #sw-sim-root .sw-card-b { padding: 13px 14px; }
+
+    #sw-sim-root .sw-stage {
+      position: relative; width: 100%; height: clamp(170px, 23vw, 212px);
+      background: linear-pendiente(180deg, #fdfdfc 0%, #f7f6f2 100%);
+    }
+    #sw-sim-root.sw-narrow .sw-stage { height: clamp(190px, 52vw, 250px); }
+    #sw-sim-root .sw-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    #sw-sim-root .sw-readouts {
+      position: absolute; top: 10px; left: 10px; right: 10px; display: flex; flex-wrap: wrap; gap: 6px; pointer-events: none;
+    }
+    #sw-sim-root .sw-chip {
+      background: rgba(255,255,255,.86); border: 1px solid var(--line); border-radius: 9px;
+      padding: 5px 9px; font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink);
+      backdrop-filter: blur(3px); box-shadow: 0 1px 2px rgba(31,38,50,.06);
+    }
+    #sw-sim-root .sw-chip b { color: var(--ink-faint); font-weight: 500; }
+    #sw-sim-root .sw-chip.sw-chip-res { color: var(--wave); border-color: #a9d6d0; background: var(--wave-soft); font-weight: 600; }
+
+    #sw-sim-root .sw-hint {
+      font-size: 12.5px; color: var(--ink-soft); margin: 14px 0 0;
+      padding: 10px 12px; border-left: 3px solid var(--wave); background: var(--line-soft); border-radius: 0 8px 8px 0;
+    }
+
+    #sw-sim-root .sw-grid {
+      display: grid; grid-template-columns: minmax(0,1.15fr) minmax(0,0.85fr); gap: 14px; align-items: start; margin-top: 14px;
+    }
+    #sw-sim-root.sw-narrow .sw-grid { grid-template-columns: 1fr; }
+
+    #sw-sim-root .sw-control { margin-bottom: 0; }
+    #sw-sim-root .sw-control.sw-locked { opacity: .4; pointer-events: none; }
+    #sw-sim-root .sw-lab { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 5px; gap: 6px; }
+    #sw-sim-root .sw-lab span:first-child { font-size: 12px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+    #sw-sim-root .sw-lab .sw-lock { font-size: 10.5px; color: var(--ink-faint); font-weight: 500; }
+    #sw-sim-root .sw-val {
+      font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--accent);
+      background: var(--accent-soft); padding: 1px 7px; border-radius: 6px; white-space: nowrap;
+    }
+    #sw-sim-root .sw-val-f { color: var(--wave); background: var(--wave-soft); }
+    #sw-sim-root input[type="range"] {
+      -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 6px;
+      background: var(--line); outline: none; cursor: pointer; margin: 0;
+    }
+    #sw-sim-root input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%;
+      background: var(--accent); border: 3px solid #fff; box-shadow: 0 1px 4px rgba(31,38,50,.25); cursor: pointer;
+    }
+    #sw-sim-root input[type="range"]::-moz-range-thumb {
+      width: 18px; height: 18px; border-radius: 50%; background: var(--accent);
+      border: 3px solid #fff; box-shadow: 0 1px 4px rgba(31,38,50,.25); cursor: pointer;
+    }
+    #sw-sim-root input[type="range"]#sw-r-f::-webkit-slider-thumb { background: var(--wave); }
+    #sw-sim-root input[type="range"]#sw-r-f::-moz-range-thumb { background: var(--wave); }
+
+    #sw-sim-root .sw-strings, #sw-sim-root .sw-modes { display: flex; flex-wrap: wrap; gap: 6px; }
+    #sw-sim-root .sw-pick {
+      appearance: none; cursor: pointer; border: 1px solid var(--line); background: var(--surface);
+      border-radius: 9px; padding: 6px 11px; font-family: "IBM Plex Sans", sans-serif;
+      font-size: 12.5px; font-weight: 600; color: var(--ink-soft); transition: all .14s;
+    }
+    #sw-sim-root .sw-pick:hover { border-color: #cfd6e0; color: var(--ink); }
+    #sw-sim-root .sw-pick[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: transparent; }
+    #sw-sim-root .sw-modes .sw-pick[aria-pressed="true"] { background: var(--wave); }
+
+    #sw-sim-root .sw-btn {
+      appearance: none; cursor: pointer; font-family: "IBM Plex Sans", sans-serif;
+      font-size: 13.5px; font-weight: 600; border-radius: 10px; padding: 10px 14px;
+      border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+      transition: transform .08s, background .15s, border-color .15s, box-shadow .15s;
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    }
+    #sw-sim-root .sw-btn:hover { border-color: #cfd6e0; box-shadow: var(--shadow); }
+    #sw-sim-root .sw-btn:active { transform: translateY(1px); }
+    #sw-sim-root .sw-btn[disabled] { opacity: .5; cursor: not-allowed; }
+    #sw-sim-root .sw-btn-primary { color: #fff; border-color: transparent; background: var(--wave); }
+    #sw-sim-root .sw-btn-primary:hover { filter: brightness(1.06); box-shadow: var(--shadow); }
+    #sw-sim-root .sw-btn-row { display: flex; gap: 9px; flex-wrap: wrap; }
+    #sw-sim-root .sw-btn-row .sw-btn { flex: 1 1 auto; }
+    #sw-sim-root .sw-btn-sm { padding: 6px 11px; font-size: 12px; border-radius: 9px; }
+
+    /* console under the animation */
+    #sw-sim-root .sw-console { border-top: 1px solid var(--line-soft); padding: 12px 14px; display: flex; flex-direction: column; gap: 11px; }
+    #sw-sim-root .sw-toolrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    #sw-sim-root .sw-sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 2px; }
+    #sw-sim-root .sw-sliderrow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    #sw-sim-root.sw-narrow .sw-sliderrow { grid-template-columns: 1fr; gap: 11px; }
+    #sw-sim-root .sw-resrow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    #sw-sim-root .sw-resbar-wrap { flex: 1 1 200px; min-width: 160px; }
+    #sw-sim-root .sw-resbar { height: 9px; border-radius: 6px; background: var(--line); overflow: hidden; }
+    #sw-sim-root .sw-resbar i { display: block; height: 100%; width: 0%; background: var(--wave); border-radius: 6px; transition: width .08s linear; }
+    #sw-sim-root .sw-resbadge { margin-top: 5px; font-size: 11.5px; font-weight: 600; color: var(--ink-faint); font-family: "IBM Plex Mono", monospace; }
+    #sw-sim-root .sw-resbadge.sw-on { color: var(--wave); }
+    #sw-sim-root .sw-eq-inline { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--ink-faint); flex: 1 1 auto; text-align: right; }
+    #sw-sim-root .sw-rec-inline { flex: 0 0 auto; padding: 9px 18px; }
+    @media (max-width: 620px) { #sw-sim-root .sw-eq-inline { display: none; } #sw-sim-root .sw-rec-inline { flex: 1 1 100%; } }
+
+    #sw-sim-root .sw-micro-summary {
+      border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; background: var(--accent-soft);
+      font-size: 12.5px; color: var(--ink-soft); line-height: 1.55; margin-top: 9px;
+    }
+    #sw-sim-root .sw-micro-summary b { color: var(--ink); }
+    #sw-sim-root .sw-mono { font-family: "IBM Plex Mono", monospace; }
+
+    #sw-sim-root .sw-eq { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 12px 15px; margin-top: 14px; }
+    #sw-sim-root .sw-eq-main { font-family: "Fraunces", Georgia, serif; font-size: 18px; color: var(--ink); text-align: center; }
+    #sw-sim-root .sw-frac { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 3px; }
+    #sw-sim-root .sw-frac .sw-num { border-bottom: 1.5px solid var(--ink); padding: 0 6px 1px; }
+    #sw-sim-root .sw-frac .sw-den { padding: 1px 6px 0; }
+    #sw-sim-root .sw-rad { border-top: 1.5px solid var(--ink); padding-top: 1px; }
+    #sw-sim-root .sw-eq-sub { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-soft); text-align: center; margin-top: 7px; }
+
+    #sw-sim-root .sw-table-wrap { overflow-x: auto; }
+    #sw-sim-root table.sw-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    #sw-sim-root table.sw-table th, #sw-sim-root table.sw-table td {
+      text-align: right; padding: 7px 9px; border-bottom: 1px solid var(--line-soft);
+      font-family: "IBM Plex Mono", monospace; color: var(--ink); white-space: nowrap;
+    }
+    #sw-sim-root table.sw-table th {
+      font-family: "IBM Plex Sans", sans-serif; font-weight: 600; color: var(--ink-soft);
+      font-size: 11.5px; border-bottom: 1.5px solid var(--line);
+    }
+    #sw-sim-root table.sw-table th:first-child, #sw-sim-root table.sw-table td:first-child { text-align: left; color: var(--ink-faint); }
+    #sw-sim-root table.sw-table tr:last-child td { border-bottom: 0; }
+    #sw-sim-root .sw-empty { color: var(--ink-faint); font-size: 13px; text-align: center; padding: 18px 8px; }
+    #sw-sim-root .sw-del { cursor: pointer; color: var(--ink-faint); border: 0; background: none; font-family: "IBM Plex Mono", monospace; font-size: 14px; padding: 0 4px; }
+    #sw-sim-root .sw-del:hover { color: var(--warn); }
+
+    #sw-sim-root .sw-graph-stage { position: relative; width: 100%; aspect-ratio: 5/3; min-height: 175px; max-height: 210px; margin-top: 0; }
+    #sw-sim-root .sw-graph-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+    #sw-sim-root .sw-analysis {
+      margin-top: 11px; padding: 10px 12px; border-radius: 11px; background: var(--paper);
+      border: 1px solid var(--line); font-size: 12.5px; color: var(--ink-soft); line-height: 1.5;
+    }
+    #sw-sim-root .sw-analysis b { color: var(--ink); }
+    #sw-sim-root .sw-note { font-size: 11.5px; color: var(--ink-faint); margin-top: 9px; line-height: 1.45; }
+    #sw-sim-root .sw-pill {
+      display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 12px;
+      padding: 2px 8px; border-radius: 7px; background: var(--wave-soft); color: var(--wave); font-weight: 500;
+    }
+    #sw-sim-root sub { font-size: .72em; }
+  </style>
+
+  <div class="sw-wrap">
+    <div class="sw-head">
+      <p class="sw-eyebrow">Ondas &middot; Ondas estacionarias en una cuerda</p>
+      <h1 class="sw-title">Resonancia de una cuerda bajo tensión</h1>
+    </div>
+
+    <div class="sw-card">
+      <div class="sw-stage" id="sw-stage">
+        <canvas id="sw-canvas"></canvas>
+        <div class="sw-readouts">
+          <div class="sw-chip"><b>f</b> <span id="sw-ro-f">0,0</span> Hz</div>
+          <div class="sw-chip"><b>l</b> <span id="sw-ro-l">1,000</span> m</div>
+          <div class="sw-chip"><b>T</b> <span id="sw-ro-T">0,981</span> N</div>
+          <div class="sw-chip" id="sw-ro-res-chip"><b>resonancia</b> <span id="sw-ro-res">&mdash;</span></div>
+        </div>
+      </div>
+
+      <div class="sw-console">
+        <div class="sw-toolrow">
+          <div class="sw-modes" id="sw-modes" role="group" aria-label="Experimento">
+            <button class="sw-pick" data-mode="length" aria-pressed="true">Variar longitud</button>
+            <button class="sw-pick" data-mode="tension" aria-pressed="false">Variar tensión</button>
+          </div>
+          <span class="sw-sep"></span>
+          <div class="sw-strings" id="sw-strings" role="group" aria-label="Elegir una cuerda"></div>
+          <button class="sw-btn sw-btn-sm" id="sw-balance-btn">Pesar la cuerda</button>
+        </div>
+
+        <div class="sw-sliderrow">
+          <div class="sw-control">
+            <div class="sw-lab"><span>Frecuencia del generador</span><span class="sw-val sw-val-f" id="sw-v-f">0,0 Hz</span></div>
+            <input type="range" id="sw-r-f" min="0" max="60" step="0.1" value="0">
+          </div>
+          <div class="sw-control" id="sw-ctrl-l">
+            <div class="sw-lab"><span>Longitud, l <span class="sw-lock" id="sw-lock-l"></span></span><span class="sw-val" id="sw-v-l">1,000 m</span></div>
+            <input type="range" id="sw-r-l" min="0.400" max="1.100" step="0.025" value="1.000">
+          </div>
+          <div class="sw-control" id="sw-ctrl-m">
+            <div class="sw-lab"><span>Tensión <span class="sw-lock" id="sw-lock-m"></span></span><span class="sw-val" id="sw-v-m">100 g &middot; 0,981 N</span></div>
+            <input type="range" id="sw-r-m" min="50" max="500" step="50" value="100">
+          </div>
+        </div>
+
+        <div class="sw-resrow">
+          <div class="sw-resbar-wrap">
+            <div class="sw-resbar"><i id="sw-resfill"></i></div>
+            <div class="sw-resbadge" id="sw-resbadge">fuera de resonancia</div>
+          </div>
+          <div class="sw-eq-inline" id="sw-eq-sub">variar l &rarr; representar 1/f frente a l (pendiente = 2&radic;(&mu;/T))</div>
+          <button class="sw-btn sw-btn-primary sw-rec-inline" id="sw-record" disabled>Registrar &darr;</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sw-grid">
+      <div class="sw-card">
+        <div class="sw-card-h">
+          <h3>Gráfica <span class="sw-pill" id="sw-tag">&mdash;</span></h3>
+          <span class="sw-eq-mini">f<sub>0</sub> = (1/2l)&radic;(T/&mu;)</span>
+        </div>
+        <div class="sw-card-b">
+          <div class="sw-graph-stage" id="sw-graph-stage"><canvas id="sw-graph"></canvas></div>
+          <div class="sw-analysis" id="sw-analysis"></div>
+        </div>
+      </div>
+
+      <div class="sw-card">
+        <div class="sw-card-h">
+          <h3>Medidas</h3>
+          <button class="sw-btn sw-btn-sm" id="sw-clear">Borrar</button>
+        </div>
+        <div class="sw-card-b">
+          <div class="sw-table-wrap">
+            <table class="sw-table"><thead id="sw-thead"></thead><tbody id="sw-tbody"></tbody></table>
+          </div>
+          <div class="sw-micro-summary" id="sw-balance" style="display:none;"></div>
+          <p class="sw-note" id="sw-note" style="margin-top:8px;"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    "use strict";
+    var root = document.getElementById("sw-sim-root");
+    if (!root || root.dataset.swInit === "1") return;
+    root.dataset.swInit = "1";
+
+    var TWO_PI = Math.PI * 2;
+    var GACC = 9.81;
+    var Q = 9;                  // resonance sharpness
+    function $(id) { return document.getElementById(id); }
+    function fmt(x, d) { return (Math.round(x * Math.pow(10, d)) / Math.pow(10, d)).toFixed(d).replace(".", ","); }
+    function gaussian() {
+      var u = 0, v = 0; while (u === 0) u = Math.random(); while (v === 0) v = Math.random();
+      return Math.sqrt(-2 * Math.log(u)) * Math.cos(TWO_PI * v);
+    }
+
+    // mu in kg/m (true). Balance-measured value derived with small error.
+    var STRINGS = [
+      { key: "thin",   name: "Fina (~1,0 mm)",   mu: 0.00100 },
+      { key: "medium", name: "Media (~1,5 mm)", mu: 0.00180 },
+      { key: "thick",  name: "Gruesa (~2,0 mm)",  mu: 0.00320 }
+    ];
+    var WEIGH_LEN = 2.000; // metres of string weighed on the balance
+
+    var state = {
+      stringIdx: 1,
+      mode: "length",          // 'length' | 'tension'
+      l: 1.000,                // m
+      massG: 100,              // g
+      f: 0,                    // Hz drive
+      t: 0,
+      muMeasured: null,
+      dataLength: [],          // {x:l, y:1/f, f, l, T}
+      dataTension: [],         // {x:T, y:f^2, f, l, T}
+      canvas: $("sw-canvas"),
+      graph: $("sw-graph"),
+      resp: { n: 0, R: 0, fn: 0, f0: 0 }
+    };
+
+    function str() { return STRINGS[state.stringIdx]; }
+    function tension() { return (state.massG / 1000) * GACC; }
+    function waveSpeed() { return Math.sqrt(tension() / str().mu); }
+    function fundamental() { return waveSpeed() / (2 * state.l); }
+
+    function response(f) {
+      if (f < 0.5) return { n: 0, R: 0, fn: 0, f0: fundamental() };
+      var f0 = fundamental();
+      var n = Math.max(1, Math.round(f / f0));
+      var fn = n * f0;
+      var ratio = f / fn;
+      var R = 1 / Math.sqrt(1 + Math.pow(Q * (ratio - 1 / ratio), 2));
+      return { n: n, R: R, fn: fn, f0: f0 };
+    }
+
+    /* ---------- balance: measure mass per unit length ---------- */
+    function measureMu() {
+      var massKg = str().mu * WEIGH_LEN;               // true mass of 2 m
+      var massG = massKg * 1000 + gaussian() * 0.05;   // balance noise
+      massG = Math.round(massG * 10) / 10;             // 0.1 g precision
+      var mu = (massG / 1000) / WEIGH_LEN;             // kg/m
+      state.muMeasured = mu;
+      $("sw-balance").style.display = "block";
+      $("sw-balance").innerHTML =
+        "Se han pesado <b class='sw-mono'>" + fmt(WEIGH_LEN, 3) + " m</b> de cuerda &mdash; la balanza indica <b class='sw-mono'>" + fmt(massG, 1) + " g</b>.<br>" +
+        "Densidad lineal de masa <b>&mu; = " + fmt(massG, 1) + " g / " + fmt(WEIGH_LEN, 1) + " m = <span class='sw-mono'>" + fmt(mu * 1000, 2) + " g m<sup>-1</sup></span></b> = <span class='sw-mono'>" + fmt(mu, 5) + " kg m<sup>-1</sup></span>.";
+      $("sw-balance-btn").textContent = "Volver a pesar la cuerda";
+      drawGraph();
+    }
+
+    /* =================================================================
+       DRAW APPARATUS + STANDING WAVE
+       ================================================================= */
+    function fitCanvas(canvas) {
+      var rect = canvas.getBoundingClientRect();
+      var dpr = window.devicePixelRatio || 1;
+      var w = Math.max(1, Math.round(rect.width)), h = Math.max(1, Math.round(rect.height));
+      if (canvas._w !== w || canvas._h !== h || canvas._dpr !== dpr) {
+        canvas.width = w * dpr; canvas.height = h * dpr; canvas._w = w; canvas._h = h; canvas._dpr = dpr;
+      }
+      var ctx = canvas.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx: ctx, w: w, h: h };
+    }
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath(); ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+    }
+
+    function drawApparatus() {
+      var fit = fitCanvas(state.canvas), ctx = fit.ctx, w = fit.w, h = fit.h;
+      ctx.clearRect(0, 0, w, h);
+      var narrow = root.classList.contains("sw-narrow");
+
+      var stringY = h * (narrow ? 0.34 : 0.37);
+      var Amax = h * (narrow ? 0.20 : 0.24);     // full standing-wave amplitude
+      var xGen = w * 0.14;                       // string left fixed point (driver)
+      var pixPerM = (w * 0.66) / 1.10;           // so l up to 1.10 m fits before pulley
+      var xBridge = xGen + state.l * pixPerM;    // movable bridge (right node)
+      var xPulley = w * 0.90;
+
+      // bench / table line
+      ctx.strokeStyle = "#d8cdb5"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, h * 0.95); ctx.lineTo(w, h * 0.95); ctx.stroke();
+
+      // vibration generator (left box with oscillating arm)
+      var vgW = 44, vgH = 54, vgx = xGen - vgW - 6, vgy = stringY - vgH / 2;
+      ctx.fillStyle = "#eef1f6"; ctx.strokeStyle = "#3a4250"; ctx.lineWidth = 2;
+      roundRect(ctx, vgx, vgy, vgW, vgH, 6); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#8a93a3"; ctx.font = "9px 'IBM Plex Mono', monospace"; ctx.textAlign = "center";
+      ctx.fillText("generador", vgx + vgW / 2, vgy + vgH + 12);
+      ctx.fillText("de vibraciones", vgx + vgW / 2, vgy + vgH + 23);
+      // driver arm tip oscillates a touch
+      var driveAmp = (state.resp.R > 0.05 ? 2 + state.resp.R * 3 : 1.5);
+      var tip = stringY - Math.sin(TWO_PI * Math.max(state.f, 1) * state.t) * driveAmp;
+      ctx.strokeStyle = "#3a4250"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(vgx + vgW, stringY); ctx.lineTo(xGen, tip); ctx.stroke();
+      ctx.fillStyle = "#b5651d"; ctx.beginPath(); ctx.arc(xGen, tip, 4, 0, TWO_PI); ctx.fill();
+
+      // ---- standing wave on resonating segment xGen..xBridge ----
+      var segLen = xBridge - xGen;
+      var n = state.resp.n, R = state.resp.R;
+      var amp = (n >= 1 ? R * Amax : 0);
+      var phase = Math.cos(TWO_PI * Math.max(state.f, 0.0001) * state.t);
+
+      // envelope (faint) when resonating
+      if (amp > 2 && n >= 1) {
+        ctx.fillStyle = "rgba(15,118,110,0.10)";
+        ctx.beginPath();
+        ctx.moveTo(xGen, stringY);
+        var i;
+        for (i = 0; i <= 80; i++) { var xx = i / 80; ctx.lineTo(xGen + xx * segLen, stringY - amp * Math.sin(n * Math.PI * xx)); }
+        for (i = 80; i >= 0; i--) { var xx2 = i / 80; ctx.lineTo(xGen + xx2 * segLen, stringY + amp * Math.sin(n * Math.PI * xx2)); }
+        ctx.closePath(); ctx.fill();
+      }
+
+      // instantaneous string shape
+      ctx.strokeStyle = "#b5651d"; ctx.lineWidth = 2.4; ctx.lineJoin = "round"; ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(tip < stringY ? xGen : xGen, tip);
+      var baseWiggle = (n >= 1 ? 0 : 1.2);
+      for (var k = 0; k <= 120; k++) {
+        var xf = k / 120;
+        var px = xGen + xf * segLen;
+        var disp = (n >= 1)
+          ? amp * Math.sin(n * Math.PI * xf) * phase
+          : baseWiggle * Math.sin(8 * Math.PI * xf) * Math.sin(TWO_PI * Math.max(state.f, 1) * state.t);
+        ctx.lineTo(px, stringY - disp);
+      }
+      ctx.stroke();
+
+      // nodes (resonating)
+      if (amp > 3 && n >= 1) {
+        ctx.fillStyle = "#0f766e";
+        for (var nn = 0; nn <= n; nn++) {
+          var nx = xGen + (nn / n) * segLen;
+          ctx.beginPath(); ctx.arc(nx, stringY, 3, 0, TWO_PI); ctx.fill();
+        }
+      }
+
+      // ---- bridge (wedge) at xBridge ----
+      ctx.fillStyle = "#c69b6d"; ctx.strokeStyle = "#9c7a4f"; ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(xBridge, stringY); ctx.lineTo(xBridge - 9, stringY + 22); ctx.lineTo(xBridge + 9, stringY + 22);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#8a93a3"; ctx.font = "9px 'IBM Plex Mono', monospace"; ctx.textAlign = "center";
+      ctx.fillText("puente", xBridge, stringY + 34);
+
+      // ---- string from bridge to pulley, over pulley, down to masses ----
+      ctx.strokeStyle = "#b5651d"; ctx.lineWidth = 2.2;
+      ctx.beginPath(); ctx.moveTo(xBridge, stringY); ctx.lineTo(xPulley, stringY); ctx.stroke();
+      // pulley
+      ctx.fillStyle = "#eef1f6"; ctx.strokeStyle = "#3a4250"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(xPulley, stringY, 11, 0, TWO_PI); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#3a4250"; ctx.beginPath(); ctx.arc(xPulley, stringY, 2.5, 0, TWO_PI); ctx.fill();
+      ctx.fillStyle = "#8a93a3"; ctx.font = "9px 'IBM Plex Mono', monospace"; ctx.textAlign = "center";
+      ctx.fillText("polea", xPulley, stringY - 16);
+      // string down to mass holder
+      var mhx = xPulley + 11, mhTop = stringY;
+      var nDiscs = Math.round(state.massG / 50);
+      var discH = 7, holderTop = mhTop + 32;
+      ctx.strokeStyle = "#b5651d"; ctx.lineWidth = 2.2;
+      ctx.beginPath(); ctx.moveTo(mhx, mhTop); ctx.lineTo(mhx, holderTop); ctx.stroke();
+      // hook
+      ctx.beginPath(); ctx.arc(mhx, holderTop + 3, 3, Math.PI, TWO_PI); ctx.stroke();
+      // discs
+      for (var d = 0; d < nDiscs; d++) {
+        var dy = holderTop + 6 + d * (discH + 1);
+        ctx.fillStyle = d % 2 ? "#4a5160" : "#5a6473"; ctx.strokeStyle = "#3a4250"; ctx.lineWidth = 1;
+        roundRect(ctx, mhx - 16, dy, 32, discH, 2); ctx.fill(); ctx.stroke();
+      }
+      ctx.fillStyle = "#8a93a3"; ctx.font = "9px 'IBM Plex Mono', monospace"; ctx.textAlign = "center";
+      ctx.fillText(state.massG + " g", mhx, holderTop + 6 + nDiscs * (discH + 1) + 12);
+
+      // ---- ruler under the resonating segment ----
+      var ry = stringY + Amax + 8, rh = 14;
+      if (ry + rh < h * 0.96) {
+        ctx.fillStyle = "#f4e9cf"; ctx.strokeStyle = "#d8c79c"; ctx.lineWidth = 1;
+        ctx.fillRect(xGen, ry, segLen, rh); ctx.strokeRect(xGen, ry, segLen, rh);
+        ctx.strokeStyle = "#a8966a"; ctx.fillStyle = "#7a6c45"; ctx.font = "8px 'IBM Plex Mono', monospace";
+        var ticks = 10;
+        for (var tk = 0; tk <= ticks; tk++) {
+          var tx = xGen + (tk / ticks) * segLen;
+          ctx.beginPath(); ctx.moveTo(tx, ry); ctx.lineTo(tx, ry + (tk % 5 === 0 ? 7 : 4)); ctx.stroke();
+        }
+        ctx.textAlign = "center"; ctx.fillStyle = "#7a6c45"; ctx.font = "10px 'IBM Plex Mono', monospace";
+        ctx.fillText("l = " + fmt(state.l, 3) + " m", xGen + segLen / 2, ry + rh + 11);
+      }
+    }
+
+    /* =================================================================
+       GRAPH
+       ================================================================= */
+    function leastSquares(pts) {
+      var n = pts.length, sx = 0, sy = 0, sxy = 0, sxx = 0;
+      for (var i = 0; i < n; i++) { sx += pts[i].x; sy += pts[i].y; sxy += pts[i].x * pts[i].y; sxx += pts[i].x * pts[i].x; }
+      var denom = n * sxx - sx * sx; if (denom === 0) return null;
+      var m = (n * sxy - sx * sy) / denom;
+      return { m: m, c: (sy - m * sx) / n };
+    }
+    function curData() { return state.mode === "length" ? state.dataLength : state.dataTension; }
+
+    function drawGraph() {
+      var fit = fitCanvas(state.graph), ctx = fit.ctx, w = fit.w, h = fit.h;
+      ctx.clearRect(0, 0, w, h);
+      var data = curData();
+      var isLen = state.mode === "length";
+      var colour = "#1d4e89";
+      var xLabel = isLen ? "l / m" : "T / N";
+      var yLabel = isLen ? "1/f / s" : "f\u00B2 / Hz\u00B2";
+
+      var padL = 58, padR = 16, padT = 16, padB = 38;
+      var gx0 = padL, gy0 = h - padB, gx1 = w - padR, gy1 = padT;
+
+      var xs = data.map(function (d) { return d.x; });
+      var ys = data.map(function (d) { return d.y; });
+      var xMax = Math.max.apply(null, xs.concat([isLen ? 1.1 : 1.0])) * 1.1;
+      var yMax = Math.max.apply(null, ys.concat([isLen ? 0.1 : 100])) * 1.12;
+
+      function X(v) { return gx0 + (v / xMax) * (gx1 - gx0); }
+      function Y(v) { return gy0 - (v / yMax) * (gy0 - gy1); }
+
+      ctx.font = "10px 'IBM Plex Mono', monospace";
+      var i;
+      for (i = 0; i <= 5; i++) {
+        var gv = (yMax / 5) * i, yy = Y(gv);
+        ctx.strokeStyle = "#eef1f6"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(gx0, yy); ctx.lineTo(gx1, yy); ctx.stroke();
+        ctx.fillStyle = "#9aa3b2"; ctx.textAlign = "right";
+        ctx.fillText(isLen ? fmt(gv, 3) : fmt(gv, 0), gx0 - 6, yy + 3);
+      }
+      for (i = 0; i <= 5; i++) {
+        var xv = (xMax / 5) * i, xx = X(xv);
+        ctx.strokeStyle = "#f4f6fa";
+        ctx.beginPath(); ctx.moveTo(xx, gy0); ctx.lineTo(xx, gy1); ctx.stroke();
+        ctx.fillStyle = "#9aa3b2"; ctx.textAlign = "center"; ctx.fillText(fmt(xv, isLen ? 2 : 1), xx, gy0 + 14);
+      }
+      ctx.strokeStyle = "#c4ccd8"; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(gx0, gy1); ctx.lineTo(gx0, gy0); ctx.lineTo(gx1, gy0); ctx.stroke();
+
+      ctx.fillStyle = "#515b6b"; ctx.font = "600 11px 'IBM Plex Sans', sans-serif"; ctx.textAlign = "center";
+      ctx.fillText(xLabel, (gx0 + gx1) / 2, h - 6);
+      ctx.save(); ctx.translate(14, (gy0 + gy1) / 2); ctx.rotate(-Math.PI / 2);
+      ctx.fillText(yLabel, 0, 0); ctx.restore();
+
+      var fitLine = data.length >= 2 ? leastSquares(data) : null;
+      if (fitLine) {
+        ctx.save();
+        ctx.beginPath(); ctx.rect(gx0, gy1, gx1 - gx0, gy0 - gy1); ctx.clip();
+        ctx.strokeStyle = colour; ctx.lineWidth = 1.6; ctx.setLineDash([6, 5]);
+        ctx.beginPath(); ctx.moveTo(X(0), Y(fitLine.c)); ctx.lineTo(X(xMax), Y(fitLine.m * xMax + fitLine.c));
+        ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+      }
+      data.forEach(function (d) {
+        ctx.fillStyle = colour; ctx.beginPath(); ctx.arc(X(d.x), Y(d.y), 4.2, 0, TWO_PI); ctx.fill();
+        ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.4; ctx.stroke();
+      });
+      if (data.length === 0) {
+        ctx.fillStyle = "#b6bdc9"; ctx.font = "12px 'IBM Plex Sans', sans-serif"; ctx.textAlign = "center";
+        ctx.fillText("Aquí aparecerá la gráfica de " + (isLen ? "1/f frente a l" : "f² frente a T"), (gx0 + gx1) / 2, (gy0 + gy1) / 2);
+      }
+      updateAnalysis(fitLine);
+    }
+
+    function updateAnalysis(fitLine) {
+      var el = $("sw-analysis"), isLen = state.mode === "length";
+      var muMeasTxt = state.muMeasured != null ? fmt(state.muMeasured * 1000, 2) + " g m<sup>-1</sup>" : "&mdash;";
+      if (!fitLine || curData().length < 2) {
+        el.innerHTML = isLen
+          ? "Representa al menos dos puntos. La gráfica de <b>1/f frente a l</b> es una recta que pasa por el origen y cuya pendiente es <b>2&radic;(&mu;/T)</b>, de donde se obtiene &mu; = T&times;(pendiente/2)&sup2;."
+          : "Representa al menos dos puntos. La gráfica de <b>f&sup2; frente a T</b> es una recta que pasa por el origen y cuya pendiente es <b>1/(4l&sup2;&mu;)</b>, de donde se obtiene &mu; = 1/(4l&sup2;&times;pendiente).";
+        return;
+      }
+      var grad = fitLine.m;
+      if (grad <= 0) { el.innerHTML = "Registra medidas en un intervalo más amplio para obtener una recta bien definida que pase por el origen."; return; }
+      var html, muDerived;
+      if (isLen) {
+        var T = curData()[0].T;
+        muDerived = T * Math.pow(grad / 2, 2);   // kg/m
+        html = "Pendiente de la recta de ajuste = <b class='sw-mono'>" + fmt(grad, 4) + " s m<sup>-1</sup></b> &nbsp;(= 2&radic;(&mu;/T), con T = " + fmt(T, 3) + " N).<br>" +
+          "&rArr; <b>&mu; = T(pendiente/2)&sup2; = <span class='sw-mono'>" + fmt(muDerived * 1000, 2) + " g m<sup>-1</sup></span></b>.";
+      } else {
+        var l = curData()[0].l;
+        muDerived = 1 / (4 * l * l * grad);       // kg/m
+        html = "Pendiente de la recta de ajuste = <b class='sw-mono'>" + fmt(grad, 1) + " Hz&sup2; N<sup>-1</sup></b> &nbsp;(= 1/(4l&sup2;&mu;), con l = " + fmt(l, 3) + " m).<br>" +
+          "&rArr; <b>&mu; = 1/(4l&sup2;&times;pendiente) = <span class='sw-mono'>" + fmt(muDerived * 1000, 2) + " g m<sup>-1</sup></span></b>.";
+      }
+      if (state.muMeasured != null) {
+        var pct = Math.abs(muDerived - state.muMeasured) / state.muMeasured * 100;
+        html += "<br>El valor medido con la balanza es <span class='sw-mono'>" + muMeasTxt + "</span> &mdash; una diferencia de aproximadamente <b>" + fmt(pct, 1) + "%</b>.";
+      } else {
+        html += "<br>Pesa la cuerda en la balanza para comparar este resultado con el valor de &mu; medido directamente.";
+      }
+      el.innerHTML = html;
+    }
+
+    /* =================================================================
+       TABLE
+       ================================================================= */
+    function renderTable() {
+      var isLen = state.mode === "length";
+      $("sw-thead").innerHTML = isLen
+        ? "<tr><th>#</th><th>l / m</th><th>f / Hz</th><th>1/f / s</th><th></th></tr>"
+        : "<tr><th>#</th><th>T / N</th><th>f / Hz</th><th>f&sup2; / Hz&sup2;</th><th></th></tr>";
+      var data = curData(), tbody = $("sw-tbody");
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="sw-empty">' +
+          (isLen ? "Ajusta la frecuencia al modo fundamental para cada longitud y registra la medida. Repite para l = 1,000; 0,900; &hellip; 0,500 m."
+                 : "Ajusta la frecuencia al modo fundamental para cada tensión y registra la medida. Repite con varias masas suspendidas.") + "</td></tr>";
+        return;
+      }
+      var rows = "";
+      data.forEach(function (d, idx) {
+        var col2 = isLen ? fmt(d.l, 3) : fmt(d.T, 3);
+        var col4 = isLen ? fmt(d.y, 4) : fmt(d.y, 1);
+        rows += "<tr><td>" + (idx + 1) + "</td><td>" + col2 + "</td><td>" + fmt(d.f, 2) + "</td><td>" + col4 +
+          '</td><td><button class="sw-del" data-idx="' + idx + '" aria-label="Eliminar fila">\u00D7</button></td></tr>';
+      });
+      tbody.innerHTML = rows;
+      Array.prototype.forEach.call(tbody.querySelectorAll(".sw-del"), function (b) {
+        b.addEventListener("click", function () { data.splice(parseInt(b.dataset.idx, 10), 1); renderTable(); drawGraph(); });
+      });
+    }
+
+    function recordReading() {
+      var r = state.resp;
+      if (r.R < 0.5 || r.n < 1) return;
+      // tune-to-peak: record the true resonant frequency of this harmonic + small dial error
+      var fMeas = r.fn + gaussian() * 0.10;
+      var T = tension(), l = state.l;
+      if (state.mode === "length") {
+        state.dataLength.push({ x: l, y: 1 / fMeas, f: fMeas, l: l, T: T });
+        state.dataLength.sort(function (a, b) { return a.x - b.x; });
+      } else {
+        state.dataTension.push({ x: T, y: fMeas * fMeas, f: fMeas, l: l, T: T });
+        state.dataTension.sort(function (a, b) { return a.x - b.x; });
+      }
+      renderTable(); drawGraph();
+    }
+
+    /* =================================================================
+       READOUTS
+       ================================================================= */
+    function refresh() {
+      state.resp = response(state.f);
+      var r = state.resp;
+      $("sw-ro-f").textContent = fmt(state.f, 1);
+      $("sw-v-f").textContent = fmt(state.f, 1) + " Hz";
+      $("sw-ro-l").textContent = fmt(state.l, 3);
+      $("sw-ro-T").textContent = fmt(tension(), 3);
+
+      $("sw-resfill").style.width = fmt(r.R * 100, 0) + "%";
+      var onRes = r.R >= 0.5 && r.n >= 1;
+      var label;
+      if (r.n < 1 || state.f < 1) label = "fuera de resonancia";
+      else if (r.R < 0.3) label = "fuera de resonancia";
+      else {
+        var name = r.n === 1 ? "fundamental" : ("armónico " + r.n);
+        label = (r.R >= 0.85 ? "RESONANCIA \u2014 " : "cerca de ") + name + " (" + r.n + " vientre" + (r.n > 1 ? "s" : "") + ")";
+      }
+      $("sw-resbadge").textContent = label;
+      $("sw-resbadge").classList.toggle("sw-on", onRes);
+
+      var chip = $("sw-ro-res-chip");
+      $("sw-ro-res").textContent = onRes ? (r.n === 1 ? "fundamental" : "armónico " + r.n) : "\u2014";
+      chip.classList.toggle("sw-chip-res", onRes);
+
+      $("sw-record").disabled = !onRes;
+    }
+
+    /* =================================================================
+       LOOP
+       ================================================================= */
+    var last = null;
+    function loop(now) {
+      if (last == null) last = now;
+      var dt = Math.min(0.05, (now - last) / 1000); last = now;
+      state.t += dt;
+      drawApparatus();
+      requestAnimationFrame(loop);
+    }
+
+    /* =================================================================
+       WIRING
+       ================================================================= */
+    var stringsHost = $("sw-strings");
+    STRINGS.forEach(function (s, idx) {
+      var b = document.createElement("button");
+      b.className = "sw-pick"; b.setAttribute("aria-pressed", idx === state.stringIdx ? "true" : "false");
+      b.textContent = s.name;
+      b.addEventListener("click", function () { selectString(idx); });
+      stringsHost.appendChild(b);
+    });
+    function selectString(idx) {
+      state.stringIdx = idx;
+      Array.prototype.forEach.call(stringsHost.querySelectorAll(".sw-pick"), function (b, i) {
+        b.setAttribute("aria-pressed", i === idx ? "true" : "false");
+      });
+      // new string => fresh experiment + re-measure mu
+      state.dataLength = []; state.dataTension = [];
+      state.muMeasured = null;
+      $("sw-balance").style.display = "none"; $("sw-balance-btn").textContent = "Pesar la cuerda";
+      state.f = 0; $("sw-r-f").value = 0;
+      updateTag(); renderTable(); refresh(); drawGraph();
+    }
+
+    var modesHost = $("sw-modes");
+    Array.prototype.forEach.call(modesHost.querySelectorAll(".sw-pick"), function (b) {
+      b.addEventListener("click", function () { setMode(b.dataset.mode); });
+    });
+    function setMode(mode) {
+      state.mode = mode;
+      Array.prototype.forEach.call(modesHost.querySelectorAll(".sw-pick"), function (b) {
+        b.setAttribute("aria-pressed", b.dataset.mode === mode ? "true" : "false");
+      });
+      var isLen = mode === "length";
+      // length investigation: vary l, fix T at 100 g; tension investigation: vary T, fix l at 1.000
+      $("sw-ctrl-l").classList.toggle("sw-locked", !isLen);
+      $("sw-ctrl-m").classList.toggle("sw-locked", isLen);
+      $("sw-lock-l").textContent = isLen ? "" : "(constante)";
+      $("sw-lock-m").textContent = isLen ? "(constante)" : "";
+      if (isLen) { state.massG = 100; $("sw-r-m").value = 100; updateMassLabel(); }
+      else { state.l = 1.000; $("sw-r-l").value = 1.000; $("sw-v-l").textContent = "1,000 m"; }
+      $("sw-eq-sub").innerHTML = isLen
+        ? "variar l &rarr; representar 1/f frente a l &nbsp;(pendiente = 2&radic;(&mu;/T))"
+        : "variar T &rarr; representar f&sup2; frente a T &nbsp;(pendiente = 1/(4l&sup2;&mu;))";
+      $("sw-note").textContent = isLen
+        ? "Método: mantén constante la tensión (masa de 100 g), ajusta la longitud con el puente, busca el modo fundamental y mide f. Representa 1/f frente a l."
+        : "Método: mantén constante la longitud (1,000 m), cuelga cada masa, busca el modo fundamental y mide f. Representa f² frente a T.";
+      state.f = 0; $("sw-r-f").value = 0;
+      updateTag(); renderTable(); refresh(); drawGraph();
+    }
+
+    function updateTag() {
+      $("sw-tag").textContent = (state.mode === "length" ? "Variar longitud" : "Variar tensión") + " \u00B7 " + str().name;
+    }
+    function updateMassLabel() {
+      $("sw-v-m").textContent = state.massG + " g \u00B7 " + fmt(tension(), 3) + " N";
+    }
+
+    $("sw-r-l").addEventListener("input", function () {
+      state.l = parseFloat(this.value); $("sw-v-l").textContent = fmt(state.l, 3) + " m"; refresh();
+    });
+    $("sw-r-m").addEventListener("input", function () {
+      state.massG = parseInt(this.value, 10); updateMassLabel(); refresh();
+    });
+    $("sw-r-f").addEventListener("input", function () {
+      state.f = parseFloat(this.value); refresh();
+    });
+    $("sw-balance-btn").addEventListener("click", measureMu);
+    $("sw-record").addEventListener("click", recordReading);
+    $("sw-clear").addEventListener("click", function () {
+      if (state.mode === "length") state.dataLength = []; else state.dataTension = [];
+      renderTable(); drawGraph();
+    });
+
+    /* responsive */
+    new ResizeObserver(function (entries) {
+      var width = entries[0].contentRect.width;
+      if (width < 760) root.classList.add("sw-narrow"); else root.classList.remove("sw-narrow");
+    }).observe(root);
+    new ResizeObserver(function () { drawApparatus(); }).observe($("sw-stage"));
+    new ResizeObserver(function () { drawGraph(); }).observe($("sw-graph-stage"));
+
+    /* init */
+    setMode("length");
+    updateMassLabel();
+    updateTag();
+    renderTable();
+    refresh();
+    drawGraph();
+    requestAnimationFrame(loop);
+  })();
+  </script>
+</div>
+<footer>Simulador original: <a href="https://www.drjonesphysics.com/stationary-waves">Dr Jones Physics</a>. Traducción al castellano para uso educativo. Derechos reservados al autor original.</footer>
+</body>
+</html>
