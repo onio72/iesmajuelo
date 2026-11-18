@@ -59,14 +59,14 @@ const screenRailMat=new THREE.MeshStandardMaterial({color:0x78e5d8,emissive:0x28
 function screenRail(z){const railPts=[];for(let i=0;i<=160;i++){const a=Math.PI*14/9+(Math.PI*17/9)*i/160;railPts.push(new THREE.Vector3(1.72*Math.sin(a),.15-1.72*Math.cos(a),z))}group.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(railPts),160,.025,8,false),screenRailMat))}
 screenRail(-.64);screenRail(.64);
 // microscope mounted above the screen (historically used to count scintillations)
-const scope=new THREE.Group();scope.position.set(.05,2.38,.22);group.add(scope);cyl(scope,.25,.25,.44,brassHi,0,0,0);cyl(scope,.17,.12,.48,steel,0,.44,0);cyl(scope,.25,.20,.16,brass,0,.76,0);cyl(scope,.13,.17,.50,dark,0,1.05,0);cyl(scope,.19,.14,.14,brassHi,0,1.36,0);scope.rotation.z=-.22;
+const scope=new THREE.Group();scope.position.set(1.05,1.48,.05);group.add(scope);cyl(scope,.25,.25,.44,brassHi,0,0,0);cyl(scope,.17,.12,.48,steel,0,.44,0);cyl(scope,.25,.20,.16,brass,0,.76,0);cyl(scope,.13,.17,.50,dark,0,1.05,0);cyl(scope,.19,.14,.14,brassHi,0,1.36,0);scope.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(.66,.75,0).normalize());
 // Supports and vacuum pipe details
 for(const z of [-1.55,1.55]){box(group,.12,.9,.12,steel,-.5,-.82,z);box(group,.12,.9,.12,steel,.5,-.82,z);box(group,1.15,.08,.12,brass,-.0,-.42,z)}
 for(let x=-2.6;x<=2.61;x+=.52){const riv=new THREE.Mesh(new THREE.SphereGeometry(.045,12,10),brassHi);riv.position.set(x,-1.25,2.69);group.add(riv)}
 // Label sprites and leader lines
 const labelGroup=new THREE.Group();group.add(labelGroup);
 function label(text,pos,anchor){const c=document.createElement('canvas');c.width=512;c.height=86;const ctx=c.getContext('2d');ctx.fillStyle='rgba(12,18,20,.92)';ctx.strokeStyle='rgba(205,174,101,.85)';ctx.lineWidth=3;ctx.roundRect(2,2,508,82,16);ctx.fill();ctx.stroke();ctx.font='500 28px monospace';ctx.fillStyle='#ead9a9';ctx.fillText(text,20,55);const tx=new THREE.CanvasTexture(c);tx.colorSpace=THREE.SRGBColorSpace;const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,transparent:true,depthTest:false}));s.scale.set(2.45,.42,1);s.position.set(...pos);labelGroup.add(s);const points=[new THREE.Vector3(...pos),new THREE.Vector3(...anchor)];const ln=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineBasicMaterial({color:0xe6c56f,depthTest:false}));labelGroup.add(ln);const dir=points[1].clone().sub(points[0]).normalize(),arrow=new THREE.Mesh(new THREE.ConeGeometry(.055,.16,8),brassHi);arrow.position.copy(points[1]);arrow.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir);labelGroup.add(arrow)}
-label('FUENTE + COLIMADOR',[-4.25,1.95,.48],[-3.15,.1,0]);label('LÁMINA DE ORO',[1.75,1.08,1.22],[0,.55,.55]);label('PANTALLA ZnS',[2.58,-.56,1.45],[1.25,-.45,.4]);label('MICROSCOPIO',[.05,4.02,.42],[.02,3.25,.18]);
+label('FUENTE + COLIMADOR',[-4.25,1.95,.48],[-3.15,.1,0]);label('LÁMINA DE ORO',[1.75,1.08,1.22],[0,.55,.55]);label('PANTALLA ZnS',[2.7,-.45,1.55],[1.25,-.65,.35]);label('MICROSCOPIO',[2.98,2.95,.4],[1.52,2.02,.05]);
 // measurement scale / subtle floor grid
 const grid=new THREE.GridHelper(18,36,0x344247,0x253136);grid.position.y=-1.31;group.add(grid);
 const phaseData=[
