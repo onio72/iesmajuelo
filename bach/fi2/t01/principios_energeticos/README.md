@@ -13,7 +13,6 @@ Diferencia las fuerzas que actúan de las que realizan trabajo, y permite compro
 ## Uso
 Abrir [la aplicación publicada](https://onio72.github.io/iesmajuelo/bach/fi2/t01/principios_energeticos/).
 
-La casilla «Modo pruebas» permite acceder libremente a la fase de situaciones físicas. Al desactivarla se recupera la progresión didáctica prevista para el alumnado.
 
 ## Presentación y hoja de estilos
 - Entrada seleccionada: `herramientas/estilos/v1/cuestiones.css`, que importa `base.css`.
