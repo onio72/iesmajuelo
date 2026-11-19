@@ -1,0 +1,3 @@
+# Cinemática al volante
+
+Práctica de FQ 2º ESO con nueve situaciones (recta/izquierda/derecha y rapidez constante/creciente/decreciente). Canvas 2D con proyección en perspectiva de la carretera y representación del habitáculo. Física: v=v0+at, s=v0t+at²/2, aceleración lateral v²/R; oscilador amortiguado para el ambientador. Los desplazamientos longitudinales se representan con perspectiva y escala visual. Hoja de entrada: practica.css v1, por combinar observación y corrección. Colores propios de escena para paisaje y salpicadero; sin codificación de respuestas en la escena. No es SCORM. Pendiente de pruebas visuales y funcionales en navegador de escritorio y móvil.
