@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pulso longitudinal · 25 partículas</title>
+  <style>
+    :root{color-scheme:light;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#173b52;background:#f2f6fb}
+    *{box-sizing:border-box}
+    body{margin:0;line-height:1.45}
+    main{max-width:1100px;margin:auto;padding:clamp(12px,3vw,30px)}
+    h1{font-size:clamp(23px,3vw,32px);letter-spacing:-.035em;line-height:1.2;margin:0 0 7px}
+    .intro{color:#587187;margin:0 0 19px;font-size:15px}
+    .panel{background:#fff;border:1px solid #d8e3ec;border-radius:18px;overflow:hidden}
+    .panel-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;padding:17px 18px 4px}
+    .panel-head strong{font-size:15px}
+    .badge{color:#175c86;border:1px solid #bcd9e9;background:#eaf6fd;padding:5px 11px;font-size:13px;font-weight:700;border-radius:25px}
+    svg{display:block;width:100%;height:auto;overflow:visible}
+    .readouts{padding:0 18px 15px;display:flex;justify-content:space-between;gap:8px 18px;flex-wrap:wrap;font-size:13px;color:#597387;font-variant-numeric:tabular-nums}
+    .readouts b{color:#174d71}
+    .controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin:15px 0}
+    .control{padding:15px 17px 12px;background:white;border:1px solid #d8e3ec;border-radius:14px;min-width:0}
+    .control label{display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:15px;font-weight:650}
+    output{font-weight:750;color:#096ea9;font-size:17px;white-space:nowrap}
+    input[type=range]{display:block;width:100%;height:28px;margin:13px 0 4px;accent-color:#1275b7;cursor:pointer}
+    .limits{display:flex;justify-content:space-between;color:#71889a;font-size:12px}
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0}
+    button{min-height:44px;border:1px solid #b5cddd;border-radius:11px;background:white;color:#155378;padding:9px 16px;cursor:pointer;font:700 15px system-ui;touch-action:manipulation}
+    button.primary{background:#146fab;color:white;border-color:#146fab}
+    button:disabled{opacity:.48;cursor:not-allowed}
+    button:hover:not(:disabled){filter:brightness(.96)}
+    button:focus-visible,input:focus-visible{outline:3px solid #d98e25;outline-offset:3px}
+    .note{flex:1 1 190px;margin:0;color:#5d7688;font-size:13px}
+    .explanation{border-top:1px solid #d8e3ec;margin-top:15px;padding:16px 2px 8px;font-size:14px;color:#405c70}
+    .explanation p{margin:0 0 9px}
+    .explanation strong{color:#214960}
+    .disclaimer{font-size:13px;color:#526d82;background:#e9f1f8;border-radius:10px;padding:10px 13px;margin-top:9px}
+    @media(max-width:620px){.controls{grid-template-columns:1fr;gap:10px}.panel-head{padding:12px 12px 0}.readouts{padding:0 12px 13px;justify-content:flex-start}.intro{font-size:14px}.toolbar{gap:8px}button{padding:9px 12px;font-size:14px}}
+  </style>
+</head>
+<body>
+<main id="pulse-longitudinal">
+  <h1>Propagación de un pulso longitudinal</h1>
+  <p class="intro">25 esferas azules separadas inicialmente una amplitud. Cada esfera oscila en horizontal y, cuando alcanza la siguiente, inicia su movimiento.</p>
+  <section class="panel" aria-label="Simulación del pulso longitudinal">
+    <div class="panel-head">
+      <strong>Oscilación horizontal · propagación hacia la derecha</strong>
+      <span class="badge" id="state" role="status" aria-live="polite">Preparado</span>
+    </div>
+    <svg id="scene" viewBox="0 0 1200 365" role="img" aria-label="25 bolas azules alineadas horizontalmente, separadas una amplitud de oscilación. Al reproducir, cada bola se desplaza a derecha e izquierda y transmite el movimiento a la siguiente.">
+      <defs>
+        <radialGradient id="long-blue" cx="32%" cy="24%" r="75%">
+          <stop offset="0%" stop-color="#b8ebff"/>
+          <stop offset="32%" stop-color="#309bd8"/>
+          <stop offset="100%" stop-color="#145b9f"/>
+        </radialGradient>
+        <radialGradient id="long-active" cx="28%" cy="22%" r="80%">
+          <stop offset="0%" stop-color="#e6f7ff"/>
+          <stop offset="40%" stop-color="#56b5ea"/>
+          <stop offset="100%" stop-color="#1b79b6"/>
+        </radialGradient>
+        <marker id="long-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0 0L8 4L0 8Z" fill="#61869f"/>
+        </marker>
+      </defs>
+      <text x="600" y="40" fill="#3d6884" font-size="21" text-anchor="middle" font-family="system-ui">Dirección de propagación</text>
+      <path d="M410 62H790" fill="none" stroke="#61869f" stroke-width="3" marker-end="url(#long-arrow)"/>
+      <line x1="50" y1="196" x2="1150" y2="196" stroke="#bacbd8" stroke-dasharray="7 8" stroke-width="2"/>
+      <g id="reference" aria-hidden="true"></g>
+      <g id="balls"></g>
+      <g id="effects" aria-hidden="true"></g>
+      <g id="gap-graphic" aria-hidden="true">
+        <path id="gap-line" stroke="#bd8734" fill="none" stroke-width="2"/>
+        <text id="gap-label" text-anchor="middle" font-family="system-ui" font-size="17" font-weight="700" fill="#9c712e">A</text>
+      </g>
+      <text id="event-label" x="600" y="315" text-anchor="middle" font-family="system-ui" font-size="19" font-weight="650" fill="#175b86">Pulsa Reproducir para iniciar el pulso.</text>
+      <text x="600" y="349" text-anchor="middle" font-family="system-ui" font-size="16" fill="#6b8293">La línea discontinua marca el eje; las pequeñas marcas, las posiciones de equilibrio.</text>
+    </svg>
+    <div class="readouts">
+      <span>Tiempo: <b id="elapsed">0,00 s</b></span>
+      <span>Período: <b id="period">1,25 s</b></span>
+      <span>Retraso por contacto: <b id="delay">0,31 s</b></span>
+      <span>Contactos: <b id="hits">0 / 24</b></span>
+    </div>
+  </section>
+
+  <div class="controls" aria-label="Parámetros de la simulación">
+    <div class="control">
+      <label for="amplitude">Amplitud y separación inicial <output id="amplitude-out" for="amplitude">14 u.</output></label>
+      <input id="amplitude" type="range" min="8" max="22" step="1" value="14">
+      <div class="limits"><span>8 u.</span><span>22 u.</span></div>
+    </div>
+    <div class="control">
+      <label for="frequency">Frecuencia de oscilación <output id="frequency-out" for="frequency">0,80 Hz</output></label>
+      <input id="frequency" type="range" min="0.3" max="2.0" step="0.05" value="0.8">
+      <div class="limits"><span>0,30 Hz</span><span>2,00 Hz</span></div>
+    </div>
+  </div>
+  <div class="toolbar" aria-label="Controles de reproducción">
+    <button type="button" id="play" class="primary">▶ Reproducir</button>
+    <button type="button" id="pause" disabled>⏸ Pausar</button>
+    <button type="button" id="step">▷ Avanzar ¼T</button>
+    <button type="button" id="reset">↺ Reiniciar</button>
+    <p class="note">Puedes detener la escena en un contacto y continuar paso a paso.</p>
+  </div>
+  <section class="explanation" aria-label="Interpretación física">
+    <p><strong>Qué representa:</strong> las esferas vibran paralelamente a la dirección de propagación. Cada una realiza una oscilación completa, regresa a su posición de equilibrio y permanece en reposo.</p>
+    <p><strong>Transmisión del pulso:</strong> la siguiente esfera empieza a moverse al cabo de un cuarto de período, justo cuando la anterior llega a su desplazamiento máximo hacia la derecha.</p>
+    <div class="disclaimer"><strong>Modelo didáctico idealizado:</strong> el contacto se utiliza para activar la oscilación siguiente. No se calculan fuerzas de impacto ni choques elásticos reales; en un medio físico, las partículas interactúan mediante fuerzas de restitución.</div>
+  </section>
+</main>
+<script>
+(() => {
+  'use strict';
+  const root = document.getElementById('pulse-longitudinal');
+  if (!root || root.dataset.ready === '1') return;
+  root.dataset.ready = '1';
+  const $ = (id) => root.querySelector('#' + id);
+  const NS = 'http://www.w3.org/2000/svg';
+  const N = 25, y0 = 196, W = 1200, baseR = 12;
+  const amplitudeInput = $('amplitude');
+  const frequencyInput = $('frequency');
+  const play = $('play');
+  const pause = $('pause');
+  const step = $('step');
+  const reset = $('reset');
+  const status = $('state');
+  const eventLabel = $('event-label');
+  const ballGroup = $('balls');
+  const refGroup = $('reference');
+  const effectGroup = $('effects');
+  const balls = [], marks = [];
+  let A = 14, f = 0.8, t = 0, running = false, finished = false;
+  let lastFrame = null, raf = null;
+  let scale = 1, radius = baseR, x0 = 60, spacing = 38;
+
+  function svgEl(tag, attrs = {}, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const [key, value] of Object.entries(attrs)) e.setAttribute(key, String(value));
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  for (let i = 0; i < N; i++) {
+    marks.push(svgEl('path', {stroke:'#bacbd8','stroke-width':1.5,opacity:'0.68'},refGroup));
+    const c = svgEl('circle', {cy:y0,fill:'url(#long-blue)',stroke:'#145886','stroke-width':1.2},ballGroup);
+    const title = svgEl('title',{},c);
+    title.textContent = 'Partícula ' + (i+1);
+    balls.push(c);
+  }
+  const flash = svgEl('circle', {cx:0,cy:y0,r:0,fill:'none',stroke:'#f4a72c','stroke-width':4,opacity:0},effectGroup);
+  const flashDot = svgEl('circle',{cx:0,cy:y0,r:0,fill:'#ffd369',opacity:0},effectGroup);
+  const format = (v,d=2) => Number(v).toFixed(d).replace('.',',');
+  const period = () => 1/f;
+  const lag = () => period()/4;
+  const totalTime = () => (N-1)*lag()+period();
+  const equilibriumX = (i) => x0 + i*spacing;
+
+  function setState(label) {
+    status.textContent = label;
+    play.disabled = running;
+    pause.disabled = !running;
+    step.disabled = running;
+    play.textContent = finished ? '▶ Repetir' : (t > 0 && !running ? '▶ Continuar' : '▶ Reproducir');
+  }
+  function updateGeometry() {
+    const worldSpacing = 2*baseR+A;
+    const totalWorldWidth = (N-1)*worldSpacing + 2*(baseR+A);
+    scale = Math.min(1.17, 1100/totalWorldWidth);
+    radius = baseR*scale;
+    spacing = worldSpacing*scale;
+    x0 = (W-(N-1)*spacing)/2;
+    marks.forEach((p,i) => {
+      const x=equilibriumX(i);
+      p.setAttribute('d',`M${x.toFixed(2)} ${y0+radius+8}v13`);
+    });
+    const gapStart = equilibriumX(0)+radius;
+    const gapEnd = equilibriumX(1)-radius;
+    const gy=y0+66;
+    $('gap-line').setAttribute('d',`M${gapStart} ${gy-7}v14 M${gapStart} ${gy}H${gapEnd} M${gapEnd} ${gy-7}v14`);
+    $('gap-label').setAttribute('x',String((gapStart+gapEnd)/2));
+    $('gap-label').setAttribute('y',String(gy+25));
+  }
+  // Cada bola ejecuta exactamente una oscilación senoidal, comenzando a intervalos T/4.
+  // En el primer máximo (+A), toca a la siguiente bola, que empieza en x = x_equilibrio.
+  function displacement(i, time) {
+    const local = time-i*lag();
+    if (local <= 0 || local >= period()) return 0;
+    return A*scale*Math.sin(2*Math.PI*f*local);
+  }
+  function draw() {
+    const d = lag();
+    const hits = Math.max(0,Math.min(N-1,Math.floor((t+1e-9)/d)));
+    const contactAge = hits>0 ? t-hits*d : Infinity;
+    const contactVisible = hits>0 && contactAge>=-1e-8 && contactAge<Math.min(0.14,period()*0.12);
+    for (let i=0;i<N;i++) {
+      const local = t-i*d;
+      const active = local >= 0 && local < period() && (t>0 || running);
+      const c = balls[i];
+      c.setAttribute('cx',(equilibriumX(i)+displacement(i,t)).toFixed(3));
+      c.setAttribute('r',radius.toFixed(3));
+      c.setAttribute('fill',active ? 'url(#long-active)' : 'url(#long-blue)');
+      c.setAttribute('stroke-width',active ? '1.9' : '1.1');
+    }
+    if (contactVisible) {
+      const left = hits-1;
+      const contactX=equilibriumX(left)+radius+A*scale;
+      const a=contactAge/Math.min(0.14,period()*0.12);
+      flash.setAttribute('cx',contactX);
+      flash.setAttribute('r',radius*(1.4+a*0.45));
+      flash.setAttribute('opacity',Math.max(0,0.88*(1-a)).toFixed(3));
+      flashDot.setAttribute('cx',contactX);
+      flashDot.setAttribute('r',Math.max(0,3.2*(1-a)).toFixed(2));
+      flashDot.setAttribute('opacity',(1-a).toFixed(3));
+    } else {
+      flash.setAttribute('opacity','0');
+      flashDot.setAttribute('opacity','0');
+    }
+    $('elapsed').textContent=format(t)+' s';
+    $('period').textContent=format(period())+' s';
+    $('delay').textContent=format(d)+' s';
+    $('hits').textContent=hits+' / '+(N-1);
+    if (finished) eventLabel.textContent='El pulso ha terminado: todas las partículas están en equilibrio.';
+    else if (contactVisible) eventLabel.textContent='Contacto '+hits+' → '+(hits+1)+': comienza la oscilación de la siguiente bola.';
+    else if (t===0) eventLabel.textContent='Pulsa Reproducir para iniciar el pulso.';
+    else if(hits===N-1) eventLabel.textContent='La última partícula está completando su oscilación.';
+    else eventLabel.textContent='La perturbación avanza; las partículas oscilan en horizontal.';
+  }
+  function cancelTick() {
+    if (raf !== null) cancelAnimationFrame(raf);
+    raf=null;
+    lastFrame=null;
+  }
+  function finish() {
+    running=false;
+    finished=true;
+    t=totalTime();
+    cancelTick();
+    setState('Pulso completado');
+    draw();
+  }
+  function tick(timestamp) {
+    if (!running) return;
+    if (lastFrame !== null) t += Math.max(0,Math.min(0.06,(timestamp-lastFrame)/1000));
+    lastFrame=timestamp;
+    if (t>=totalTime()) {finish();return;}
+    draw();
+    raf=requestAnimationFrame(tick);
+  }
+  play.addEventListener('click',()=>{
+    if(running)return;
+    if(finished){t=0;finished=false;}
+    running=true;
+    lastFrame=null;
+    setState('Reproduciendo');
+    draw();
+    raf=requestAnimationFrame(tick);
+  });
+  pause.addEventListener('click',()=>{
+    if(!running)return;
+    running=false;
+    cancelTick();
+    setState('En pausa');
+    draw();
+  });
+  step.addEventListener('click',()=>{
+    if(running)return;
+    if(finished){t=0;finished=false;}
+    t=Math.min(totalTime(),t+lag());
+    if(t>=totalTime()){finish();return;}
+    setState('Paso a paso');
+    draw();
+  });
+  reset.addEventListener('click',()=>{
+    running=false;finished=false;t=0;
+    cancelTick();
+    setState('Preparado');
+    draw();
+  });
+  function updateParameters() {
+    A=Math.max(8,Math.min(22,Number(amplitudeInput.value)||14));
+    f=Math.max(0.3,Math.min(2,Number(frequencyInput.value)||0.8));
+    $('amplitude-out').textContent=A+' u.';
+    $('frequency-out').textContent=format(f)+' Hz';
+    running=false;finished=false;t=0;
+    cancelTick();
+    updateGeometry();
+    setState('Preparado');
+    draw();
+  }
+  amplitudeInput.addEventListener('input',updateParameters);
+  frequencyInput.addEventListener('input',updateParameters);
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden && running){running=false;cancelTick();setState('En pausa');draw();}
+  });
+  updateParameters();
+})();
+</script>
+</body>
+</html>
