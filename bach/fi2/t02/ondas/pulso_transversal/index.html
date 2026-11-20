@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pulso transversal · 25 partículas</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f2f6fb; color: #19354c; font: 16px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    main { max-width: 1050px; margin: 0 auto; padding: clamp(12px, 3vw, 30px); }
+    h1 { margin: 0 0 6px; font-size: clamp(22px, 3.2vw, 32px); line-height: 1.18; letter-spacing: -.035em; }
+    .intro { margin: 0 0 20px; color: #536d83; font-size: 15px; }
+    .panel { background: white; border: 1px solid #d9e5ed; border-radius: 18px; overflow: hidden; }
+    .panel-head { padding: 15px 18px 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+    .panel-head strong { font-size: 15px; }
+    .status { border: 1px solid #bed8e8; color: #1a5e88; background: #eaf5ff; border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 700; }
+    svg { width: 100%; height: auto; display: block; touch-action: pan-y; }
+    .readouts { padding: 0 17px 14px; display: flex; gap: 6px 20px; flex-wrap: wrap; justify-content: space-between; color: #587084; font-size: 13px; font-variant-numeric: tabular-nums; }
+    .readouts b { color: #1a3c55; }
+    .controls { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; margin-top: 15px; }
+    .control { min-width: 0; padding: 16px 17px 11px; border: 1px solid #d9e5ed; border-radius: 14px; background: #fff; }
+    .control label { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 15px; font-weight: 650; }
+    output { color: #096da7; font-size: 17px; font-weight: 750; white-space: nowrap; }
+    input[type="range"] { display: block; width: 100%; margin: 14px 0 6px; height: 28px; accent-color: #1274b4; cursor: pointer; }
+    .range-ends { display: flex; justify-content: space-between; color: #718597; font-size: 12px; }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 16px 0; }
+    button { min-height: 45px; padding: 10px 18px; border-radius: 11px; font: 700 15px system-ui, sans-serif; cursor: pointer; background: white; color: #194f74; border: 1px solid #b3cddd; touch-action: manipulation; }
+    button.primary { border-color: #1472b3; background: #1472b3; color: white; }
+    button:hover { filter: brightness(.96); }
+    button:focus-visible, input:focus-visible { outline: 3px solid #d88c22; outline-offset: 3px; }
+    .toolbar-note { flex: 1 1 220px; margin: 0 0 0 3px; color: #5c7284; font-size: 13px; }
+    .explain { border-top: 1px solid #d9e5ed; margin-top: 16px; padding-top: 15px; color: #415c70; font-size: 14px; }
+    .explain p { margin: 5px 0 0; }
+    .formula { font: 18px Georgia, "Times New Roman", serif; }
+    @media(max-width: 620px) {
+      .controls { grid-template-columns: 1fr; gap: 10px; }
+      .panel-head { padding: 12px 12px 0; }
+      .readouts { padding: 0 11px 12px; justify-content: flex-start; }
+      .intro { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+<main id="pulse-lab">
+  <h1>Propagación de un pulso transversal</h1>
+  <p class="intro">25 partículas azules, una junto a otra, forman un collar horizontal. Cada partícula oscila verticalmente una sola vez y transmite el pulso a la siguiente.</p>
+  <section class="panel" aria-label="Animación interactiva de una onda transversal">
+    <div class="panel-head">
+      <strong>25 esferas tangentes en el equilibrio</strong>
+      <span id="state" class="status" role="status" aria-live="polite">Preparado</span>
+    </div>
+    <svg id="diagram" viewBox="0 0 960 420" role="img" aria-label="Una fila de 25 esferas azules en contacto. Al pulsar reproducir aparece una oscilación que viaja de izquierda a derecha; cada esfera vuelve a su posición original.">
+      <defs>
+        <radialGradient id="sphere-fill" cx="30%" cy="25%" r="75%">
+          <stop offset="0%" stop-color="#9fe0ff"/>
+          <stop offset="34%" stop-color="#268fd2"/>
+          <stop offset="100%" stop-color="#145b9f"/>
+        </radialGradient>
+        <marker id="pulse-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0 0 L8 4 L0 8Z" fill="#5685a6"/>
+        </marker>
+      </defs>
+      <text x="480" y="36" text-anchor="middle" fill="#3f6683" font-size="17" font-family="system-ui">Dirección de propagación</text>
+      <path d="M318 55 H642" stroke="#5685a6" stroke-width="2.5" fill="none" marker-end="url(#pulse-arrow)"/>
+      <line x1="65" y1="221" x2="895" y2="221" stroke="#a8becd" stroke-width="2" stroke-dasharray="7 7"/>
+      <g id="string" stroke="#80b6d4" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.8">
+        <polyline id="string-line" points=""/>
+      </g>
+      <g id="balls" stroke="#145886" stroke-width="1.05">
+        <circle cx="120" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="150" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="180" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="210" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="240" cy="221" r="15" fill="url(#sphere-fill)"/>
+        <circle cx="270" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="300" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="330" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="360" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="390" cy="221" r="15" fill="url(#sphere-fill)"/>
+        <circle cx="420" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="450" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="480" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="510" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="540" cy="221" r="15" fill="url(#sphere-fill)"/>
+        <circle cx="570" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="600" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="630" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="660" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="690" cy="221" r="15" fill="url(#sphere-fill)"/>
+        <circle cx="720" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="750" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="780" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="810" cy="221" r="15" fill="url(#sphere-fill)"/><circle cx="840" cy="221" r="15" fill="url(#sphere-fill)"/>
+      </g>
+      <text x="60" y="255" fill="#8299aa" font-size="15" font-family="system-ui">Equilibrio</text>
+      <text x="120" y="275" text-anchor="middle" fill="#4f748e" font-size="13" font-family="system-ui">1</text>
+      <text x="840" y="275" text-anchor="middle" fill="#4f748e" font-size="13" font-family="system-ui">25</text>
+    </svg>
+    <div class="readouts">
+      <span>Tiempo: <b id="time">0,00 s</b></span>
+      <span>Período: <b id="period">1,00 s</b></span>
+      <span>Completadas: <b id="finished">0/25</b></span>
+      <span>Retardo entre bolas: <b>0,11 s</b></span>
+    </div>
+  </section>
+  <div class="controls">
+    <div class="control">
+      <label for="amplitude">Amplitud <output id="amplitude-value">3,0 cm</output></label>
+      <input type="range" id="amplitude" min="0.5" max="5" step="0.5" value="3">
+      <div class="range-ends"><span>0,5 cm</span><span>5,0 cm</span></div>
+    </div>
+    <div class="control">
+      <label for="frequency">Frecuencia <output id="frequency-value">1,0 Hz</output></label>
+      <input type="range" id="frequency" min="0.4" max="2" step="0.1" value="1">
+      <div class="range-ends"><span>0,4 Hz</span><span>2,0 Hz</span></div>
+    </div>
+  </div>
+  <div class="toolbar">
+    <button id="play" class="primary" type="button">▶ Reproducir</button>
+    <button id="restart" type="button">↻ Repetir pulso</button>
+    <p class="toolbar-note">Puedes pausar, continuar o volver a empezar. Si cambias un deslizador, el pulso se reinicia.</p>
+  </div>
+  <section class="explain">
+    <strong>Qué representa</strong>
+    <p>Las esferas no avanzan a la derecha: solo se desplazan verticalmente. La perturbación es la que se propaga. Cada bola sube, regresa al equilibrio, baja y vuelve al equilibrio; después queda parada.</p>
+    <p class="formula">y<sub>n</sub>(t) = A · sen[2πf(t − nΔt)]</p>
+    <p>El movimiento comienza en cada partícula con un retardo Δt = 0,11 s y dura exactamente un período T = 1/f. Fuera de ese intervalo, y = 0.</p>
+  </section>
+</main>
+<script>
+(function () {
+  'use strict';
+  var lab = document.getElementById('pulse-lab');
+  if (!lab || lab.getAttribute('data-ready') === 'yes') return;
+  lab.setAttribute('data-ready', 'yes');
+
+  function get(id) { return document.getElementById(id); }
+  var balls = Array.prototype.slice.call(get('balls').querySelectorAll('circle'));
+  var stringLine = get('string-line');
+  var amplitudeInput = get('amplitude');
+  var frequencyInput = get('frequency');
+  var state = get('state');
+  var play = get('play');
+  var restart = get('restart');
+  var dt = 0.11;
+  var baseline = 221;
+  var pixelsPerCm = 27;
+  var elapsed = 0;
+  var running = false;
+  var lastTimestamp = null;
+  var requestId = null;
+  var startIndex = 0;
+  var requestFrame = window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : function (fn) { return window.setTimeout(function () { fn(Date.now()); }, 16); };
+  var cancelFrame = window.cancelAnimationFrame ? window.cancelAnimationFrame.bind(window) : window.clearTimeout.bind(window);
+
+  function number(value, decimals) { return value.toFixed(decimals).replace('.', ','); }
+  function freq() { return Math.max(0.4, Math.min(2, Number(frequencyInput.value) || 1)); }
+  function amp() { return Math.max(0.5, Math.min(5, Number(amplitudeInput.value) || 3)); }
+  function T() { return 1 / freq(); }
+  function totalTime() { return (balls.length - 1) * dt + T(); }
+
+  function render() {
+    var tPeriod = T();
+    var f = freq();
+    var a = amp() * pixelsPerCm;
+    var complete = 0;
+    var points = [];
+    for (var i = 0; i < balls.length; i++) {
+      var localTime = elapsed - i * dt;
+      var displacement = 0;
+      if (localTime >= 0 && localTime < tPeriod) {
+        displacement = -a * Math.sin(2 * Math.PI * f * localTime);
+      }
+      if (localTime >= tPeriod) complete++;
+      var y = baseline + displacement;
+      balls[i].setAttribute('cy', y.toFixed(3));
+      // Todos los centros consecutivos distan exactamente 2 radios en reposo.
+      points.push((120 + i * 30) + ',' + y.toFixed(3));
+    }
+    stringLine.setAttribute('points', points.join(' '));
+    get('time').textContent = number(elapsed, 2) + ' s';
+    get('period').textContent = number(tPeriod, 2) + ' s';
+    get('finished').textContent = complete + '/25';
+    get('amplitude-value').textContent = number(amp(), 1) + ' cm';
+    get('frequency-value').textContent = number(f, 1) + ' Hz';
+  }
+
+  function label() {
+    play.textContent = running ? '⏸ Pausar' : (elapsed >= totalTime() - 0.00001 ? '▶ Volver a reproducir' : '▶ Reproducir');
+  }
+
+  function pause(status) {
+    running = false;
+    if (requestId !== null) cancelFrame(requestId);
+    requestId = null;
+    lastTimestamp = null;
+    state.textContent = status;
+    label();
+  }
+
+  function tick(timestamp) {
+    if (!running) return;
+    if (lastTimestamp !== null) elapsed += Math.max(0, Math.min(0.08, (timestamp - lastTimestamp) / 1000));
+    lastTimestamp = timestamp;
+    if (elapsed >= totalTime()) {
+      elapsed = totalTime();
+      render();
+      pause('Pulso finalizado');
+      return;
+    }
+    render();
+    requestId = requestFrame(tick);
+  }
+
+  function resume() {
+    if (elapsed >= totalTime() - 0.00001) elapsed = 0;
+    if (running) return;
+    running = true;
+    lastTimestamp = null;
+    render();
+    state.textContent = 'Pulso propagándose';
+    label();
+    requestId = requestFrame(tick);
+  }
+
+  play.addEventListener('click', function () {
+    if (running) pause('En pausa');
+    else resume();
+  });
+  restart.addEventListener('click', function () {
+    pause('Preparado');
+    elapsed = 0;
+    resume();
+  });
+  function parametersChanged() {
+    pause('Parámetros actualizados');
+    elapsed = 0;
+    render();
+  }
+  amplitudeInput.addEventListener('input', parametersChanged);
+  frequencyInput.addEventListener('input', parametersChanged);
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && running) pause('En pausa');
+  });
+  render();
+  label();
+})();
+</script>
+</body>
+</html>
