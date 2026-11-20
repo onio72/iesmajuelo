@@ -162,6 +162,7 @@ small.muted{color:var(--muted)}
   let trial=0, caseIndex=0, params=cases[caseIndex], elapsed=0, running=false;
   let lastFrame=0, frameId=0, tapeOn=false, measured=0, dragging=false;
   const safeTime=()=>LENGTH/params.speed;
+  const endTime=()=>safeTime()+2/params.frequency;
   function comma(n,d=2){return Number(n).toFixed(d).replace('.',',');}
   function clockText(seconds){
     const cent=Math.round(Math.max(0,seconds)*100);
@@ -187,7 +188,7 @@ small.muted{color:var(--muted)}
     $('clock').textContent=clockText(elapsed);
     const front=Math.min(LENGTH,elapsed*params.speed);
     const frontX=LEFT+front*SCALE;
-    const guide=(!running&&elapsed>.015);
+    const guide=(!running&&elapsed>.015&&elapsed<safeTime()-.001);
     $('frontGroup').setAttribute('visibility',guide?'visible':'hidden');
     $('frontLine').setAttribute('x1',frontX);
     $('frontLine').setAttribute('x2',frontX);
@@ -196,14 +197,15 @@ small.muted{color:var(--muted)}
     label.setAttribute('x',frontX>RIGHT-140?frontX-9:frontX+9);
     label.setAttribute('text-anchor',frontX>RIGHT-140?'end':'start');
     drawTape();
-    const ready=!running&&elapsed>.015;
+    const ready=!running&&elapsed>.015&&elapsed<safeTime()-.001;
     $('showTape').disabled=!ready;
     $('pause').disabled=!running;
     $('play').disabled=running;
-    $('play').textContent=elapsed>=safeTime()-.001?'▶ Repetir':'▶ '+(elapsed>0?'Continuar':'Reproducir');
+    $('play').textContent=elapsed>=endTime()-.001?'▶ Repetir':'▶ '+(elapsed>0?'Continuar':'Reproducir');
     $('tape').setAttribute('visibility',tapeOn&&ready?'visible':'hidden');
     $('tapeControls').hidden=!(tapeOn&&ready);
     $('tapeHint').hidden=tapeOn&&ready;
+    $('tapeHint').textContent=elapsed>=safeTime()?'La onda ya ha llegado al final. Repite el experimento y pausa antes para medir.':'La cinta estará disponible al pausar la onda.';
     $('scene').style.touchAction=tapeOn&&ready?'none':'pan-y';
   }
   function drawTape(){
@@ -238,9 +240,11 @@ small.muted{color:var(--muted)}
     if(!running)return;
     const dt=Math.min(Math.max((now-lastFrame)/1000,0),.08);
     lastFrame=now;
-    elapsed=Math.min(safeTime(),elapsed+dt);
-    if(elapsed>=safeTime()-.000001){
-      stop('Fin de la cuerda · mide');
+    const previous=elapsed;
+    elapsed=Math.min(endTime(),elapsed+dt);
+    if(previous<safeTime()&&elapsed>=safeTime())state('Onda sin reflexión');
+    if(elapsed>=endTime()-.000001){
+      stop('Onda transmitida · repite para medir');
       return;
     }
     draw();
@@ -248,7 +252,7 @@ small.muted{color:var(--muted)}
   }
   function play(){
     if(running)return;
-    if(elapsed>=safeTime()-.001){reset(false);}
+    if(elapsed>=endTime()-.001){reset(false);}
     tapeOn=false;
     lastFrame=performance.now();
     running=true;
@@ -287,7 +291,7 @@ small.muted{color:var(--muted)}
   $('repeat').addEventListener('click',()=>{reset(false);play();});
   $('newCase').addEventListener('click',()=>reset(true));
   $('showTape').addEventListener('click',()=>{
-    if(running||elapsed<.015)return;
+    if(running||elapsed<.015||elapsed>=safeTime())return;
     tapeOn=!tapeOn;
     $('showTape').textContent=tapeOn?'Ocultar cinta métrica':'▱ Cinta métrica';
     if(tapeOn&&measured===0)measured=1;
@@ -320,6 +324,7 @@ small.muted{color:var(--muted)}
     const v=parseNum($('speedAnswer').value);
     const fb=$('feedback');fb.className='feedback';
     if(running||elapsed<.2){fb.textContent='Primero inicia la onda y detenla para medir.';fb.classList.add('bad');return;}
+    if(elapsed>=safeTime()) {fb.textContent='El frente ya ha salido de la cuerda. Pulsa Repetir y pausa antes de que llegue al extremo derecho.';fb.classList.add('bad');return;}
     if(![d,t,v].every(Number.isFinite)||d<=0||t<=0||v<=0){fb.textContent='Introduce tres números positivos para distancia, tiempo y velocidad.';fb.classList.add('bad');return;}
     const expectedD=Math.min(LENGTH,elapsed*params.speed);
     const goodD=Math.abs(d-expectedD)<=.25;
@@ -341,7 +346,7 @@ small.muted{color:var(--muted)}
   });
   $('solution').addEventListener('click',()=>{
     const fb=$('feedback');fb.className='feedback';
-    if(elapsed<.02){fb.textContent='Inicia el experimento y pausa la onda antes de ver la solución.';return;}
+    if(elapsed<.02||elapsed>=safeTime()){fb.textContent='Pausa la onda mientras el frente todavía se encuentra en la cuerda para ver la solución de esa medida.';return;}
     const d=Math.min(LENGTH,elapsed*params.speed);
     fb.textContent='Solución del experimento: d = '+comma(d)+' m; t = '+comma(elapsed)+' s; v = d/t ≈ '+comma(params.speed)+' m/s. Amplitud '+comma(params.amplitude)+' m; frecuencia '+comma(params.frequency)+' Hz; longitud de onda '+comma(params.speed/params.frequency)+' m.';
   });
