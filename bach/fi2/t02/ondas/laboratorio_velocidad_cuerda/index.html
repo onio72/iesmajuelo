@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laboratorio · Velocidad de una onda en una cuerda</title>
+<style>
+:root{color-scheme:light;--ink:#16324b;--muted:#5b6f80;--line:#d7e3ed;--blue:#117bb2;--paper:#f3f7fb}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.48 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1120px;margin:auto;padding:clamp(12px,2.8vw,30px)}
+h1{margin:0 0 6px;line-height:1.18;letter-spacing:-.025em;font-size:clamp(23px,3.2vw,33px)}
+.lead{color:var(--muted);margin:0 0 18px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.panel-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:13px 17px 10px}
+.panel-top strong{font-size:15px}
+.badge{display:inline-flex;align-items:center;gap:8px;font-size:13px;background:#eaf4fc;border:1px solid #bad6e7;border-radius:99px;padding:5px 11px;color:#155879;font-weight:700}
+.dot{width:7px;height:7px;background:#189bc3;border-radius:50%}
+.clock{font-variant-numeric:tabular-nums;background:#102f48;color:white;border-radius:11px;padding:7px 13px;font-weight:750;letter-spacing:.08em;white-space:nowrap;font-size:20px}
+.clock small{font-size:11px;font-weight:500;letter-spacing:0;color:#d7eaf5;margin-right:8px}
+.viewport{max-width:100%;overflow-x:auto;background:linear-gradient(180deg,#fcfeff,#edf6fd)}
+#scene{display:block;width:100%;min-width:660px;height:auto;touch-action:pan-y}
+.fig-note{display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:space-between;padding:8px 17px 13px;color:var(--muted);font-size:13px}
+.fig-note strong{color:var(--ink)}
+.toolbar{display:flex;flex-wrap:wrap;gap:9px;margin:15px 0}
+button{cursor:pointer;min-height:43px;border-radius:10px;border:1px solid #b8cbd9;background:#fff;color:#1a4b69;font:700 14px/1.2 system-ui,sans-serif;padding:10px 15px;touch-action:manipulation}
+button.primary{background:#167db4;border-color:#167db4;color:white}
+button:disabled{cursor:not-allowed;opacity:.45}
+button:hover:not(:disabled){filter:brightness(.97)}
+button:focus-visible,input:focus-visible{outline:3px solid #e39b23;outline-offset:3px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:13px}
+.box{background:white;border:1px solid var(--line);border-radius:13px;padding:15px;min-width:0}
+.box h2{font-size:17px;margin:0 0 8px}
+.box p{font-size:14px;color:var(--muted);margin:5px 0 12px}
+.measurebox{background:#fffbf3;border:1px solid #f0d7a5}
+.measurebox output{font-size:19px;font-weight:800;color:#815719;display:block;margin:8px 0;font-variant-numeric:tabular-nums}
+.measurebox label{display:block;font-weight:650;font-size:13px;margin-top:10px}
+input[type=range]{width:100%;accent-color:#d28b22;min-height:32px}
+.result-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.field{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:650}
+.field input{min-width:0;width:100%;border:1px solid #b4cada;border-radius:9px;padding:10px;font:inherit;font-size:16px}
+.subactions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.feedback{min-height:25px;margin-top:12px;color:#31556d;font-size:14px}
+.feedback.good{color:#16623d}.feedback.bad{color:#9a4827}
+.tip{border-left:3px solid #7ba8c4;padding:8px 12px;font-size:14px;color:#506777;margin-top:12px;background:#f5f9fc}
+small.muted{color:var(--muted)}
+@media(max-width:690px){.row{grid-template-columns:1fr}.result-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.fig-note{padding:9px 12px}.panel-top{padding:12px}.clock{font-size:17px}}
+@media(max-width:360px){.result-grid{grid-template-columns:1fr}.toolbar button{flex:1 1 44%}}
+</style>
+</head>
+<body>
+<main id="wave-lab">
+  <h1>¿A qué velocidad viaja una onda?</h1>
+  <p class="lead">Laboratorio de propagación transversal en una cuerda tensa. Detén la onda, mide su avance con la cinta métrica y calcula su velocidad.</p>
+  <section class="panel" aria-label="Cuerda tensa y onda transversal">
+    <div class="panel-top">
+      <strong>Experimento <span id="caseNum">01</span> · Cuerda de 12 m</strong>
+      <span class="clock"><small>CRONÓMETRO</small><span id="clock">00:00.00</span></span>
+      <span id="status" class="badge" role="status"><span class="dot"></span> Preparado</span>
+    </div>
+    <div class="viewport">
+      <svg id="scene" viewBox="0 0 1000 387" role="img" aria-label="Una cuerda horizontal de doce metros. El extremo izquierdo vibra y la onda se propaga hacia la derecha. Al pausar, aparece el frente de onda para medirlo.">
+        <defs>
+          <linearGradient id="cordColor" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="#c1f3ff"/>
+            <stop offset="44%" stop-color="#299bd6"/>
+            <stop offset="100%" stop-color="#07508d"/>
+          </linearGradient>
+          <radialGradient id="sourceColor" cx="30%" cy="27%" r="76%">
+            <stop offset="0" stop-color="#ffd7a4"/>
+            <stop offset="0.48" stop-color="#e88b38"/>
+            <stop offset="1" stop-color="#a34b23"/>
+          </radialGradient>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+            <path d="M0 0 L9 5 L0 10Z" fill="#7292aa"/>
+          </marker>
+        </defs>
+        <text x="78" y="43" fill="#395c73" font-size="16" font-weight="600">Foco oscilante</text>
+        <text x="925" y="43" text-anchor="end" fill="#56778d" font-size="15">Salida sin reflexión</text>
+        <path d="M382 45 H648" stroke="#7292aa" stroke-width="2.5" marker-end="url(#arrow)" fill="none"/>
+        <text x="515" y="29" text-anchor="middle" font-size="14" fill="#56778d">Propagación</text>
+        <line x1="76" y1="182" x2="932" y2="182" stroke="#b5c8d5" stroke-dasharray="7 7" stroke-width="1.8"/>
+        <path id="ropeShadow" d="M76 182H932" fill="none" stroke="#0d4773" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity=".22"/>
+        <path id="rope" d="M76 182H932" fill="none" stroke="url(#cordColor)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle id="source" cx="76" cy="182" r="12" fill="url(#sourceColor)" stroke="#8f451d" stroke-width="1.5"/>
+        <path d="M76 215 V272" stroke="#bbd0dc" stroke-width="1.2" stroke-dasharray="3 4"/>
+        <text x="76" y="284" text-anchor="middle" fill="#547286" font-size="15">0 m</text>
+        <text x="932" y="284" text-anchor="end" fill="#547286" font-size="15">12 m</text>
+        <g id="frontGroup" visibility="hidden">
+          <line id="frontLine" x1="76" x2="76" y1="88" y2="285" stroke="#c0782e" stroke-width="2" stroke-dasharray="5 5"/>
+          <circle id="frontPoint" cx="76" cy="182" r="5" fill="#d18c2f" stroke="white" stroke-width="2"/>
+          <text id="frontLabel" x="84" y="102" font-weight="750" fill="#9a591d" font-size="15">Frente de onda</text>
+        </g>
+        <g id="tape" visibility="hidden">
+          <rect id="tapeFill" x="76" y="313" width="0" height="22" rx="2" fill="#fbe0a0" stroke="#aa7c33" stroke-width="1.4"/>
+          <g id="tapeTicks" stroke="#9d6b2a" stroke-width="1.3"></g>
+          <circle id="handle" cx="76" cy="324" r="12" fill="#cf8a27" stroke="white" stroke-width="2.5"/>
+          <text id="tapeLabel" x="76" y="306" font-size="14" font-weight="750" fill="#8b5a21">0,00 m</text>
+          <text x="76" y="362" fill="#84612e" font-size="15">Desliza el extremo de la cinta hasta el frente de onda</text>
+        </g>
+      </svg>
+    </div>
+    <div class="fig-note"><span>La onda avanza <strong>→</strong>; los puntos de la cuerda oscilan <strong>↕</strong>.</span><span>Longitud de la cuerda: <strong>12,0 m</strong></span></div>
+  </section>
+  <div class="toolbar" aria-label="Controles de reproducción">
+    <button class="primary" id="play" type="button">▶ Reproducir</button>
+    <button id="pause" type="button" disabled>Ⅱ Pausar</button>
+    <button id="repeat" type="button">↻ Repetir</button>
+    <button id="newCase" type="button">⟳ Nuevo experimento</button>
+    <button id="showTape" type="button" disabled>▱ Cinta métrica</button>
+  </div>
+  <div class="row">
+    <section class="box measurebox" aria-label="Medición de distancias">
+      <h2>1. Mide el avance de la perturbación</h2>
+      <p>Detén la animación antes de que el frente llegue al otro extremo. Activa la cinta y arrastra su extremo derecho hasta la línea discontinua del frente.</p>
+      <div id="tapeControls" hidden>
+        <label for="tapeRange">Posición del extremo de la cinta</label>
+        <input id="tapeRange" type="range" min="0" max="12" step="0.05" value="0">
+        <output id="tapeValue" for="tapeRange">Distancia medida: 0,00 m</output>
+        <small class="muted">También puedes arrastrar la cinta directamente sobre el dibujo.</small>
+      </div>
+      <p id="tapeHint">La cinta estará disponible al pausar la onda.</p>
+    </section>
+    <section class="box" aria-label="Cálculo de la velocidad">
+      <h2>2. Calcula la velocidad</h2>
+      <p>Lee el cronómetro. Anota tus mediciones y utiliza <strong>v = d / t</strong> para calcular la velocidad de propagación.</p>
+      <form id="answers">
+        <div class="result-grid">
+          <label class="field">Distancia (m)<input id="distance" inputmode="decimal" autocomplete="off" placeholder="Ej.: 5,4" required></label>
+          <label class="field">Tiempo (s)<input id="timeAnswer" inputmode="decimal" autocomplete="off" placeholder="Ej.: 3,20" required></label>
+          <label class="field">Velocidad (m/s)<input id="speedAnswer" inputmode="decimal" autocomplete="off" placeholder="Ej.: 1,69" required></label>
+        </div>
+        <div class="subactions">
+          <button class="primary" type="submit" id="check">Comprobar cálculo</button>
+          <button type="button" id="solution">Mostrar solución</button>
+        </div>
+      </form>
+      <div class="feedback" id="feedback" role="status" aria-live="polite">Realiza una medición para comprobar tus resultados.</div>
+    </section>
+  </div>
+  <div class="tip"><strong>Modelo físico:</strong> la cuerda es uniforme y la perturbación avanza a velocidad constante. El extremo derecho se representa como una <em>terminación absorbente idealizada</em>: la onda sale sin producir reflexiones. En una cuerda real con extremo libre sí habría reflexión.</div>
+</main>
+<script>
+(function(){
+  'use strict';
+  const root=document.getElementById('wave-lab');
+  if(root.dataset.initialized)return;
+  root.dataset.initialized='1';
+  const $=id=>root.querySelector('#'+id);
+  const LENGTH=12, LEFT=76, RIGHT=932, BASE=182;
+  const SCALE=(RIGHT-LEFT)/LENGTH, AMP_PX=93;
+  const cases=[
+    {speed:1.20,frequency:.65,amplitude:.62},
+    {speed:1.75,frequency:.85,amplitude:.46},
+    {speed:2.35,frequency:.72,amplitude:.68},
+    {speed:2.70,frequency:1.16,amplitude:.39},
+    {speed:1.45,frequency:1.05,amplitude:.72},
+    {speed:2.05,frequency:.51,amplitude:.52},
+    {speed:1.90,frequency:1.26,amplitude:.57},
+    {speed:2.55,frequency:.92,amplitude:.76}
+  ];
+  let trial=0, caseIndex=0, params=cases[caseIndex], elapsed=0, running=false;
+  let lastFrame=0, frameId=0, tapeOn=false, measured=0, dragging=false;
+  const safeTime=()=>LENGTH/params.speed;
+  function comma(n,d=2){return Number(n).toFixed(d).replace('.',',');}
+  function clockText(seconds){
+    const cent=Math.round(Math.max(0,seconds)*100);
+    const sec=Math.floor(cent/100), frac=cent%100;
+    return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')+'.'+String(frac).padStart(2,'0');
+  }
+  function displacement(x){
+    const tau=elapsed-x/params.speed;
+    if(tau<=0)return 0;
+    return -AMP_PX*params.amplitude*Math.sin(2*Math.PI*params.frequency*tau);
+  }
+  function draw(){
+    let path='';
+    for(let px=LEFT;px<=RIGHT;px+=2){
+      const x=(px-LEFT)/SCALE;
+      const y=BASE+displacement(x);
+      path+=(path?' L':'M')+px.toFixed(1)+' '+y.toFixed(2);
+    }
+    path+=' L'+RIGHT+' '+(BASE+displacement(LENGTH)).toFixed(2);
+    $('rope').setAttribute('d',path);
+    $('ropeShadow').setAttribute('d',path);
+    $('source').setAttribute('cy',String(BASE+displacement(0)));
+    $('clock').textContent=clockText(elapsed);
+    const front=Math.min(LENGTH,elapsed*params.speed);
+    const frontX=LEFT+front*SCALE;
+    const guide=(!running&&elapsed>.015);
+    $('frontGroup').setAttribute('visibility',guide?'visible':'hidden');
+    $('frontLine').setAttribute('x1',frontX);
+    $('frontLine').setAttribute('x2',frontX);
+    $('frontPoint').setAttribute('cx',frontX);
+    const label=$('frontLabel');
+    label.setAttribute('x',frontX>RIGHT-140?frontX-9:frontX+9);
+    label.setAttribute('text-anchor',frontX>RIGHT-140?'end':'start');
+    drawTape();
+    const ready=!running&&elapsed>.015;
+    $('showTape').disabled=!ready;
+    $('pause').disabled=!running;
+    $('play').disabled=running;
+    $('play').textContent=elapsed>=safeTime()-.001?'▶ Repetir':'▶ '+(elapsed>0?'Continuar':'Reproducir');
+    $('tape').setAttribute('visibility',tapeOn&&ready?'visible':'hidden');
+    $('tapeControls').hidden=!(tapeOn&&ready);
+    $('tapeHint').hidden=tapeOn&&ready;
+    $('scene').style.touchAction=tapeOn&&ready?'none':'pan-y';
+  }
+  function drawTape(){
+    const x=LEFT+measured*SCALE;
+    $('tapeFill').setAttribute('width',Math.max(0,x-LEFT));
+    $('handle').setAttribute('cx',x);
+    const label=$('tapeLabel');
+    label.setAttribute('x',x>RIGHT-90?x-8:x+8);
+    label.setAttribute('text-anchor',x>RIGHT-90?'end':'start');
+    label.textContent=comma(measured)+' m';
+    const marks=[];
+    const ticks=Math.floor(measured*10+1e-6);
+    for(let i=0;i<=ticks;i++){
+      const tx=LEFT+i*.1*SCALE;
+      const large=i%10===0;
+      const mid=i%5===0;
+      marks.push('<line x1="'+tx.toFixed(2)+'" y1="314" x2="'+tx.toFixed(2)+'" y2="'+(large?328:(mid?324:321))+'"/>');
+    }
+    $('tapeTicks').innerHTML=marks.join('');
+    $('tapeRange').value=String(measured);
+    $('tapeValue').textContent='Distancia medida: '+comma(measured)+' m';
+  }
+  function state(s){$('status').innerHTML='<span class="dot"></span> '+s;}
+  function stop(s){
+    running=false;
+    if(frameId)cancelAnimationFrame(frameId);
+    frameId=0;
+    if(s)state(s);
+    draw();
+  }
+  function tick(now){
+    if(!running)return;
+    const dt=Math.min(Math.max((now-lastFrame)/1000,0),.08);
+    lastFrame=now;
+    elapsed=Math.min(safeTime(),elapsed+dt);
+    if(elapsed>=safeTime()-.000001){
+      stop('Fin de la cuerda · mide');
+      return;
+    }
+    draw();
+    frameId=requestAnimationFrame(tick);
+  }
+  function play(){
+    if(running)return;
+    if(elapsed>=safeTime()-.001){reset(false);}
+    tapeOn=false;
+    lastFrame=performance.now();
+    running=true;
+    state('En movimiento');
+    draw();
+    frameId=requestAnimationFrame(tick);
+  }
+  function reset(newTrial){
+    stop();
+    elapsed=0;measured=0;dragging=false;tapeOn=false;
+    $('distance').value='';$('timeAnswer').value='';$('speedAnswer').value='';
+    $('feedback').textContent='Realiza una medición para comprobar tus resultados.';
+    $('feedback').className='feedback';
+    if(newTrial){
+      let next=caseIndex;
+      if(cases.length>1){while(next===caseIndex)next=Math.floor(Math.random()*cases.length);}
+      caseIndex=next;params=cases[caseIndex];trial++;
+      $('caseNum').textContent=String(trial+1).padStart(2,'0');
+    }
+    state('Preparado');
+    draw();
+  }
+  function updateTapeWithClient(x){
+    const rect=$('scene').getBoundingClientRect();
+    const svgX=(x-rect.left)/rect.width*1000;
+    const raw=Math.max(0,Math.min(LENGTH,(svgX-LEFT)/SCALE));
+    measured=Math.round(raw*20)/20;
+    drawTape();
+  }
+  function parseNum(str){
+    const n=Number(String(str).trim().replace(',','.'));
+    return Number.isFinite(n)?n:NaN;
+  }
+  $('play').addEventListener('click',play);
+  $('pause').addEventListener('click',()=>{if(running)stop('En pausa · mide el frente');});
+  $('repeat').addEventListener('click',()=>{reset(false);play();});
+  $('newCase').addEventListener('click',()=>reset(true));
+  $('showTape').addEventListener('click',()=>{
+    if(running||elapsed<.015)return;
+    tapeOn=!tapeOn;
+    $('showTape').textContent=tapeOn?'Ocultar cinta métrica':'▱ Cinta métrica';
+    if(tapeOn&&measured===0)measured=1;
+    draw();
+  });
+  $('tapeRange').addEventListener('input',e=>{
+    if(!tapeOn||running)return;
+    const val=Number(e.target.value);
+    measured=Math.round(Math.min(LENGTH,Math.max(0,val))*20)/20;
+    drawTape();
+  });
+  $('scene').addEventListener('pointerdown',e=>{
+    if(!tapeOn||running||elapsed<=.015)return;
+    dragging=true;
+    if($('scene').setPointerCapture)$('scene').setPointerCapture(e.pointerId);
+    e.preventDefault();
+    updateTapeWithClient(e.clientX);
+  });
+  $('scene').addEventListener('pointermove',e=>{
+    if(!dragging||!tapeOn||running)return;
+    updateTapeWithClient(e.clientX);
+  });
+  function endDrag(){dragging=false;}
+  $('scene').addEventListener('pointerup',endDrag);
+  $('scene').addEventListener('pointercancel',endDrag);
+  $('answers').addEventListener('submit',e=>{
+    e.preventDefault();
+    const d=parseNum($('distance').value);
+    const t=parseNum($('timeAnswer').value);
+    const v=parseNum($('speedAnswer').value);
+    const fb=$('feedback');fb.className='feedback';
+    if(running||elapsed<.2){fb.textContent='Primero inicia la onda y detenla para medir.';fb.classList.add('bad');return;}
+    if(![d,t,v].every(Number.isFinite)||d<=0||t<=0||v<=0){fb.textContent='Introduce tres números positivos para distancia, tiempo y velocidad.';fb.classList.add('bad');return;}
+    const expectedD=Math.min(LENGTH,elapsed*params.speed);
+    const goodD=Math.abs(d-expectedD)<=.25;
+    const goodT=Math.abs(t-elapsed)<=.12;
+    const correctDivision=Math.abs(v-d/t)<=Math.max(.12,.05*(d/t));
+    const goodV=Math.abs(v-params.speed)<=.14;
+    if(goodD&&goodT&&correctDivision&&goodV){
+      fb.textContent='¡Correcto! Has medido el avance del frente y calculado su velocidad: '+comma(v)+' m/s.';
+      fb.classList.add('good');
+    }else{
+      const hints=[];
+      if(!goodD)hints.push('revisa dónde termina la perturbación y ajusta la cinta');
+      if(!goodT)hints.push('lee el tiempo del cronómetro');
+      if(!correctDivision)hints.push('divide correctamente la distancia entre el tiempo');
+      if(!goodV&&goodD&&goodT)hints.push('comprueba el redondeo de la velocidad');
+      fb.textContent='Todavía no coincide: '+hints.join('; ')+'.';
+      fb.classList.add('bad');
+    }
+  });
+  $('solution').addEventListener('click',()=>{
+    const fb=$('feedback');fb.className='feedback';
+    if(elapsed<.02){fb.textContent='Inicia el experimento y pausa la onda antes de ver la solución.';return;}
+    const d=Math.min(LENGTH,elapsed*params.speed);
+    fb.textContent='Solución del experimento: d = '+comma(d)+' m; t = '+comma(elapsed)+' s; v = d/t ≈ '+comma(params.speed)+' m/s. Amplitud '+comma(params.amplitude)+' m; frecuencia '+comma(params.frequency)+' Hz; longitud de onda '+comma(params.speed/params.frequency)+' m.';
+  });
+  document.addEventListener('visibilitychange',()=>{if(document.hidden&&running)stop('En pausa · pestaña oculta');});
+  document.addEventListener('keydown',e=>{
+    if(e.code!=='Space'||e.target.closest('input,button,textarea,select'))return;
+    if(!root.contains(document.activeElement))return;
+    e.preventDefault();
+    if(running)stop('En pausa · mide el frente');else play();
+  });
+  draw();
+})();
+</script>
+</body>
+</html>
