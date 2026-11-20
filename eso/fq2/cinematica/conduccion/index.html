@@ -1,3 +1,4 @@
+
 <!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cinemática al volante</title><link rel="stylesheet" href="../../../../herramientas/estilos/v1/practica.css"><style>
 .scene{position:relative;overflow:hidden;border-radius:12px;background:#15232e}canvas{display:block;width:100%;aspect-ratio:16/9} .controls,.questions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:12px 0}.questions label{flex:1 1 190px}.questions select{display:block;width:100%}.scene:fullscreen{display:grid;place-items:center}.scene:fullscreen canvas{max-height:100vh;object-fit:contain}.small{font-size:.85rem}#feedback{white-space:pre-line} progress{width:100%}
 .mode-controls,.mode-controls #explore{align-items:flex-end}.mode-controls #explore{margin:0}.mode-controls .edu-field{margin:0;align-self:flex-end}.mode-controls .edu-field select{display:block;margin-bottom:0}.mode-controls #explore button{align-self:flex-end;margin:0}
@@ -62,23 +63,54 @@ for(let z=max-(s+max)%2;z>2;z-=2){let near=Math.max(2,z-2),n=Math.floor((s+near+
 for(let z=max-(s+max)%2;z>3;z-=2){let world=s+z,n=Math.round(world/2);for(let l of [-1,1]){let p=project(z,l*(9+noise(n+l)*20),c.k);if(!p)continue;let [x,y,q]=p;if(n%3===0){let h=q*(3.2+noise(n+l*17)*3.8);naturalTree(x,y,h,n+l*7)}if(n%5===0){let r=project(z,l*4.7,c.k);if(r){line(r[0],r[1],r[0],r[1]-q*.9,'#e7e7dd',Math.max(1,q*.16));line(r[0],r[1]-q*.75,r[0],r[1]-q*.9,'#343b3e',Math.max(1,q*.17))}}}}
 for(let z=max;z>4;z-=2){for(let l of [-5,5]){let p=project(z,l,c.k),q=project(z-2,l,c.k);if(p&&q)line(p[0],p[1]-p[2]*.65,q[0],q[1]-q[2]*.65,'#b9c3c4',Math.max(1,q[2]*.12))}}
 }
-// Agarre dorsal a las diez y diez. El pulgar es parte del contorno exterior,
-// nace del borde radial y se extiende hacia el hueco del volante, nunca sobre el dorso.
-// Manos vistas por el dorso: pulgares y falanges distales ocultos por el aro.
+// Manos vistas por el dorso: dedos individuales que se curvan sobre el aro,
+// pulgar lateral con uña, tendones, vena, nudillos y puño de la manga.
 function hand(x,y,flip){
 ctx.save();ctx.translate(x,y);ctx.scale(flip,1);ctx.rotate(.30);ctx.scale(.83,.83);
-function shape(fn,fill){ctx.beginPath();fn();ctx.fillStyle=fill;ctx.fill()}
-function soft(x,y,rx,ry,ink){ctx.save();ctx.translate(x,y);ctx.scale(rx,ry);let g=ctx.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,ink);g.addColorStop(1,'#ffffff00');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);ctx.fill();ctx.restore()}
-// Muñeca y antebrazo continuos, sin articulaciones artificiales.
-let g=ctx.createLinearGradient(-38,0,38,0);g.addColorStop(0,'#a96e50');g.addColorStop(.32,'#d9a17e');g.addColorStop(.63,'#e8b794');g.addColorStop(1,'#bd8061');
-ctx.shadowColor='#0005';ctx.shadowBlur=5;
-shape(()=>{ctx.moveTo(-37,9);ctx.bezierCurveTo(-39,-4,-38,-15,-32,-23);ctx.quadraticCurveTo(-26,-30,-19,-26);ctx.quadraticCurveTo(-12,-38,-3,-32);ctx.quadraticCurveTo(5,-40,13,-33);ctx.quadraticCurveTo(23,-35,29,-24);ctx.bezierCurveTo(35,-17,35,-6,31,5);ctx.bezierCurveTo(27,17,22,30,22,43);ctx.bezierCurveTo(22,70,29,118,40,188);ctx.lineTo(-42,188);ctx.bezierCurveTo(-32,127,-28,81,-25,55);ctx.bezierCurveTo(-25,36,-33,25,-37,9);ctx.closePath()},g);
-ctx.shadowBlur=0;
-// Relieve del dorso y nudillos; sin uñas visibles ni pulgares superpuestos.
-soft(-14,6,21,32,'#ffddbb55');soft(15,13,15,26,'#eac09d44');
-for(const [kx,ky,rx] of [[-27,-18,8],[-12,-26,9],[4,-29,9],[20,-23,8]])soft(kx,ky,rx,11,'#ffe4cb77');
-for(const [kx,ky] of [[-19,-25],[-3,-32],[13,-33]]){ctx.beginPath();ctx.moveTo(kx,ky+2);ctx.quadraticCurveTo(kx+1,ky+7,kx+1,ky+12);ctx.strokeStyle='#935f473e';ctx.lineWidth=1.3;ctx.lineCap='round';ctx.stroke()}
-soft(-7,55,15,36,'#ffcfad33');
+function shape(fn,fill,stroke,lw){ctx.beginPath();fn();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.lineJoin='round';ctx.stroke()}}
+function soft(px,py,rx,ry,ink){ctx.save();ctx.translate(px,py);ctx.scale(rx,ry);let g=ctx.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,ink);g.addColorStop(1,'#ffffff00');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);ctx.fill();ctx.restore()}
+function curve(pts,ink,w){ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let j=1;j<pts.length-1;j++)ctx.quadraticCurveTo(pts[j][0],pts[j][1],(pts[j][0]+pts[j+1][0])/2,(pts[j][1]+pts[j+1][1])/2);const e=pts[pts.length-1];ctx.lineTo(e[0],e[1]);ctx.strokeStyle=ink;ctx.lineWidth=w;ctx.lineCap='round';ctx.stroke()}
+const skin=ctx.createLinearGradient(-42,0,42,0);
+skin.addColorStop(0,'#a9694b');skin.addColorStop(.28,'#d6a07d');skin.addColorStop(.58,'#e8b794');skin.addColorStop(.85,'#cf9570');skin.addColorStop(1,'#b27456');
+// Antebrazo y dorso de la mano (misma piel continua)
+ctx.shadowColor='#0007';ctx.shadowBlur=7;ctx.shadowOffsetY=2;
+shape(()=>{ctx.moveTo(-24,40);ctx.bezierCurveTo(-27,70,-32,120,-42,188);ctx.lineTo(40,188);ctx.bezierCurveTo(30,120,24,70,23,40);ctx.closePath()},skin);
+ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+// Dedos: cx, base, ancho, punta
+const fingers=[[-27,-12,14,-48],[-10,-12,15,-58],[7,-12,15,-55],[23,-12,13,-45]];
+for(const [cx,base,w,top] of fingers){
+ const fp=()=>{ctx.moveTo(cx-w/2,base);ctx.lineTo(cx-w/2,top+8);ctx.quadraticCurveTo(cx-w/2,top,cx,top);ctx.quadraticCurveTo(cx+w/2,top,cx+w/2,top+8);ctx.lineTo(cx+w/2,base);ctx.closePath()};
+ shape(fp,skin,'#6f432f66',1.1);
+ ctx.save();ctx.beginPath();fp();ctx.clip();
+ let sh=ctx.createLinearGradient(cx-w/2,0,cx+w/2,0);sh.addColorStop(0,'#5a301f55');sh.addColorStop(.28,'#ffffff00');sh.addColorStop(.6,'#ffffff18');sh.addColorStop(1,'#4a281a60');ctx.fillStyle=sh;ctx.fillRect(cx-w,top,w*2,base-top);
+ let tip=ctx.createLinearGradient(0,top,0,top+24);tip.addColorStop(0,'#1e0f0a99');tip.addColorStop(1,'#1e0f0a00');ctx.fillStyle=tip;ctx.fillRect(cx-w,top,w*2,26);
+ ctx.restore();
+ const jy=top+(base-top)*.42;
+ for(const d of [0,4]){line(cx-w*.3,jy+d,cx+w*.3,jy+d+.6,'#8a553d55',1)}
+ soft(cx,top+(base-top)*.78,w*.45,6,'#ffe8d466');
+}
+// Dorso de la mano, solapado sobre la base de los dedos
+shape(()=>{ctx.moveTo(-24,48);ctx.bezierCurveTo(-30,30,-37,8,-36,-8);ctx.quadraticCurveTo(-36,-18,-28,-19);ctx.quadraticCurveTo(-10,-24,8,-24);ctx.quadraticCurveTo(26,-23,31,-17);ctx.quadraticCurveTo(36,-14,35,-6);ctx.bezierCurveTo(35,10,28,30,23,48);ctx.closePath()},skin);
+// Pulgar lateral apoyado en el aro, con uña
+shape(()=>{ctx.moveTo(27,32);ctx.bezierCurveTo(37,23,45,8,46,-10);ctx.bezierCurveTo(47,-26,42,-35,37,-33);ctx.bezierCurveTo(32,-31,33,-19,31,-6);ctx.bezierCurveTo(30,8,27,19,23,27);ctx.closePath()},skin,'#6f432f77',1.1);
+ctx.save();ctx.translate(40.5,-25);ctx.rotate(.08);ctx.beginPath();ctx.ellipse(0,0,4.6,6.4,0,0,Math.PI*2);ctx.fillStyle='#efcfbf';ctx.fill();ctx.strokeStyle='#a9776277';ctx.lineWidth=1;ctx.stroke();ctx.restore();
+soft(41,-3,5,16,'#4a281a44');
+// Huecos entre dedos y sombra de la palma contra el aro
+for(const gx of [-18.5,-1.5,15.5]){curve([[gx,-48],[gx,-30],[gx+.4,-16]],'#2a140d88',1.6)}
+// Nudillos
+for(const [kx,ky,rx] of [[-27,-20,8],[-10,-24,9],[7,-24,9],[23,-20,8]]){soft(kx,ky,rx,9,'#ffe6cf88');soft(kx,ky+7,rx*.9,4,'#8f593f33')}
+// Tendones extensores, vena y relieve del dorso
+for(const [x1,x2] of [[-27,-20],[-10,-8],[7,5],[23,16]]){curve([[x1,-14],[(x1+x2)/2,14],[x2,44]],'#ffe3cc2c',3.2);curve([[x1+3,-14],[(x1+x2)/2+3,14],[x2+3,44]],'#7a46301f',1.6)}
+curve([[14,42],[10,22],[14,8],[6,-6]],'#6b7a9a30',3.4);
+soft(-14,18,16,26,'#ffddbb33');soft(14,24,14,22,'#d9a27c33');
+soft(-18,52,7,6,'#ffe4cd77');soft(0,50,24,8,'#7a483226');
+// Manga con puño
+ctx.save();
+const sg=ctx.createLinearGradient(-48,0,46,0);sg.addColorStop(0,'#1f2933');sg.addColorStop(.35,'#3f4d5b');sg.addColorStop(.7,'#2f3b47');sg.addColorStop(1,'#1a232c');
+shape(()=>{ctx.moveTo(-36,106);ctx.quadraticCurveTo(-2,118,32,104);ctx.bezierCurveTo(36,130,40,160,45,188);ctx.lineTo(-49,188);ctx.bezierCurveTo(-43,160,-39,130,-36,106);ctx.closePath()},sg);
+curve([[-36,106],[-2,118],[32,104]],'#8a98a688',2);curve([[-36,111],[-2,123],[32,109]],'#00000066',3);
+curve([[-30,130],[-24,155],[-28,184]],'#ffffff18',2);curve([[18,128],[26,156],[30,184]],'#00000044',2.4);
+ctx.restore();
 ctx.restore()}
 function rearview(c,s){
 // Escena posterior en perspectiva, reflejada horizontalmente.
@@ -159,3 +191,4 @@ $('next').onclick=()=>{if(done&&i<8){i++;setup()}};$('reset').onclick=start;
 function frame(now){let dt=Math.min(.05,(now-last)/1000||0);last=now;if(playing){t=Math.min(duration,t+dt);let c=current(),v=speed(c,t),targetSide=Math.atan2(-c.k*v*v,9.81),targetFore=Math.atan2(c.a,9.81);sv+=(25*(targetSide-side)-7*sv)*dt;fv+=(25*(targetFore-fore)-7*fv)*dt;side+=sv*dt;fore+=fv*dt;if(t>=duration){playing=false;$('play').textContent='Reproducir';if(!freeMode())$('questions').onchange()}}draw();requestAnimationFrame(frame)}
 start();requestAnimationFrame(frame);
 </script></body></html>
+ 
