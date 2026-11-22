@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Atelier de français · Transit 2 · 2.º ESO</title>
+<style>
+:root { --ink:#20343a;--muted:#60737b;--teal:#087a75;--teal-dark:#075e5b;--soft:#eaf7f5;--line:#dce8e9;--card:#fff;--bg:#f3f7f7;--red:#a72f43;--green:#116c51;--orange:#e7a84b;--shadow:0 8px 30px rgba(22,54,59,.07); }
+* {box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;color:var(--ink);font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg)}
+button,input,select{font:inherit} button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.45}
+.hero{background:linear-gradient(124deg,#073f4d 0%,#086f71 65%,#0e7f6b 100%);color:white;padding:34px max(22px,calc((100vw - 1120px)/2));position:relative;overflow:hidden}
+.hero:after{content:'FR';font-weight:900;font-size:230px;position:absolute;right:max(0px,calc((100vw - 1400px)/2));top:-80px;opacity:.055;transform:rotate(-15deg);pointer-events:none}.hero h1{font-size:clamp(27px,4vw,42px);line-height:1.14;letter-spacing:-.025em;margin:12px 0 8px}.hero p{margin:0;max-width:740px;color:#d6eff0}.eyebrow{font-size:.75rem;text-transform:uppercase;letter-spacing:.14em;font-weight:800;color:#bde3df}.pill{display:inline-flex;gap:7px;align-items:center;padding:5px 10px;border:1px solid #b6dfd6;border-radius:999px;background:#ffffff16;color:white;font-size:.75rem;font-weight:750}
+.shell{max-width:1160px;margin:24px auto 60px;padding:0 18px;display:grid;grid-template-columns:315px minmax(0,1fr);gap:20px;align-items:start}
+.panel,.exercise,.result-card,.intro,.empty{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+.panel{padding:22px;position:sticky;top:15px}.panel h2{margin:0 0 6px;font-size:1.17rem}.lede{color:var(--muted);font-size:.9rem;margin:0 0 18px}
+.section-label{display:block;margin:22px 0 9px;text-transform:uppercase;font-size:.72rem;letter-spacing:.12em;color:var(--muted);font-weight:800}.section-label:first-of-type{margin-top:8px}.topic-row{display:flex;align-items:flex-start;gap:9px;margin:9px 0;cursor:pointer}.topic-row input{margin:5px 0 0;accent-color:var(--teal);width:17px;height:17px;flex:none}.topic-text{font-size:.87rem;font-weight:650;line-height:1.3}.unit-tag{display:inline-block;color:var(--muted);font-size:.67rem;letter-spacing:.04em;margin-right:4px}.mini-actions{display:flex;gap:8px;margin:10px 0}.mini-actions button{font-size:.75rem;border:0;background:none;padding:0;color:var(--teal);font-weight:750;text-decoration:underline}
+.field{display:grid;gap:6px;margin-bottom:12px}.field label{font-size:.83rem;font-weight:750}.field select{border:1px solid #cbdcde;border-radius:10px;padding:10px 11px;width:100%;background:#fff;color:var(--ink)}.toggle{display:flex;align-items:flex-start;gap:10px;font-size:.82rem;color:var(--muted);line-height:1.4;margin:11px 0}.toggle input{accent-color:var(--teal);width:18px;height:18px;flex:none;margin:2px 0}
+.btn{border:1px solid transparent;border-radius:11px;padding:11px 15px;font-weight:750;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px}.btn-main{background:var(--teal);color:#fff}.btn-main:hover{background:var(--teal-dark)}.btn-ghost{background:white;border-color:#bbd2d4;color:var(--teal-dark)}.btn-ghost:hover{background:var(--soft)}.btn-plain{background:#eff7f6;color:var(--teal-dark)}.btn-full{width:100%}.panel-bottom{display:grid;gap:8px;margin-top:16px}
+.content{min-width:0}.intro{padding:19px 22px;margin-bottom:17px;display:flex;justify-content:space-between;gap:15px;align-items:center}.intro h2{margin:0;font-size:1.17rem}.intro p{margin:5px 0 0;color:var(--muted);font-size:.87rem}.count-badge{background:var(--soft);border-radius:999px;font-size:.75rem;font-weight:800;padding:8px 12px;white-space:nowrap;color:var(--teal-dark)}.exercises{display:grid;gap:14px}.exercise{padding:20px 22px}.exercise-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}.number{width:31px;height:31px;display:grid;place-items:center;background:#e4f4f0;color:#075e5b;border-radius:9px;font-weight:850;font-size:.9rem;flex:none}.topic-chip{font-size:.78rem;color:var(--muted);font-weight:700}.level-chip{font-size:.7rem;border:1px solid #d7e5e6;color:#6b7b80;border-radius:99px;padding:2px 8px;margin-left:auto;white-space:nowrap}.prompt{font-weight:700;font-size:1.07rem;margin:0 0 10px;line-height:1.55;overflow-wrap:anywhere}.blank{color:var(--teal);background:#e9f5f3;border-bottom:2px solid #16968f;padding:0 6px;white-space:nowrap}.hint-line{font-size:.81rem;color:var(--muted);margin:0 0 10px}.answer-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.answer-option{border:1px solid #d8e5e6;border-radius:11px;padding:9px 11px;display:flex;align-items:center;gap:9px;cursor:pointer;font-size:.94rem;min-height:43px;background:#fff}.answer-option:hover{border-color:#86bdb8;background:#fafefe}.answer-option:has(input:checked){background:#eaf6f4;border-color:#16837c}.answer-option input{accent-color:var(--teal);width:16px;height:16px;margin:0;flex:none}.text-entry{width:100%;max-width:370px;border:1px solid #bed1d4;border-radius:10px;padding:11px 12px;background:#fff;color:var(--ink)}.text-entry:focus{outline:3px solid #cdeee8;border-color:#16837c}
+.feedback{margin-top:13px;padding:13px 14px;border-radius:11px;font-size:.89rem;display:none}.feedback.good{display:block;background:#e8f6ed;border:1px solid #b4dec8;color:#16593c}.feedback.bad{display:block;background:#fff0f0;border:1px solid #edc2c6;color:#813047}.feedback.missing{display:block;background:#fff7e7;border:1px solid #f2dfb8;color:#7e5625}.feedback strong{display:block;margin-bottom:4px}.feedback .solution{font-weight:800}.exercise.correct{border-left:5px solid #1a986a}.exercise.incorrect{border-left:5px solid #cc5966}.exercise.unanswered{border-left:5px solid #e5ad56}.answer-option:has(input:checked):is(.correct-opt){border-color:#22a571;background:#e8f6ed}.answer-option:has(input:checked):is(.wrong-opt){border-color:#d55c65;background:#fff0f0}
+.footer-actions{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}.result-card{padding:22px;margin:18px 0}.result-card h3{margin:0 0 8px}.score{font-size:2rem;font-weight:850;letter-spacing:-.04em;color:var(--teal-dark)}.scoreline{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}.scoreline small{font-size:.85rem;color:var(--muted)}.scorebar{height:11px;border-radius:30px;background:#e9eff0;overflow:hidden;margin:11px 0}.scorefill{background:var(--teal);height:100%;transition:width .2s}.breakdown{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.breakdown span{font-size:.78rem;border-radius:8px;padding:5px 9px;background:#f1f6f6}.error-text{color:#ab3447}.success-text{color:#117654}.empty{padding:25px;text-align:center;color:var(--muted)}.notes{font-size:.8rem;color:#6a7d83;margin:13px 1px}.hidden{display:none!important}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+#printArea{display:none}
+@media(max-width:800px){.shell{grid-template-columns:1fr;padding:0 12px;margin:16px auto}.panel{position:static}.hero{padding:27px 20px}.intro{align-items:start}.answer-options{grid-template-columns:1fr}.exercise{padding:17px}.panel h2{font-size:1.15rem}}
+@media print{@page{size:A4;margin:16mm}body{background:white;color:#111;font:11.5pt/1.4 Arial,sans-serif}.hero,.shell{display:none!important}#printArea{display:block!important}#printArea h1{font-size:19pt;margin:0 0 4mm}#printArea .print-meta{font-size:9pt;color:#555;margin-bottom:7mm}#printArea .print-line{border-bottom:1px solid #aaa;display:inline-block;width:5cm}#printArea .print-question{break-inside:avoid;margin:0 0 8mm}#printArea .print-question p{margin:0 0 3mm}#printArea .print-topic{font-size:9pt;color:#666}#printArea .print-options{font-size:10pt;margin-top:2mm}#printArea .write-line{border-bottom:1px solid #666;width:8cm;display:inline-block;margin-top:4mm;height:6mm}#printArea .print-solutions{break-before:page;page-break-before:always}#printArea .sol-item{margin:0 0 4mm;break-inside:avoid}#printArea .sol-item span{font-size:9pt;color:#555}}
+</style>
+</head>
+<body>
+<header class="hero"><span class="pill">Français · 2.º ESO · Unités 0 et 1</span><h1>Atelier de français</h1><p>Generador de ejercicios autocorregibles basado en los contenidos trabajados en <em>Transit 2</em>. Practica, identifica errores y crea un nuevo boletín cuando quieras.</p></header>
+<main class="shell">
+<aside class="panel" aria-label="Configuración de los ejercicios">
+<h2>Prepara tu tanda</h2><p class="lede">Elige qué quieres practicar. Los ejercicios se generan de nuevo cada vez.</p>
+<span class="section-label">Contenidos</span>
+<div id="topicControls"></div>
+<div class="mini-actions"><button type="button" id="allTopics">Seleccionar todos</button><button type="button" id="coreTopics">Solo unidad 1</button></div>
+<span class="section-label">Opciones</span>
+<div class="field"><label for="difficulty">Dificultad</label><select id="difficulty"><option value="1">Básica · identificación</option><option value="2" selected>Intermedia · aplicación</option><option value="3">Avanzada · repaso completo</option></select></div>
+<div class="field"><label for="count">Número de ejercicios</label><select id="count"><option>6</option><option selected>12</option><option>20</option><option>30</option></select></div>
+<div class="field"><label for="format">Tipo de respuesta</label><select id="format"><option value="mixed" selected>Mixta · elegir y escribir</option><option value="mc">Elegir una opción</option><option value="text">Escribir la respuesta</option></select></div>
+<div class="panel-bottom"><button id="generate" type="button" class="btn btn-main btn-full">↻ Generar ejercicios</button><button id="print" type="button" class="btn btn-ghost btn-full">⎙ Imprimir / guardar PDF</button></div>
+<label class="toggle"><input type="checkbox" id="includeSolutions" checked><span>Incluir solucionario al final, en página independiente, al imprimir</span></label>
+<p class="notes">Funciona sin conexión. No necesitas iniciar sesión y las respuestas no se envían a ningún servidor.</p>
+</aside>
+<section class="content">
+<div class="intro"><div><h2 id="setTitle">Tu batería de ejercicios</h2><p id="subtitle">Responde y pulsa «Corregir» al terminar.</p></div><span class="count-badge" id="progress">0 / 12 contestadas</span></div>
+<div id="result" class="result-card hidden" aria-live="polite"></div>
+<div class="exercises" id="exerciseList"></div>
+<div class="footer-actions"><button class="btn btn-main" id="correct" type="button">✓ Corregir respuestas</button><button class="btn btn-ghost hidden" id="retry" type="button">↻ Reintentar la tanda</button><button class="btn btn-plain hidden" id="mistakes" type="button">Practicar solo los fallos</button></div>
+<p class="notes">Corrección: se admiten diferencias de mayúsculas y el apóstrofo tipográfico. La ortografía francesa, incluidos los acentos, sí se evalúa.</p>
+</section>
+</main>
+<div id="printArea" aria-hidden="true"></div>
+<script>
+'use strict';
+const TOPICS=[
+{id:'clothes',unit:1,name:'Ropa y complementos',page:'p. 12–13'},
+{id:'demo',unit:1,name:'Ce, cet, cette, ces',page:'p. 15'},
+{id:'cod',unit:1,name:'Pronombres COD',page:'p. 16'},
+{id:'verbs',unit:1,name:'Verbos en presente',page:'p. 15, 17'},
+{id:'intensity',unit:1,name:'Très, trop, beaucoup',page:'p. 14'},
+{id:'feminine',unit:0,name:'Femenino de adjetivos',page:'p. 7–9'},
+{id:'questions',unit:0,name:'Preguntas y presentación',page:'p. 6–9'},
+{id:'communication',unit:1,name:'Deseos, permisos y opiniones',page:'p. 10–17'}
+];
+const garments=[
+['un tee-shirt','una camiseta'],['une chemise','una camisa'],['un chemisier','una blusa'],['un sweat','una sudadera'],['un pull','un jersey'],['une veste','una chaqueta'],['un blouson','una cazadora'],['un anorak','un anorak'],['un short','un pantalón corto'],['une jupe','una falda'],['un pantalon','un pantalón'],['un jean','un vaquero'],['une robe','un vestido'],['des leggings','unos leggings'],['un survêtement','un chándal'],['des chaussettes','unos calcetines'],['des chaussures','unos zapatos'],['des baskets','unas zapatillas deportivas'],['des bottes','unas botas'],['des bottines','unos botines'],['des sandales','unas sandalias'],['un bonnet','un gorro'],['un chapeau','un sombrero'],['une écharpe','una bufanda'],['un foulard','un pañuelo'],['une casquette','una gorra'],['une ceinture','un cinturón']
+];
+const nouns=[
+['pull','ce','masculino singular que comienza por consonante'],['pantalon','ce','masculino singular que comienza por consonante'],['short','ce','masculino singular que comienza por consonante'],['bonnet','ce','masculino singular que comienza por consonante'],['chapeau','ce','masculino singular que comienza por consonante'],['blouson','ce','masculino singular que comienza por consonante'],['survêtement','ce','masculino singular que comienza por consonante'],['jean','ce','masculino singular que comienza por consonante'],['foulard','ce','masculino singular que comienza por consonante'],['anorak','cet','masculino singular que comienza por vocal'],['accessoire','cet','masculino singular que comienza por vocal'],['équipement','cet','masculino singular que comienza por vocal'],['imperméable','cet','masculino singular que comienza por vocal'],['robe','cette','femenino singular'],['jupe','cette','femenino singular'],['veste','cette','femenino singular'],['chemise','cette','femenino singular'],['casquette','cette','femenino singular'],['ceinture','cette','femenino singular'],['écharpe','cette','femenino singular (aunque empiece por vocal)'],['baskets','ces','plural'],['chaussures','ces','plural'],['bottes','ces','plural'],['chaussettes','ces','plural'],['jeans','ces','plural'],['robes','ces','plural'],['vestes','ces','plural'],['foulards','ces','plural'],['anoraks','ces','plural'],['écharpes','ces','plural']
+];
+const conjugations={
+'porter':['porte','portes','porte','portons','portez','portent'],
+'aimer':['aime','aimes','aime','aimons','aimez','aiment'],
+'être':['suis','es','est','sommes','êtes','sont'],
+'avoir':['ai','as','a','avons','avez','ont'],
+'habiter':['habite','habites','habite','habitons','habitez','habitent'],
+'adorer':['adore','adores','adore','adorons','adorez','adorent'],
+'acheter':['achète','achètes','achète','achetons','achetez','achètent'],
+'mettre':['mets','mets','met','mettons','mettez','mettent'],
+'vouloir':['veux','veux','veut','voulons','voulez','veulent'],
+'pouvoir':['peux','peux','peut','pouvons','pouvez','peuvent']
+};
+const persons=['je','tu','il / elle','nous','vous','ils / elles'];
+const feminines=[
+['grand','grande','Se añade -e al masculino.'],['petit','petite','Se añade -e al masculino.'],['blond','blonde','Se añade -e al masculino.'],['brun','brune','Se añade -e al masculino.'],['joli','jolie','Se añade -e al masculino.'],['laid','laide','Se añade -e al masculino.'],['sympathique','sympathique','Ya termina en -e: no cambia.'],['timide','timide','Ya termina en -e: no cambia.'],['mince','mince','Ya termina en -e: no cambia.'],['jeune','jeune','Ya termina en -e: no cambia.'],['sociable','sociable','Ya termina en -e: no cambia.'],['sportif','sportive','La terminación -f pasa a -ve.'],['actif','active','La terminación -f pasa a -ve.'],['sérieux','sérieuse','La terminación -eux pasa a -euse.'],['heureux','heureuse','La terminación -eux pasa a -euse.'],['nerveux','nerveuse','La terminación -eux pasa a -euse.'],['beau','belle','Femenino irregular: beau → belle.'],['vieux','vieille','Femenino irregular: vieux → vieille.'],['gros','grosse','Se duplica la s y se añade -e.'],['roux','rousse','Femenino irregular: roux → rousse.'],['long','longue','Se añade -ue: long → longue.'],['gentil','gentille','Se duplica la l y se añade -e.']
+];
+const codExamples=[
+{orig:'Je porte le pull.',rest:'Je ___ porte.',a:'le',rule:'«Le pull» es masculino singular; se sustituye por le.'},
+{orig:'Tu achètes la jupe.',rest:'Tu ___ achètes.',a:'la',rule:'«La jupe» es femenino singular; se sustituye por la.'},
+{orig:'Nous regardons les chaussures.',rest:'Nous ___ regardons.',a:'les',rule:'«Les chaussures» es plural; se sustituye por les.'},
+{orig:'Il met le bonnet.',rest:'Il ___ met.',a:'le',rule:'«Le bonnet» es masculino singular.'},
+{orig:'Elle porte la veste.',rest:'Elle ___ porte.',a:'la',rule:'«La veste» es femenino singular.'},
+{orig:'Je mets les bottes.',rest:'Je ___ mets.',a:'les',rule:'«Les bottes» está en plural.'},
+{orig:'Ils regardent les photos.',rest:'Ils ___ regardent.',a:'les',rule:'«Les photos» es plural.'},
+{orig:'On achète ce jean.',rest:'On ___achète.',a:'l\'',rule:'Delante de un verbo que comienza por vocal, le se convierte en l’.'},
+{orig:'Elle aime cette robe.',rest:'Elle ___aime.',a:'l\'',rule:'Delante de aime, la se convierte en l’: Elle l’aime.'},
+{orig:'Tu aimes ce pantalon.',rest:'Tu ___aimes.',a:'l\'',rule:'Delante de aimes, le se convierte en l’: Tu l’aimes.'},
+{orig:'Léa regarde Hugo et moi.',rest:'Léa ___ regarde.',a:'nous',rule:'«Hugo et moi» se sustituye por nous.'},
+{orig:'Je regarde Léa et toi.',rest:'Je ___ regarde.',a:'vous',rule:'«Léa et toi» se sustituye por vous.'},
+{orig:'Les garçons attendent Zoé et moi.',rest:'Les garçons ___ attendent.',a:'nous',rule:'«Zoé et moi» se sustituye por nous.'},
+{orig:'Le professeur regarde Hugo et toi.',rest:'Le professeur ___ regarde.',a:'vous',rule:'«Hugo et toi» se sustituye por vous.'},
+{orig:'Tu regardes mon frère.',rest:'Tu ___ regardes.',a:'le',rule:'«Mon frère» es masculino singular.'},
+{orig:'Elle prend les baskets.',rest:'Elle ___ prend.',a:'les',rule:'«Les baskets» está en plural.'},
+{orig:'Je ne mets pas cette robe.',rest:'Je ne ___ mets pas.',a:'la',rule:'En una frase negativa, el pronombre va antes del verbo conjugado: Je ne la mets pas.'},
+{orig:'Nous ne regardons pas ce film.',rest:'Nous ne ___ regardons pas.',a:'le',rule:'El COD va antes del verbo incluso en frases negativas.'}
+];
+const intensityExamples=[
+['Ce pull est ___ joli.','muy bonito','très'],['Cette veste est ___ élégante.','muy elegante','très'],['Ce jean est ___ original.','muy original','très'],['Ces chaussures sont ___ belles.','muy bonitas','très'],['Ce chapeau est ___ grand.','demasiado grande','trop'],['Cette robe est ___ courte.','demasiado corta','trop'],['Ce pantalon est ___ long.','demasiado largo','trop'],['Ces bottes sont ___ petites.','demasiado pequeñas','trop'],['J’aime ___ ce sweat.','me gusta mucho','beaucoup'],['Elle aime ___ les baskets.','le gustan mucho','beaucoup'],['Nous aimons ___ cette chanson.','nos gusta mucho','beaucoup'],['Tu aimes ___ ce bonnet.','te gusta mucho','beaucoup'],['Ce blouson est ___ classique.','muy clásico','très'],['La jupe est ___ chère.','demasiado cara','trop'],['J’aime ___ cette chemise.','me gusta mucho','beaucoup'],['Ces vêtements sont ___ originaux.','muy originales','très'],['Ce short est ___ petit.','demasiado pequeño','trop']
+];
+const questionExamples=[
+['___ est-ce que tu habites ?','¿Dónde?','Où','«Où» pregunta por un lugar.'],
+['___ est-ce que tu t’appelles ?','¿Cómo?','Comment','«Comment» pregunta por la manera o el nombre.'],
+['___ est-ce que tu fais du sport ?','¿Cuándo?','Quand','«Quand» pregunta por el momento.'],
+['___ est-ce que tu souris ?','¿Por qué?','Pourquoi','«Pourquoi» pregunta por la causa.'],
+['___ est-ce que tu vas au collège ?','¿Cómo?','Comment','«Comment» pregunta por el modo.'],
+['___ est-ce que tu vas en vacances ?','¿Dónde?','Où','«Où» indica destino o lugar.'],
+['___ tu préfères ?','¿Qué?','Qu\'est-ce que','La construcción correcta es «Qu’est-ce que tu préfères ?».'],
+['___ tu regardes ?','¿Qué?','Qu\'est-ce que','La construcción correcta es «Qu’est-ce que tu regardes ?».'],
+['___ est-ce que tu étudies le français ?','¿Por qué?','Pourquoi','«Pourquoi» pregunta por el motivo.'],
+['___ est-ce que tu fêtes ton anniversaire ?','¿Cuándo?','Quand','«Quand» pregunta por el momento.'],
+['___ est ton meilleur ami ?','¿Quién?','Qui','«Qui» pregunta por una persona.'],
+['___ de frères et sœurs as-tu ?','¿Cuántos?','Combien','«Combien de» expresa cantidad.'],
+['___ est-ce que tu vas au parc ?','¿Cuándo?','Quand','«Quand» pregunta por el momento.'],
+['___ est ton professeur de français ?','¿Quién?','Qui','«Qui» pregunta por una persona.']
+];
+const communicationExamples=[
+['Quieres pedir permiso para ir al jardín.','Est-ce que je ___ aller dans le jardin ?','peux',['veux','peut','pouvons'],'Para pedir permiso: «Est-ce que je peux… ?»'],
+['Quieres expresar que deseas un zumo de naranja.','Je ___ un jus d’orange.','veux',['veut','peux','voulons'],'Para expresar un deseo: «Je veux…».'],
+['Hablas de un grupo que quiere jugar.','Les copains ___ jouer.','veulent',['veut','voulons','pouvons'],'«Les copains» equivale a «ils»: ils veulent.'],
+['Preguntas a una amiga si quiere salir.','Tu ___ sortir ?','veux',['veut','pouvons','pouvez'],'Con «tu», vouloir se conjuga «veux».'],
+['Dices que puedes ayudar a un amigo.','Je ___ t’aider.','peux',['peut','veux','pouvons'],'Con «je», pouvoir se conjuga «peux».'],
+['Preguntas de manera cortés si tus compañeros pueden venir.','Vous ___ venir ?','pouvez',['pouvons','peut','veux'],'Con «vous», pouvoir se conjuga «pouvez».'],
+['Pides permiso para abrir la ventana.','Est-ce que je ___ ouvrir la fenêtre ?','peux',['veut','pouvons','peut'],'La petición de permiso se forma con «je peux».'],
+['Dices que a tus amigas les gusta mucho una chaqueta.','Elles aiment ___ cette veste.','beaucoup',['très','trop','beaux'],'Con el verbo aimer se usa «beaucoup» para mucho.'],
+['Opinas que una camiseta es demasiado pequeña.','Ce tee-shirt est ___ petit.','trop',['très','beaucoup','toute'],'«Trop + adjectif» expresa exceso.'],
+['Dices que un jersey es muy bonito.','Ce pull est ___ joli.','très',['trop','beaucoup','toutes'],'«Très + adjectif» expresa intensidad.'],
+['Pides a tus compañeros que os permitan ir al patio.','Est-ce que nous ___ aller dans la cour ?','pouvons',['pouvez','voulons','peuvent'],'Con «nous», pouvoir se conjuga «pouvons».'],
+['Quieres expresar que tus amigos desean organizar una fiesta.','Mes amis ___ organiser une fête.','veulent',['veut','voulez','pouvons'],'«Mes amis» equivale a «ils»: ils veulent.']
+];
+const BANK=[];let uid=0;
+function add(topic,prompt,answer,explanation,level=1,opts=[],context='',formats=['mc','text']){BANK.push({id:++uid,topic,prompt,answer,answers:[answer],explanation,level,opts,context,formats});}
+function buildBank(){
+ garments.forEach(([fr,es],i)=>{
+  const wrong=garments.filter(x=>x[0]!==fr);
+  add('clothes',`Traduce al francés: «${es}».`,fr,`«${es}» se dice «${fr}». Atención al artículo.`,i<14?1:2,wrong.map(x=>x[0]),'Vocabulario · ropa y accesorios');
+  add('clothes',`¿Qué significa «${fr}»?`,es,`«${fr}» significa «${es}».`,i<14?1:2,wrong.map(x=>x[1]),'Comprensión de vocabulario',['mc']);
+ });
+ nouns.forEach(([word,a,why],i)=>add('demo',`Completa: «___ ${word}».`,a,`Se escribe «${a} ${word}»: ${why}.`,i<12?1:i<22?2:3,['ce','cet','cette','ces'].filter(x=>x!==a),'Adjetivos demostrativos'));
+ Object.entries(conjugations).forEach(([verb,forms])=>forms.forEach((form,i)=>{
+   const core=['porter','aimer','être','avoir'].includes(verb);const level=core?1:['acheter','mettre','vouloir','pouvoir'].includes(verb)?2:3;
+   let subject=persons[i]; if(i===0 && ['acheter','aimer','adorer','habiter','avoir','être'].includes(verb))subject="j’";
+   const prompt=`Completa en presente: «${subject} ___» (verbo ${verb}).`;
+   const explain=`${verb} en presente: ${forms.map((x,j)=>(persons[j]==='je'&&['acheter','aimer','adorer','habiter','avoir','être'].includes(verb)?"j’":persons[j])+' '+x).join(' · ').replace(/j’ /g,'j’')}.`;
+   const distract=Object.values(conjugations).flat().filter(x=>x!==form);
+   add('verbs',prompt,form,explain,level,distract,'Conjugación del presente');
+ }));
+ codExamples.forEach((x,i)=>add('cod',`Sustituye el COD por un pronombre: «${x.orig}» → «${x.rest}»`,x.a,x.rule,i<7?1:i<12?2:3,['me','te','le','la',"l'",'nous','vous','les'].filter(o=>o!==x.a),'El pronombre se coloca antes del verbo'));
+ intensityExamples.forEach(([sentence,meaning,a],i)=>add('intensity',`Completa: «${sentence}» (${meaning}).`,a,a==='beaucoup'?'«Beaucoup» se coloca con un verbo: aimer beaucoup.':a==='trop'?'«Trop» + adjetivo significa «demasiado».':'«Très» + adjetivo significa «muy».',i<9?1:2,['très','trop','beaucoup'].filter(x=>x!==a),'Expresar la intensidad'));
+ feminines.forEach(([m,f,rule],i)=>add('feminine',`Escribe el femenino de «${m}».`,f,`«${m}» → «${f}». ${rule}`,i<11?1:2,feminines.filter(x=>x[1]!==f).map(x=>x[1]),'Formación del femenino'));
+ questionExamples.forEach(([sentence,meaning,a,rule],i)=>add('questions',`Completa: «${sentence}» (${meaning}).`,a,rule,i<5?1:2,['Où','Qui','Quand','Comment','Pourquoi',"Qu'est-ce que",'Combien'].filter(x=>x!==a),'Palabras interrogativas'));
+ communicationExamples.forEach(([context,sentence,a,wrong,rule],i)=>add('communication',`Completa: «${sentence}»`,a,rule,i<6?2:3,wrong,context));
+}
+buildBank();
+const state={questions:[],graded:false,wrong:[],batch:0};
+const $=id=>document.getElementById(id);
+const topicName=id=>TOPICS.find(t=>t.id===id)?.name||id;
+const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const display=s=>escapeHTML(s).replace(/___/g,'<span class="blank">_____</span>');
+const sample=(arr,n)=>[...arr].sort(()=>Math.random()-.5).slice(0,n);
+function shuffle(arr){let a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function normalize(s){return String(s||'').normalize('NFC').toLocaleLowerCase('fr').replace(/[’‘`´]/g,"'").replace(/\s+/g,' ').trim().replace(/\s*'\s*/g,"'").replace(/[.!?]+$/,'');}
+function allQuestionsByTopic(topics,level,format){return BANK.filter(q=>topics.includes(q.topic) && q.level<=level && (format!=='text'||q.formats.includes('text')));}
+function choicesFor(q){
+ const possible=shuffle([...new Set(q.opts.filter(x=>normalize(x)!==normalize(q.answer)))]);
+ let picked=possible.slice(0,3);
+ if(picked.length<3){const same=BANK.filter(x=>x.topic===q.topic && normalize(x.answer)!==normalize(q.answer)).map(x=>x.answer);for(const x of shuffle([...new Set(same)])){if(picked.length>=3)break;if(!picked.includes(x))picked.push(x);}}
+ return shuffle([q.answer,...picked]);
+}
+function renderControls(){
+ $('topicControls').innerHTML=TOPICS.map(t=>`<label class="topic-row"><input type="checkbox" class="topic-check" value="${t.id}" checked><span class="topic-text"><span class="unit-tag">U${t.unit}</span>${escapeHTML(t.name)}</span></label>`).join('');
+}
+function getSelectedTopics(){return [...document.querySelectorAll('.topic-check:checked')].map(el=>el.value);}
+function assembleSet(pool,count,topics){
+ const byTopic={};for(const t of topics)byTopic[t]=shuffle(pool.filter(q=>q.topic===t));
+ let result=[];let work=shuffle(topics);
+ while(result.length<count){let added=0;for(const t of work){if(result.length>=count)break;if(byTopic[t]?.length){result.push(byTopic[t].pop());added++;}}if(!added)break;work=shuffle(work);}
+ return shuffle(result);
+}
+function createQuestion(q,mode){const format=mode==='mixed'?(q.formats.includes('text')&&Math.random()<.5?'text':'mc'):q.formats.includes(mode)?mode:'mc';return {...q,format,choices:format==='mc'?choicesFor(q):[],value:''};}
+function generate(){
+ const topics=getSelectedTopics();if(!topics.length){window.alert('Selecciona al menos un tema.');return;}
+ const level=Number($('difficulty').value),mode=$('format').value,request=Number($('count').value);
+ const pool=allQuestionsByTopic(topics,level,mode),selected=assembleSet(pool,request,topics);
+ if(!selected.length){window.alert('No hay preguntas disponibles para esta combinación. Prueba otra dificultad.');return;}
+ state.questions=selected.map(q=>createQuestion(q,mode));state.graded=false;state.wrong=[];state.batch++;
+ $('setTitle').textContent=`Batería ${state.batch} · ${state.questions.length} ejercicios`;
+ $('subtitle').textContent=`${level===1?'Nivel básico':level===2?'Nivel intermedio':'Nivel avanzado'} · ${topics.length} tema${topics.length===1?'':'s'} seleccionado${topics.length===1?'':'s'}.`;
+ $('result').classList.add('hidden');$('retry').classList.add('hidden');$('mistakes').classList.add('hidden');$('correct').disabled=false;
+ renderQuestions();updateProgress();renderPrint();
+}
+function renderQuestions(){
+ $('exerciseList').innerHTML=state.questions.map((q,i)=>{
+  const options=q.format==='mc'?`<div class="answer-options" role="group" aria-label="Pregunta ${i+1}">${q.choices.map((c,j)=>`<label class="answer-option"><input type="radio" name="q${i}" value="${escapeHTML(c)}"><span>${escapeHTML(c)}</span></label>`).join('')}</div>`:`<label class="sr-only" for="q${i}">Respuesta a la pregunta ${i+1}</label><input type="text" autocomplete="off" spellcheck="false" class="text-entry" id="q${i}" data-idx="${i}" placeholder="Escribe aquí la palabra o expresión">`;
+  return `<article class="exercise" id="item${i}" data-topic="${q.topic}"><div class="exercise-top"><div class="number">${i+1}</div><div class="topic-chip">${escapeHTML(topicName(q.topic))}</div><span class="level-chip">${q.format==='mc'?'Elegir':'Escribir'}</span></div>${q.context?`<p class="hint-line">${escapeHTML(q.context)}</p>`:''}<p class="prompt">${display(q.prompt)}</p>${options}<div class="feedback" id="feedback${i}" aria-live="polite"></div></article>`;
+ }).join('');
+ for(let i=0;i<state.questions.length;i++){
+  const q=state.questions[i];if(q.format==='mc'){document.querySelectorAll(`[name="q${i}"]`).forEach(el=>el.addEventListener('change',updateProgress));}
+  else $('q'+i).addEventListener('input',updateProgress);
+ }
+}
+function getValue(i){const q=state.questions[i];return q.format==='mc'?(document.querySelector(`[name="q${i}"]:checked`)?.value||''):($('q'+i)?.value||'');}
+function updateProgress(){if(!state.questions.length)return;const n=state.graded?state.questions.length:state.questions.filter((q,i)=>getValue(i).trim().length>0).length;$('progress').textContent=`${n} / ${state.questions.length} ${state.graded?'corregidas':'contestadas'}`;}
+function grade(){if(state.graded)return;let nCorrect=0,missing=0;const data={};state.wrong=[];
+ state.questions.forEach((q,i)=>{
+  const val=getValue(i),ok=val!==''&&q.answers.some(ans=>normalize(ans)===normalize(val)),no=val.trim()==='';
+  if(ok)nCorrect++;else{state.wrong.push(q);if(no)missing++;}
+  if(!data[q.topic])data[q.topic]={ok:0,total:0};data[q.topic].total++;if(ok)data[q.topic].ok++;
+  const item=$('item'+i),feed=$('feedback'+i);item.classList.add(ok?'correct':no?'unanswered':'incorrect');feed.classList.add(ok?'good':no?'missing':'bad');
+  const status=ok?'✓ ¡Correcto!':no?'— Sin responder':'✗ Hay un error';
+  feed.innerHTML=`<strong>${status}</strong>${!ok?`Respuesta correcta: <span class="solution">${escapeHTML(q.answer)}</span>.<br>`:''}${escapeHTML(q.explanation)}`;
+  if(q.format==='mc'){document.querySelectorAll(`[name="q${i}"]`).forEach(input=>{input.disabled=true;if(input.checked)input.closest('.answer-option').classList.add(ok?'correct-opt':'wrong-opt');});}
+  else $('q'+i).disabled=true;
+ });
+ state.graded=true;const pc=Math.round(100*nCorrect/state.questions.length);
+ const breakdown=Object.entries(data).map(([t,v])=>`<span>${escapeHTML(topicName(t))}: <b class="${v.ok===v.total?'success-text':'error-text'}">${v.ok}/${v.total}</b></span>`).join('');
+ $('result').innerHTML=`<h3>Resultado de la batería</h3><div class="scoreline"><span class="score">${nCorrect} / ${state.questions.length}</span><small>${pc}% de aciertos${missing?' · '+missing+' sin responder':''}</small></div><div class="scorebar"><div class="scorefill" style="width:${pc}%"></div></div><p>${pc===100?'¡Excelente! Has acertado todas las preguntas.':pc>=75?'Buen resultado. Revisa las explicaciones de los ejercicios fallados.':'Conviene practicar otra tanda, especialmente los temas que tienen más errores.'}</p><div class="breakdown">${breakdown}</div>`;
+ $('result').classList.remove('hidden');$('correct').disabled=true;$('retry').classList.remove('hidden');if(state.wrong.length)$('mistakes').classList.remove('hidden');updateProgress();$('result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function retry(){state.graded=false;state.wrong=[];$('result').classList.add('hidden');$('retry').classList.add('hidden');$('mistakes').classList.add('hidden');$('correct').disabled=false;state.questions=state.questions.map(q=>({...q,choices:q.format==='mc'?shuffle(q.choices):[],value:''}));renderQuestions();updateProgress();}
+function retryMistakes(){if(!state.wrong.length)return;const mode=$('format').value;state.questions=state.wrong.map(q=>createQuestion(q,mode));state.wrong=[];state.graded=false;state.batch++;$('setTitle').textContent=`Repaso de fallos · ${state.questions.length} ejercicios`;$('subtitle').textContent='Vuelve a resolver las preguntas que no acertaste.';$('result').classList.add('hidden');$('retry').classList.add('hidden');$('mistakes').classList.add('hidden');$('correct').disabled=false;renderQuestions();updateProgress();renderPrint();}
+function renderPrint(){
+ const withSol=$('includeSolutions').checked;
+ const questions=state.questions.map((q,i)=>`<div class="print-question"><div class="print-topic">${i+1}. ${escapeHTML(topicName(q.topic))}</div>${q.context?`<div class="print-topic">${escapeHTML(q.context)}</div>`:''}<p><strong>${display(q.prompt)}</strong></p>${q.format==='mc'?`<div class="print-options">${q.choices.map((c,j)=>`<span style="display:inline-block;min-width:43%;padding:1mm 2mm">${String.fromCharCode(65+j)}) ${escapeHTML(c)}</span>`).join('')}</div>`:'<div class="write-line"></div>'}</div>`).join('');
+ const solutions=withSol?`<section class="print-solutions"><h2>Solucionario · Batería ${state.batch}</h2><p class="print-meta">Las explicaciones completas pueden consultarse en la aplicación al pulsar «Corregir».</p>${state.questions.map((q,i)=>`<div class="sol-item"><b>${i+1}.</b> ${escapeHTML(q.answer)} <span>— ${escapeHTML(q.explanation)}</span></div>`).join('')}</section>`:'';
+ $('printArea').innerHTML=`<h1>Atelier de français · Transit 2</h1><div class="print-meta">2.º ESO · Unidades 0 y 1 · Batería ${state.batch} · Nombre: <span class="print-line"></span> · Fecha: ____________</div>${questions}${solutions}`;
+}
+$('generate').addEventListener('click',generate);$('correct').addEventListener('click',grade);$('retry').addEventListener('click',retry);$('mistakes').addEventListener('click',retryMistakes);$('includeSolutions').addEventListener('change',renderPrint);$('print').addEventListener('click',()=>{renderPrint();window.print();});
+$('allTopics').addEventListener('click',()=>document.querySelectorAll('.topic-check').forEach(el=>el.checked=true));$('coreTopics').addEventListener('click',()=>document.querySelectorAll('.topic-check').forEach(el=>el.checked=TOPICS.find(t=>t.id===el.value)?.unit===1));
+renderControls();generate();
+window.__atelierTest={BANK,state,generate,grade,normalize,topics:TOPICS};
+</script>
+</body>
+</html>
