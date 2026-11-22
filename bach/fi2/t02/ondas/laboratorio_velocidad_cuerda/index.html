@@ -430,7 +430,7 @@ small.muted{color:var(--muted)}
     return Number(n.toPrecision(11)).toString().replace('.',',');
   }
   function calcEvaluate(source){
-    const text=source.replace(/\\s+/g,'');
+    const text=source.replace(/\s+/g,'');
     let i=0;
     const peek=()=>text[i]||'';
     function eat(c){if(text.startsWith(c,i)){i+=c.length;return true;}return false;}
@@ -438,7 +438,7 @@ small.muted{color:var(--muted)}
       if(eat('+'))return primary();
       if(eat('-'))return -primary();
       if(eat('(')){const n=sum();if(!eat(')'))throw Error('Falta )');return n;}
-      const fn=/^(sin|cos|tan|sqrt|log|ln)(?=\\()/i.exec(text.slice(i));
+      const fn=/^(sin|cos|tan|sqrt|log|ln)(?=\()/i.exec(text.slice(i));
       if(fn){
         i+=fn[0].length;if(!eat('('))throw Error('Falta (');
         const n=sum();if(!eat(')'))throw Error('Falta )');
@@ -449,7 +449,7 @@ small.muted{color:var(--muted)}
       if(eat('pi'))return Math.PI;
       if(eat('ans'))return calcAns;
       if(eat('e'))return Math.E;
-      const m=/^(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[Ee][+-]?\\d+)?/.exec(text.slice(i));
+      const m=/^(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?/.exec(text.slice(i));
       if(m){i+=m[0].length;return Number(m[0]);}
       throw Error('Expresión incompleta');
     }
@@ -481,7 +481,7 @@ small.muted{color:var(--muted)}
     return value;
   }
   function calcRender(){
-    calcExpr.textContent=(calcText||'0').replace(/sqrt/g,'√').replace(/pi/g,'π').replace(/ans/g,'Ans').replace(/\\*/g,'×').replace(/\\//g,'÷').replace(/\\./g,',');
+    calcExpr.textContent=(calcText||'0').replace(/sqrt/g,'√').replace(/pi/g,'π').replace(/ans/g,'Ans').replace(/\*/g,'×').replace(/\//g,'÷').replace(/\./g,',');
     if(!calcText){calcOut.textContent='0';return;}
     try{calcOut.textContent=calcFormat(calcEvaluate(calcText));}
     catch(err){calcOut.textContent='…';}
@@ -497,7 +497,7 @@ small.muted{color:var(--muted)}
     }
     if(key==='neg'){calcText=calcText?'(-('+calcText+'))':'-';calcJustSolved=false;calcRender();return;}
     if(key==='exp')key='E';
-    if(calcJustSolved&&/^(?:[0-9.]|pi|e|ans|sin\\(|cos\\(|tan\\(|sqrt\\(|ln\\(|log\\()$/.test(key))calcText='';
+    if(calcJustSolved&&/^(?:[0-9.]|pi|e|ans|sin\(|cos\(|tan\(|sqrt\(|ln\(|log\()$/.test(key))calcText='';
     calcJustSolved=false;
     if(calcText.length+key.length>160)return;
     calcText+=key;calcRender();
