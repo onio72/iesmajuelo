@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Puntos con un desfase dado · Onda transversal</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#16324b;background:#f3f7fb}*{box-sizing:border-box}body{margin:0}main{max-width:1140px;margin:auto;padding:22px}h1{font-size:clamp(23px,3vw,34px);margin:0 0 7px}p{line-height:1.5}.intro{color:#526b7c;margin:0 0 18px}.card{background:white;border:1px solid #d5e3ed;border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 2px 12px #173a5010}.instructions{background:#eaf4fb;border-left:4px solid #167eb3;padding:10px 15px;border-radius:10px;margin-bottom:14px;font-size:15px}.instructions p{margin:3px 0}.view{overflow-x:auto}svg{display:block;width:100%;min-width:650px;height:auto;touch-action:pan-y;user-select:none}.legend{display:flex;gap:22px;flex-wrap:wrap;font-size:14px;color:#4d6476;margin:8px 0}.swatch{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:middle;margin-right:6px}.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.param{padding:10px 12px;background:#f7fafc;border:1px solid #dae6ee;border-radius:10px}.param label{display:flex;justify-content:space-between;gap:8px;font-size:14px;font-weight:650}.param output{color:#136a9c;font-variant-numeric:tabular-nums}input[type=range]{width:100%;accent-color:#197eae;cursor:pointer;min-height:32px}.buttons{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}button{background:white;border:1px solid #afc9d9;border-radius:9px;padding:11px 14px;font-weight:700;color:#205776;cursor:pointer;font-size:14px}button.primary{background:#167eb3;color:white;border-color:#167eb3}button:hover{filter:brightness(.96)}button:focus-visible,input:focus-visible{outline:3px solid #e1a244;outline-offset:2px}.timebox{margin-top:8px}.timebox label{font-weight:650;display:flex;justify-content:space-between}.readout{display:flex;gap:12px;flex-wrap:wrap;font-size:14px;color:#526a7b;margin-top:10px}.readout span{background:#f1f6f9;padding:7px 11px;border-radius:8px}.note{font-size:13px;color:#5a7181;margin-bottom:0}.small{color:#607789;font-size:13px}@media(max-width:680px){main{padding:12px}.controls{grid-template-columns:1fr}.card{padding:12px}}
+</style></head><body><main>
+<h1>Puntos con un desfase dado</h1><p class="intro">Física · 2.º de Bachillerato · Ondas transversales. Observa qué puntos de la cuerda mantienen un desfase determinado respecto a Z.</p>
+<div class="instructions"><p><strong>1.</strong> Modifica la amplitud, el período y la longitud de onda.</p><p><strong>2.</strong> Arrastra el punto <strong style="color:#d53136">Z (rojo)</strong> a cualquier posición de la cuerda.</p><p><strong>3.</strong> Selecciona el desfase respecto a Z en múltiplos de π y pulsa <strong>Animar</strong> para observar los puntos <strong style="color:#dd8317">naranjas</strong>.</p></div>
+<section class="card"><div class="view">
+<svg id="scene" viewBox="0 0 1000 395" role="img" aria-label="Cuerda transversal en movimiento, punto Z rojo arrastrable y puntos naranjas con desfase seleccionado">
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#568ba7"/></marker></defs>
+<text x="80" y="32" font-size="15" fill="#486f85">Onda propagándose hacia la derecha</text><path d="M410 27H645" stroke="#568ba7" stroke-width="2" marker-end="url(#arrow)"/>
+<g id="grid"></g><line x1="75" y1="180" x2="930" y2="180" stroke="#9ab5c6" stroke-dasharray="6 6"/>
+<path id="wave" fill="none" stroke="#187cac" stroke-width="4" stroke-linecap="round"/>
+<g id="others"></g><line id="zguide" stroke="#db5656" stroke-dasharray="5 5" y1="78" y2="305" opacity=".6"/>
+<circle id="zpoint" r="10" fill="#dc343c" stroke="white" stroke-width="2.5" style="cursor:grab;touch-action:none"/>
+<text id="zlabel" font-size="19" font-weight="800" fill="#b9202b" text-anchor="middle" style="pointer-events:none">Z</text>
+<g id="axis"></g></svg></div>
+<div class="legend"><span><i class="swatch" style="background:#177eac"></i>Cuerda</span><span><i class="swatch" style="background:#dc343c"></i>Z: referencia arrastrable</span><span><i class="swatch" style="background:#ec891c"></i>Puntos con el desfase elegido</span></div>
+<div class="buttons"><button id="play" class="primary">▶ Animar</button><button id="pause">Ⅱ Pausar</button><button id="back">⏮ Retroceder</button><button id="forward">⏭ Avanzar</button><button id="reset">↺ Reiniciar</button></div>
+<div class="timebox"><label for="time">Tiempo <output id="timeVal">0,00 s</output></label><input type="range" id="time" min="0" max="12" step=".005" value="0"></div>
+<div class="readout"><span id="zpos">Z: 5,00 m</span><span id="spacing">Δx: 0,50 m</span><span id="velocity">v: 2,00 m/s</span><span id="state">Pausada</span></div></section>
+<section class="card"><h2 style="font-size:19px;margin:0 0 13px">Parámetros de la onda</h2><div class="controls">
+<div class="param"><label for="amp">Amplitud <output id="ampVal"></output></label><input id="amp" type="range" min=".2" max="1.5" step=".05" value="0.9"></div>
+<div class="param"><label for="period">Período <output id="periodVal"></output></label><input id="period" type="range" min=".5" max="5" step=".1" value="2"></div>
+<div class="param"><label for="lambda">Longitud de onda <output id="lambdaVal"></output></label><input id="lambda" type="range" min="1" max="8" step=".1" value="4"></div>
+<div class="param"><label for="phase">Desfase respecto a Z <output id="phaseVal"></output></label><input id="phase" type="range" min="0" max="12" step="1" value="6"><div class="small">De 0 a 2π, en pasos de π/6. No es la fase inicial.</div></div>
+</div><p class="note">Modelo: y(x,t) = A sen(2π(t/T − x/λ)). Los puntos naranjas cumplen |Δφ| = Δφ elegida + 2πn (n = 0, 1, 2…), a uno u otro lado de Z. Cuando Δφ = 0 o 2π, se señalan los puntos en fase. La distancia mínima correspondiente es Δx = λ·Δφ/(2π). La reproducción es continua, sin reflexión en los extremos.</p></section>
+</main><script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id), svg=$('scene'), NS='http://www.w3.org/2000/svg';
+const X0=75,X1=930,Y0=180,L=12,S=(X1-X0)/L,PX=75;let t=0,z=5,playing=false,last=0,frame=0,drag=false;
+const fmt=(n,d=2)=>n.toFixed(d).replace('.',','),clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const phaseNames=['0','π/6','π/3','π/2','2π/3','5π/6','π','7π/6','4π/3','3π/2','5π/3','11π/6','2π'];
+const vals=()=>({A:+$('amp').value,T:+$('period').value,w:+$('lambda').value,p:+$('phase').value});
+function y(x){const {A,T,w}=vals();return Y0-PX*A*Math.sin(2*Math.PI*(t/T-x/w))}
+function element(tag,attrs){const e=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));return e}
+function init(){const g=$('grid'),a=$('axis');for(let i=0;i<=12;i++){let xx=X0+i*S;g.append(element('line',{x1:xx,x2:xx,y1:59,y2:311,stroke:'#e1edf4','stroke-width':1}));a.append(element('text',{x:xx,y:338,'font-size':13,'text-anchor':'middle',fill:'#678092'})).textContent=i}a.append(element('text',{x:502,y:369,'font-size':15,'text-anchor':'middle',fill:'#486e85'})).textContent='Posición x (m)';for(let i=-1;i<=1;i++){const yy=Y0+i*PX;g.append(element('line',{x1:X0,x2:X1,y1:yy,y2:yy,stroke:'#eaf1f6'}))}}
+function draw(){const {A,T,w,p}=vals(),px=(x)=>X0+x*S;let path='';for(let x=0;x<=L+.001;x+=.025)path+=(path?'L':'M')+px(x).toFixed(1)+','+y(x).toFixed(2);$('wave').setAttribute('d',path);$('zpoint').setAttribute('cx',px(z));$('zpoint').setAttribute('cy',y(z));$('zguide').setAttribute('x1',px(z));$('zguide').setAttribute('x2',px(z));$('zlabel').setAttribute('x',px(z));$('zlabel').setAttribute('y',Math.max(40,y(z)-19));
+const d=w*p/12;const candidates=[];const add=x=>{if(x<-.0001||x>L+.0001||Math.abs(x-z)<.0001||candidates.some(v=>Math.abs(x-v)<.0001))return;candidates.push(clamp(x,0,L))};
+for(let n=0;n<=Math.ceil(L/w)+1;n++){const dist=d+n*w;add(z-dist);add(z+dist)}
+if(p===12){for(let n=0;n<=Math.ceil(L/w)+1;n++){add(z-n*w);add(z+n*w)}} 
+candidates.sort((a,b)=>a-b);const others=$('others');others.replaceChildren();candidates.forEach(x=>{const cx=px(x),cy=y(x);others.append(element('line',{x1:cx,x2:cx,y1:cy+10,y2:302,stroke:'#e4a152','stroke-width':1.1,'stroke-dasharray':'4 4',opacity:'.48'}));others.append(element('circle',{cx,cy,r:7.5,fill:'#ef8a20',stroke:'white','stroke-width':2}))});
+$('ampVal').textContent=fmt(A)+' m';$('periodVal').textContent=fmt(T)+' s';$('lambdaVal').textContent=fmt(w)+' m';$('phaseVal').textContent=phaseNames[p]+' rad';$('timeVal').textContent=fmt(t)+' s';$('time').value=t;$('zpos').textContent='Z: '+fmt(z)+' m';$('spacing').textContent='Δx mínima: '+fmt(d)+' m';$('velocity').textContent='v: '+fmt(w/T)+' m/s';$('state').textContent=playing?'Animando':'Pausada';$('play').disabled=playing;$('pause').disabled=!playing}
+function stop(){playing=false;cancelAnimationFrame(frame);draw()}
+function tick(now){if(!playing)return;t=(t+Math.min((now-last)/1000,.08))%12;last=now;draw();frame=requestAnimationFrame(tick)}
+$('play').onclick=()=>{if(playing)return;playing=true;last=performance.now();frame=requestAnimationFrame(tick);draw()};
+$('pause').onclick=stop;
+$('back').onclick=()=>{stop();t=clamp(t-.1,0,12);draw()};
+$('forward').onclick=()=>{stop();t=clamp(t+.1,0,12);draw()};
+$('reset').onclick=()=>{stop();t=0;draw()};
+$('time').oninput=e=>{stop();t=+e.target.value;draw()};
+['amp','period','lambda','phase'].forEach(id=>$(id).addEventListener('input',draw));
+function pointerX(e){const c=svg.createSVGPoint();c.x=e.clientX;c.y=e.clientY;const m=svg.getScreenCTM();return m?c.matrixTransform(m.inverse()).x:X0}
+$('zpoint').addEventListener('pointerdown',e=>{drag=true;svg.setPointerCapture(e.pointerId);e.preventDefault();stop()});
+svg.addEventListener('pointermove',e=>{if(!drag)return;z=clamp((pointerX(e)-X0)/S,0,L);draw()});
+svg.addEventListener('pointerup',()=>drag=false);svg.addEventListener('pointercancel',()=>drag=false);
+init();draw();
+})();
+</script></body></html>
