@@ -166,7 +166,7 @@ header p{font-size:.86rem}
 (()=>{'use strict';
 const $=id=>document.getElementById(id),canvas=$('view'),ctx=canvas.getContext('2d');
 const LEN=12, keys=['A','f','T','lambda','k','v','direction','sameDirection'];
-const equationKeys=['A','T','f','lambda','k','v','kvec','direction','sameDirection'];
+const equationKeys=['A','T','f','lambda','k','v','direction','sameDirection'];
 const eqYesNo=[['yes','Sí, tienen el mismo valor'],['no','No, sus valores son diferentes']];
 const ampLevels=[.3,.5,.7,.9],freqLevels=[.5,1,1.5,2],lambdaLevels=[2,3,4,6];
 const optsCompare=[['gt','La onda A tiene mayor valor'],['lt','La onda B tiene mayor valor'],['eq','Las dos tienen el mismo valor']];
@@ -224,7 +224,7 @@ function build(type){
  return {A,B,type,prompt,options,correct};
 }
 // Las ecuaciones se expresan como y(x,t) = A sen(ωt ∓ kx).
-// Número de onda escalar k=2π/λ; vector de onda k⃗ = ±k î.
+// Número de onda escalar k=2π/λ; el sentido de propagación se pregunta por separado.
 function buildEquation(type,relation){
  const make=(A,f,lambda,d)=>complete({A,f,v:f*lambda,d});
  const pool=[];
@@ -236,23 +236,18 @@ function buildEquation(type,relation){
    if(Math.abs(a.A-b.A)<1e-9&&Math.abs(a.f-b.f)<1e-9&&Math.abs(a.lambda-b.lambda)<1e-9&&a.d===b.d)return false;
    if(type==='direction')return (a.d===1?'R':'L')+(b.d===1?'R':'L')===relation;
    if(type==='sameDirection')return (a.d===b.d?'yes':'no')===relation;
-   if(type==='kvec')return (Math.abs(a.k-b.k)<1e-9&&a.d===b.d?'yes':'no')===relation;
    const diff=a[type]-b[type];return (Math.abs(diff)<1e-9?'eq':diff>0?'gt':'lt')===relation;
   });
   if(candidates.length){
    let target=candidates;
-   if(type==='kvec'&&relation==='no'&&Math.random()<.65){
-    const opposite=candidates.filter(b=>Math.abs(a.k-b.k)<1e-9&&a.d!==b.d);
-    if(opposite.length)target=opposite;
-   }
+
    const b=random(target);
-   const names={A:'la amplitud',f:'la frecuencia',T:'el período',lambda:'la longitud de onda',k:'el número de onda k',v:'la rapidez de propagación',kvec:'el vector de onda (k⃗)'};
+   const names={A:'la amplitud',f:'la frecuencia',T:'el período',lambda:'la longitud de onda',k:'el número de onda k',v:'la rapidez de propagación'};
    return {A:a,B:b,type,mode:'equations',
     prompt:type==='direction'?'¿En qué sentido se propaga cada una de estas ondas?':
     type==='sameDirection'?'¿Se propagan ambas ondas en el mismo sentido?':
-    type==='kvec'?'¿Son iguales los vectores de onda de A y B?':
     '¿Cómo es '+names[type]+' de A respecto a la de B?',
-    options:type==='direction'?optsDirection:type==='sameDirection'?optsSame:type==='kvec'?eqYesNo:optsCompare,
+    options:type==='direction'?optsDirection:type==='sameDirection'?optsSame:optsCompare,
     correct:relation,functions:[random(['sen','cos']),random(['sen','cos'])],
     formats:[random(['angular','expanded','factored']),random(['angular','expanded','factored'])],
     phases:[random(['0','π/4','−π/3','π/2','−π/2']),random(['0','π/4','−π/3','π/2','−π/2'])]};
@@ -314,7 +309,7 @@ function nextProblem(){
   const type=equationDeck.pop();
   if(!equationDirections.length)equationDirections=shuffle(['RR','LL','RL','LR']);
   const relation=type==='direction'?equationDirections.pop():
-    type==='sameDirection'||type==='kvec'?random(['yes','no']):relationDeck.pop();
+    type==='sameDirection'?random(['yes','no']):relationDeck.pop();
   problem=buildEquation(type,relation);
  }else{
   if(!deck.length)deck=shuffle([...keys]);
@@ -352,11 +347,7 @@ function check(){
  if(problem.type==='T')detail+=' Recuerda que T = 1/f.';
  if(problem.type==='lambda')detail+=' Recuerda que λ = v/f.';
  if(problem.type==='k')detail+=' El número de onda es k = 2π/λ (rad/m), independientemente del sentido.';
- if(problem.type==='kvec'){
-  const vector=p=>(p.d===1?'+':'−')+format(p.k)+' î rad/m';
-  detail=' Vectores: A = '+vector(problem.A)+'; B = '+vector(problem.B)+'.';
-  detail+=' El vector de onda exige igual módulo y la misma dirección y sentido.';
- }
+
  if(problem.mode==='equations'&&(problem.type==='f'||problem.type==='T'))
   detail+=' La frecuencia y el período se determinan a partir de ω = 2πf = 2π/T.';
  if(problem.mode==='equations'&&(problem.type==='direction'||problem.type==='sameDirection')){
