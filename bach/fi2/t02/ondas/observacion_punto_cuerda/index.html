@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Observa un punto de la cuerda · Ondas transversales</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#e9f2ff;background:#0b1728}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(140deg,#0b1728,#142c45)}
+main{max-width:1120px;margin:auto;padding:25px 18px 55px}
+header{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+small,.muted{color:#9fb5cd}h1{font-size:clamp(1.45rem,3vw,2.15rem);margin:8px 0 7px;line-height:1.18}
+p{line-height:1.5}.intro{color:#bbcee3;margin:3px 0 20px}
+a{color:#8fd8ff}.tag{font-size:.78rem;border:1px solid #37617e;padding:7px 11px;border-radius:20px;color:#9bd9fc}
+.panel{border:1px solid #2a4a66;background:#11263e;border-radius:15px;padding:18px;margin-top:15px;box-shadow:0 12px 30px #0002}
+.topline{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:12px}
+h2{font-size:1rem;margin:0}.pill{color:#a9d9f5;font-size:.85rem}
+canvas{width:100%;height:auto;display:block;background:#09192b;border-radius:10px;touch-action:none;cursor:ew-resize;border:1px solid #32516c}
+.hint{text-align:center;font-size:.88rem;color:#b1c8dc;margin:10px 0 0}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:16px}.group{min-width:0}
+h3{font-size:.86rem;letter-spacing:.045em;text-transform:uppercase;color:#b9d6ed;margin:0 0 10px}
+.buttons{display:flex;gap:7px;flex-wrap:wrap}button{border:1px solid #3e6682;border-radius:9px;padding:10px 13px;background:#1a3852;color:#eaf4ff;cursor:pointer;font-weight:600}
+button:hover{background:#24516e}button[aria-pressed=true],button.primary{background:#167ba8;border-color:#5ccbf2;color:white}button:focus-visible,input:focus-visible{outline:3px solid #ffc36d;outline-offset:3px}
+.field{margin:12px 0;display:grid;grid-template-columns:minmax(100px,1fr) auto;gap:7px}.field label{font-size:.9rem}.field output{color:#8bddfa;font-variant-numeric:tabular-nums}input[type=range]{grid-column:1/-1;width:100%;accent-color:#55c9ec;cursor:pointer}
+.info{border-left:3px solid #57c9ef;padding-left:14px;color:#d6e9f6;margin-top:17px}.math{font-family:Georgia,serif;font-size:1.1rem}
+.answer{margin-top:10px;padding:12px;border-radius:9px;background:#092e41;color:#caedff}
+[hidden]{display:none!important}
+@media(max-width:720px){.controls{grid-template-columns:1fr}.panel{padding:13px}button{padding:9px 10px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<main>
+<header><div><small>IES El Majuelo · Física · 2.º de Bachillerato</small><h1>¿Cómo se mueve un punto de una cuerda?</h1></div><span class="tag">Ondas transversales</span></header>
+<p class="intro">Desplaza la ventana horizontalmente para elegir un punto material de la cuerda. Observa su movimiento mientras la onda se propaga.</p>
+<section class="panel" aria-label="Simulación">
+<div class="topline"><h2>Movimiento de la cuerda</h2><span class="pill" id="status">Reproduciendo · t = 0,00 s</span></div>
+<canvas id="wave" width="1000" height="440" aria-label="Cuerda con onda transversal y ventana de observación desplazable. Para seleccionar otra posición también puedes usar el deslizador."></canvas>
+<p class="hint" id="hint">Arrastra la zona iluminada a izquierda o derecha para seleccionar otro punto.</p>
+</section>
+<section class="panel">
+<div class="controls">
+<div class="group"><h3>Observación</h3>
+<div class="buttons" role="group" aria-label="Modos de observación">
+<button data-mode="full" aria-pressed="false">Onda completa</button>
+<button data-mode="focus" aria-pressed="true">Ventana móvil</button>
+<button data-mode="isolated" aria-pressed="false">Punto aislado</button>
+</div>
+<div class="field"><label for="position">Punto seleccionado (x)</label><output id="positionOut">5,0 m</output><input id="position" type="range" min="0" max="10" step=".05" value="5"></div>
+<div class="field"><label for="width">Ancho de la ventana</label><output id="widthOut">0,9 m</output><input id="width" type="range" min=".4" max="2.5" step=".1" value=".9"></div>
+<div class="field"><label for="dim">Atenuación del entorno</label><output id="dimOut">90 %</output><input id="dim" type="range" min="0" max="100" step="5" value="90"></div>
+</div>
+<div class="group"><h3>Reproducción y parámetros</h3>
+<div class="buttons">
+<button class="primary" id="play" aria-pressed="true">⏸ Pausar</button>
+<button id="restart">↺ Reiniciar tiempo</button>
+<button id="reset">Restablecer</button>
+</div>
+<div class="field"><label for="speed">Velocidad de reproducción</label><output id="speedOut">1,00 ×</output><input id="speed" type="range" min=".1" max="2" step=".05" value="1"></div>
+<div class="field"><label for="amplitude">Amplitud (A)</label><output id="amplitudeOut">0,8 m</output><input id="amplitude" type="range" min=".2" max="1.4" step=".1" value=".8"></div>
+<div class="field"><label for="frequency">Frecuencia (f)</label><output id="frequencyOut">0,50 Hz</output><input id="frequency" type="range" min=".1" max="1.5" step=".05" value=".5"></div>
+<div class="field"><label for="lambda">Longitud de onda (λ)</label><output id="lambdaOut">4,0 m</output><input id="lambda" type="range" min="1.5" max="8" step=".1" value="4"></div>
+</div></div>
+</section>
+<section class="panel">
+<h2>Pregunta para el alumnado</h2>
+<p>Ignora el resto de la cuerda y observa únicamente el punto amarillo. ¿Qué movimiento describe? ¿Se desplaza con la onda hacia la derecha?</p>
+<button id="reveal" aria-expanded="false">Mostrar explicación</button>
+<div id="answer" class="answer" hidden>El punto material oscila <strong>verticalmente en torno a su posición de equilibrio</strong> y realiza un <strong>movimiento armónico simple (MAS)</strong>. No viaja horizontalmente con la perturbación: la onda se propaga, pero las partículas de la cuerda oscilan. Para el modelo utilizado: <span class="math">y(x,t) = A · sen[2π(x/λ − ft)]</span>.</div>
+<p class="muted" style="font-size:.85rem">Modelo ideal de onda armónica progresiva hacia +x, sin reflexiones. La rapidez de reproducción solo cambia el ritmo de visualización: no modifica f, T ni la velocidad de propagación física.</p>
+</section>
+</main>
+<script>
+(()=>{
+'use strict';
+const canvas=document.getElementById('wave'), ctx=canvas.getContext('2d');
+const ids=['position','width','dim','speed','amplitude','frequency','lambda'];
+const sliders=Object.fromEntries(ids.map(id=>[id,document.getElementById(id)]));
+const defaults={position:5,width:.9,dim:90,speed:1,amplitude:.8,frequency:.5,lambda:4};
+let mode='focus',playing=true,t=0,last=null,drag=false;
+const N=10, W=1000,H=440, left=62,right=965,cy=210,scaleY=94;
+const fmt=(x,n=1)=>Number(x).toFixed(n).replace('.',',');
+const value=k=>Number(sliders[k].value);
+const xx=x=>left+x/N*(right-left);
+const yy=(x)=>cy-scaleY*value('amplitude')*Math.sin(2*Math.PI*(x/value('lambda')-value('frequency')*t));
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+function wavePath(a,b){const step=N/650;ctx.beginPath();let started=false;for(let x=a;x<=b+step/2;x+=step){const q=clamp(x,a,b),px=xx(q),py=yy(q);if(!started){ctx.moveTo(px,py);started=true}else ctx.lineTo(px,py)}}
+function strokeWave(a,b,color,width){wavePath(a,b);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineJoin='round';ctx.stroke()}
+function label(text,x,y,color='#a3b8d0',align='left'){ctx.fillStyle=color;ctx.font='15px system-ui,sans-serif';ctx.textAlign=align;ctx.fillText(text,x,y)}
+function render(){
+ctx.clearRect(0,0,W,H);ctx.fillStyle='#09192b';ctx.fillRect(0,0,W,H);
+ctx.strokeStyle='#294359';ctx.lineWidth=1;
+for(let i=0;i<=N;i++){ctx.beginPath();ctx.moveTo(xx(i),45);ctx.lineTo(xx(i),380);ctx.stroke();label(String(i),xx(i),404,'#8299af','center')}
+for(let j=-2;j<=2;j++){const y=cy+j*scaleY*.5;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(right,y);ctx.stroke()}
+ctx.setLineDash([7,7]);ctx.strokeStyle='#8ba3b9';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(left,cy);ctx.lineTo(right,cy);ctx.stroke();ctx.setLineDash([]);
+label('x (m)',right,430,'#b7cde1','right');label('y',23,48,'#b7cde1');
+const p=value('position'),half=value('width')/2,a=clamp(p-half,0,N),b=clamp(p+half,0,N);
+if(mode==='full')strokeWave(0,N,'#4bc9f1',3.8);
+if(mode==='focus'){
+  strokeWave(0,N,'#4bc9f1',3.8);
+  ctx.fillStyle='rgba(4,14,29,'+(value('dim')/100*.96)+')';
+  ctx.fillRect(left,35,xx(a)-left,350);ctx.fillRect(xx(b),35,right-xx(b),350);
+  ctx.fillStyle='rgba(70,196,250,.08)';ctx.fillRect(xx(a),35,xx(b)-xx(a),350);
+  ctx.strokeStyle='#80dbff';ctx.lineWidth=2;ctx.setLineDash([6,5]);ctx.strokeRect(xx(a),35,xx(b)-xx(a),350);ctx.setLineDash([]);
+  strokeWave(a,b,'#56d4ff',4);
+}
+ctx.setLineDash([5,7]);ctx.strokeStyle='#ffcd68';ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(xx(p),cy-160);ctx.lineTo(xx(p),cy+160);ctx.stroke();ctx.setLineDash([]);
+ctx.beginPath();ctx.arc(xx(p),yy(p),8,0,Math.PI*2);ctx.fillStyle='#ffc453';ctx.fill();ctx.lineWidth=2.5;ctx.strokeStyle='#fff9e6';ctx.stroke();
+label('P',xx(p)+13,yy(p)-13,'#ffdb8b');
+if(mode==='isolated'){label('Observamos un único punto material',W/2,28,'#b7d7ef','center')}
+document.getElementById('status').textContent=(playing?'Reproduciendo':'En pausa')+' · t = '+fmt(t,2)+' s';
+}
+function refresh(){
+document.getElementById('positionOut').textContent=fmt(value('position'),2)+' m';
+document.getElementById('widthOut').textContent=fmt(value('width'))+' m';
+document.getElementById('dimOut').textContent=value('dim')+' %';
+document.getElementById('speedOut').textContent=fmt(value('speed'),2)+' ×';
+document.getElementById('amplitudeOut').textContent=fmt(value('amplitude'))+' m';
+document.getElementById('frequencyOut').textContent=fmt(value('frequency'),2)+' Hz';
+document.getElementById('lambdaOut').textContent=fmt(value('lambda'))+' m';
+render()
+}
+Object.values(sliders).forEach(el=>el.addEventListener('input',refresh));
+document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>{
+mode=button.dataset.mode;
+document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+document.getElementById('width').disabled=(mode!=='focus');
+document.getElementById('dim').disabled=(mode!=='focus');
+document.getElementById('hint').textContent=mode==='focus'?'Arrastra la zona iluminada a izquierda o derecha para seleccionar otro punto.':'Utiliza el deslizador «Punto seleccionado» para cambiar de partícula.';
+render();
+}));
+function playButton(){const b=document.getElementById('play');b.textContent=playing?'⏸ Pausar':'▶ Reproducir';b.setAttribute('aria-pressed',String(playing))}
+document.getElementById('play').addEventListener('click',()=>{playing=!playing;last=null;playButton();render()});
+document.getElementById('restart').addEventListener('click',()=>{t=0;last=null;render()});
+document.getElementById('reset').addEventListener('click',()=>{ids.forEach(k=>sliders[k].value=defaults[k]);t=0;last=null;refresh()});
+const reveal=document.getElementById('reveal'),answer=document.getElementById('answer');
+reveal.addEventListener('click',()=>{answer.hidden=!answer.hidden;reveal.textContent=answer.hidden?'Mostrar explicación':'Ocultar explicación';reveal.setAttribute('aria-expanded',String(!answer.hidden))});
+function pointerPosition(e){const rect=canvas.getBoundingClientRect();return clamp((e.clientX-rect.left)/rect.width*W, left,right)}
+function moveTo(e){sliders.position.value=String(Math.round(((pointerPosition(e)-left)/(right-left)*N)*20)/20);refresh()}
+canvas.addEventListener('pointerdown',e=>{if(mode!=='focus')return;drag=true;canvas.setPointerCapture(e.pointerId);moveTo(e)});
+canvas.addEventListener('pointermove',e=>{if(drag)moveTo(e)});
+canvas.addEventListener('pointerup',()=>{drag=false});canvas.addEventListener('pointercancel',()=>{drag=false});
+function frame(now){if(last===null)last=now;const dt=Math.min(.05,Math.max(0,(now-last)/1000));last=now;if(playing)t+=dt*value('speed');render();requestAnimationFrame(frame)}
+if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){playing=false;playButton()}
+refresh();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
