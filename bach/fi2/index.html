@@ -635,7 +635,7 @@
                 if (!Array.isArray(section.links)) throw new Error('Sección sin enlaces');
                 for (const link of section.links) {
                     if (typeof link.name !== 'string' || !link.name.trim() ||
-                        typeof link.url !== 'string' || !link.url.startsWith('https://onio72.github.io/iesmajuelo/bach/fi2/') ||
+                        typeof link.url !== 'string' || !link.url.startsWith('https://onio72.github.io/iesmajuelo/') ||
                         !validTypes.has(link.didactica) || urls.has(link.url)) {
                         throw new Error('Recurso inválido o duplicado: ' + (link && link.name || '(sin nombre)'));
                     }
