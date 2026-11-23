@@ -3,10 +3,54 @@
 <title>Puntos con un desfase dado · Onda transversal</title>
 <style>
 :root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#16324b;background:#f3f7fb}*{box-sizing:border-box}body{margin:0}main{max-width:1140px;margin:auto;padding:22px}h1{font-size:clamp(23px,3vw,34px);margin:0 0 7px}p{line-height:1.5}.intro{color:#526b7c;margin:0 0 18px}.card{background:white;border:1px solid #d5e3ed;border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 2px 12px #173a5010}.instructions{background:#eaf4fb;border-left:4px solid #167eb3;padding:10px 15px;border-radius:10px;margin-bottom:14px;font-size:15px}.instructions p{margin:3px 0}.view{overflow-x:auto}svg{display:block;width:100%;min-width:650px;height:auto;touch-action:pan-y;user-select:none}.legend{display:flex;gap:22px;flex-wrap:wrap;font-size:14px;color:#4d6476;margin:8px 0}.swatch{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:middle;margin-right:6px}.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.param{padding:10px 12px;background:#f7fafc;border:1px solid #dae6ee;border-radius:10px}.param label{display:flex;justify-content:space-between;gap:8px;font-size:14px;font-weight:650}.param output{color:#136a9c;font-variant-numeric:tabular-nums}input[type=range]{width:100%;accent-color:#197eae;cursor:pointer;min-height:32px}.buttons{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}button{background:white;border:1px solid #afc9d9;border-radius:9px;padding:11px 14px;font-weight:700;color:#205776;cursor:pointer;font-size:14px}button.primary{background:#167eb3;color:white;border-color:#167eb3}button:hover{filter:brightness(.96)}button:focus-visible,input:focus-visible{outline:3px solid #e1a244;outline-offset:2px}.timebox{margin-top:8px}.timebox label{font-weight:650;display:flex;justify-content:space-between}.readout{display:flex;gap:12px;flex-wrap:wrap;font-size:14px;color:#526a7b;margin-top:10px}.readout span{background:#f1f6f9;padding:7px 11px;border-radius:8px}.note{font-size:13px;color:#5a7181;margin-bottom:0}.small{color:#607789;font-size:13px}@media(max-width:680px){main{padding:12px}.controls{grid-template-columns:1fr}.card{padding:12px}}
+
+@media(min-width:960px){
+ main{max-width:none;width:100%;padding:clamp(9px,1vw,18px) clamp(12px,1.5vw,28px)}
+ h1{font-size:clamp(22px,2vw,30px);margin:0 0 2px}
+ .intro{font-size:13px;margin:0 0 8px}
+ .instructions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px;padding:9px 12px;font-size:13px}
+ .instructions p{margin:0;line-height:1.35}
+ .workspace{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(335px,1fr);gap:12px;align-items:start}
+ .workspace>.card{min-width:0;margin:0;padding:clamp(10px,1.1vw,16px)}
+ .view{overflow:hidden}
+ svg{min-width:0}
+ .legend{gap:7px 17px;font-size:12px;margin:3px 0}
+ .buttons{gap:6px;margin:7px 0}
+ .buttons button{padding:8px 9px;min-height:36px;font-size:12px;flex:1 1 auto}
+ .timebox{margin-top:5px;font-size:13px}
+ input[type=range]{min-height:25px}
+ .readout{gap:5px;margin-top:5px;font-size:12px}
+ .readout span{padding:5px 7px}
+ .parameter-card h2{font-size:17px;margin:0 0 10px}
+ .controls{grid-template-columns:1fr;gap:9px}
+ .param{padding:8px 10px}
+ .param label{font-size:13px;align-items:center}
+ .param .small{font-size:11px}
+ .note{font-size:11px;line-height:1.38;margin-top:12px}
+}
+@media(min-width:960px) and (max-height:760px){
+ main{padding-top:8px;padding-bottom:8px}
+ .instructions{padding:6px 10px;margin-bottom:7px}
+ .workspace>.card{padding:9px}
+ .controls{gap:6px}
+ .param{padding:5px 8px}
+ .note{margin-top:7px}
+ .buttons{margin:5px 0}
+}
+@media(max-width:959px){
+ .workspace{display:grid;grid-template-columns:1fr;gap:12px}
+ .view{overflow:hidden}
+ svg{min-width:0}
+ .parameter-card h2{font-size:19px;margin:0 0 12px}
+}
+@media(min-width:960px) and (max-width:1160px){
+ .workspace{grid-template-columns:minmax(0,1.55fr) minmax(320px,1fr)}
+ .legend{font-size:11px}
+}
 </style></head><body><main>
 <h1>Puntos con un desfase dado</h1><p class="intro">Física · 2.º de Bachillerato · Ondas transversales. Observa qué puntos de la cuerda mantienen un desfase determinado respecto a Z.</p>
 <div class="instructions"><p><strong>1.</strong> Modifica la amplitud, el período y la longitud de onda.</p><p><strong>2.</strong> Arrastra el punto <strong style="color:#d53136">Z (rojo)</strong> a cualquier posición de la cuerda.</p><p><strong>3.</strong> Selecciona el desfase respecto a Z en múltiplos de π y pulsa <strong>Animar</strong> para observar los puntos <strong style="color:#dd8317">naranjas</strong>.</p></div>
-<section class="card"><div class="view">
+<div class="workspace"><section class="card wave-card"><div class="view">
 <svg id="scene" viewBox="0 0 1000 395" role="img" aria-label="Cuerda transversal en movimiento, punto Z rojo arrastrable y puntos naranjas con desfase seleccionado">
 <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#568ba7"/></marker></defs>
 <text x="80" y="32" font-size="15" fill="#486f85">Onda propagándose hacia la derecha</text><path d="M410 27H645" stroke="#568ba7" stroke-width="2" marker-end="url(#arrow)"/>
@@ -20,12 +64,12 @@
 <div class="buttons"><button id="play" class="primary">▶ Animar</button><button id="pause">Ⅱ Pausar</button><button id="back">⏮ Retroceder</button><button id="forward">⏭ Avanzar</button><button id="reset">↺ Reiniciar</button></div>
 <div class="timebox"><label for="time">Tiempo <output id="timeVal">0,00 s</output></label><input type="range" id="time" min="0" max="12" step=".005" value="0"></div>
 <div class="readout"><span id="zpos">Z: 5,00 m</span><span id="spacing">Δx: 0,50 m</span><span id="velocity">v: 2,00 m/s</span><span id="state">Pausada</span></div></section>
-<section class="card"><h2 style="font-size:19px;margin:0 0 13px">Parámetros de la onda</h2><div class="controls">
+<section class="card parameter-card"><h2>Parámetros de la onda</h2><div class="controls">
 <div class="param"><label for="amp">Amplitud <output id="ampVal"></output></label><input id="amp" type="range" min=".2" max="1.5" step=".05" value="0.9"></div>
 <div class="param"><label for="period">Período <output id="periodVal"></output></label><input id="period" type="range" min=".5" max="5" step=".1" value="2"></div>
 <div class="param"><label for="lambda">Longitud de onda <output id="lambdaVal"></output></label><input id="lambda" type="range" min="1" max="8" step=".1" value="4"></div>
 <div class="param"><label for="phase">Desfase respecto a Z <output id="phaseVal"></output></label><input id="phase" type="range" min="0" max="16" step="1" value="8"><div class="small">De 0 a 2π: incluye múltiplos de π/6 y π/4. No es la fase inicial.</div></div>
-</div><p class="note">Modelo: y(x,t) = A sen(2π(t/T − x/λ)). Los puntos naranjas cumplen |Δφ| = Δφ elegida + 2πn (n = 0, 1, 2…), a uno u otro lado de Z. Cuando Δφ = 0 o 2π, se señalan los puntos en fase. La distancia mínima correspondiente es Δx = λ·Δφ/(2π). La reproducción es continua, sin reflexión en los extremos.</p></section>
+</div><p class="note">Modelo: y(x,t) = A sen(2π(t/T − x/λ)). Los puntos naranjas cumplen |Δφ| = Δφ elegida + 2πn (n = 0, 1, 2…), a uno u otro lado de Z. Cuando Δφ = 0 o 2π, se señalan los puntos en fase. La distancia mínima correspondiente es Δx = λ·Δφ/(2π). La reproducción es continua, sin reflexión en los extremos.</p></section></div>
 </main><script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id), svg=$('scene'), NS='http://www.w3.org/2000/svg';
