@@ -42,7 +42,7 @@ for(let j=-2;j<=2;j++){const yy=y0+j*47;segment(left,yy,right,yy,j===0?'#79b5c7'
 ctx.fillStyle='#547080';ctx.textAlign='right';ctx.fillText('x (m)',1044,415);ctx.fillText('y',39,50);
 ctx.fillStyle='#e4edf3';ctx.fillRect(left,426,right-left,10);for(let i=0;i<=L*10;i++){const xx=X(i/10),hh=i%10===0?14:i%5===0?10:6;segment(xx,427,xx,427+hh,'#58788c',i%10===0?1.2:.7)}
 ctx.beginPath();ctx.strokeStyle='#1e83ae';ctx.lineWidth=4;ctx.lineJoin='round';for(let i=0;i<=700;i++){const x=L*i/700;if(i===0)ctx.moveTo(X(x),y(x));else ctx.lineTo(X(x),y(x))}ctx.stroke();
-if(showHints){for(let n=-20;n<=20;n++){const crest=((.25+n)*2*Math.PI-phase)*lambda/(2*Math.PI)+v*t;const trough=((.75+n)*2*Math.PI-phase)*lambda/(2*Math.PI)+v*t;if(crest>=0&&crest<=L)dot(X(crest),y(crest),'#369867',6);if(trough>=0&&trough<=L)dot(X(trough),y(trough),'#8059a8',6)}}
+if(showHints){for(let n=-20;n<=20;n++){const crest=v*t+(phase/(2*Math.PI)-.25+n)*lambda;const trough=v*t+(phase/(2*Math.PI)-.75+n)*lambda;if(crest>=0&&crest<=L)dot(X(crest),y(crest),'#369867',6);if(trough>=0&&trough<=L)dot(X(trough),y(trough),'#8059a8',6)}}
 ctx.font='bold 14px system-ui';cursors.forEach((x,i)=>{const xx=X(x),yy=y(x);segment(xx,top+1,xx,bottom,colors[i],1.5,[6,5]);dot(xx,yy,colors[i],8);ctx.fillStyle=colors[i];ctx.textAlign='center';ctx.fillText(i===0?'A':'B',xx,27);ctx.fillStyle=colors[i];ctx.fillRect(xx-5,424,10,14)});
 segment(X(cursors[0]),y0+147,X(cursors[1]),y0+147,'#7b8494',2);for(const x of cursors)segment(X(x),y0+140,X(x),y0+154,'#7b8494',2);
 }
