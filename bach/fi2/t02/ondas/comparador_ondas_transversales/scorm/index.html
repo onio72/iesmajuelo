@@ -26,6 +26,12 @@ button:disabled{opacity:.45;cursor:not-allowed}label.speed{display:flex;align-it
 .eqTitle{font-weight:800;color:#2d486b;font-size:.92rem;margin-bottom:18px}
 .equation{font-family:Georgia,'Times New Roman',serif;font-size:clamp(1.05rem,2.15vw,1.43rem);white-space:nowrap;overflow-x:auto;padding-bottom:8px;line-height:1.8}
 .mathVar{font-style:italic}.equation sub{font-size:.7em}
+.equation .frac{display:inline-flex;vertical-align:middle;flex-direction:column;align-items:center;line-height:1.1;margin:0 .08em;font-size:.89em}
+.equation .frac .num{display:block;border-bottom:1px solid currentColor;padding:0 .12em .08em}
+.equation .frac .den{display:block;padding:.10em .12em 0}
+.eqCard{overflow:hidden}.equation{white-space:normal;overflow-wrap:normal;overflow-x:auto;min-height:76px}
+.equation .formula{white-space:nowrap;display:inline-block;padding:2px 3px}
+.eqTitle .style-tag{font-size:.74rem;font-weight:550;color:#687f9d;margin-top:2px}
 @media(max-width:680px){.equationGrid{grid-template-columns:1fr}.eqCard{padding:14px}.eqTitle{margin-bottom:7px}}
 .question{font-size:clamp(1.08rem,2vw,1.35rem);font-weight:800;line-height:1.4;margin:12px 0 16px}
 .options{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:9px}.option{display:flex;gap:9px;align-items:center;padding:13px 12px;border:1.5px solid #cbd7e6;border-radius:10px;cursor:pointer;font-weight:650}
@@ -133,7 +139,7 @@ const ampLevels=[.3,.5,.7,.9],freqLevels=[.5,1,1.5,2],lambdaLevels=[2,3,4,6];
 const optsCompare=[['gt','La onda A tiene mayor valor'],['lt','La onda B tiene mayor valor'],['eq','Las dos tienen el mismo valor']];
 const optsDirection=[['RR','Ambas hacia la derecha'],['LL','Ambas hacia la izquierda'],['RL','A hacia la derecha y B hacia la izquierda'],['LR','A hacia la izquierda y B hacia la derecha']];
 const optsSame=[['yes','Sí, se propagan en el mismo sentido'],['no','No, se propagan en sentidos opuestos']];
-const label={A:'amplitud',f:'frecuencia',T:'período',lambda:'longitud de onda',k:'número de onda',v:'velocidad de propagación'};
+const label={A:'amplitud',f:'frecuencia',T:'período',lambda:'longitud de onda',k:'número de onda k',v:'velocidad de propagación'};
 const unit={A:'m',f:'Hz',T:'s',lambda:'m',k:'rad/m',v:'m/s'};
 let waves=[],problem=null,deck=[],equationDeck=[],relationDeck=[],equationDirections=[],points=0,index=0,t=0,playing=false,last=null,answered=false,done=false;
 let firstIsEquation=Math.random()<0.5;
@@ -215,7 +221,9 @@ function buildEquation(type,relation){
     type==='kvec'?'¿Son iguales los vectores de onda de A y B?':
     '¿Cómo es '+names[type]+' de A respecto a la de B?',
     options:type==='direction'?optsDirection:type==='sameDirection'?optsSame:type==='kvec'?eqYesNo:optsCompare,
-    correct:relation,functions:[random(['sen','cos']),random(['sen','cos'])]};
+    correct:relation,functions:[random(['sen','cos']),random(['sen','cos'])],
+    formats:[random(['angular','expanded','factored']),random(['angular','expanded','factored'])],
+    phases:[random(['0','π/4','−π/3','π/2','−π/2']),random(['0','π/4','−π/3','π/2','−π/2'])]};
   }
  }
  throw Error('No hay pares disponibles para '+type+' '+relation);
@@ -231,13 +239,39 @@ function spatialTerm(w){
  if(Math.abs(w.lambda-rounded)>1e-8||!map[rounded])throw Error('Longitud de onda inesperada');
  return map[rounded];
 }
-function equationHTML(w,letter,func){
- const temporal=piFactor(Math.round(2*w.f))+'t';
- const spatial=spatialTerm(w)+'x';
+function fraction(num,den){
+ return '<span class="frac"><span class="num">'+num+'</span><span class="den">'+den+'</span></span>';
+}
+function exactPeriod(w){
+ // Los valores permitidos de f generan períodos racionales. Sin redondear 2/3.
+ const pairs=[[.5,'2'],[1,'1'],[1.5,'(2/3)'],[2,'(1/2)']];
+ const found=pairs.find(([f])=>Math.abs(w.f-f)<1e-9);
+ if(!found)throw Error('Frecuencia inesperada');
+ return found[1];
+}
+function phaseTerm(phase){
+ if(!phase||phase==='0')return '';
+ return (phase.startsWith('−')?' − '+phase.slice(1):' + '+phase);
+}
+function equationHTML(w,letter,func,style='angular',phase='0'){
  const sign=w.d===1?' − ':' + ';
- return '<div class="eqCard '+(letter==='A'?'eqA':'eqB')+'"><div class="eqTitle">ONDA '+letter+'</div>'+
- '<div class="equation"><span class="mathVar">y</span><sub>'+letter+'</sub>(<span class="mathVar">x</span>,<span class="mathVar">t</span>) = '+
- format(w.A)+' '+func+'('+temporal+sign+spatial+')</div></div>';
+ const phaseOutside=phaseTerm(phase);
+ let arg;
+ if(style==='expanded'){
+  // 2πt/T ∓ 2πx/λ + φ₀
+  arg=fraction('2π',''+exactPeriod(w))+'t'+sign+fraction('2π',''+format(w.lambda))+'x'+phaseOutside;
+ }else if(style==='factored'){
+  // El desfase queda dentro del argumento trigonométrico, pero FUERA del factor 2π.
+  arg='2π('+fraction('t',''+exactPeriod(w))+sign+fraction('x',''+format(w.lambda))+')'+phaseOutside;
+ }else{
+  // ωt ∓ kx + φ₀, con ω y k como múltiplos exactos de π.
+  arg=piFactor(Math.round(2*w.f))+'t'+sign+spatialTerm(w)+'x'+phaseOutside;
+ }
+ const title={angular:'ωt ∓ kx',expanded:'2πt/T ∓ 2πx/λ',factored:'2π(t/T ∓ x/λ)'}[style]||'';
+ return '<div class="eqCard '+(letter==='A'?'eqA':'eqB')+'"><div class="eqTitle">ONDA '+letter+
+ '<div class="style-tag">'+title+'</div></div>'+
+ '<div class="equation"><span class="formula"><span class="mathVar">y</span><sub>'+letter+'</sub>'+
+ '(<span class="mathVar">x</span>,<span class="mathVar">t</span>) = '+format(w.A)+' '+func+'('+arg+')</span></div></div>';
 }
 function nextProblem(restored){
  if(done&&!restored)return;
@@ -270,7 +304,7 @@ function nextProblem(restored){
  $('graphPanel').classList.toggle('hidden',isEq);
  $('equationPanel').classList.toggle('hidden',!isEq);
  $('exerciseMode').textContent=isEq?'Interpretar ecuaciones':'Observar dos cuerdas';
- if(isEq)$('equations').innerHTML=equationHTML(problem.A,'A',problem.functions[0])+equationHTML(problem.B,'B',problem.functions[1]);
+ if(isEq)$('equations').innerHTML=equationHTML(problem.A,'A',problem.functions[0],problem.formats?.[0],problem.phases?.[0])+equationHTML(problem.B,'B',problem.functions[1],problem.formats?.[1],problem.phases?.[1]);
  $('question').textContent=problem.prompt;
  $('options').innerHTML='';
  problem.options.forEach(([value,text],i)=>{
