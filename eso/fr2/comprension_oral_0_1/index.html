@@ -128,6 +128,8 @@ function recommendSpeed(level){
   const button=$(id);
   button.classList.remove('primary','secondary','outline');
   button.classList.add(easy?(id==='slow'?'primary':id==='verySlow'?'secondary':'outline'):(id==='listen'?'primary':'outline'));
+  // En el nivel fácil, Lenta y Muy lenta aparecen primero.
+  button.style.order=easy?({slow:1,verySlow:2,listen:3}[id]):({listen:1,slow:2,verySlow:3}[id]);
  }
  $('speedTip').textContent=easy?'Nivel fácil: empieza con Lenta o Muy lenta. Normal queda como opción adicional.':'Puedes pasar de Normal a Lenta o Muy lenta cuando lo necesites.';
 }
