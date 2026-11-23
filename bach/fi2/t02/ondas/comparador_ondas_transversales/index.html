@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Comparador de ondas transversales · Física 2.º Bachillerato</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,sans-serif;color:#182b46;background:#f3f6fb}*{box-sizing:border-box}body{margin:0}main{max-width:1100px;margin:auto;padding:25px 18px 55px}
+header{background:#102b49;color:white;padding:23px 18px}header>div{max-width:1100px;margin:auto}h1{font-size:clamp(1.5rem,3vw,2.2rem);margin:0 0 7px}header p{margin:0;color:#c5d8ed}
+.panel{background:white;border:1px solid #dae3ee;border-radius:15px;box-shadow:0 3px 15px #1734590b;padding:20px;margin:15px 0}
+.legend{display:flex;gap:20px;flex-wrap:wrap;align-items:center;font-weight:750}.dot{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:8px}.a{background:#2563eb}.b{background:#ed6b38}
+canvas{width:100%;height:350px;display:block;touch-action:pan-y}button,select{font:inherit;border-radius:9px;border:1px solid #bccce0;padding:9px 13px;background:white;color:#172b45}button{cursor:pointer;font-weight:700}button:hover{border-color:#2563eb;background:#f0f6ff}button.primary{background:#185abc;color:white;border-color:#185abc}button.primary:hover{background:#11478f}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.controls label{display:flex;align-items:center;gap:8px}.controls input{max-width:135px}
+.note{font-size:.88rem;color:#53647c;line-height:1.5}.tablewrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:590px}th,td{padding:11px 10px;border-bottom:1px solid #e5ebf4;text-align:left}th{font-size:.87rem;color:#475f7e;background:#f6f9fd}td select{width:100%;max-width:270px}.feedback{font-size:.84rem;font-weight:650}.ok{color:#147643}.bad{color:#b52f35}
+#result{margin:12px 0;font-weight:700}#solutions{display:none;background:#f6f9fd;border-radius:10px;padding:14px;line-height:1.8}#solutions.show{display:block}.small{font-size:.82rem;font-weight:400;color:#5a6d84}footer{text-align:center;color:#68809c;font-size:.8rem}#status{font-variant-numeric:tabular-nums;font-weight:700}
+@media(max-width:650px){main{padding:12px}header{padding:18px 12px}.panel{padding:12px}canvas{height:300px}.controls{gap:8px}button{padding:9px} }
+</style></head><body><header><div><h1>Comparador de ondas transversales</h1><p>Física · 2.º de Bachillerato · Tema 2 · Ondas</p></div></header>
+<main>
+<section class="panel">
+<div class="legend"><span><i class="dot a"></i>Cuerda A</span><span><i class="dot b"></i>Cuerda B</span><span id="status">t = 0,00 s</span></div>
+<canvas id="plot" role="img" aria-label="Representación animada de dos cuerdas, A y B, por las que se propagan ondas transversales"></canvas>
+<div class="controls">
+<button class="primary" id="play">▶ Iniciar</button><button id="reset">↺ Reiniciar</button><button id="new">↻ Nuevo ejercicio</button>
+<label>Ritmo visual <input id="speed" type="range" min="0.25" max="2" step="0.25" value="1"> <output id="speedText">×1</output></label>
+</div>
+<p class="note">Las cuerdas comienzan horizontales y sus focos oscilan desde el mismo instante. El reloj representa el tiempo físico de la simulación; cambiar el ritmo solo modifica la velocidad de reproducción. Observa los frentes de onda y las oscilaciones para responder.</p>
+</section>
+<section class="panel"><h2>Compara las dos ondas</h2>
+<p>En cada fila indica cómo es la magnitud de la onda A <strong>respecto a la onda B</strong>. Las respuestas «igual» también son posibles.</p>
+<div class="tablewrap"><table><thead><tr><th>Magnitud</th><th>Comparación A respecto a B</th><th>Corrección</th></tr></thead><tbody id="questions"></tbody></table></div>
+<div class="controls" style="margin-top:16px"><button class="primary" id="check">Comprobar respuestas</button><button id="reveal">Mostrar valores y explicación</button></div>
+<p id="result" aria-live="polite"></p><div id="solutions"></div>
+</section>
+<section class="panel"><h2>Pistas para observar</h2><p class="note">La <strong>amplitud</strong> es el máximo desplazamiento vertical. El <strong>período</strong> es el tiempo que tarda un punto de la cuerda en repetir su movimiento; la <strong>frecuencia</strong> indica cuántas oscilaciones realiza por segundo. La <strong>longitud de onda</strong> es la distancia entre puntos consecutivos en fase. La <strong>velocidad de propagación</strong> se identifica por el avance horizontal del frente de onda, no por la velocidad vertical de los puntos de la cuerda. El sentido se observa siguiendo ese frente.</p></section>
+<footer>IES El Majuelo · Recurso interactivo de Física</footer>
+</main>
+<script>
+(()=>{'use strict';
+const cvs=document.getElementById('plot'),ctx=cvs.getContext('2d');
+const el=id=>document.getElementById(id),L=12,EPS=1e-8;
+let waves=[],t=0,running=false,last=0,checked=false,seed=0;
+const choices=[['','Selecciona…'],['mayor','Mayor'],['menor','Menor'],['igual','Igual']];
+const metrics=[['A','Amplitud'],['f','Frecuencia'],['T','Período'],['lambda','Longitud de onda'],['v','Velocidad de propagación']];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const cmp=(x,y)=>Math.abs(x-y)<EPS?'igual':x>y?'mayor':'menor';
+const fmt=x=>Number(x.toFixed(3)).toLocaleString('es-ES',{maximumFractionDigits:3});
+function make(){
+ // Forzar una mezcla de igualdad y diferencias, sin alterar las relaciones físicas.
+ const A1=pick([.35,.5,.65,.8]),f1=pick([.5,.75,1,1.25]),v1=pick([1.5,2,2.5,3]);
+ const same=pick(['A','f','v']);
+ const A2=same==='A'?A1:pick([.35,.5,.65,.8].filter(x=>x!==A1));
+ const f2=same==='f'?f1:pick([.5,.75,1,1.25].filter(x=>x!==f1));
+ const v2=same==='v'?v1:pick([1.5,2,2.5,3].filter(x=>x!==v1));
+ const d1=pick([-1,1]),d2=pick([-1,1]);
+ waves=[{A:A1,f:f1,v:v1,T:1/f1,lambda:v1/f1,d:d1,color:'#2563eb'},
+ {A:A2,f:f2,v:v2,T:1/f2,lambda:v2/f2,d:d2,color:'#ed6b38'}];
+ t=0;running=false;last=0;checked=false;
+ el('play').textContent='▶ Iniciar';el('result').textContent='';el('solutions').className='';el('solutions').textContent='';
+ const rows=[...metrics.map(([k,title])=>({id:k,title,options:choices,correct:cmp(waves[0][k],waves[1][k])})),
+ {id:'dA',title:'Sentido de propagación · cuerda A',options:[['','Selecciona…'],['izquierda','Hacia la izquierda'],['derecha','Hacia la derecha']],correct:waves[0].d===1?'derecha':'izquierda'},
+ {id:'dB',title:'Sentido de propagación · cuerda B',options:[['','Selecciona…'],['izquierda','Hacia la izquierda'],['derecha','Hacia la derecha']],correct:waves[1].d===1?'derecha':'izquierda'}];
+ window.questionRows=rows;
+ el('questions').innerHTML=rows.map(row=>'<tr><td><strong>'+row.title+'</strong></td><td><select aria-label="'+row.title+'" id="q-'+row.id+'">'+row.options.map(([v,txt])=>'<option value="'+v+'">'+txt+'</option>').join('')+'</select></td><td class="feedback" id="fb-'+row.id+'"></td></tr>').join('');
+ draw();
+}
+function dims(){const dpr=Math.min(window.devicePixelRatio||1,2),rect=cvs.getBoundingClientRect();const w=rect.width,h=rect.height;if(cvs.width!==Math.round(w*dpr)||cvs.height!==Math.round(h*dpr)){cvs.width=Math.round(w*dpr);cvs.height=Math.round(h*dpr)}ctx.setTransform(dpr,0,0,dpr,0,0);return {w,h}}
+function draw(){
+ const {w,h}=dims();ctx.clearRect(0,0,w,h);
+ const left=44,right=w-20,plotW=right-left,centers=[h*.28,h*.73],ampScale=Math.min(h*.19,65);
+ ctx.lineWidth=1;ctx.font='12px system-ui';
+ waves.forEach((p,i)=>{
+ const cy=centers[i];ctx.strokeStyle='#e5ebf4';ctx.lineWidth=1;
+ for(let yy=-1;yy<=1;yy+=.5){ctx.beginPath();ctx.moveTo(left,cy-yy*ampScale);ctx.lineTo(right,cy-yy*ampScale);ctx.stroke()}
+ for(let x=0;x<=12;x+=2){let px=left+x/L*plotW;ctx.beginPath();ctx.moveTo(px,cy-ampScale*1.12);ctx.lineTo(px,cy+ampScale*1.12);ctx.stroke()}
+ ctx.strokeStyle='#98aabd';ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(left,cy);ctx.lineTo(right,cy);ctx.stroke();ctx.setLineDash([]);
+ ctx.fillStyle=p.color;ctx.font='bold 14px system-ui';ctx.fillText('CUERDA '+(i===0?'A':'B'),left+8,cy-ampScale-11);
+ const source=p.d===1?0:L,front=Math.min(L,p.v*t),frontX=left+(source+p.d*front)/L*plotW;
+ ctx.beginPath();ctx.lineWidth=3.5;ctx.strokeStyle=p.color;ctx.lineJoin='round';
+ const n=Math.max(300,Math.ceil(plotW));
+ for(let j=0;j<=n;j++){
+ const x=L*j/n,dist=Math.abs(x-source),tau=t-dist/p.v;
+ // Frente causal: ningún punto comienza a vibrar antes de recibir la perturbación.
+ const y=tau<0?0:p.A*Math.sin(2*Math.PI*p.f*tau);
+ const px=left+x/L*plotW,py=cy-y*ampScale;
+ if(j===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+ }ctx.stroke();
+ ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(frontX,cy,4.5,0,2*Math.PI);ctx.fill();
+ ctx.font='11px system-ui';ctx.fillText('0 m',left-7,cy+ampScale+19);ctx.fillText('12 m',right-30,cy+ampScale+19);
+ });
+ el('status').textContent='t = '+t.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})+' s';
+}
+function frame(ts){
+ if(running){if(last)t=Math.min(20,t+(ts-last)/1000*Number(el('speed').value));last=ts;if(t>=20){running=false;el('play').textContent='▶ Continuar'}draw()}
+ requestAnimationFrame(frame);
+}
+el('play').onclick=()=>{if(t>=20)t=0;running=!running;last=0;el('play').textContent=running?'⏸ Pausar':'▶ Continuar';draw()};
+el('reset').onclick=()=>{running=false;t=0;last=0;el('play').textContent='▶ Iniciar';draw()};
+el('new').onclick=make;
+el('speed').oninput=()=>el('speedText').textContent='×'+fmt(Number(el('speed').value));
+el('check').onclick=()=>{
+ const rows=window.questionRows;if(rows.some(r=>!el('q-'+r.id).value)){el('result').textContent='Responde todas las preguntas antes de comprobar.';return}
+ let score=0;rows.forEach(r=>{let ok=el('q-'+r.id).value===r.correct;if(ok)score++;let cell=el('fb-'+r.id);cell.textContent=ok?'✓ Correcto':'✗ '+r.options.find(o=>o[0]===r.correct)[1];cell.className='feedback '+(ok?'ok':'bad')});
+ checked=true;el('result').textContent='Resultado: '+score+' de '+rows.length+' respuestas correctas.';
+};
+el('reveal').onclick=()=>{
+ const txt=metrics.map(([k,title])=>title+': A = '+fmt(waves[0][k])+({'A':' m','f':' Hz','T':' s','lambda':' m','v':' m/s'}[k])+'; B = '+fmt(waves[1][k])+({'A':' m','f':' Hz','T':' s','lambda':' m','v':' m/s'}[k])+'.').join('<br>');
+ const s=el('solutions');s.innerHTML=txt+'<br>Sentido: A hacia la '+(waves[0].d===1?'derecha':'izquierda')+'; B hacia la '+(waves[1].d===1?'derecha':'izquierda')+'.<br><strong>Relaciones físicas:</strong> T = 1/f; λ = v/f; v = λ·f. Las cuerdas se modelan sin reflexión en los extremos durante el intervalo observado.';s.className=s.className==='show'?'':'show';
+};
+window.addEventListener('resize',draw);make();requestAnimationFrame(frame);
+})();
+</script></body></html>
