@@ -15,6 +15,14 @@ canvas{display:block;width:100%;height:330px;border:1px solid #e5ecf5;border-rad
 .controls{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:13px}button{font:inherit;font-weight:750;border:1px solid #bacade;border-radius:9px;padding:11px 15px;color:#153250;background:white;cursor:pointer}
 button:hover:not(:disabled){background:#edf4ff;border-color:#3268bc}button.primary{background:#1c5cbe;color:white;border-color:#1c5cbe}button.primary:hover:not(:disabled){background:#15498f}
 button:disabled{opacity:.45;cursor:not-allowed}label.speed{display:flex;align-items:center;gap:8px;font-size:.85rem;color:#435a76}
+.equationIntro{color:#526781;font-size:.92rem;line-height:1.55;margin:0 0 17px}
+.equationGrid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.eqCard{border:1px solid #dce5f1;background:#f7faff;border-radius:13px;padding:19px 16px;min-width:0}
+.eqCard.eqA{border-top:5px solid #2666dc}.eqCard.eqB{border-top:5px solid #e36b29}
+.eqTitle{font-weight:800;color:#2d486b;font-size:.92rem;margin-bottom:18px}
+.equation{font-family:Georgia,'Times New Roman',serif;font-size:clamp(1.05rem,2.15vw,1.43rem);white-space:nowrap;overflow-x:auto;padding-bottom:8px;line-height:1.8}
+.mathVar{font-style:italic}.equation sub{font-size:.7em}
+@media(max-width:680px){.equationGrid{grid-template-columns:1fr}.eqCard{padding:14px}.eqTitle{margin-bottom:7px}}
 .question{font-size:clamp(1.08rem,2vw,1.35rem);font-weight:800;line-height:1.4;margin:12px 0 16px}
 .options{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:9px}.option{display:flex;gap:9px;align-items:center;padding:13px 12px;border:1.5px solid #cbd7e6;border-radius:10px;cursor:pointer;font-weight:650}
 .option:has(input:checked){border-color:#2461c4;background:#eef5ff}.option input{accent-color:#185cba;transform:scale(1.2)}
@@ -32,15 +40,20 @@ footer{text-align:center;color:#70829b;font-size:.8rem;margin:18px 0}
 <div class="meta">Acierto: <strong>+1</strong> · Error: <strong>−1</strong><br>Objetivo: <strong>10 puntos</strong>. Al superarlos 5 puntos, el marcador se vuelve verde.</div></div>
 <div class="pill" id="count">Pregunta 1</div>
 </section>
-<section class="panel">
+<section class="panel" id="graphPanel">
 <div class="legend"><span><i class="dot blue"></i>Cuerda A</span><span><i class="dot orange"></i>Cuerda B</span><span id="clock">t = 0,00 s</span></div>
 <canvas id="view" role="img" aria-label="Dos cuerdas que comienzan horizontales y reciben ondas transversales desde uno de sus extremos"></canvas>
 <div class="controls"><button class="primary" id="play">▶ Iniciar</button><button id="restart">↺ Volver al inicio</button>
 <label class="speed">Ritmo visual <input type="range" id="pace" min="0.25" max="2" step="0.25" value="1"><span id="paceText">×1</span></label></div>
 <p class="explain">Las dos fuentes comienzan a oscilar simultáneamente. Observa el movimiento de cada cuerda: sus puntos vibran transversalmente, mientras la perturbación avanza a lo largo de ella. Cambiar el ritmo visual no modifica los valores físicos de la onda.</p>
 </section>
+<section class="panel hidden" id="equationPanel">
+<h2 style="font-size:1.1rem;margin-top:0">Dos ecuaciones de ondas</h2>
+<p class="equationIntro">Las expresiones describen ondas armónicas transversales. Considera <strong>x</strong> en metros, <strong>t</strong> en segundos e <strong>y</strong> en metros. Compara sus parámetros sin necesidad de ver las gráficas.</p>
+<div class="equationGrid" id="equations" aria-label="Ecuaciones de las dos ondas"></div>
+</section>
 <section class="panel" id="exercise">
-<div class="pill" style="display:inline-block">Una pregunta por situación</div>
+<div class="pill" id="exerciseMode" style="display:inline-block">Una pregunta por situación</div>
 <div id="question" class="question" aria-live="polite"></div>
 <div id="options" class="options" role="radiogroup" aria-label="Selecciona una respuesta"></div>
 <div class="controls"><button class="primary" id="check" disabled>Comprobar</button><button class="primary hidden" id="next">Siguiente ejercicio →</button></div>
@@ -53,12 +66,16 @@ footer{text-align:center;color:#70829b;font-size:.8rem;margin:18px 0}
 (()=>{'use strict';
 const $=id=>document.getElementById(id),canvas=$('view'),ctx=canvas.getContext('2d');
 const LEN=12, keys=['A','f','T','lambda','k','v','direction','sameDirection'];
+const equationKeys=['A','T','f','k','kvec'];
+const eqYesNo=[['yes','Sí, tienen el mismo valor'],['no','No, sus valores son diferentes']];
+const ampLevels=[.3,.5,.7,.9],freqLevels=[.5,1,1.5,2],lambdaLevels=[2,3,4,6];
 const optsCompare=[['gt','La onda A tiene mayor valor'],['lt','La onda B tiene mayor valor'],['eq','Las dos tienen el mismo valor']];
 const optsDirection=[['RR','Ambas hacia la derecha'],['LL','Ambas hacia la izquierda'],['RL','A hacia la derecha y B hacia la izquierda'],['LR','A hacia la izquierda y B hacia la derecha']];
 const optsSame=[['yes','Sí, se propagan en el mismo sentido'],['no','No, se propagan en sentidos opuestos']];
 const label={A:'amplitud',f:'frecuencia',T:'período',lambda:'longitud de onda',k:'número de onda',v:'velocidad de propagación'};
 const unit={A:'m',f:'Hz',T:'s',lambda:'m',k:'rad/m',v:'m/s'};
-let waves=[],problem=null,deck=[],points=0,index=0,t=0,playing=false,last=null,answered=false,done=false;
+let waves=[],problem=null,deck=[],equationDeck=[],equalDeck=[],points=0,index=0,t=0,playing=false,last=null,answered=false,done=false;
+const firstIsEquation=Math.random()<0.5;
 const random=a=>a[Math.floor(Math.random()*a.length)],shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const format=n=>Number(n.toFixed(3)).toLocaleString('es-ES',{maximumFractionDigits:3});
 function complete(p){return {...p,T:1/p.f,lambda:p.v/p.f,k:2*Math.PI*p.f/p.v}}
@@ -106,11 +123,77 @@ function build(type){
  }
  return {A,B,type,prompt,options,correct};
 }
+// Las ecuaciones se expresan como y(x,t) = A sen(ωt ∓ kx).
+// Número de onda escalar k=2π/λ; vector de onda k⃗ = ±k î.
+function buildEquation(type,same){
+ const base={A:random(ampLevels),f:random(freqLevels),lambda:random(lambdaLevels),d:random([-1,1])};
+ const other={A:random(ampLevels),f:random(freqLevels),lambda:random(lambdaLevels),d:random([-1,1])};
+ const different=(levels,value)=>random(levels.filter(x=>x!==value));
+ if(type==='A'){
+  other.A=same?base.A:different(ampLevels,base.A);
+  other.f=different(freqLevels,base.f); // No son necesariamente ecuaciones idénticas.
+ }else if(type==='f'||type==='T'){
+  other.f=same?base.f:different(freqLevels,base.f);
+  other.A=different(ampLevels,base.A);
+ }else if(type==='k'){
+  other.lambda=same?base.lambda:different(lambdaLevels,base.lambda);
+  other.A=different(ampLevels,base.A);
+  // Un k escalar idéntico no exige el mismo sentido de propagación.
+  if(same&&Math.random()<.65)other.d=-base.d;
+ }else if(type==='kvec'){
+  other.A=different(ampLevels,base.A);
+  if(same){other.lambda=base.lambda;other.d=base.d}
+  else if(Math.random()<.65){other.lambda=base.lambda;other.d=-base.d}
+  else{other.lambda=different(lambdaLevels,base.lambda);other.d=random([-1,1])}
+ }
+ const make=p=>complete({A:p.A,f:p.f,v:p.f*p.lambda,d:p.d});
+ const A=make(base),B=make(other);
+ const questionName={A:'la amplitud',f:'la frecuencia',T:'el período',k:'el número de onda (módulo k)',kvec:'el vector de onda (k⃗)'}[type];
+ const equal = type==='kvec' ? Math.abs(A.k-B.k)<1e-9&&A.d===B.d
+ : Math.abs(A[type]-B[type])<1e-9;
+ if(equal!==same)throw Error('Incoherencia en la comparación de ecuaciones');
+ return {A,B,type,mode:'equations',
+  prompt:'¿Tienen las dos ondas el mismo valor de '+questionName+'?',
+  options:eqYesNo,correct:same?'yes':'no',
+  functions:[random(['sen','cos']),random(['sen','cos'])]};
+}
+function piFactor(n){
+ if(n===1)return 'π';
+ return n+'π';
+}
+function spatialTerm(w){
+ // λ pertenece a {2,3,4,6} m; representación exacta de k=2π/λ.
+ const map={2:'π',3:'(2π/3)',4:'(π/2)',6:'(π/3)'};
+ const rounded=Math.round(w.lambda);
+ if(Math.abs(w.lambda-rounded)>1e-8||!map[rounded])throw Error('Longitud de onda inesperada');
+ return map[rounded];
+}
+function equationHTML(w,letter,func){
+ const temporal=piFactor(Math.round(2*w.f))+'t';
+ const spatial=spatialTerm(w)+'x';
+ const sign=w.d===1?' − ':' + ';
+ return '<div class="eqCard '+(letter==='A'?'eqA':'eqB')+'"><div class="eqTitle">ONDA '+letter+'</div>'+
+ '<div class="equation"><span class="mathVar">y</span><sub>'+letter+'</sub>(<span class="mathVar">x</span>,<span class="mathVar">t</span>) = '+
+ format(w.A)+' '+func+'('+temporal+sign+spatial+')</div></div>';
+}
 function nextProblem(){
  if(done)return;
- if(!deck.length)deck=shuffle([...keys]);
- problem=build(deck.pop());waves=[problem.A,problem.B];index++;answered=false;t=0;playing=false;last=null;
- $('count').textContent='Pregunta '+index;$('question').textContent=problem.prompt;
+ const isEq=(index%2===0)===firstIsEquation;
+ if(isEq){
+  if(!equationDeck.length)equationDeck=shuffle([...equationKeys]);
+  if(!equalDeck.length)equalDeck=shuffle([true,true,false,false,random([true,false])]);
+  problem=buildEquation(equationDeck.pop(),equalDeck.pop());
+ }else{
+  if(!deck.length)deck=shuffle([...keys]);
+  problem=build(deck.pop());problem.mode='graph';
+ }
+ waves=[problem.A,problem.B];index++;answered=false;t=0;playing=false;last=null;
+ $('count').textContent='Pregunta '+index;
+ $('graphPanel').classList.toggle('hidden',isEq);
+ $('equationPanel').classList.toggle('hidden',!isEq);
+ $('exerciseMode').textContent=isEq?'Interpretar ecuaciones':'Observar dos cuerdas';
+ if(isEq)$('equations').innerHTML=equationHTML(problem.A,'A',problem.functions[0])+equationHTML(problem.B,'B',problem.functions[1]);
+ $('question').textContent=problem.prompt;
  $('options').innerHTML='';
  problem.options.forEach(([value,text],i)=>{
   const labelEl=document.createElement('label');labelEl.className='option';
@@ -135,7 +218,15 @@ function check(){
  if(label[problem.type])detail=' Valores: A = '+value(problem.A,problem.type)+'; B = '+value(problem.B,problem.type)+'.';
  if(problem.type==='T')detail+=' Recuerda que T = 1/f.';
  if(problem.type==='lambda')detail+=' Recuerda que λ = v/f.';
- if(problem.type==='k')detail+=' El número de onda es k = 2π/λ (rad/m).';
+ if(problem.type==='k')detail+=' El número de onda es k = 2π/λ (rad/m), independientemente del sentido.';
+ if(problem.type==='kvec'){
+  const vector=p=>(p.d===1?'+':'−')+format(p.k)+' î rad/m';
+  detail=' Vectores: A = '+vector(problem.A)+'; B = '+vector(problem.B)+'.';
+  detail+=' El vector de onda exige igual módulo y la misma dirección y sentido.';
+ }
+ if(problem.mode==='equations'&&(problem.type==='f'||problem.type==='T'))
+  detail+=' La frecuencia y el período se determinan a partir de ω = 2πf = 2π/T.';
+ if(problem.mode==='equations')detail+=' El signo del término espacial determina el sentido de propagación.';
  const f=$('feedback');f.textContent=(good?'✓ ¡Correcto! +1 punto.':'✗ Respuesta incorrecta. −1 punto.')+' Respuesta: '+right+'.'+detail;f.className='feedback '+(good?'correct':'incorrect');
  document.querySelectorAll('input[name="answer"]').forEach(r=>r.disabled=true);
  $('check').classList.add('hidden');
