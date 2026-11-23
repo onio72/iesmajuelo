@@ -37,7 +37,7 @@
     </div><p class="muted small" style="margin:8px 0 0">Fácil: una idea. Intermedia: preguntas o descripciones. Avanzada: dos ideas y pronombres.</p></section>
     <section class="block"><div class="controlrow">
       <div><label for="count" class="fieldlabel">Número de ejercicios</label><select id="count" class="field"><option>10</option><option selected>20</option><option>30</option><option>40</option></select></div>
-      <div><label for="playSpeed" class="fieldlabel">Velocidad normal</label><select id="playSpeed" class="field"><option value="0.88">Pausada</option><option value="1" selected>Natural</option><option value="1.12">Ágil</option></select></div>
+      <div><div class="fieldlabel">Velocidades de audición</div><p class="muted small" style="margin:5px 0 0">Elige Normal, Lenta o Muy lenta al escuchar. Para las frases fáciles se destacan Lenta y Muy lenta.</p></div>
     </div></section>
     <section class="block"><label for="voice" class="fieldlabel">Voz francesa disponible</label><select class="field" id="voice"><option value="">Detectando voces…</option></select><div id="voiceNote" class="notice small" style="margin-top:9px" role="status">La pronunciación se genera con la voz francesa del dispositivo.</div></section>
     <div><button class="btn primary full" id="newSet">↻ &nbsp;Generar nueva tanda</button><button class="btn secondary full" id="retry" style="margin-top:8px" disabled>Practicar solo los errores</button><div id="configError" class="small" style="color:var(--red);margin-top:7px" aria-live="polite"></div></div>
@@ -57,7 +57,12 @@
         <p class="instructions">Escucha en francés y escribe la traducción completa al español. La frase francesa no se mostrará hasta corregir.</p>
         <div class="audio-area">
           <div class="sound-graphic"><div class="sound-icon" aria-hidden="true">♫</div><div><div class="sound-head">Audición en francés</div><div class="sound-sub" id="heardNote">Escucha cuantas veces necesites.</div></div></div>
-          <div class="speaker-btns"><button id="listen" class="btn primary" type="button" title="Reproducir frase">▶ Escuchar</button><button id="slow" class="btn outline" type="button" title="Reproducir más despacio">🐢 Más despacio</button></div>
+          <div class="speaker-btns" aria-label="Reproducir con tres velocidades">
+  <button id="listen" class="btn primary" type="button" title="Escuchar a velocidad normal">▶ Normal</button>
+  <button id="slow" class="btn outline" type="button" title="Escuchar despacio">🐢 Lenta</button>
+  <button id="verySlow" class="btn outline" type="button" title="Escuchar muy despacio">🐌 Muy lenta</button>
+ </div>
+ <p class="muted small" id="speedTip" style="flex-basis:100%;margin:0">Empieza con la velocidad que te resulte más cómoda.</p>
         </div>
         <div class="answerarea"><label for="translation">Tu traducción al español</label><textarea id="translation" placeholder="Escribe aquí lo que has entendido…" spellcheck="true" autocomplete="off" autocapitalize="sentences"></textarea><p class="tip">Se admiten tildes y puntuación diferentes. Las traducciones con palabras equivalentes pueden revisarse manualmente.</p></div>
         <div class="respond"><button id="skip" class="btn subtle" type="button">No lo sé</button><button id="check" class="btn primary" type="button">Comprobar traducción</button></div>
@@ -97,6 +102,7 @@ function newSet(mode='fresh'){
 function draw(){if(!state.questions.length)return;const q=state.questions[state.at];const s=state.status[state.at];
  if('speechSynthesis'in window)window.speechSynthesis.cancel();
  $('taskMeta').textContent=`Tema ${q.u} · ${['','Fácil','Intermedia','Avanzada'][q.l]}`;
+ recommendSpeed(q.l);
  $('taskNumber').textContent=`Pregunta ${state.at+1} de ${state.questions.length}`;
  $('progress').style.width=`${(state.at+1)/state.questions.length*100}%`;
  $('heardNote').textContent='Pulsa escuchar para oír la frase.';
@@ -113,15 +119,31 @@ function voicesReady(){
  if(voices.length){select.value=old!==''&&Number(old)<voices.length?old:'0';$('voiceNote').className='notice small';$('voiceNote').textContent='Voz francesa detectada. Escucha una frase para comprobar la pronunciación.'}
  else {$('voiceNote').className='notice warning small';$('voiceNote').textContent='No se ha detectado una voz francesa instalada. Se intentará usar la voz automática; si suena en otro idioma, instala una voz francesa en el dispositivo.'}
 }
-function speak(slow=false){
+// Velocidades de síntesis de voz. Algunos motores pueden aplicar sus propios límites.
+const SPEEDS={normal:0.90,slow:0.68,verySlow:0.50};
+const SPEED_LABELS={normal:'normal',slow:'lenta',verySlow:'muy lenta'};
+function recommendSpeed(level){
+ const easy=level===1;
+ for(const id of ['listen','slow','verySlow']){
+  const button=$(id);
+  button.classList.remove('primary','secondary','outline');
+  button.classList.add(easy?(id==='slow'?'primary':id==='verySlow'?'secondary':'outline'):(id==='listen'?'primary':'outline'));
+ }
+ $('speedTip').textContent=easy?'Nivel fácil: empieza con Lenta o Muy lenta. Normal queda como opción adicional.':'Puedes pasar de Normal a Lenta o Muy lenta cuando lo necesites.';
+}
+function speak(speed='normal'){
  if(!('speechSynthesis'in window))return;
  const q=state.questions[state.at];if(!q)return;
- try{speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(q.fr);utterance.lang='fr-FR';utterance.rate=slow?Math.max(.63,Number($('playSpeed').value)*.73):Number($('playSpeed').value);utterance.pitch=1;utterance.volume=1;
- const selected=state.voices[Number($('voice').value)];if(selected)utterance.voice=selected;
- utterance.onstart=()=>{$('heardNote').textContent=slow?'Reproduciendo despacio…':'Reproduciendo…'};
- utterance.onend=()=>{$('heardNote').textContent='Puedes repetir la frase cuantas veces quieras.'};
- utterance.onerror=e=>{$('heardNote').textContent=e.error==='interrupted'?'Audio detenido.':'No se pudo reproducir. Comprueba la voz francesa del sistema.'};
- speechSynthesis.speak(utterance);state.heard++;
+ const rate=SPEEDS[speed]??SPEEDS.normal;
+ try{
+  speechSynthesis.cancel();
+  const utterance=new SpeechSynthesisUtterance(q.fr);
+  utterance.lang='fr-FR';utterance.rate=rate;utterance.pitch=1;utterance.volume=1;
+  const selected=state.voices[Number($('voice').value)];if(selected)utterance.voice=selected;
+  utterance.onstart=()=>{$('heardNote').textContent='Reproduciendo a velocidad '+(SPEED_LABELS[speed]||'normal')+'…'};
+  utterance.onend=()=>{$('heardNote').textContent='Puedes repetir la frase cuantas veces necesites en cualquiera de las tres velocidades.'};
+  utterance.onerror=e=>{$('heardNote').textContent=e.error==='interrupted'?'Audio detenido.':'No se pudo reproducir. Comprueba la voz francesa del sistema.'};
+  speechSynthesis.speak(utterance);state.heard++;
  }catch(e){$('heardNote').textContent='No se pudo iniciar el audio. Revisa los permisos y la voz del navegador.'}
 }
 function correct(skip=false){
@@ -156,7 +178,7 @@ function printHTML(){if(!state.questions.length)return;
  if(solutions)markup+=`<section class="printKey"><h2>Solucionario · Francés → Español</h2><p class="printSmall">Respuestas de referencia. Se admiten traducciones equivalentes que mantengan el significado.</p>${state.questions.map((q,i)=>`<div class="ans-item"><span class="num">${i+1}. </span><span class="fr" lang="fr">${html(q.fr)}</span><div class="es">${html(q.es[0])}</div></div>`).join('')}<div class="printFoot">El audio se genera mediante síntesis de voz del navegador; no se imprime ni se guarda como MP3.</div></section>`;
  $('printOnly').innerHTML=markup;
 }
-$('listen').addEventListener('click',()=>speak(false));$('slow').addEventListener('click',()=>speak(true));
+$('listen').addEventListener('click',()=>speak('normal'));$('slow').addEventListener('click',()=>speak('slow'));$('verySlow').addEventListener('click',()=>speak('verySlow'));
 $('check').addEventListener('click',()=>correct(false));$('skip').addEventListener('click',()=>correct(true));$('next').addEventListener('click',advance);
 $('translation').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();correct(false)}});
 $('newSet').addEventListener('click',()=>newSet());$('retry').addEventListener('click',()=>newSet('errors'));
