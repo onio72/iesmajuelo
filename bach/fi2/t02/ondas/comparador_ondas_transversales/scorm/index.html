@@ -11,6 +11,10 @@ main{padding:18px 15px 45px}.panel{background:#fff;border:1px solid #dbe4f0;bord
 .scorebox.success{background:#e5f8ec;border-color:#269552;color:#116c39}.scorebox.success .name{color:#116c39}
 .meta{font-size:.89rem;color:#536882;max-width:370px}.pill{font-size:.83rem;font-weight:700;color:#426083;background:#eaf1fb;border-radius:100px;padding:7px 11px}
 .legend{display:flex;gap:20px;align-items:center;flex-wrap:wrap;font-weight:800;margin-bottom:7px}.dot{display:inline-block;width:13px;height:13px;border-radius:100%;margin-right:8px;vertical-align:middle}.blue{background:#2666dc}.orange{background:#e36b29}
+.time-scrubber{margin-top:13px;padding:10px 13px;border:1px solid #dce5f1;border-radius:10px;background:#f8fbff}
+.time-scrubber label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.89rem;font-weight:750;color:#385473}
+.time-scrubber input{display:block;width:100%;margin:12px 0 5px;accent-color:#1c5cbe;cursor:pointer}
+.time-scrubber output{font-variant-numeric:tabular-nums}
 canvas{display:block;width:100%;height:330px;border:1px solid #e5ecf5;border-radius:10px;background:#fdfefe}
 .controls{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:13px}button{font:inherit;font-weight:750;border:1px solid #bacade;border-radius:9px;padding:11px 15px;color:#153250;background:white;cursor:pointer}
 button:hover:not(:disabled){background:#edf4ff;border-color:#3268bc}button.primary{background:#1c5cbe;color:white;border-color:#1c5cbe}button.primary:hover:not(:disabled){background:#15498f}
@@ -45,6 +49,9 @@ footer{text-align:center;color:#70829b;font-size:.8rem;margin:18px 0}
 <canvas id="view" role="img" aria-label="Dos cuerdas que comienzan horizontales y reciben ondas transversales desde uno de sus extremos"></canvas>
 <div class="controls"><button class="primary" id="play">▶ Iniciar</button><button id="restart">↺ Volver al inicio</button>
 <label class="speed">Ritmo visual <input type="range" id="pace" min="0.25" max="2" step="0.25" value="1"><span id="paceText">×1</span></label></div>
+<div class="time-scrubber"><label for="timeSlider"><span>Seleccionar instante</span><output id="timeValue" for="timeSlider">0,00 s</output></label>
+<input type="range" id="timeSlider" min="0" max="20" step="0.01" value="0" aria-label="Tiempo de la animación en segundos">
+</div>
 <p class="explain">Las dos fuentes comienzan a oscilar simultáneamente. Observa el movimiento de cada cuerda: sus puntos vibran transversalmente, mientras la perturbación avanza a lo largo de ella. Cambiar el ritmo visual no modifica los valores físicos de la onda.</p>
 </section>
 <section class="panel hidden" id="equationPanel">
@@ -298,6 +305,7 @@ function stateSnapshot(){
 function persistState(){lms.save(stateSnapshot());const notice=lms.getWarning();if(notice)$('scormWarning').textContent=notice;}
 function finishVisual(){
  playing=false;$('play').disabled=true;$('restart').disabled=true;$('pace').disabled=true;
+ $('timeSlider').disabled=true;
  $('end').classList.remove('hidden');$('exercise').classList.add('hidden');$('count').textContent='Reto completado';
 }
 function updateScore(){
@@ -349,7 +357,7 @@ function paint(){
   const px=left+(j/LEN)*length;ctx.beginPath();ctx.moveTo(px,cy-ampScale*1.12);ctx.lineTo(px,cy+ampScale*1.12);ctx.stroke();
  }
  ctx.beginPath();ctx.setLineDash([5,5]);ctx.strokeStyle='#9badc1';ctx.moveTo(left,cy);ctx.lineTo(right,cy);ctx.stroke();ctx.setLineDash([]);
- ctx.fillStyle=i===0?'#2666dc':'#e36b29';ctx.font='bold 13px system-ui';ctx.fillText('CUERDA '+(i?'B':'A'),left+4,cy-ampScale-13);
+ ctx.fillStyle=i===0?'#2666dc':'#e36b29';ctx.font='bold 13px system-ui';ctx.fillText('CUERDA '+(i?'B':'A'),left+length*.44,cy-ampScale-13);
  ctx.font='11px system-ui';ctx.fillStyle='#788ba2';ctx.fillText('0 m',left,cy+ampScale+18);ctx.fillText('12 m',right-28,cy+ampScale+18);
  ctx.beginPath();ctx.strokeStyle=i===0?'#2666dc':'#e36b29';ctx.lineWidth=3.5;ctx.lineJoin='round';
  const resolution=Math.max(360,Math.ceil(length));
@@ -364,7 +372,10 @@ function paint(){
  const front=Math.min(LEN,p.v*t),fx=left+(origin+p.d*front)/LEN*length;
  ctx.beginPath();ctx.arc(fx,cy,3.7,0,2*Math.PI);ctx.fillStyle=i===0?'#2666dc':'#e36b29';ctx.fill();
  });
- $('clock').textContent='t = '+t.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})+' s';
+ const currentTime=t.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})+' s';
+ $('clock').textContent='t = '+currentTime;
+ $('timeValue').textContent=currentTime;
+ $('timeSlider').value=t.toFixed(2);
 }
 function frame(time){
  if(playing&&!done){
@@ -382,7 +393,13 @@ $('play').addEventListener('click',()=>{
  $('play').textContent=playing?'⏸ Pausar':'▶ Continuar';paint();
 });
 $('restart').addEventListener('click',()=>{if(done)return;playing=false;t=0;last=null;$('play').textContent='▶ Iniciar';paint()});
-$('pace').addEventListener('input',()=>{$('paceText').textContent='×'+format(Number($('pace').value))});
+$('timeSlider').addEventListener('input',()=>{
+  if(done)return;
+  playing=false;last=null;t=Math.max(0,Math.min(20,Number($('timeSlider').value)));
+  $('play').textContent=t>=20?'▶ Reiniciar reproducción':'▶ Continuar';
+  paint();
+ });
+ $('pace').addEventListener('input',()=>{$('paceText').textContent='×'+format(Number($('pace').value))});
 window.addEventListener('resize',paint);
 const loaded=lms.start();
 const valid=loaded&&loaded.v===1&&Number.isFinite(loaded.points)&&loaded.points>=0&&loaded.points<=10&&
