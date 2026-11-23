@@ -24,22 +24,23 @@
 <div class="param"><label for="amp">Amplitud <output id="ampVal"></output></label><input id="amp" type="range" min=".2" max="1.5" step=".05" value="0.9"></div>
 <div class="param"><label for="period">Período <output id="periodVal"></output></label><input id="period" type="range" min=".5" max="5" step=".1" value="2"></div>
 <div class="param"><label for="lambda">Longitud de onda <output id="lambdaVal"></output></label><input id="lambda" type="range" min="1" max="8" step=".1" value="4"></div>
-<div class="param"><label for="phase">Desfase respecto a Z <output id="phaseVal"></output></label><input id="phase" type="range" min="0" max="12" step="1" value="6"><div class="small">De 0 a 2π, en pasos de π/6. No es la fase inicial.</div></div>
+<div class="param"><label for="phase">Desfase respecto a Z <output id="phaseVal"></output></label><input id="phase" type="range" min="0" max="16" step="1" value="8"><div class="small">De 0 a 2π: incluye múltiplos de π/6 y π/4. No es la fase inicial.</div></div>
 </div><p class="note">Modelo: y(x,t) = A sen(2π(t/T − x/λ)). Los puntos naranjas cumplen |Δφ| = Δφ elegida + 2πn (n = 0, 1, 2…), a uno u otro lado de Z. Cuando Δφ = 0 o 2π, se señalan los puntos en fase. La distancia mínima correspondiente es Δx = λ·Δφ/(2π). La reproducción es continua, sin reflexión en los extremos.</p></section>
 </main><script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id), svg=$('scene'), NS='http://www.w3.org/2000/svg';
 const X0=75,X1=930,Y0=180,L=12,S=(X1-X0)/L,PX=75;let t=0,z=5,playing=false,last=0,frame=0,drag=false;
 const fmt=(n,d=2)=>n.toFixed(d).replace('.',','),clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
-const phaseNames=['0','π/6','π/3','π/2','2π/3','5π/6','π','7π/6','4π/3','3π/2','5π/3','11π/6','2π'];
+const phaseNames=['0','π/6','π/4','π/3','π/2','2π/3','3π/4','5π/6','π','7π/6','5π/4','4π/3','3π/2','5π/3','7π/4','11π/6','2π'];
+const phaseTwelfths=[0,2,3,4,6,8,9,10,12,14,15,16,18,20,21,22,24];
 const vals=()=>({A:+$('amp').value,T:+$('period').value,w:+$('lambda').value,p:+$('phase').value});
 function y(x){const {A,T,w}=vals();return Y0-PX*A*Math.sin(2*Math.PI*(t/T-x/w))}
 function element(tag,attrs){const e=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));return e}
 function init(){const g=$('grid'),a=$('axis');for(let i=0;i<=12;i++){let xx=X0+i*S;g.append(element('line',{x1:xx,x2:xx,y1:59,y2:311,stroke:'#e1edf4','stroke-width':1}));a.append(element('text',{x:xx,y:338,'font-size':13,'text-anchor':'middle',fill:'#678092'})).textContent=i}a.append(element('text',{x:502,y:369,'font-size':15,'text-anchor':'middle',fill:'#486e85'})).textContent='Posición x (m)';for(let i=-1;i<=1;i++){const yy=Y0+i*PX;g.append(element('line',{x1:X0,x2:X1,y1:yy,y2:yy,stroke:'#eaf1f6'}))}}
 function draw(){const {A,T,w,p}=vals(),px=(x)=>X0+x*S;let path='';for(let x=0;x<=L+.001;x+=.025)path+=(path?'L':'M')+px(x).toFixed(1)+','+y(x).toFixed(2);$('wave').setAttribute('d',path);$('zpoint').setAttribute('cx',px(z));$('zpoint').setAttribute('cy',y(z));$('zguide').setAttribute('x1',px(z));$('zguide').setAttribute('x2',px(z));$('zlabel').setAttribute('x',px(z));$('zlabel').setAttribute('y',Math.max(40,y(z)-19));
-const d=w*p/12;const candidates=[];const add=x=>{if(x<-.0001||x>L+.0001||Math.abs(x-z)<.0001||candidates.some(v=>Math.abs(x-v)<.0001))return;candidates.push(clamp(x,0,L))};
+const d=w*phaseTwelfths[p]/24;const candidates=[];const add=x=>{if(x<-.0001||x>L+.0001||Math.abs(x-z)<.0001||candidates.some(v=>Math.abs(x-v)<.0001))return;candidates.push(clamp(x,0,L))};
 for(let n=0;n<=Math.ceil(L/w)+1;n++){const dist=d+n*w;add(z-dist);add(z+dist)}
-if(p===12){for(let n=0;n<=Math.ceil(L/w)+1;n++){add(z-n*w);add(z+n*w)}} 
+if(p===16){for(let n=0;n<=Math.ceil(L/w)+1;n++){add(z-n*w);add(z+n*w)}} 
 candidates.sort((a,b)=>a-b);const others=$('others');others.replaceChildren();candidates.forEach(x=>{const cx=px(x),cy=y(x);others.append(element('line',{x1:cx,x2:cx,y1:cy+10,y2:302,stroke:'#e4a152','stroke-width':1.1,'stroke-dasharray':'4 4',opacity:'.48'}));others.append(element('circle',{cx,cy,r:7.5,fill:'#ef8a20',stroke:'white','stroke-width':2}))});
 $('ampVal').textContent=fmt(A)+' m';$('periodVal').textContent=fmt(T)+' s';$('lambdaVal').textContent=fmt(w)+' m';$('phaseVal').textContent=phaseNames[p]+' rad';$('timeVal').textContent=fmt(t)+' s';$('time').value=t;$('zpos').textContent='Z: '+fmt(z)+' m';$('spacing').textContent='Δx mínima: '+fmt(d)+' m';$('velocity').textContent='v: '+fmt(w/T)+' m/s';$('state').textContent=playing?'Animando':'Pausada';$('play').disabled=playing;$('pause').disabled=!playing}
 function stop(){playing=false;cancelAnimationFrame(frame);draw()}
