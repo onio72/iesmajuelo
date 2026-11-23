@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Laboratorio · Medida experimental de la longitud de onda</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#173047;background:#eef4f8;font-variant-numeric:tabular-nums}*{box-sizing:border-box}body{margin:0}main{max-width:1260px;margin:auto;padding:25px 18px 55px}h1{font-size:clamp(1.5rem,3vw,2.3rem);margin:4px 0}h2{font-size:1.1rem;margin:0 0 12px}p{line-height:1.5}.sub{color:#637889}.eyebrow{letter-spacing:.1em;color:#14799b;text-transform:uppercase;font-size:.77rem;font-weight:800}.head{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}.pill{background:#deeee9;color:#1a7259;border-radius:18px;padding:9px 14px;font-size:.83rem;font-weight:700}.layout{display:grid;grid-template-columns:minmax(0,1fr) 315px;gap:18px;margin-top:18px;align-items:start}.panel{background:#fff;border:1px solid #dbe6ee;border-radius:17px;padding:19px;box-shadow:0 7px 28px #173d500b}.stage{border-radius:14px;overflow:hidden;border:1px solid #dfebf2;background:#f7fbfe}canvas{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair}.below-stage{padding:10px 12px;font-size:.82rem;color:#557185;display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;background:#f0f7fb}.legend{display:flex;gap:13px;flex-wrap:wrap;font-size:.8rem;margin:12px 0;color:#486779}.swatch{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px;vertical-align:middle}.controls{display:flex;flex-wrap:wrap;gap:8px;margin:13px 0}button{background:#13799f;border:0;border-radius:10px;padding:11px 15px;color:white;font-weight:750;cursor:pointer;font-size:.9rem}button:hover:not(:disabled){filter:brightness(.94)}button:disabled{opacity:.4;cursor:not-allowed}.secondary{background:#e9f2f7;color:#23536a}.rowcontrol{background:#f1f7fa;padding:13px;border-radius:12px;margin-top:10px}.rowhead{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:.86rem;font-weight:700}.small{font-size:.81rem;color:#688091;margin-top:6px;line-height:1.4}input[type=range]{width:100%;accent-color:#147ca1;cursor:pointer;margin:8px 0 0}input[type=checkbox]{accent-color:#147ca1}label{cursor:pointer}.check{display:flex;align-items:center;gap:9px;font-size:.88rem;margin:14px 0}.msg{background:#edf7fa;border-left:4px solid #1681a5;padding:12px 14px;border-radius:9px;font-size:.9rem;line-height:1.48}.measure{background:#142f45;color:#edfaff;padding:17px;border-radius:14px;text-align:center;margin:12px 0}.measure .big{font-size:2.5rem;font-weight:850}.measure .caption{font-size:.77rem;color:#b8d1df}.field{margin-top:14px}input[type=number]{font:inherit;width:100%;border:1px solid #c8d7e1;border-radius:10px;padding:11px;color:#193347}.full{width:100%;margin-top:10px}.result{font-size:.87rem;line-height:1.5;margin-top:12px;min-height:28px}.good{color:#137553;font-weight:800}.bad{color:#a63d3a;font-weight:800}.pointcard{border:1px solid #e0ebf2;border-radius:12px;padding:12px;margin:9px 0;display:flex;justify-content:space-between;align-items:center;gap:9px;font-size:.85rem}.pointcard strong{font-size:1rem}.pointcard button{font-size:.8rem;padding:8px 10px}.directions{font-size:.87rem;color:#5e7384;line-height:1.53}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.step{background:#f1f7fa;border-radius:12px;padding:14px;font-size:.85rem;line-height:1.5}.step strong{color:#126f91}@media(max-width:920px){.layout{grid-template-columns:1fr}.steps{grid-template-columns:1fr}}@media(max-width:600px){.panel{padding:13px}.controls button{flex:1}.measure .big{font-size:2rem}}
+</style></head>
+<body><main><header class="head"><div><div class="eyebrow">Física · 2.º de Bachillerato · Ondas</div><h1>¿Cuánto mide una longitud de onda?</h1><div class="sub">Laboratorio de medida espacial sobre una cuerda vibrante</div></div><span class="pill">Onda transversal armónica</span></header>
+<div class="layout"><section class="panel"><h2>Observa, detén y mide</h2>
+<div class="stage"><canvas id="canvas" width="1080" height="460" aria-label="Cuerda con una onda sinusoidal y dos cursores de medida A y B que pueden arrastrarse horizontalmente"></canvas><div class="below-stage"><span id="state">La onda se propaga hacia la derecha</span><span id="time">Tiempo: 0,00 s</span></div></div>
+<div class="legend"><span><i class="swatch" style="background:#1e83ae"></i>Cuerda</span><span><i class="swatch" style="background:#de5365"></i>Cursor A</span><span><i class="swatch" style="background:#d78a25"></i>Cursor B</span><span><i class="swatch" style="background:#79b5c7"></i>Equilibrio</span></div>
+<div class="controls"><button id="play">❚❚ Pausar</button><button id="back" class="secondary">−0,05 s</button><button id="forward" class="secondary">+0,05 s</button><button id="reset" class="secondary">↺ Reiniciar</button><button id="new" class="secondary">Otro ejercicio</button></div>
+<div class="rowcontrol"><div class="rowhead"><label for="timeline">Instante de la escena</label><output id="timelineOut">0,00 s</output></div><input type="range" id="timeline" min="0" max="24" step="0.01" value="0"><div class="small">Arrastra la barra para desplazarte a cualquier instante. La onda quedará pausada.</div></div>
+<div class="rowcontrol"><div class="rowhead"><label for="speed">Ritmo de reproducción</label><output id="speedOut">1,00×</output></div><input type="range" id="speed" min="0.1" max="3" step="0.05" value="1"><div class="small">La reproducción se acelera o ralentiza sin modificar la longitud de onda.</div></div>
+<label class="check"><input type="checkbox" id="hint"> Mostrar las crestas y los valles como ayuda visual</label>
+<p class="msg" id="help">Pausa la onda. Arrastra los cursores verticales A y B hasta dos puntos consecutivos que estén en fase (por ejemplo, dos crestas). Lee la distancia sobre la regla y anota tu medida.</p>
+</section><aside class="panel"><h2>Tu medición</h2><div class="directions">Desplaza los cursores <strong>A</strong> y <strong>B</strong> sobre la cuerda. Puedes arrastrar sus líneas o pulsar los botones para colocar cada uno haciendo clic sobre la gráfica.</div>
+<div class="pointcard"><span><strong style="color:#d34356">A</strong> · <span id="ax">2,00</span> m</span><button class="secondary" id="pickA">Colocar A</button></div>
+<div class="pointcard"><span><strong style="color:#c17b21">B</strong> · <span id="bx">5,00</span> m</span><button class="secondary" id="pickB">Colocar B</button></div>
+<div class="measure"><div class="caption">DISTANCIA ENTRE LOS CURSORES</div><div class="big" id="delta">3,00 m</div><div class="caption">Medida sobre la regla horizontal</div></div>
+<div class="field"><label for="answer"><strong>¿Cuál es la longitud de onda, λ?</strong></label><input type="number" id="answer" min="0" step="0.01" placeholder="Escribe tu respuesta en metros" inputmode="decimal"></div>
+<button class="full" id="check">Comprobar medición</button><div id="result" class="result" role="status"></div>
+<hr style="border:0;border-top:1px solid #e3edf3;margin:20px 0">
+<h2>¿Qué debes observar?</h2><p class="directions">Dos puntos separados por una longitud de onda <strong>tienen la misma fase</strong>. En un instante dado, esto significa igual desplazamiento y el mismo sentido de vibración. Dos crestas consecutivas son una forma sencilla de reconocerlos.</p><p class="directions">Si escoges dos crestas no consecutivas, la distancia será un múltiplo entero de λ y no una sola longitud de onda.</p>
+</aside></div>
+<section class="panel" style="margin-top:18px"><h2>Propuesta de trabajo</h2><div class="steps"><div class="step"><strong>1 · Congela</strong><br>Detén la onda en una escena con varias crestas visibles. Puedes usar la barra temporal para elegirla.</div><div class="step"><strong>2 · Mide</strong><br>Coloca A en una cresta y B en la siguiente. Determina la distancia entre ambos puntos con la regla.</div><div class="step"><strong>3 · Comprueba</strong><br>Introduce el valor obtenido. Repite con otro ejercicio y verifica que la distancia entre crestas consecutivas no depende del instante elegido.</div></div><p class="small">Modelo didáctico: onda armónica transversal progresiva ya establecida en una cuerda ideal, sin reflexiones. La forma se describe mediante una función sinusoidal. La escala horizontal representa distancias en metros.</p></section>
+</main><script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),cv=$('canvas'),ctx=cv.getContext('2d');
+const L=12,left=63,right=1008,top=42,bottom=391,y0=213,px=(right-left)/L;
+const cases=[1.5,2,2.4,3,4],colors=['#de5365','#d78a25'];
+let lambda=3,amp=83,v=1.4,phase=0.45,t=0,running=true,speed=1,last=null;
+let cursors=[2,5],dragging=-1,placing=-1,showHints=false;
+const fmt=(x,n=2)=>x.toFixed(n).replace('.',','),X=x=>left+px*x;
+const y=(x,at=t)=>y0-amp*Math.sin(2*Math.PI*(at*v-x)/lambda+phase);
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+function segment(x1,y1,x2,y2,color,width=1,dash=[]){ctx.beginPath();ctx.setLineDash(dash);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.setLineDash([])}
+function dot(x,y,color,r){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();ctx.strokeStyle='white';ctx.lineWidth=2.2;ctx.stroke()}
+function draw(){
+ctx.clearRect(0,0,cv.width,cv.height);ctx.fillStyle='#f8fbfe';ctx.fillRect(0,0,cv.width,cv.height);
+ctx.font='13px system-ui';ctx.textAlign='center';for(let i=0;i<=L;i++){const xx=X(i);segment(xx,top,xx,bottom,'#e6eef4',1);ctx.fillStyle='#5e778a';ctx.fillText(i,xx,415)}
+for(let j=-2;j<=2;j++){const yy=y0+j*47;segment(left,yy,right,yy,j===0?'#79b5c7':'#ebf1f6',j===0?1.5:1,j===0?[6,5]:[])}
+ctx.fillStyle='#547080';ctx.textAlign='right';ctx.fillText('x (m)',1044,415);ctx.fillText('y',39,50);
+ctx.fillStyle='#e4edf3';ctx.fillRect(left,426,right-left,10);for(let i=0;i<=L*10;i++){const xx=X(i/10),hh=i%10===0?14:i%5===0?10:6;segment(xx,427,xx,427+hh,'#58788c',i%10===0?1.2:.7)}
+ctx.beginPath();ctx.strokeStyle='#1e83ae';ctx.lineWidth=4;ctx.lineJoin='round';for(let i=0;i<=700;i++){const x=L*i/700;if(i===0)ctx.moveTo(X(x),y(x));else ctx.lineTo(X(x),y(x))}ctx.stroke();
+if(showHints){for(let n=-20;n<=20;n++){const crest=((.25+n)*2*Math.PI-phase)*lambda/(2*Math.PI)+v*t;const trough=((.75+n)*2*Math.PI-phase)*lambda/(2*Math.PI)+v*t;if(crest>=0&&crest<=L)dot(X(crest),y(crest),'#369867',6);if(trough>=0&&trough<=L)dot(X(trough),y(trough),'#8059a8',6)}}
+ctx.font='bold 14px system-ui';cursors.forEach((x,i)=>{const xx=X(x),yy=y(x);segment(xx,top+1,xx,bottom,colors[i],1.5,[6,5]);dot(xx,yy,colors[i],8);ctx.fillStyle=colors[i];ctx.textAlign='center';ctx.fillText(i===0?'A':'B',xx,27);ctx.fillStyle=colors[i];ctx.fillRect(xx-5,424,10,14)});
+segment(X(cursors[0]),y0+147,X(cursors[1]),y0+147,'#7b8494',2);for(const x of cursors)segment(X(x),y0+140,X(x),y0+154,'#7b8494',2);
+}
+function sync(){const lastMax=Number($('timeline').max);if(t>lastMax-0.01){$('timeline').max=String(Math.ceil((t+12)/24)*24)}$('timeline').value=String(clamp(t,0,Number($('timeline').max)));$('timelineOut').textContent=fmt(t)+' s';$('time').textContent='Tiempo: '+fmt(t)+' s';$('speedOut').textContent=fmt(speed)+'×';$('play').textContent=running?'❚❚ Pausar':'▶ Reproducir';$('state').textContent=running?'La onda se propaga hacia la derecha':'Onda congelada · mueve las guías A y B';$('ax').textContent=fmt(cursors[0]);$('bx').textContent=fmt(cursors[1]);$('delta').textContent=fmt(Math.abs(cursors[1]-cursors[0]))+' m';$('pickA').textContent=placing===0?'Pulsa en la cuerda':'Colocar A';$('pickB').textContent=placing===1?'Pulsa en la cuerda':'Colocar B';draw()}
+function tick(now){if(last===null)last=now;const dt=clamp((now-last)/1000,0,.08);last=now;if(running)t+=dt*speed;sync();requestAnimationFrame(tick)}
+function clearFeedback(){$('result').textContent='';$('answer').value=''}
+function reset(){t=0;last=null;running=true;placing=-1;dragging=-1;cursors=[2,5];clearFeedback();sync()}
+$('play').onclick=()=>{running=!running;last=null;sync()};
+$('back').onclick=()=>{running=false;t=Math.max(0,t-.05);sync()};
+$('forward').onclick=()=>{running=false;t+=.05;sync()};
+$('reset').onclick=reset;
+$('new').onclick=()=>{let next=lambda;while(next===lambda)next=cases[Math.floor(Math.random()*cases.length)];lambda=next;v=1+Math.random()*.8;amp=65+Math.random()*29;phase=Math.random()*Math.PI*2;reset()};
+$('timeline').oninput=e=>{running=false;t=+e.target.value;last=null;sync()};
+$('speed').oninput=e=>{speed=+e.target.value;sync()};
+$('hint').onchange=e=>{showHints=e.target.checked;sync()};
+$('pickA').onclick=()=>{placing=0;running=false;sync()};
+$('pickB').onclick=()=>{placing=1;running=false;sync()};
+function pointerX(e){const rect=cv.getBoundingClientRect();return clamp(((e.clientX-rect.left)/rect.width*cv.width-left)/px,0,L)}
+function pointerY(e){const rect=cv.getBoundingClientRect();return (e.clientY-rect.top)/rect.height*cv.height}
+cv.addEventListener('pointerdown',e=>{const x=pointerX(e);if(placing>=0){cursors[placing]=x;placing=-1;clearFeedback();sync();return}
+let i=Math.abs(X(x)-X(cursors[0]))<=Math.abs(X(x)-X(cursors[1]))?0:1;
+if(Math.abs(x-cursors[i])<=.38){dragging=i;running=false;cv.setPointerCapture(e.pointerId);cursors[i]=x;clearFeedback();sync();e.preventDefault()}});
+cv.addEventListener('pointermove',e=>{const x=pointerX(e);if(dragging>=0){cursors[dragging]=x;sync();return}if(placing>=0)cv.style.cursor='crosshair';else cv.style.cursor=Math.min(...cursors.map(p=>Math.abs(x-p)))<.38?'ew-resize':'crosshair'});
+cv.addEventListener('pointerup',e=>{if(dragging>=0){dragging=-1;if(cv.hasPointerCapture(e.pointerId))cv.releasePointerCapture(e.pointerId);sync()}});
+cv.addEventListener('pointercancel',()=>{dragging=-1;sync()});
+$('check').onclick=()=>{const raw=$('answer').value.trim().replace(',','.');const entered=Number(raw),distance=Math.abs(cursors[1]-cursors[0]),result=$('result');
+if(!raw||!Number.isFinite(entered)||entered<=0){result.innerHTML='<span class="bad">Introduce un valor positivo en metros.</span>';return}
+const matchesScale=Math.abs(entered-distance)<=.16;
+const correctDistance=Math.abs(distance-lambda)<=Math.max(.15,.06*lambda);
+if(matchesScale&&correctDistance)result.innerHTML='<span class="good">✓ Correcto. Has medido una longitud de onda: '+fmt(lambda)+' m.</span>';
+else if(!matchesScale)result.innerHTML='<span class="bad">La respuesta no coincide con la distancia que indican tus cursores. Revisa la regla.</span>';
+else result.innerHTML='<span class="bad">La distancia está bien leída, pero estos dos puntos no delimitan una sola longitud de onda. Busca dos puntos consecutivos con la misma fase (por ejemplo, dos crestas consecutivas).</span>'};
+sync();requestAnimationFrame(tick);
+})();
+</script></body></html>
