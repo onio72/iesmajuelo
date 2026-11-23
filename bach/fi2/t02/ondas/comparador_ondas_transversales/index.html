@@ -37,7 +37,7 @@ footer{text-align:center;color:#70829b;font-size:.8rem;margin:18px 0}
 <main>
 <section class="panel top">
 <div class="score"><div class="scorebox" id="scorebox" aria-live="polite"><span class="name">Puntuación</span><span class="number" id="score">0</span><span class="name">puntos</span></div>
-<div class="meta">Acierto: <strong>+1</strong> · Error: <strong>−1</strong><br>Objetivo: <strong>10 puntos</strong>. Al superarlos 5 puntos, el marcador se vuelve verde.</div></div>
+<div class="meta">Acierto: <strong>+0,5</strong> · Error: <strong>−0,5</strong><br>Objetivo: <strong>10 puntos</strong>. Al superarlos 5 puntos, el marcador se vuelve verde.</div></div>
 <div class="pill" id="count">Pregunta 1</div>
 </section>
 <section class="panel" id="graphPanel">
@@ -216,7 +216,7 @@ function check(){
  if(answered||done)return;
  const selected=document.querySelector('input[name="answer"]:checked');if(!selected)return;
  answered=true;const good=selected.value===problem.correct;
- points+=good?1:-1;updateScore();
+ points=Math.max(0,Math.min(10,points+(good?.5:-.5)));updateScore();
  const right=problem.options.find(o=>o[0]===problem.correct)[1];
  const value=(p,k)=>format(p[k])+' '+unit[k];
  let detail='';
@@ -236,7 +236,7 @@ function check(){
   detail=' A se propaga hacia la '+direction(problem.A)+' y B hacia la '+direction(problem.B)+'.';
  }
  if(problem.mode==='equations')detail+=' En la forma sen(ωt − kx), la onda viaja a la derecha; sen(ωt + kx), a la izquierda (igual con coseno).';
- const f=$('feedback');f.textContent=(good?'✓ ¡Correcto! +1 punto.':'✗ Respuesta incorrecta. −1 punto.')+' Respuesta: '+right+'.'+detail;f.className='feedback '+(good?'correct':'incorrect');
+ const f=$('feedback');f.textContent=(good?'✓ ¡Correcto! +0,5 puntos.':'✗ Respuesta incorrecta. −0,5 puntos (mínimo 0).')+' Respuesta: '+right+'.'+detail;f.className='feedback '+(good?'correct':'incorrect');
  document.querySelectorAll('input[name="answer"]').forEach(r=>r.disabled=true);
  $('check').classList.add('hidden');
  if(points>=10){done=true;playing=false;$('play').disabled=true;$('restart').disabled=true;$('pace').disabled=true;$('end').classList.remove('hidden');$('exercise').classList.add('hidden');$('count').textContent='Reto completado'}
