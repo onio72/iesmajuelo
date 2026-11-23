@@ -66,7 +66,7 @@ footer{text-align:center;color:#70829b;font-size:.8rem;margin:18px 0}
 (()=>{'use strict';
 const $=id=>document.getElementById(id),canvas=$('view'),ctx=canvas.getContext('2d');
 const LEN=12, keys=['A','f','T','lambda','k','v','direction','sameDirection'];
-const equationKeys=['A','T','f','k','kvec'];
+const equationKeys=['A','T','f','lambda','k','v','kvec'];
 const eqYesNo=[['yes','Sí, tienen el mismo valor'],['no','No, sus valores son diferentes']];
 const ampLevels=[.3,.5,.7,.9],freqLevels=[.5,1,1.5,2],lambdaLevels=[2,3,4,6];
 const optsCompare=[['gt','La onda A tiene mayor valor'],['lt','La onda B tiene mayor valor'],['eq','Las dos tienen el mismo valor']];
@@ -74,7 +74,7 @@ const optsDirection=[['RR','Ambas hacia la derecha'],['LL','Ambas hacia la izqui
 const optsSame=[['yes','Sí, se propagan en el mismo sentido'],['no','No, se propagan en sentidos opuestos']];
 const label={A:'amplitud',f:'frecuencia',T:'período',lambda:'longitud de onda',k:'número de onda',v:'velocidad de propagación'};
 const unit={A:'m',f:'Hz',T:'s',lambda:'m',k:'rad/m',v:'m/s'};
-let waves=[],problem=null,deck=[],equationDeck=[],equalDeck=[],points=0,index=0,t=0,playing=false,last=null,answered=false,done=false;
+let waves=[],problem=null,deck=[],equationDeck=[],relationDeck=[],points=0,index=0,t=0,playing=false,last=null,answered=false,done=false;
 const firstIsEquation=Math.random()<0.5;
 const random=a=>a[Math.floor(Math.random()*a.length)],shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const format=n=>Number(n.toFixed(3)).toLocaleString('es-ES',{maximumFractionDigits:3});
@@ -125,37 +125,32 @@ function build(type){
 }
 // Las ecuaciones se expresan como y(x,t) = A sen(ωt ∓ kx).
 // Número de onda escalar k=2π/λ; vector de onda k⃗ = ±k î.
-function buildEquation(type,same){
- const base={A:random(ampLevels),f:random(freqLevels),lambda:random(lambdaLevels),d:random([-1,1])};
- const other={A:random(ampLevels),f:random(freqLevels),lambda:random(lambdaLevels),d:random([-1,1])};
- const different=(levels,value)=>random(levels.filter(x=>x!==value));
- if(type==='A'){
-  other.A=same?base.A:different(ampLevels,base.A);
-  other.f=different(freqLevels,base.f); // No son necesariamente ecuaciones idénticas.
- }else if(type==='f'||type==='T'){
-  other.f=same?base.f:different(freqLevels,base.f);
-  other.A=different(ampLevels,base.A);
- }else if(type==='k'){
-  other.lambda=same?base.lambda:different(lambdaLevels,base.lambda);
-  other.A=different(ampLevels,base.A);
-  // Un k escalar idéntico no exige el mismo sentido de propagación.
-  if(same&&Math.random()<.65)other.d=-base.d;
- }else if(type==='kvec'){
-  other.A=different(ampLevels,base.A);
-  if(same){other.lambda=base.lambda;other.d=base.d}
-  else if(Math.random()<.65){other.lambda=base.lambda;other.d=-base.d}
-  else{other.lambda=different(lambdaLevels,base.lambda);other.d=random([-1,1])}
+function buildEquation(type,relation){
+ const make=(A,f,lambda,d)=>complete({A,f,v:f*lambda,d});
+ const pool=[];
+ for(const A of ampLevels)for(const f of freqLevels)for(const lambda of lambdaLevels)for(const d of [-1,1])
+ pool.push(make(A,f,lambda,d));
+ const first=shuffle([...pool]);
+ for(const a of first){
+  const candidates=pool.filter(b=>{
+   if(Math.abs(a.A-b.A)<1e-9&&Math.abs(a.f-b.f)<1e-9&&Math.abs(a.lambda-b.lambda)<1e-9&&a.d===b.d)return false;
+   if(type==='kvec')return (Math.abs(a.k-b.k)<1e-9&&a.d===b.d?'yes':'no')===relation;
+   const diff=a[type]-b[type];return (Math.abs(diff)<1e-9?'eq':diff>0?'gt':'lt')===relation;
+  });
+  if(candidates.length){
+   let target=candidates;
+   if(type==='kvec'&&relation==='no'&&Math.random()<.65){
+    const opposite=candidates.filter(b=>Math.abs(a.k-b.k)<1e-9&&a.d!==b.d);
+    if(opposite.length)target=opposite;
+   }
+   const b=random(target);
+   const names={A:'la amplitud',f:'la frecuencia',T:'el período',lambda:'la longitud de onda',k:'el número de onda k',v:'la rapidez de propagación',kvec:'el vector de onda (k⃗)'};
+   return {A:a,B:b,type,mode:'equations',
+    prompt:type==='kvec'?'¿Son iguales los vectores de onda de A y B?':'¿Cómo es '+names[type]+' de A respecto a la de B?',
+    options:type==='kvec'?eqYesNo:optsCompare,correct:relation,functions:[random(['sen','cos']),random(['sen','cos'])]};
+  }
  }
- const make=p=>complete({A:p.A,f:p.f,v:p.f*p.lambda,d:p.d});
- const A=make(base),B=make(other);
- const questionName={A:'la amplitud',f:'la frecuencia',T:'el período',k:'el número de onda (módulo k)',kvec:'el vector de onda (k⃗)'}[type];
- const equal = type==='kvec' ? Math.abs(A.k-B.k)<1e-9&&A.d===B.d
- : Math.abs(A[type]-B[type])<1e-9;
- if(equal!==same)throw Error('Incoherencia en la comparación de ecuaciones');
- return {A,B,type,mode:'equations',
-  prompt:'¿Tienen las dos ondas el mismo valor de '+questionName+'?',
-  options:eqYesNo,correct:same?'yes':'no',
-  functions:[random(['sen','cos']),random(['sen','cos'])]};
+ throw Error('No hay pares disponibles para '+type+' '+relation);
 }
 function piFactor(n){
  if(n===1)return 'π';
@@ -181,8 +176,9 @@ function nextProblem(){
  const isEq=(index%2===0)===firstIsEquation;
  if(isEq){
   if(!equationDeck.length)equationDeck=shuffle([...equationKeys]);
-  if(!equalDeck.length)equalDeck=shuffle([true,true,false,false,random([true,false])]);
-  problem=buildEquation(equationDeck.pop(),equalDeck.pop());
+  if(!relationDeck.length)relationDeck=shuffle(['eq','gt','lt','eq','gt','lt']);
+  const type=equationDeck.pop();
+  problem=buildEquation(type,type==='kvec'?random(['yes','no']):relationDeck.pop());
  }else{
   if(!deck.length)deck=shuffle([...keys]);
   problem=build(deck.pop());problem.mode='graph';
