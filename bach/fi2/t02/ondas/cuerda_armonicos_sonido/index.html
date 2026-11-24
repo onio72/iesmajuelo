@@ -79,7 +79,7 @@ footer{margin-top:10px;color:var(--muted);font-size:11.5px}
   <h2>Construye el sonido</h2>
   <div class="group">
    <div class="labelrow"><label for="length">Longitud vibrante</label><output id="lengthLabel">65 cm</output></div>
-   <input id="length" type="range" min="20" max="65" step="1" value="65" aria-label="Longitud vibrante de la cuerda en centímetros">
+   <input id="length" type="range" min="20" max="65" step="0.5" value="65" aria-label="Longitud vibrante de la cuerda en centímetros">
    <div class="ends"><span>20 cm · más agudo</span><span>65 cm · más grave</span></div>
    <p class="small">El punto de apoyo se desplaza: tensión y masa por unidad de longitud constantes.</p>
   </div>
@@ -132,7 +132,7 @@ footer{margin-top:10px;color:var(--muted);font-size:11.5px}
   <div class="note" id="explanation">En el modo fundamental, la cuerda vibra con un solo vientre. Al acortarla aumenta su frecuencia, pero no cambia por ello el número de modo. Para escuchar el segundo armónico hay que seleccionar n = 2.</div>
  </section>
 </div>
-<footer>Modelo ideal: fₙ = n·v/(2L), v constante (286 m/s). Con L = 65 cm, f₁ = 220 Hz. Sonidos sintetizados en el navegador con Web Audio API; los timbres de guitarra y violín son aproximaciones, no grabaciones reales.</footer>
+<footer>Desafío en clase: compara n = 2 con L = 65 cm y n = 1 con L = 32,5 cm. Ambos suenan a 440 Hz, pero sus patrones tienen distinto número de vientres. <span aria-hidden="true">·</span> Modelo ideal: fₙ = n·v/(2L), v constante (286 m/s). Con L = 65 cm, f₁ = 220 Hz. Sonidos sintetizados en el navegador con Web Audio API; los timbres de guitarra y violín son aproximaciones, no grabaciones reales.</footer>
 </main>
 <script>
 (function(){
@@ -168,7 +168,7 @@ function spectral(){
 function status(message){$('status').textContent=message}
 function update(){
  var f1=frequency1(),fn=frequency();
- $('lengthLabel').textContent=state.length+' cm';
+ $('lengthLabel').textContent=fmt(state.length,1)+' cm';
  $('modeLabel').textContent='n = '+state.n;
  $('pluckLabel').textContent=Math.round(state.pluck*100)+' % de L';
  $('volumeLabel').textContent=state.volume+' %';
@@ -308,7 +308,7 @@ function drawString(t){
  if(xL-x0>55)g.fillText('Tramo detenido',x0+5,mid-16);
  g.strokeStyle='#aebfcf';g.lineWidth=1;g.setLineDash([3,5]);g.beginPath();g.moveTo(xL,mid);g.lineTo(xR,mid);g.stroke();g.setLineDash([]);
  g.fillStyle='#6b8393';g.font='bold 11px system-ui,sans-serif';
- g.textAlign='center';g.fillText('L = '+state.length+' cm',(xL+xR)/2,h-7);
+ g.textAlign='center';g.fillText('L = '+fmt(state.length,1)+' cm',(xL+xR)/2,h-7);
  g.fillText('Apoyo',xL,19);g.fillText('Puente',xR,19);
  var sh=state.n,parts=spectral();
  function wave(s,tt){
