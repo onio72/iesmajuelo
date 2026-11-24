@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f3f7fb">
+<title>Interferencias acústicas · Dos altavoces coherentes · FI2</title>
+<style>
+:root{--ink:#17344a;--muted:#596f80;--blue:#176eae;--gold:#e39839;--teal:#13866b;--line:#d7e3ec;--paper:#f3f7fb}
+*{box-sizing:border-box}html{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink)}
+body{margin:0;background:var(--paper);font-size:15px}
+button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #f3bc4c;outline-offset:2px}
+main{max-width:1530px;margin:auto;padding:clamp(10px,1.5vw,22px)}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:13px}
+h1{font-size:clamp(23px,2.7vw,36px);letter-spacing:-.03em;line-height:1.15;margin:3px 0 6px}
+h2{font-size:17px;margin:0 0 12px}
+h3{font-size:15px;margin:0 0 9px}.eyebrow{text-transform:uppercase;letter-spacing:.09em;color:var(--blue);font-weight:800;font-size:12px}
+.sub{margin:0;color:var(--muted);font-size:14px}
+.headerbuttons{display:flex;gap:7px;flex-wrap:wrap}
+.tab,.outline{border:1px solid #c4d5e1;background:#fff;color:#305671;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700}
+.tab.active{background:#dcecf8;border-color:#98c6e3;color:#145c86}
+.two{display:grid;grid-template-columns:minmax(300px,370px) minmax(0,1fr);gap:13px}
+.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:17px;box-shadow:0 4px 18px #28455a0a;min-width:0}
+.side{display:flex;flex-direction:column;gap:13px}
+.group{padding:12px;background:#f8fbfe;border:1px solid #e0eaf2;border-radius:12px}
+.row{display:flex;justify-content:space-between;gap:11px;align-items:center}.row label{font-weight:700}
+input[type=number]{border:1px solid #b8cad8;border-radius:8px;background:white;padding:7px 9px;width:107px;text-align:right;font-size:19px;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;min-height:32px;accent-color:var(--blue)}
+.mini{font-size:12px;color:var(--muted);line-height:1.4;margin:4px 0 0}
+.set{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.set button{border:1px solid #bdcfdd;border-radius:9px;padding:10px 4px;background:white;color:#30546d;font-size:13px;font-weight:700}
+.set button.active{background:#e6f2fa;color:#116198;border-color:#92c5e8}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.pair button{border:1px solid #bdcfdd;border-radius:9px;padding:9px 6px;background:white;font-weight:700;color:#30546d}
+.pair button.active{background:#fff1d9;color:#9e5f12;border-color:#e9bd7c}
+.primary{width:100%;background:#1578b2;border:0;border-radius:11px;color:white;padding:13px;font-size:16px;font-weight:800}
+.primary.playing{background:#b65739}
+.status{font-size:12px;color:#526b7c;min-height:22px;margin:2px 0}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{border:1px solid #dfebf2;background:#f5fafd;border-radius:12px;padding:10px}
+.stat small{display:block;font-size:11px;color:var(--muted)}
+.stat strong{display:block;font-size:clamp(17px,2vw,25px);font-variant-numeric:tabular-nums}
+.mapwrap{border:1px solid #dae6ee;border-radius:12px;overflow:hidden;background:#f8fbfd}
+.maphead{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 12px 6px;flex-wrap:wrap}
+.maphead strong{font-size:14px}
+.mapwrap canvas{width:100%;height:390px;display:block;touch-action:manipulation}
+.legend{display:flex;align-items:center;gap:9px;padding:5px 13px 12px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.gradient{width:130px;height:10px;border-radius:5px;background:linear-gradient(90deg,#296bb7,#dcebf1,#f1c27f,#cc6b23)}
+.results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:9px}
+.result{background:#f6fafc;border:1px solid #e1ebf2;border-radius:11px;padding:10px}
+.result small{display:block;color:var(--muted);font-size:11px}
+.result b{display:block;font-size:18px}
+.callout{background:#eff7f4;border:1px solid #c9e3da;border-radius:11px;padding:11px 13px;font-size:13px;line-height:1.48;color:#2c6654;margin-top:10px}
+.instruction{color:#556d80;font-size:12px;line-height:1.5;margin-top:7px}
+footer{font-size:12px;color:var(--muted);margin-top:11px}
+.hidden{display:none!important}
+.measure-layout{display:grid;grid-template-columns:minmax(260px,1fr) minmax(310px,1.1fr);gap:15px}
+.meter{height:21px;border-radius:14px;background:#d9e7ed;overflow:hidden;margin:13px 0}
+.meter>div{background:linear-gradient(90deg,#3d9cbb,#13866b,#eda64b);height:100%;width:0;transition:width .14s}
+.bigvalue{font-weight:800;font-size:clamp(32px,6vw,58px);font-variant-numeric:tabular-nums;line-height:1.2;margin:7px 0}
+.muted{color:var(--muted)}.mb{margin-bottom:12px}
+#measLog{min-height:70px}
+@media(max-width:950px){.two,.measure-layout{grid-template-columns:1fr}.side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.side>h2,.side>.group:last-of-type,.side>.primary,.side>.status,.side>.mini{grid-column:1/-1}.mapwrap canvas{height:340px}}
+@media(max-width:590px){.side{display:flex}.headerbuttons{justify-content:flex-end}.mapwrap canvas{height:310px}.statgrid{grid-template-columns:repeat(3,minmax(0,1fr))}.results{grid-template-columns:1fr 1fr}.results .result:last-child{grid-column:1/-1}header{flex-wrap:wrap}}
+@media(min-width:980px) and (max-height:790px){main{padding:10px}.panel{padding:12px}.side{gap:8px}.group{padding:9px}header{margin-bottom:8px}.mapwrap canvas{height:310px}.stat{padding:7px}.stat strong{font-size:19px}footer{margin-top:5px}}
+</style>
+</head>
+<body>
+<main>
+<header>
+ <div><div class="eyebrow">Física 2.º Bachillerato · Tema 02 · Ondas</div><h1>Interferencias con dos altavoces</h1><p class="sub">Dos fuentes coherentes, patrones espaciales y mediciones desde los móviles.</p></div>
+ <nav class="headerbuttons" aria-label="Modo de funcionamiento">
+  <button class="tab active" id="tabTeacher" type="button" aria-pressed="true">🔊 Emisor y mapa</button>
+  <button class="tab" id="tabStudent" type="button" aria-pressed="false">🎙 Medidor móvil</button>
+  <button class="outline" id="fullscreen" type="button">⛶ Pantalla completa</button>
+ </nav>
+</header>
+<div id="teacherView" class="two">
+<section class="panel side" aria-label="Controles del generador estéreo">
+<h2>Generador estéreo coherente</h2>
+<div class="group">
+ <div class="row"><label for="freq">Frecuencia de ambos altavoces</label><div><input id="freq" type="number" min="150" max="1500" step="1" value="500"> Hz</div></div>
+ <input id="freqSlide" type="range" min="200" max="1200" step="10" value="500">
+ <p class="mini">La misma onda senoidal alimenta los dos canales: no hay deriva de frecuencia.</p>
+</div>
+<div class="group">
+ <div class="row"><label for="distance">Separación de altavoces</label><b id="distanceLabel">1,20 m</b></div>
+ <input id="distance" type="range" min="0.4" max="2.4" step="0.1" value="1.2">
+ <p class="mini">Este valor modifica el mapa teórico; mueve físicamente los altavoces a esa distancia.</p>
+</div>
+<div class="group">
+ <h3>Seleccionar canales para comparar</h3>
+ <div class="set" id="modes">
+  <button type="button" data-mode="L">Solo izq.</button>
+  <button type="button" data-mode="R">Solo der.</button>
+  <button type="button" class="active" data-mode="B">Ambos</button>
+ </div>
+ <p class="mini">Prueba los canales por separado: cada botón debe sonar por un único altavoz.</p>
+</div>
+<div class="group">
+ <h3>Fase relativa entre altavoces</h3>
+ <div class="pair" id="phaseButtons">
+  <button type="button" data-phase="0" class="active">En fase (0°)</button>
+  <button type="button" data-phase="180">Oposición (180°)</button>
+ </div>
+</div>
+<div class="group">
+ <div class="row"><label for="volume">Volumen de la aplicación</label><output id="volumeLabel">35 %</output></div>
+ <input id="volume" type="range" min="0" max="100" value="35" step="1">
+</div>
+<button id="play" type="button" class="primary" aria-pressed="false">▶ Reproducir</button>
+<p class="status" id="status" role="status" aria-live="polite">Preparado · conecta dos altavoces estéreo por cable.</p>
+<p class="mini">Importante: si ambos canales salen por el mismo altavoz, el experimento espacial no funcionará. Evita el audio mono o dos dispositivos Bluetooth independientes.</p>
+</section>
+<section class="panel">
+ <div class="statgrid">
+  <div class="stat"><small>Longitud de onda · λ</small><strong id="lambda">68,6 cm</strong></div>
+  <div class="stat"><small>Separación · d</small><strong id="dstat">1,20 m</strong></div>
+  <div class="stat"><small>Desfase emitido</small><strong id="pstat">0°</strong></div>
+ </div>
+ <div class="mapwrap" style="margin-top:10px">
+  <div class="maphead"><strong>Mapa teórico del patrón de interferencia</strong><span class="mini">Vista superior · toca un punto para analizarlo</span></div>
+  <canvas id="map" role="img" aria-label="Mapa teórico de refuerzos y cancelaciones del sonido de dos altavoces"></canvas>
+  <div class="legend"><span>Más cancelación</span><span class="gradient"></span><span>Más refuerzo</span><span>Colores relativos: no son decibelios reales</span></div>
+ </div>
+ <div class="results">
+  <div class="result"><small>Diferencia de caminos</small><b id="dr">—</b></div>
+  <div class="result"><small>Desfase al llegar</small><b id="phidiff">—</b></div>
+  <div class="result"><small>Interferencia prevista</small><b id="kind">—</b></div>
+ </div>
+ <div class="callout"><b>Práctica recomendada:</b> pon los altavoces separados en la parte delantera del aula. Comprueba «Solo izq.» y «Solo der.», deja «Ambos» y pide al alumnado que mida el sonido en su sitio con «Medidor móvil». El mapa supone fuentes ideales en un espacio sin reflexiones; no predice exactamente el nivel sonoro del aula.</div>
+</section>
+</div>
+<div id="studentView" class="hidden">
+ <div class="measure-layout">
+  <section class="panel">
+   <h2>Medidor acústico para el alumnado</h2>
+   <p class="sub mb">Utiliza el micrófono del teléfono para observar variaciones relativas del nivel de la señal. No requiere instalar nada.</p>
+   <div class="group mb"><div class="row"><label for="measFreq">Frecuencia del profesor</label><div><input id="measFreq" type="number" min="150" max="1500" step="1" value="500"> Hz</div></div><p class="mini">Debe coincidir con la frecuencia que está emitiendo el ordenador.</p></div>
+   <button class="primary" id="micButton" type="button">🎙 Activar micrófono</button>
+   <p id="micStatus" class="status" role="status">El navegador solicitará permiso. El audio se procesa en tu teléfono; no se almacena ni envía.</p>
+   <div class="meter"><div id="meterFill"></div></div>
+   <div class="bigvalue" id="db">— dBFS</div>
+   <div class="mini">Lectura relativa de amplitud digital filtrada alrededor de la frecuencia elegida. <b>No es una medida calibrada en dB SPL.</b></div>
+  </section>
+  <section class="panel">
+   <h2>Compara dos situaciones desde el mismo sitio</h2>
+   <p>1. El profesor reproduce <b>solo el altavoz izquierdo</b>. Permanece en el mismo lugar y pulsa «Guardar referencia».</p>
+   <p>2. El profesor activa <b>ambos altavoces</b>, sin cambiar sus posiciones ni el volumen.</p>
+   <p>3. Observa el cambio en la lectura y anota si la señal se refuerza o se atenúa.</p>
+   <button class="outline" type="button" id="baseline">Guardar referencia (solo izquierdo)</button>
+   <div class="results" style="margin-top:13px">
+    <div class="result"><small>Referencia</small><b id="baseDb">—</b></div>
+    <div class="result"><small>Variación respecto a referencia</small><b id="deltaDb">—</b></div>
+    <div class="result"><small>Interpretación</small><b id="deltaInterpretation">—</b></div>
+   </div>
+   <div class="callout" id="measLog">No compares directamente los valores absolutos de diferentes móviles: sus micrófonos, calibraciones y controles automáticos pueden ser distintos. Compara cambios con <b>el mismo móvil y en el mismo lugar</b>.</div>
+   <p class="instruction">Si el móvil activa control automático de ganancia, reducción de ruido u otros procesamientos, las diferencias pueden quedar distorsionadas. La aplicación solicita desactivarlos, pero algunos dispositivos no lo permiten.</p>
+  </section>
+ </div>
+</div>
+<footer>Generación estéreo: Web Audio API · Instrumento del alumno: micrófono local con filtrado de banda · Modelo de sala idealizado, no medición acústica certificada.</footer>
+</main>
+<script>
+(function(){
+'use strict';
+var $=function(x){return document.getElementById(x)};
+var cfg={freq:500,d:1.2,phase:0,mode:'B',volume:.35},speed=343;
+var AC=window.AudioContext||window.webkitAudioContext;
+var ac=null,osc=null,gainL=null,gainR=null,master=null,stereo=null,playing=false,initializing=false;
+var mc=null,stream=null,analyser=null,filter=null,source=null,silent=null,rmsBuffer=null,micActive=false,reference=null,lastDb=-95,samples=[],lastUpdate=0;
+function fmt(x,n){return Number(x).toLocaleString('es-ES',{minimumFractionDigits:n||0,maximumFractionDigits:n===undefined?2:n})}
+function setStatus(t){$('status').textContent=t}
+function outGains(){
+ if(!playing||!ac)return;
+ var now=ac.currentTime,g=cfg.volume;
+ master.gain.setTargetAtTime(g,now,.016);
+ gainL.gain.setTargetAtTime(cfg.mode==='R'?0:.36,now,.016);
+ gainR.gain.setTargetAtTime(cfg.mode==='L'?0:(cfg.phase===180?-.36:.36),now,.016);
+}
+function stopAudio(){
+ if(!playing)return;
+ playing=false;
+ if(master&&ac){var time=ac.currentTime;master.gain.cancelScheduledValues(time);master.gain.setTargetAtTime(0,time,.015)}
+ if(osc){try{osc.stop(ac.currentTime+.05)}catch(e){}}
+ var oldOsc=osc,oldMaster=master,oldStereo=stereo;osc=null;master=null;stereo=null;gainL=null;gainR=null;
+ setTimeout(function(){try{oldOsc.disconnect();oldMaster.disconnect();oldStereo.disconnect()}catch(e){}},150);
+ $('play').textContent='▶ Reproducir';$('play').classList.remove('playing');$('play').setAttribute('aria-pressed','false');setStatus('Detenido.');
+}
+async function toggleAudio(){
+ if(initializing)return;
+ if(playing){stopAudio();return}
+ initializing=true;$('play').disabled=true;
+ try{
+  if(!AC)throw Error('Este navegador no permite Web Audio.');
+  if(!ac)ac=new AC();
+  await ac.resume();
+  var start=ac.currentTime+.055;
+  osc=ac.createOscillator();osc.type='sine';osc.frequency.setValueAtTime(cfg.freq,start);
+  gainL=ac.createGain();gainR=ac.createGain();
+  gainL.gain.setValueAtTime(cfg.mode==='R'?0:.36,start);
+  gainR.gain.setValueAtTime(cfg.mode==='L'?0:(cfg.phase===180?-.36:.36),start);
+  stereo=ac.createChannelMerger(2);
+  stereo.channelCountMode='explicit';
+  master=ac.createGain();
+  master.gain.setValueAtTime(0,ac.currentTime);
+  master.gain.linearRampToValueAtTime(cfg.volume,start+.035);
+  osc.connect(gainL);osc.connect(gainR);
+  gainL.connect(stereo,0,0);gainR.connect(stereo,0,1);
+  stereo.connect(master);master.connect(ac.destination);
+  osc.start(start);playing=true;
+  $('play').textContent='■ Detener';$('play').classList.add('playing');
+  $('play').setAttribute('aria-pressed','true');
+  setStatus('Sonando: '+(cfg.mode==='B'?'ambos altavoces':cfg.mode==='L'?'solo izquierdo':'solo derecho')+'.');
+ }catch(e){setStatus('No se ha podido iniciar el audio: '+(e.message||e))}
+ finally{initializing=false;$('play').disabled=false}
+}
+function buttons(group,attr,value){
+ Array.prototype.forEach.call($(group).querySelectorAll('button'),function(b){b.classList.toggle('active',b.dataset[attr]===String(value))})
+}
+$('play').onclick=toggleAudio;
+$('freqSlide').oninput=function(){setFrequency(Number(this.value))};
+$('freq').onchange=function(){var v=Number(this.value);if(v>=150&&v<=1500)setFrequency(v);else this.value=String(cfg.freq)};
+function setFrequency(v){
+ cfg.freq=v;$('freq').value=String(v);$('freqSlide').value=String(Math.max(200,Math.min(1200,v)));
+ if(osc&&ac)osc.frequency.setTargetAtTime(v,ac.currentTime,.012);
+ updateMap();
+}
+$('distance').oninput=function(){cfg.d=Number(this.value);updateMap()};
+Array.prototype.forEach.call($('modes').querySelectorAll('button'),function(b){b.onclick=function(){cfg.mode=this.dataset.mode;buttons('modes','mode',cfg.mode);outGains();updateMap();if(playing)setStatus('Sonando: '+(cfg.mode==='B'?'ambos altavoces':cfg.mode==='L'?'solo izquierdo':'solo derecho')+'.')}});
+Array.prototype.forEach.call($('phaseButtons').querySelectorAll('button'),function(b){b.onclick=function(){cfg.phase=Number(this.dataset.phase);buttons('phaseButtons','phase',cfg.phase);outGains();updateMap()}});
+$('volume').oninput=function(){cfg.volume=Number(this.value)/100;$('volumeLabel').textContent=this.value+' %';outGains()};
+$('fullscreen').onclick=function(){if(document.fullscreenElement){if(document.exitFullscreen)document.exitFullscreen()}else if(document.documentElement.requestFullscreen){document.documentElement.requestFullscreen().catch(function(){})}};
+var map=$('map'),selection={x:1,y:2.5},heatCache=null,heatKey='';
+function layout(){
+ var r=map.getBoundingClientRect(),dpr=Math.min(2,devicePixelRatio||1),w=r.width,h=r.height;
+ if(map.width!==Math.round(w*dpr)||map.height!==Math.round(h*dpr)){map.width=Math.round(w*dpr);map.height=Math.round(h*dpr);heatKey=''}
+ var c=map.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,w,h);
+ return {c:c,w:w,h:h,l:33,r:13,t:28,b:23}
+}
+function point(x,y){
+ var half=cfg.d/2,r1=Math.hypot(x+half,y),r2=Math.hypot(x-half,y);
+ var a1=1/Math.max(.18,r1),a2=1/Math.max(.18,r2);
+ var delta=r2-r1,psi=2*Math.PI*delta*cfg.freq/speed+cfg.phase*Math.PI/180;
+ var combined=Math.sqrt(a1*a1+a2*a2+2*a1*a2*Math.cos(psi));
+ return {r1:r1,r2:r2,difference:delta,phase:psi,relative:combined/Math.sqrt(a1*a1+a2*a2)};
+}
+function coords(x,y,d){return {sx:d.l+(x+3)/6*(d.w-d.l-d.r),sy:d.t+(y-.25)/6.25*(d.h-d.t-d.b)}}
+function inverse(px,py,d){return {x:-3+(px-d.l)/(d.w-d.l-d.r)*6,y:.25+(py-d.t)/(d.h-d.t-d.b)*6.25}}
+function color(v){
+ // v ranges 0...sqrt(2). Blue: cancellation; cream/orange: reinforcement.
+ var u=Math.max(0,Math.min(1,v/Math.SQRT2));
+ var stops=[[36,107,183],[216,235,241],[249,201,131],[207,103,37]],pos=u*3,i=Math.min(2,Math.floor(pos)),alpha=pos-i;
+ return 'rgb('+[0,1,2].map(function(k){return Math.round(stops[i][k]*(1-alpha)+stops[i+1][k]*alpha)}).join(',')+')';
+}
+function updateMap(){
+ $('lambda').textContent=fmt(100*speed/cfg.freq,1)+' cm';
+ $('distanceLabel').textContent=fmt(cfg.d,2)+' m';
+ $('dstat').textContent=fmt(cfg.d,2)+' m';
+ $('pstat').textContent=cfg.phase+'°';
+ render();
+}
+function render(){
+ var d=layout(),g=d.c,w=d.w,h=d.h,ww=w-d.l-d.r,hh=h-d.t-d.b;
+ var key=[cfg.d,cfg.freq,cfg.phase,cfg.mode,w,h].join('/');
+ if(heatKey!==key){
+  var resolution=5;
+  for(var py=d.t;py<h-d.b;py+=resolution){
+   for(var px=d.l;px<w-d.r;px+=resolution){
+    var q=inverse(px+resolution/2,py+resolution/2,d),p=point(q.x,q.y);
+    // Individual-speaker mode has no interference pattern; neutral map.
+    g.fillStyle=cfg.mode==='B'?color(p.relative):'#eaf0f5';
+    g.fillRect(px,py,Math.min(resolution,w-d.r-px),Math.min(resolution,h-d.b-py));
+   }
+  }
+  // cache background with correct pixel dimensions
+  heatCache=document.createElement('canvas');heatCache.width=map.width;heatCache.height=map.height;
+  heatCache.getContext('2d').drawImage(map,0,0);heatKey=key;
+ }else if(heatCache){g.drawImage(heatCache,0,0,w,h)}
+ g.strokeStyle='#ffffffa8';g.lineWidth=1;g.font='11px system-ui,sans-serif';g.fillStyle='#35516a';
+ for(var x=-3;x<=3;x++){var px=coords(x,.25,d).sx;g.beginPath();g.moveTo(px,d.t);g.lineTo(px,h-d.b);g.stroke();g.fillText(String(x),px-4,h-6)}
+ for(var y=1;y<=6;y++){var py=coords(0,y,d).sy;g.beginPath();g.moveTo(d.l,py);g.lineTo(w-d.r,py);g.stroke();g.fillText(String(y)+' m',3,py+3)}
+ g.lineWidth=1.4;g.strokeStyle='#607f96';g.strokeRect(d.l,d.t,ww,hh);
+ [-cfg.d/2,cfg.d/2].forEach(function(x,i){
+  var pos=coords(x,.25,d);
+  g.fillStyle=i===0?'#166ba8':'#d58434';g.beginPath();g.arc(pos.sx,pos.sy,9,0,2*Math.PI);g.fill();
+  g.strokeStyle='#fff';g.lineWidth=2;g.stroke();
+  g.fillStyle='#17344a';g.font='bold 11px system-ui,sans-serif';
+  g.fillText(i===0?'L':'R',pos.sx+12,pos.sy+4);
+ });
+ var s=coords(selection.x,selection.y,d),p=point(selection.x,selection.y);
+ g.strokeStyle='#253746';g.lineWidth=1.3;g.beginPath();g.arc(s.sx,s.sy,8,0,2*Math.PI);g.stroke();
+ g.beginPath();g.moveTo(s.sx-12,s.sy);g.lineTo(s.sx+12,s.sy);g.moveTo(s.sx,s.sy-12);g.lineTo(s.sx,s.sy+12);g.stroke();
+ g.fillStyle='#183b56';g.font='bold 11px system-ui,sans-serif';
+ g.fillText('P ('+fmt(selection.x,1)+'; '+fmt(selection.y,1)+')',Math.min(w-115,s.sx+12),Math.max(45,s.sy-13));
+ $('dr').textContent=fmt(Math.abs(p.difference),2)+' m';
+ var phase=((p.phase*180/Math.PI)%360+360)%360;
+ $('phidiff').textContent=fmt(phase,0)+'°';
+ var cos=Math.cos(p.phase);
+ $('kind').textContent=cos>.65?'Refuerzo':cos<-.65?'Atenuación':'Intermedia';
+}
+map.addEventListener('pointerdown',function(e){
+ var r=map.getBoundingClientRect(),d={w:r.width,h:r.height,l:33,r:13,t:28,b:23},q=inverse(e.clientX-r.left,e.clientY-r.top,d);
+ selection.x=Math.max(-3,Math.min(3,q.x));selection.y=Math.max(.3,Math.min(6.5,q.y));render();
+});
+function switchTab(to){
+ $('teacherView').classList.toggle('hidden',to!=='teacher');
+ $('studentView').classList.toggle('hidden',to!=='student');
+ $('tabTeacher').classList.toggle('active',to==='teacher');
+ $('tabStudent').classList.toggle('active',to==='student');
+ $('tabTeacher').setAttribute('aria-pressed',String(to==='teacher'));
+ $('tabStudent').setAttribute('aria-pressed',String(to==='student'));
+ if(to==='student'){stopAudio();$('measFreq').value=cfg.freq}else{stopMic();updateMap()}
+}
+$('tabTeacher').onclick=function(){switchTab('teacher')};
+$('tabStudent').onclick=function(){switchTab('student')};
+function stopMic(){
+ if(!micActive)return;
+ micActive=false;if(stream)stream.getTracks().forEach(function(track){track.stop()});
+ stream=null;if(source)source.disconnect();if(filter)filter.disconnect();if(analyser)analyser.disconnect();if(silent)silent.disconnect();
+ source=null;filter=null;analyser=null;silent=null;reference=null;samples=[];
+ if(mc)mc.close().catch(function(){});mc=null;
+ $('micButton').textContent='🎙 Activar micrófono';$('micButton').classList.remove('playing');
+ $('micStatus').textContent='Micrófono desactivado.';$('db').textContent='— dBFS';
+ $('deltaDb').textContent='—';$('baseDb').textContent='—';$('deltaInterpretation').textContent='—';$('meterFill').style.width='0%';
+}
+async function toggleMic(){
+ if(micActive){stopMic();return}
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!AC){
+  $('micStatus').textContent='Este navegador no admite acceso al micrófono. Usa HTTPS y un navegador compatible.';return
+ }
+ try{
+  stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}});
+  mc=new AC();await mc.resume();
+  source=mc.createMediaStreamSource(stream);filter=mc.createBiquadFilter();
+  filter.type='bandpass';filter.frequency.value=Number($('measFreq').value)||500;filter.Q.value=8;
+  analyser=mc.createAnalyser();analyser.fftSize=4096;analyser.smoothingTimeConstant=.35;
+  rmsBuffer=new Float32Array(analyser.fftSize);
+  silent=mc.createGain();silent.gain.value=0;source.connect(filter);filter.connect(analyser);analyser.connect(silent);silent.connect(mc.destination);
+  micActive=true;reference=null;samples=[];lastUpdate=0;
+  $('micButton').textContent='■ Desactivar micrófono';$('micButton').classList.add('playing');
+  $('micStatus').textContent='Midiendo sonido cerca de '+fmt(filter.frequency.value)+' Hz.';
+  requestAnimationFrame(readMic);
+ }catch(err){
+  $('micStatus').textContent='No se pudo acceder al micrófono: '+(err.message||err);
+  if(stream)stream.getTracks().forEach(function(t){t.stop()});stream=null;
+ }
+}
+function readMic(time){
+ if(!micActive||!analyser)return;
+ if(time-lastUpdate>=110){
+  lastUpdate=time;
+  analyser.getFloatTimeDomainData(rmsBuffer);
+  var sum=0;
+  for(var i=0;i<rmsBuffer.length;i++)sum+=rmsBuffer[i]*rmsBuffer[i];
+  var rms=Math.sqrt(sum/rmsBuffer.length);
+  var val=20*Math.log10(Math.max(0.00001,rms));
+  // Average dBFS for stable classroom reading
+  samples.push(val);if(samples.length>18)samples.shift();
+  lastDb=samples.reduce(function(a,b){return a+b},0)/samples.length;
+  $('db').textContent=fmt(lastDb,1)+' dBFS';
+  $('meterFill').style.width=String(Math.min(100,Math.max(0,(lastDb+85)/65*100)))+'%';
+  if(reference!==null){
+   var delta=lastDb-reference;
+   $('deltaDb').textContent=(delta>0?'+':'')+fmt(delta,1)+' dB';
+   $('deltaInterpretation').textContent=delta>2?'Refuerzo':delta< -2?'Atenuación':'Similar';
+  }
+ }
+ requestAnimationFrame(readMic);
+}
+$('micButton').onclick=toggleMic;
+$('measFreq').onchange=function(){
+ var f=Number(this.value);if(f>=150&&f<=1500){if(filter)filter.frequency.setTargetAtTime(f,mc.currentTime,.04);reference=null;samples=[];$('baseDb').textContent='—';$('deltaDb').textContent='—';$('deltaInterpretation').textContent='—'}
+ else{this.value=String(cfg.freq)}
+};
+$('baseline').onclick=function(){
+ if(!micActive||samples.length<5){$('measLog').textContent='Activa el micrófono, deja que la lectura se estabilice y vuelve a intentarlo.';return}
+ reference=lastDb;$('baseDb').textContent=fmt(reference,1)+' dBFS';$('deltaDb').textContent='+0,0 dB';$('deltaInterpretation').textContent='Referencia';
+ $('measLog').textContent='Referencia guardada. Pide al profesor que active ahora ambos altavoces sin modificar el volumen y compara la variación.';
+};
+document.addEventListener('visibilitychange',function(){if(document.hidden){stopAudio();stopMic()}});
+window.addEventListener('pagehide',function(){stopAudio();stopMic()});
+window.addEventListener('resize',function(){if(!$('teacherView').classList.contains('hidden'))updateMap()});
+updateMap();
+})();
+</script>
+</body>
+</html>
