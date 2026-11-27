@@ -529,11 +529,21 @@
         const path=decodeURIComponent(location.pathname);
         const parts=path.split('/').filter(Boolean);
         if(parts[0]!=='iesmajuelo') return 'root';
-        const relative=parts.slice(1).join('/');
+        const relative=parts.slice(1).join('/').replace(/(?:^|\/)index\.html$/, '');
         return Object.keys(SECTION_PATHS).find(id=>SECTION_PATHS[id]===relative) || 'root';
     }
+    // Cada índice publicado carga su propia versión, no una copia de otra página.
+    const PAGE_SECTION = 'tools';
+    const PUBLISHED_SECTIONS = new Set(["root","bach","fq1","fi2","eso","fq2","fq3","fq4","fpb2","cdd","departamento","equipo","otros","tools"]);
     function setSection(id, mode='push') {
         if (!DATA[id]) return;
+        if (id !== PAGE_SECTION && PUBLISHED_SECTIONS.has(id)) {
+            const target = new URL(sectionUrl(id), location.origin);
+            target.searchParams.set('_catalogo', Date.now());
+            if (mode === 'replace') location.replace(target.href);
+            else location.assign(target.href);
+            return;
+        }
         document.getElementById('searchInput').value='';
         isSearchActive=false;
         navigationStack=stackFor(id);
@@ -547,10 +557,7 @@
         if(navigationStack.length>1)setSection(navigationStack[navigationStack.length-2]);
     }
     window.addEventListener('popstate',()=>{
-        navigationStack=stackFor(readSectionFromUrl());
-        isSearchActive=false;
-        document.getElementById('searchInput').value='';
-        render();
+        setSection(readSectionFromUrl(), 'replace');
     });
 
     function handleSearch() {
@@ -576,9 +583,9 @@
             const node = DATA[key];
             if (node.groups) {
                 node.groups.forEach(group => {
-                    group.links.forEach(link => {
+                    (group.sections ? group.sections.flatMap(section => section.links.map(link => ({ ...link, subgroup: section.name }))) : (group.links || [])).forEach(link => {
                         if (link.name.toLowerCase().includes(query) || group.name.toLowerCase().includes(query)) {
-                            results.push({ ...link, category: node.title, group: group.name });
+                            results.push({ ...link, category: node.title, group: link.subgroup ? group.name + ' › ' + link.subgroup : group.name });
                         }
                     });
                 });
@@ -678,7 +685,26 @@
         setSection(navigationStack[index]);
     }
 
-    window.onload = () => { setSection(readSectionFromUrl(), 'replace'); };
+    // La búsqueda global usa el mismo catálogo FI2 que su índice específico.
+    async function refreshFi2SearchCatalog() {
+        try {
+            const response = await fetch('/iesmajuelo/bach/fi2/recursos.json?_catalogo=' + Date.now(), { cache: 'no-store' });
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            const catalog = await response.json();
+            if (catalog.version !== 1 || !Array.isArray(catalog.groups)) throw new Error('Catálogo no válido');
+            DATA.fi2.groups = catalog.groups;
+            if (isSearchActive) handleSearch();
+        } catch (error) {
+            console.warn('No se pudo actualizar el catálogo FI2 para la búsqueda:', error);
+        }
+    }
+    window.onload = () => {
+        setSection(readSectionFromUrl(), 'replace');
+        refreshFi2SearchCatalog();
+    };
+    window.addEventListener('pageshow', event => {
+        if (event.persisted) refreshFi2SearchCatalog();
+    });
 </script>
 </body>
 </html>
