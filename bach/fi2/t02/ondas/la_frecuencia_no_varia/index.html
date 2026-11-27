@@ -15,6 +15,7 @@
 <p class="intro">Desplaza el punto de observación por las dos cuerdas y mide el tiempo que tarda en realizar una oscilación completa.</p>
 <section class="panel" aria-label="Simulación de las cuerdas">
 <div class="legend"><div class="medium m1"><b>Cuerda 1 · Menor densidad lineal</b>μ₁ = 0,10 kg/m · v₁ = 3,0 m/s</div><div class="medium m2"><b>Cuerda 2 · Mayor densidad lineal</b>μ₂ = 0,40 kg/m · v₂ = 1,5 m/s</div></div>
+<aside role="note" style="margin:12px 0;padding:10px 13px;border-left:3px solid #b45309;background:#fff7ed;color:#754d26;font-size:.88rem;line-height:1.5;border-radius:0 8px 8px 0"><b>Simplificación didáctica:</b> al llegar a la unión de dos cuerdas de distinta densidad lineal, una parte de la onda se refleja y otra se transmite. La amplitud de la onda transmitida no tiene por qué coincidir con la de la incidente. En esta animación se ha omitido la reflexión y se ha mantenido artificialmente la amplitud para facilitar la observación de que el período y la frecuencia no varían al cambiar de medio.</aside>
 <div class="canvas">
 <svg id="scene" viewBox="0 0 1000 320" role="img" aria-label="Dos cuerdas unidas, con punto de observación móvil y foco a la izquierda">
 <rect x="48" y="28" width="452" height="250" rx="5" fill="#eff6ff"/><rect x="500" y="28" width="452" height="250" rx="5" fill="#eef9f5"/>
@@ -40,7 +41,7 @@
 <div class="steps"><div class="event"><i class="lamp" id="lamp1"></i><span>1.er máximo de elongación: inicia el cronómetro</span></div><div class="event"><i class="lamp" id="lamp2"></i><span>2.º máximo de elongación: detiene el cronómetro</span></div><p class="hint">La medida no depende de la velocidad de reproducción.</p></div></div>
 </section>
 <section class="panel"><div class="sectionhead"><h2>Registro de medidas</h2><button id="clear" class="small">Borrar medidas</button></div><p id="historyEmpty">Realiza una medida en cada cuerda y compara los resultados.</p><div class="history" id="history" hidden><table><thead><tr><th>Punto</th><th>Cuerda</th><th>Período T (s)</th><th>Frecuencia f (Hz)</th></tr></thead><tbody id="rows"></tbody></table></div><p id="answer" hidden><b>¿Qué observas?</b> Aunque las crestas están más próximas en la cuerda 2, los puntos de ambas cuerdas oscilan con el mismo período y, por tanto, con la misma frecuencia. La frecuencia viene determinada por el foco emisor.</p></section>
-<p class="note"><b>Modelo didáctico:</b> tensión común de 0,90 N; se representa la onda transmitida con amplitud constante y sin reflexión en la unión ni en la salida (terminación absorbente ideal). Un extremo libre real sí refleja. En una unión real de cuerdas de distinta densidad también existe una reflexión parcial, que aquí se omite para estudiar exclusivamente el período.</p>
+<p class="note"><b>Condiciones del modelo:</b> tensión común de 0,90 N y terminación absorbente ideal en el extremo derecho. Un extremo libre real también produce reflexión.</p>
 </main>
 <script>
 'use strict';
