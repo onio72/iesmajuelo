@@ -1,46 +1,356 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Francés 2.º ESO · Recursos educativos</title>
-<style>
-:root{color-scheme:light;--ink:#20343a;--muted:#60737b;--teal:#087a75;--line:#dce8e9;--bg:#f3f7f7}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-header{padding:2.4rem max(1.25rem,calc((100vw - 920px)/2));background:linear-gradient(135deg,#075e5b,#0e9387);color:#fff}
-header h1{margin:.2rem 0;font-size:clamp(1.6rem,4vw,2.4rem)}header p{margin:.4rem 0;opacity:.92}
-main{max-width:920px;margin:2rem auto;padding:0 1.25rem}
-a{color:inherit}nav a{color:#fff;text-decoration:none}nav a:hover{text-decoration:underline}
-.card{display:block;background:#fff;border:1px solid var(--line);border-radius:16px;padding:1.4rem 1.6rem;text-decoration:none;box-shadow:0 4px 20px #0d555014;transition:transform .15s,box-shadow .15s}
-.card:hover,.card:focus-visible{transform:translateY(-2px);box-shadow:0 10px 28px #0d555025;outline:2px solid #087a75}
-.eyebrow{font-size:.8rem;font-weight:750;color:var(--teal);letter-spacing:.06em;text-transform:uppercase}
-.card h2{font-size:1.2rem;margin:.45rem 0}.card p{color:var(--muted);margin:.3rem 0}
-footer{max-width:920px;margin:2.5rem auto;padding:0 1.25rem;color:var(--muted);font-size:.9rem}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recursos con IA - Antonio González</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #eff6ff;
+            --secondary: #64748b;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --radius: 0.75rem;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header & Navigation */
+        header {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 1rem;
+        }
+        .header-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+        .brand {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .search-container {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border-radius: 2rem;
+            border: 1px solid var(--border);
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            background: var(--bg-body);
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.4;
+        }
+
+        /* Toolbar / Breadcrumbs */
+        .toolbar {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+        }
+        .toolbar-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .btn-back {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+            color: var(--text-muted);
+        }
+        .btn-back:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+        .breadcrumbs {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .breadcrumb-item { cursor: pointer; transition: color 0.2s; }
+        .breadcrumb-item:hover { color: var(--primary); }
+        .breadcrumb-sep { opacity: 0.3; font-weight: 300; }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        .view-container {
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.5rem;
+        }
+        .card {
+            background: var(--bg-card);
+            padding: 2rem 1.5rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary);
+        }
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: var(--primary);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .card:hover::after { opacity: 1; }
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1.25rem;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+        .card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        .card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Resource Groups */
+        .resource-section-title {
+            margin: 2rem 0 1rem;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+        .resource-group {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .resource-group h3 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 0.75rem;
+        }
+        .link-item {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            border-radius: 0.6rem;
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .link-item:hover {
+            background: white;
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateX(3px);
+            box-shadow: var(--shadow-sm);
+        }
+        .link-item::before {
+            content: '🔗';
+            margin-right: 10px;
+            font-size: 1rem;
+            filter: grayscale(1);
+        }
+        .link-item:hover::before { filter: grayscale(0); }
+
+        /* Search Results View */
+        .search-results-info {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: var(--primary-light);
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            color: var(--primary-dark);
+        }
+        .no-results {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+        .hidden { display: none !important; }
+
+        footer {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            background: white;
+            margin-top: auto;
+        }
+
+        @media (max-width: 600px) {
+            .header-content { flex-direction: column; align-items: flex-start; }
+            .search-container { max-width: 100%; width: 100%; }
+            .grid { grid-template-columns: 1fr; }
+            .links-grid { grid-template-columns: 1fr; }
+            .brand { font-size: 1rem; }
+        }
+
+        /* Navegación compacta de Física 2.º Bachillerato */
+        .fi2-accordion { display:grid; gap:.8rem; }
+        .fi2-topic { border:1px solid var(--border); border-radius:.75rem; background:white; overflow:hidden; box-shadow:var(--shadow-sm); }
+        .fi2-topic > summary { list-style:none; display:flex; align-items:center; justify-content:space-between; gap:1rem; cursor:pointer; padding:1.08rem 1.25rem; font-weight:750; font-size:1.05rem; color:var(--text-main); }
+        .fi2-topic > summary::-webkit-details-marker, .fi2-section > summary::-webkit-details-marker { display:none; }
+        .fi2-topic > summary::after, .fi2-section > summary::after { content:'+'; font:600 1.5rem/1 system-ui; color:var(--primary); flex:none; }
+        .fi2-topic[open] > summary::after, .fi2-section[open] > summary::after { content:'−'; }
+        .fi2-topic[open] > summary { color:var(--primary); background:var(--primary-light); border-bottom:1px solid var(--border); }
+        .fi2-topic-body { padding:1rem; display:grid; gap:.65rem; }
+        .fi2-section { border:1px solid var(--border); border-radius:.6rem; background:var(--bg-body); overflow:hidden; }
+        .fi2-section > summary { list-style:none; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.8rem 1rem; cursor:pointer; font-size:.95rem; font-weight:650; }
+        .fi2-section[open] > summary { color:var(--primary); background:white; border-bottom:1px solid var(--border); }
+        .fi2-section .links-grid { padding:.75rem; gap:.65rem; }
+        .fi2-topic summary:focus-visible, .fi2-section summary:focus-visible { outline:3px solid var(--primary); outline-offset:-3px; }
+        .fi2-count { font-size:.77rem; font-weight:500; color:var(--text-muted); margin-left:auto; text-align:right; }
+        @media(max-width:600px) { .fi2-topic > summary { padding:.95rem 1rem; font-size:.98rem; } .fi2-topic-body { padding:.7rem; } .fi2-count { font-size:.7rem; } }
+
+        /* Segunda navegación FI2; no modifica los estilos de la vista temática. */
+        .fi2-view-switch { display:flex; gap:.4rem; flex-wrap:wrap; margin:0 0 1.2rem; padding:.3rem; width:max-content; max-width:100%; background:#eaf0f7; border-radius:.7rem; }
+        .fi2-view-switch button { border:0; border-radius:.5rem; padding:.65rem 1rem; font:600 .9rem Inter,sans-serif; background:transparent; color:#42566b; cursor:pointer; }
+        .fi2-view-switch button[aria-pressed="true"] { background:#fff; color:#1d4ed8; box-shadow:0 1px 4px #0f172a20; }
+        .fi2-view-switch button:focus-visible { outline:3px solid #bf7b18; outline-offset:2px; }
+        .fi2-view-description { color:var(--text-muted); font-size:.9rem; margin:0 0 1.1rem; }
+    </style>
 </head>
 <body>
+
 <header>
-<nav><a href="../">← Recursos de ESO</a></nav>
-<h1>Francés · 2.º de ESO</h1>
-<p>Actividades interactivas y material de práctica.</p>
+    <div class="header-content">
+        <div class="brand" onclick="navigateTo('root')">
+            <span>🤖</span> Recursos IA <span style="font-weight: 300; opacity: 0.6">| A. González</span>
+        </div>
+        <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="Buscar temas, ejercicios, simuladores..." oninput="handleSearch()">
+        </div>
+    </div>
 </header>
-<main>
-<a class="card" href="t01/">
-<span class="eyebrow">Tema 01 · Transit 2 (Santillana)</span>
-<h2>Atelier de français · Unidades 0 y 1</h2>
-<p>Generador autocorregible de ejercicios sobre vocabulario, conjugaciones, adjetivos demostrativos, pronombres COD y comunicación. Incluye niveles de dificultad y boletines imprimibles.</p>
-</a>
-<a class="card" href="vocabulario_temas_0_1/" style="margin-top:1rem">
-<span class="eyebrow">Vocabulario · Temas 0 y 1</span>
-<h2>Vocabulario temas 0 y 1 · Escuchar y practicar</h2>
-<p>163 términos, traducciones, selección múltiple, escritura con acentos, dictados de audio y boletines con solucionario.</p>
-</a>
-<a class="card" href="comprension_oral_0_1/" style="margin-top:1rem">
-<span class="eyebrow">Comprensión oral · Temas 0 y 1</span>
-<h2>Écoute &amp; comprends · Escucha y traduce</h2>
-<p>277 frases de tres dificultades. Audición en francés sin mostrar el texto, traducción escrita al español, corrección y hoja de soluciones imprimible.</p>
-</a>
-</main>
-<footer>Repositorio educativo IES El Majuelo</footer>
+
+<div class="toolbar">
+    <div class="toolbar-content">
+        <button id="backBtn" class="btn-back hidden" onclick="goBack()">
+            <span>←</span> Volver
+        </button>
+        <div id="breadcrumbs" class="breadcrumbs">Inicio</div>
+    </div>
+</div>
+
+<main id="app"></main>
+
+<footer>
+    <p>&copy; 2024 Antonio González - Repositorio de Recursos Educativos creados con IA</p>
+    <p style="margin-top: 0.5rem; opacity: 0.7">Hecho con fines educativos para el IES Majuelo</p>
+</footer>
+
+<script src="/iesmajuelo/catalogo-app.js?v=20261127-2" defer></script>
 </body>
 </html>
