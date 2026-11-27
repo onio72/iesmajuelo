@@ -46,3 +46,6 @@ Antes de indexar, leer `bach/fi2/index.html`; conservar las entradas existentes,
 
 ## Alcance de cambios
 Los nuevos componentes de `herramientas/` son propuestas reutilizables; no se deben incorporar a aplicaciones publicadas sin migración y pruebas específicas.
+
+## Catálogos comunes
+Cada recurso educativo indexado se registra una sola vez en el `recursos.json` de su asignatura, con `name`, `url`, `didactica` y su grupo temático (y sección cuando proceda). Valores: `guiado`, `practica`, `simulacion`, `deduccion`, `laboratorio`. Las áreas administrativas usan categorías funcionales definidas en `catalogo-app.js`. No duplicar catálogos en HTML; conservar orden y URLs. Actualizar la versión de `catalogo-app.js` en los índices cuando cambie el motor común. Comprobar recuentos, enlaces y ambas vistas antes de publicar.
