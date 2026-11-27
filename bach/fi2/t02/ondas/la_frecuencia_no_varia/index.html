@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>La frecuencia no varía</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172b40;background:#f2f5f9;font-size:16px;--blue:#2563eb;--green:#07806e;--amber:#b45309}
+*{box-sizing:border-box}body{margin:0}main{max-width:1180px;margin:auto;padding:clamp(12px,3vw,30px)}h1{font-size:clamp(24px,4vw,36px);margin:4px 0 6px;letter-spacing:-.035em}p{margin:0;line-height:1.5}.intro{color:#516579;margin-bottom:20px}.eyebrow{color:#526982;font-size:.78rem;letter-spacing:.09em;font-weight:700;text-transform:uppercase}.panel{background:white;border:1px solid #dae3ee;border-radius:16px;padding:clamp(12px,2vw,22px);box-shadow:0 3px 12px #18395909;margin-bottom:14px}.legend{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}.medium{padding:10px 13px;border-radius:10px;font-size:.88rem;line-height:1.45}.medium b{display:block;font-size:1rem}.m1{color:#174ca5;background:#eff6ff}.m2{color:#066c5e;background:#e8f8f3}.canvas{width:100%;overflow:hidden}svg{width:100%;height:auto;display:block;touch-action:pan-y;user-select:none}.dragzone{touch-action:none;cursor:ew-resize}.controls{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:12px}button,select{font:inherit;border:1px solid #ccd8e6;background:white;color:#223b55;border-radius:9px;padding:10px 14px;cursor:pointer;font-weight:650}button.primary{background:#245cbb;border-color:#245cbb;color:white}button.measure{background:#9a4808;border-color:#9a4808;color:white}button:disabled{opacity:.45;cursor:default}button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #e8a346;outline-offset:3px}.position{display:grid;grid-template-columns:auto minmax(60px,1fr) auto;align-items:center;gap:10px;margin-top:16px;font-size:.9rem}.position input{width:100%;accent-color:#b45309}.position output{font-variant-numeric:tabular-nums;min-width:65px;text-align:right}.hint{font-size:.83rem;color:#60748a;margin-top:8px}.time{margin-left:auto;color:#516579;font-variant-numeric:tabular-nums;font-size:.9rem}.measurement{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}.measurement[hidden],#answer[hidden]{display:none}.clock{background:#fff7ed;border:1px solid #f2cf9d;border-radius:12px;padding:15px;min-height:132px}.clock small{color:#80501e;font-weight:650}.digits{font-size:clamp(33px,6vw,56px);line-height:1.15;font-weight:750;font-variant-numeric:tabular-nums;letter-spacing:-.04em;color:#8c4309}.digits span{font-size:1.05rem;letter-spacing:0}.status{font-size:.91rem;color:#754d26;margin-top:8px}.steps{padding:12px 14px;background:#f5f8fc;border-radius:12px;color:#435b72;display:grid;align-content:center;gap:9px;font-size:.92rem}.event{display:flex;align-items:center;gap:8px}.lamp{width:13px;height:13px;flex:none;border:2px solid #b3c2d1;border-radius:50%}.lamp.done{background:#07806e;border-color:#07806e}.lamp.active{background:#f5b54c;border-color:#a95510}.history{overflow:auto;margin-top:12px}table{width:100%;border-collapse:collapse;text-align:left;font-size:.9rem;white-space:nowrap}th,td{padding:9px;border-bottom:1px solid #e1e8ef}th{color:#536b83;font-weight:650}#answer{margin-top:14px;padding:12px;border-left:4px solid #07806e;background:#effaf6;color:#175e50;line-height:1.5}.note{font-size:.84rem;color:#526982}#historyEmpty{color:#63768a;font-size:.9rem}.small{padding:7px 10px;font-size:.85rem}.sectionhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}h2{font-size:1.05rem;margin:0}a{color:#245cbb} @media(max-width:590px){.measurement{grid-template-columns:1fr}.time{margin-left:0}.position{grid-template-columns:auto 1fr auto}.medium{font-size:.76rem;padding:8px}.medium b{font-size:.85rem}button,select{padding:9px 10px;font-size:.9rem}}
+</style>
+</head>
+<body><main>
+<div class="eyebrow">Física · 2.º de Bachillerato · Ondas</div>
+<h1>La frecuencia no varía</h1>
+<p class="intro">Desplaza el punto de observación por las dos cuerdas y mide el tiempo que tarda en realizar una oscilación completa.</p>
+<section class="panel" aria-label="Simulación de las cuerdas">
+<div class="legend"><div class="medium m1"><b>Cuerda 1 · Menor densidad lineal</b>μ₁ = 0,10 kg/m · v₁ = 3,0 m/s</div><div class="medium m2"><b>Cuerda 2 · Mayor densidad lineal</b>μ₂ = 0,40 kg/m · v₂ = 1,5 m/s</div></div>
+<div class="canvas">
+<svg id="scene" viewBox="0 0 1000 320" role="img" aria-label="Dos cuerdas unidas, con punto de observación móvil y foco a la izquierda">
+<rect x="48" y="28" width="452" height="250" rx="5" fill="#eff6ff"/><rect x="500" y="28" width="452" height="250" rx="5" fill="#eef9f5"/>
+<g stroke="#cbd9e7" stroke-width="1" stroke-dasharray="4 6">
+<line x1="48" x2="952" y1="83" y2="83"/><line x1="48" x2="952" y1="223" y2="223"/>
+<line x1="48" x2="952" y1="153" y2="153" stroke="#9aaec1"/>
+</g>
+<line x1="500" x2="500" y1="28" y2="278" stroke="#8296a7" stroke-dasharray="5 5" stroke-width="1.5"/>
+<g fill="#496075" font-size="17" text-anchor="middle"><text x="500" y="19">Unión</text><text x="48" y="304">0</text><text x="500" y="304">9</text><text x="952" y="304">18 m</text></g>
+<g stroke="#8196a8" stroke-width="1.5"><line x1="26" x2="26" y1="225" y2="83"/><path d="M20 91 L26 81 L32 91" fill="none"/><path d="M20 215 L26 225 L32 215" fill="none"/></g>
+<text x="48" y="18" font-size="16" fill="#405c78">Foco</text><text x="952" y="18" font-size="16" text-anchor="end" fill="#405c78">Salida sin retorno →</text>
+<path id="rope1" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="rope2" fill="none" stroke="#07806e" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<circle id="source" cx="48" cy="153" r="8" fill="#243b53" stroke="white" stroke-width="2"/>
+<g id="probe"><line id="guide" x1="0" x2="0" y1="39" y2="265" stroke="#b45309" stroke-width="1.6" stroke-dasharray="5 5"/><line x1="-8" x2="8" y1="83" y2="83" stroke="#b45309" stroke-width="2"/><circle id="dot" cx="0" cy="153" r="10" fill="#fbbf24" stroke="#8a4607" stroke-width="2.5"/><circle id="halo" cx="0" cy="153" r="17" fill="none" stroke="#b45309" stroke-width="2" opacity="0"/><path d="M-9 263 L0 272 L9 263Z" fill="#b45309"/><rect x="-22" y="39" width="44" height="226" fill="transparent" class="dragzone" id="handle"/></g>
+<rect x="48" y="235" width="904" height="43" fill="transparent" class="dragzone" id="track"/>
+</svg></div>
+<div class="position"><label for="position">Posición de P</label><input type="range" id="position" min="0.1" max="17.9" step="0.1" value="4"><output id="pos">4,0 m</output></div>
+<p class="hint" id="medium">Cuerda 1 · Arrastra el punto amarillo horizontalmente o utiliza el deslizador.</p>
+<div class="controls"><button class="primary" id="play">▶ Iniciar</button><button id="reset">↺ Reiniciar</button><button class="measure" id="measure">Medir período</button><label for="speed">Reproducción</label><select id="speed"><option value=".5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select><span id="time" class="time">t = 0,00 s</span></div>
+<div id="measurement" class="measurement" hidden style="margin-top:16px">
+<div class="clock"><small>CRONÓMETRO · tiempo de simulación</small><div class="digits"><b id="elapsed">0,00</b> <span>s</span></div><p class="status" id="status" aria-live="polite">Esperando el primer máximo…</p></div>
+<div class="steps"><div class="event"><i class="lamp" id="lamp1"></i><span>1.er máximo de elongación: inicia el cronómetro</span></div><div class="event"><i class="lamp" id="lamp2"></i><span>2.º máximo de elongación: detiene el cronómetro</span></div><p class="hint">La medida no depende de la velocidad de reproducción.</p></div></div>
+</section>
+<section class="panel"><div class="sectionhead"><h2>Registro de medidas</h2><button id="clear" class="small">Borrar medidas</button></div><p id="historyEmpty">Realiza una medida en cada cuerda y compara los resultados.</p><div class="history" id="history" hidden><table><thead><tr><th>Punto</th><th>Cuerda</th><th>Período T (s)</th><th>Frecuencia f (Hz)</th></tr></thead><tbody id="rows"></tbody></table></div><p id="answer" hidden><b>¿Qué observas?</b> Aunque las crestas están más próximas en la cuerda 2, los puntos de ambas cuerdas oscilan con el mismo período y, por tanto, con la misma frecuencia. La frecuencia viene determinada por el foco emisor.</p></section>
+<p class="note"><b>Modelo didáctico:</b> tensión común de 0,90 N; se representa la onda transmitida con amplitud constante y sin reflexión en la unión ni en la salida (terminación absorbente ideal). Un extremo libre real sí refleja. En una unión real de cuerdas de distinta densidad también existe una reflexión parcial, que aquí se omite para estudiar exclusivamente el período.</p>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const T=2, A=70, V1=3, V2=1.5, L=9, X0=48, X1=952, Y=153;
+const fmt=(n,d=2)=>n.toFixed(d).replace('.',',');
+const sx=x=>X0+(X1-X0)*x/(2*L);
+const delay=x=>x<=L?x/V1:L/V1+(x-L)/V2;
+function wave(x,t){const u=t-delay(x);return u<0?0:Math.sin(2*Math.PI*u/T)}
+function nextPeak(x,t){const first=delay(x)+T/4;return first+Math.max(0,Math.floor((t-first)/T+1e-10)+1)*T}
+let t=0, x=4, running=false, last=null, state='idle', start=0, stop=0, records=[], flashUntil=-1;
+function setRunning(value){running=value;last=null;$('play').textContent=value?'Ⅱ Pausar':t===0?'▶ Iniciar':'▶ Continuar'}
+function drawRope(el,a,b){const n=Math.ceil((b-a)*38);let d='';for(let i=0;i<=n;i++){const p=a+(b-a)*i/n;d+=(i?'L':'M')+sx(p).toFixed(2)+' '+(Y-A*wave(p,t)).toFixed(2)+' '}el.setAttribute('d',d)}
+function render(){drawRope($('rope1'),0,L);drawRope($('rope2'),L,L*2);$('source').setAttribute('cy',Y-A*wave(0,t));$('probe').setAttribute('transform','translate('+sx(x)+' 0)');const y=Y-A*wave(x,t);$('dot').setAttribute('cy',y);$('halo').setAttribute('cy',y);$('halo').setAttribute('opacity',t<=flashUntil?'1':'0');$('time').textContent='t = '+fmt(t)+' s';if(state==='timing')$('elapsed').textContent=fmt(Math.max(0,Math.min(t-start,T)))}
+function clearCurrent(){state='idle';flashUntil=-1;$('measurement').hidden=true;$('measure').disabled=false;$('measure').textContent='Medir período'}
+function move(value){const p=Math.max(.1,Math.min(17.9,Math.round(value*10)/10));if(p!==x){x=p;clearCurrent()}$('position').value=x;$('pos').textContent=fmt(x,1)+' m';$('medium').textContent=(x<L?'Cuerda 1':x>L?'Cuerda 2':'Unión de las cuerdas')+' · Arrastra el punto amarillo horizontalmente o utiliza el deslizador.';render()}
+function showRecords(){const body=$('rows');body.replaceChildren();for(const r of records){const row=body.insertRow();for(const v of [fmt(r.x,1)+' m',r.x<L?'1':r.x>L?'2':'Unión',fmt(r.period),fmt(1/r.period)])row.insertCell().textContent=v}$('history').hidden=!records.length;$('historyEmpty').hidden=!!records.length;$('answer').hidden=!(records.some(r=>r.x<L)&&records.some(r=>r.x>L))}
+function arm(){state='waiting';start=nextPeak(x,t);stop=start+T;$('measurement').hidden=false;$('elapsed').textContent='0,00';$('status').textContent=t<delay(x)?'Esperando a que la onda llegue al punto…':'Esperando el primer máximo…';$('lamp1').className='lamp active';$('lamp2').className='lamp';$('measure').disabled=true;setRunning(true)}
+function advance(dt){t+=dt;if(state==='waiting'){if(t>=start){state='timing';flashUntil=start+.18;$('status').textContent='Midiendo una oscilación completa…';$('lamp1').className='lamp done';$('lamp2').className='lamp active'}else if(t>=delay(x))$('status').textContent='Esperando el primer máximo…'}if(state==='timing'&&t>=stop){state='done';flashUntil=stop+.18;$('elapsed').textContent=fmt(stop-start);$('status').textContent='Período medido: '+fmt(stop-start)+' s';$('lamp2').className='lamp done';$('measure').disabled=false;$('measure').textContent='Volver a medir';records.push({x,period:stop-start});showRecords()}}
+function frame(now){if(running){if(last!==null)advance(Math.min((now-last)/1000,.075)*Number($('speed').value));last=now;render()}else last=null;requestAnimationFrame(frame)}
+$('play').addEventListener('click',()=>setRunning(!running));$('measure').addEventListener('click',arm);$('reset').addEventListener('click',()=>{setRunning(false);t=0;clearCurrent();$('play').textContent='▶ Iniciar';render()});$('clear').addEventListener('click',()=>{records=[];showRecords()});$('position').addEventListener('input',e=>move(Number(e.target.value)));
+let dragging=null;
+function drag(e){const svg=$('scene'),pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const p=pt.matrixTransform(svg.getScreenCTM().inverse());move((p.x-X0)*2*L/(X1-X0))}
+for(const id of ['handle','track']){const el=$(id);el.addEventListener('pointerdown',e=>{if(dragging!==null)return;e.preventDefault();dragging=e.pointerId;el.setPointerCapture(e.pointerId);drag(e)});el.addEventListener('pointermove',e=>{if(dragging===e.pointerId)drag(e)});for(const type of ['pointerup','pointercancel','lostpointercapture'])el.addEventListener(type,e=>{if(dragging===e.pointerId)dragging=null})}
+render();requestAnimationFrame(frame);
+</script></body></html>
