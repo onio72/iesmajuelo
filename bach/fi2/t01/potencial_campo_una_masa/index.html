@@ -75,4 +75,5 @@ $('reset').onclick=()=>{point={x:.77,y:.37};refresh()};
 function resize(){const rect=$('stage2').getBoundingClientRect();w=rect.width;h=rect.height;const dpr=Math.min(2,devicePixelRatio||1);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);const r=$('stage3').getBoundingClientRect();renderer.setSize(r.width,r.height);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();refresh()}
 renderMassControls();new ResizeObserver(resize).observe($('stage2'));new ResizeObserver(resize).observe($('stage3'));resize();
 function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)}animate();
-</script></body></html>
+</script><script src="/iesmajuelo/shared/recurso-ayuda.js?v=1" data-info="info.md" data-prompt="prompt.md"></script>
+</body></html>

@@ -91,3 +91,15 @@ Corrección de inventario: Vibraciones y ondas contiene 43 entradas indexadas; 4
 - campo_gravitatorio/pages/gravitational_field_simulation_workspace.html — Info + IA.
 
 Las dos entradas de campo gravitatorio (raíz y página directa) redirigen a la misma aplicación. Fuerza gravitatoria también redirige a su workspace. Se han modificado los destinos reales. Total: 18/34 entradas del bloque, 61/166 indexadas.
+
+## Campo gravitatorio · Líneas, potencial y trabajo
+- lineascampo/index.html — Info + IA.
+- mapa_potencial/index.html — Info + IA.
+- potencial_campo_una_masa/index.html — Info + IA.
+- preguntas_lineas/index.html — Info + IA.
+- energia_potencial_altura/index.html — Info + IA.
+- energia_potencial_grav_plano/index.html — Info + IA.
+- energia_potencial_grav_SCORM/index.html — Info + IA.
+- fuerzas_conservativas/index.html — Info + IA.
+
+26/34 entradas del bloque, 69/166 indexadas. Se conserva guía nativa del mapa de potencial; aviso de líneas migrado al modal común.

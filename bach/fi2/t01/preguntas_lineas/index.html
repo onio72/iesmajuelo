@@ -52,4 +52,5 @@ function answer(value){if(answered)return;answered=true;const q=questions[qi],ok
 $('feedback').hidden=false;$('feedback').className='feedback'+(ok?'':' bad');$('feedback').textContent=(ok?'Correcto: +0,5 puntos. ':'Incorrecto: −0,5 puntos. Respuesta correcta: '+q.answer+'. ')+q.why;$('next').disabled=false;$('next').textContent=qi===questions.length-1?'Siguiente imagen':'Siguiente pregunta'}
 function newCase(){if(!queue.length)setupQueue();const p=queue.pop();caseNo++;item={b:p.m.map((m,i)=>({m,x:p.p[i][0]*W,y:p.p[i][1]*H}))};$('case').textContent='Configuración '+caseNo;questions=buildQuestions();qi=0;renderDiagram();renderQuestion()}
 $('next').onclick=()=>{if(!answered)return;if(qi<questions.length-1){qi++;renderQuestion()}else newCase()};$('nextCase').onclick=newCase;$('reset').onclick=()=>{score=0;scoreText();caseNo=0;setupQueue();newCase()};newCase();
-</script></body></html>
+</script><script src="/iesmajuelo/shared/recurso-ayuda.js?v=1" data-info="info.md" data-prompt="prompt.md"></script>
+</body></html>
