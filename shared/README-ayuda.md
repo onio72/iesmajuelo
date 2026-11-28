@@ -126,3 +126,14 @@ Estado: Campo gravitatorio 34/34 entradas (33 aplicaciones distintas), Vibracion
 - signotrabajo — pendiente: carpeta vacía (.gitkeep), no se encuentra index.html en historial consultado.
 
 83/166 entradas indexadas actualizadas, 6/7 repaso. ZIP SCORM pendientes.
+
+## Interacción electromagnética
+- campo_electrico/pages/electric_field_simulation_workspace.html — Info + IA.
+- potencial_electrico/pages/potencial_electrico_simulador.html — Info + IA.
+- coulomb01/index.html — Info + IA.
+- coulomb02/index.html — Info + IA.
+- coulomb03/index.html — Info + IA.
+- regla_mano_izquierda/index.html — Info + IA.
+- fuerza_lorentz/index.html — Info + IA.
+
+Estado: 7/7 interacción electromagnética; 90/91 entradas Física de 2.º Bachillerato y 90/166 indexadas. Única incidencia FI2: signotrabajo sin HTML. 91 aplicaciones distintas modificadas contando dos no indexadas y una entrada duplicada. Pendientes pruebas visuales, Pages y ZIP SCORM.

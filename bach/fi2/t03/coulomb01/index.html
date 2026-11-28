@@ -122,11 +122,11 @@
             z-index: 100;
             text-align: center;
         }
-    </style>
+    #ui-container{position:static;box-sizing:border-box;flex-wrap:wrap;gap:8px;margin:8px auto;flex-shrink:0}#ui-container>div{flex-wrap:wrap}body{min-height:100vh;height:auto;justify-content:flex-start;overflow:auto}#simCanvas{height:65vh;flex-shrink:0}#feedback{position:static;margin:6px auto;min-height:1.4em;box-sizing:border-box}#recurso-ayuda-modal{user-select:text}</style>
 </head>
 <body>
 
-    <div id="ui-container">
+    <div id="ui-container" class="wave-guide-titlebar">
         <div class="controls-group">
             <div id="score-display" class="score-box score-low">Puntuación: 0 / 10</div>
             <label class="checkbox-container">
@@ -461,5 +461,6 @@
         });
 
     </script>
+<script src="/iesmajuelo/shared/recurso-ayuda.js?v=1" data-info="info.md" data-prompt="prompt.md"></script>
 </body>
 </html>
