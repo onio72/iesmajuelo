@@ -62,4 +62,5 @@ function closeHelp(){main.removeAttribute('aria-hidden');overlay.hidden=true;doc
 trigger.addEventListener('click',openHelp);close.addEventListener('click',closeHelp);done.addEventListener('click',closeHelp);
 overlay.addEventListener('click',e=>{if(e.target===overlay)closeHelp();});
 document.addEventListener('keydown',e=>{if(overlay.hidden)return;if(e.key==='Escape'){e.preventDefault();closeHelp();}else if(e.key==='Tab'){if(e.shiftKey&&document.activeElement===close){e.preventDefault();done.focus();}else if(!e.shiftKey&&document.activeElement===done){e.preventDefault();close.focus();}}});
-})();</script></body></html>
+})();</script><script src="/iesmajuelo/shared/recurso-ayuda.js?v=1" data-prompt="prompt.md"></script>
+</body></html>

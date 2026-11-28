@@ -10,3 +10,13 @@ Componente compartido `recurso-ayuda.js`. Cargar al final del HTML con `data-inf
 - La frecuencia no varía — migrada a Info + IA.
 
 Pendiente: pruebas visuales en navegadores, despliegue de Pages y resto del catálogo. Inventario inicial: 166 enlaces internos en 13 catálogos; 5 enlaces externos fuera del alcance.
+
+## Segunda tanda
+- batidos_acusticos — Info + IA y Markdown.
+- comparador_ondas_transversales — Info + IA y Markdown.
+- cuerda_armonicos_sonido — Info + IA y Markdown.
+- deduccion_onda_armonica — Info + IA y Markdown.
+- difraccion — Info + IA y Markdown. Conserva ayuda nativa.
+- interferencias_dos_altavoces — Info + IA y Markdown.
+- laboratorio_estacionarias — Info + IA y Markdown.
+- laboratorio_longitud_onda — Info + IA y Markdown.
