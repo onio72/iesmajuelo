@@ -78,3 +78,16 @@ Estado: 26/26 recursos de ondas y 19/19 de MAS (45/45 Vibraciones y ondas), 45/1
 - momento_fuerza_SCORM/index.html — Info + IA.
 
 Corrección de inventario: Vibraciones y ondas contiene 43 entradas indexadas; 45 aplicaciones modificadas incluyen 2 adicionales (armónicos y altavoces). Con esta tanda: 51/166 indexadas y 53 aplicaciones en total. ZIP SCORM y pruebas de navegador pendientes.
+
+## Campo gravitatorio · Fuerzas y campo (parte 1)
+- fuerza_gravitatoria/pages/gravitational_force_simulation_workspace.html — Info + IA.
+- fuerza_grav_plano/index.html — Info + IA.
+- fuerza_grav_plano_SCORM/index.html — Info + IA.
+- fuerza_grav_nula/index.html — Info + IA.
+- fuerza_grav_nula_SCORM/index.html — Info + IA.
+- campo_gravitatorio_puntual/index.html — Info + IA.
+- intensidad_campo_gravitatorio/index.html — Info + IA.
+- principio_superposicion/index.html — Info + IA.
+- campo_gravitatorio/pages/gravitational_field_simulation_workspace.html — Info + IA.
+
+Las dos entradas de campo gravitatorio (raíz y página directa) redirigen a la misma aplicación. Fuerza gravitatoria también redirige a su workspace. Se han modificado los destinos reales. Total: 18/34 entradas del bloque, 61/166 indexadas.

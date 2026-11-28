@@ -43,4 +43,5 @@ let blob=new Blob([new TextEncoder().encode(pdf)],{type:'application/pdf'});let 
 function finishLMS(){if(finished)return;finished=true;if(lmsReady){try{saveProgress();api.LMSFinish('')}catch{}}}
 window.addEventListener('pagehide',finishLMS);window.addEventListener('unload',finishLMS);
 initializeAndRestore();})();
-</script></body></html>
+</script><script src="recurso-ayuda.js" data-info="info.md" data-prompt="prompt.md"></script>
+</body></html>
