@@ -170,3 +170,6 @@ Estado: FQ3 21/21; 111/166 entradas indexadas. Pendientes pruebas visuales, Page
 
 ## Física y Química de 1.º Bachillerato
 12/12 entradas actualizadas: fórmula empírica, grifo, tiro parabólico (simulador y generador), planos inclinados, cuerpos enlazados, tres choques, generador de momento y carro de masa variable. Sin cambios de lógica original. Advertencias de reconstrucción: razones fraccionarias en fórmula empírica y balance de momento de masa variable; no se copian credenciales de panel docente. Total 141/166 entradas. Pruebas visuales, Pages y ZIP SCORM pendientes.
+
+## Formación Profesional Básica
+9/9 entradas: figuras 3D, Euler, volumen, tablas de frecuencias (2), gráficos de barras (3), media/mediana/moda. Total 150/166 entradas. Se conserva lógica original; advertencia sobre empaquetamiento por volumen. Pruebas visuales, Pages y ZIP SCORM pendientes.
