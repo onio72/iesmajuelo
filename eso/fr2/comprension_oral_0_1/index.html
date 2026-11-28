@@ -20,7 +20,7 @@
   <div class="in">
     <div class="topline"><span class="kicker">Francés · 2.º de ESO · Transit 2</span><a href="../">← Volver a FR2</a></div>
     <h1>Écoute &amp; comprends <span aria-hidden="true">🎧</span></h1>
-    <p class="subtitle">Escucha pequeñas frases en francés y escribe su significado en español.</p>
+    <p class="subtitle">Escucha, escribe en francés y traduce al español.</p>
   </div>
 </header>
 <noscript><div class="noscript">Esta aplicación necesita JavaScript activado.</div></noscript>
@@ -59,15 +59,15 @@
       <div id="exercise">
         <div class="practice-top"><span class="pill" id="taskMeta">Tema 0 · Fácil</span><span class="muted small" id="taskNumber">Pregunta 1 de 20</span></div>
         <div class="prbar" aria-label="Progreso de los ejercicios"><div id="progress" class="fill"></div></div>
-        <h2>¿Qué significa esta frase?</h2>
-        <p class="instructions">Escucha en francés y escribe la traducción completa al español. La frase francesa no se mostrará hasta corregir.</p>
+        <h2>Escucha, escribe y traduce</h2>
+        <p class="instructions">Primero escribe en francés lo que has oído. Después traduce al español. Las soluciones aparecen al corregir ambas respuestas.</p>
         <div class="audio-area">
           <div class="sound-graphic"><div class="sound-icon" aria-hidden="true">♫</div><div><div class="sound-head">Audición en francés</div><div class="sound-sub" id="heardNote">Escucha cuantas veces necesites.</div></div></div>
           <div class="speaker-btns"><button id="listen" class="btn primary" type="button">🐌 Escuchar · Muy lenta</button></div>
  <p id="speedTip" class="speed-notice" style="flex-basis:100%;margin:0">Velocidad adaptada a la dificultad.</p>
         </div>
-        <div class="answerarea"><label for="translation">Tu traducción al español</label><textarea id="translation" placeholder="Escribe aquí lo que has entendido…" spellcheck="true" autocomplete="off" autocapitalize="sentences"></textarea><p class="tip">Se admiten tildes y puntuación diferentes. Las traducciones con palabras equivalentes pueden revisarse manualmente.</p></div>
-        <div class="respond"><button id="skip" class="btn subtle" type="button">No lo sé</button><button id="check" class="btn primary" type="button">Comprobar traducción</button></div>
+        <div class="answerarea"><label for="dictation">1. Escribe en francés lo que has oído</label><textarea id="dictation" lang="fr" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Escribe aquí la frase en francés…"></textarea><p class="tip">Los errores de acentuación penalizan menos que los errores de palabras.</p></div><div class="answerarea"><label for="translation">2. Traduce al español la frase que has escuchado</label><textarea id="translation" placeholder="Escribe aquí lo que has entendido…" spellcheck="true" autocomplete="off" autocapitalize="sentences"></textarea><p class="tip">Se admiten tildes y puntuación diferentes. Las traducciones con palabras equivalentes pueden revisarse manualmente.</p></div>
+        <div class="respond"><button id="skip" class="btn subtle" type="button">No lo sé</button><button id="check" class="btn primary" type="button">Comprobar las respuestas</button></div>
         <div id="feedback" class="feedback hidden" aria-live="polite"></div>
         <div class="respond" id="nextArea" style="display:none"><button id="next" class="btn primary" type="button">Siguiente frase →</button></div>
       </div>
@@ -132,7 +132,7 @@ function newSet(mode='fresh'){
  }
  if(!qs.length){$('configError').textContent='Todavía no hay errores que repetir.';return false}
  $('configError').textContent=notice;
- state.questions=qs;state.status=qs.map(()=>({done:false,correct:false,answer:'',reviewed:false}));state.at=0;state.heard=0;state.repeatMode=mode==='errors';state.lastResult=null;
+ state.questions=qs;state.status=qs.map(()=>({done:false,correct:false,answer:'',dictation:'',frScore:0,esCorrect:false,reviewed:false}));state.at=0;state.heard=0;state.repeatMode=mode==='errors';state.lastResult=null;
  $('finalScreen').classList.add('hidden');$('exercise').classList.remove('hidden');metrics();draw();return true;
 }
 function draw(){if(!state.questions.length)return;const q=state.questions[state.at];const s=state.status[state.at];
@@ -142,7 +142,7 @@ function draw(){if(!state.questions.length)return;const q=state.questions[state.
  $('taskNumber').textContent=`Pregunta ${state.at+1} de ${state.questions.length}`;
  $('progress').style.width=`${(state.at+1)/state.questions.length*100}%`;
  $('heardNote').textContent='Pulsa escuchar para oír la frase.';
- $('translation').value=s.answer||'';$('translation').disabled=s.done;
+ $('dictation').value=s.dictation||'';$('dictation').disabled=s.done;$('translation').value=s.answer||'';$('translation').disabled=s.done;
  $('check').disabled=false;$('skip').disabled=false;
  $('feedback').classList.add('hidden');$('nextArea').style.display='none';$('check').parentElement.style.display='flex';
  if(s.done)showCorrection();
@@ -180,35 +180,44 @@ function speak(){
   speechSynthesis.speak(utterance);state.heard++;
  }catch(e){$('heardNote').textContent='No se pudo iniciar el audio. Revisa la voz del navegador.'}
 }
+function frenchScore(expected,answer){
+ const tokens=s=>String(s).normalize('NFC').toLowerCase().replace(/[’‘]/g,"'").match(/[\p{L}\p{N}]+(?:'[\p{L}\p{N}]+)*/gu)||[];
+ const plain=s=>s.normalize('NFD').replace(/\p{M}/gu,'');
+ const a=tokens(expected),b=tokens(answer);
+ const distance=(x,y)=>{let p=Array.from({length:y.length+1},(_,j)=>j);for(let i=1;i<=x.length;i++){let n=[i];for(let j=1;j<=y.length;j++)n[j]=Math.min(p[j]+1,n[j-1]+1,p[j-1]+(x[i-1]===y[j-1]?0:1));p=n}return p[y.length]};
+ const cost=(x,y)=>{if(x===y)return 0;if(plain(x)===plain(y))return .2;const u=plain(x),v=plain(y);if(u.replace(/'/g,'')===v.replace(/'/g,''))return .3;if(Math.min(u.length,v.length)>=4&&distance(u,v)===1)return .6;return 1};
+ let p=Array.from({length:b.length+1},(_,j)=>j);for(let i=1;i<=a.length;i++){let n=[i];for(let j=1;j<=b.length;j++)n[j]=Math.min(p[j]+1,n[j-1]+1,p[j-1]+cost(a[i-1],b[j-1]));p=n}
+ return Math.max(0,Math.round(100*(1-p[b.length]/Math.max(1,a.length))));
+}
 function correct(skip=false){
  const s=state.status[state.at],q=state.questions[state.at];if(s.done)return;
- const answer=$('translation').value.trim();if(!skip&&!answer){$('translation').focus();return}
+ const answer=$('translation').value.trim(),dictation=$('dictation').value.trim();if(!skip&&!dictation&&!answer){$('dictation').focus();return} s.dictation=dictation;s.frScore=frenchScore(q.fr,dictation);
  s.answer=answer;s.done=true;
- const ok=!skip&&q.es.some(t=>norm(answer)===norm(t));s.correct=ok;s.reviewed=ok;
+ const ok=!skip&&q.es.some(t=>norm(answer)===norm(t));s.esCorrect=ok;s.correct=ok&&s.frScore===100;s.reviewed=ok;
  metrics();showCorrection();
 }
 function showCorrection(){
- const s=state.status[state.at],q=state.questions[state.at];$('translation').disabled=true;$('check').parentElement.style.display='none';$('nextArea').style.display='flex';$('next').textContent=state.at===state.questions.length-1?'Ver resultados →':'Siguiente frase →';
+ const s=state.status[state.at],q=state.questions[state.at];$('dictation').disabled=true;$('translation').disabled=true;$('check').parentElement.style.display='none';$('nextArea').style.display='flex';$('next').textContent=state.at===state.questions.length-1?'Ver resultados →':'Siguiente frase →';
  const f=$('feedback');f.classList.remove('hidden');f.classList.toggle('needs',!s.correct);
- const verdict=s.correct?'✓ Traducción reconocida':(!s.answer?'Frase sin responder':'Comprueba si tu traducción es equivalente');
- f.innerHTML=`<div class="result-title">${verdict}</div><div class="lead">Frase escuchada en francés</div><div class="line french" lang="fr">${html(q.fr)}</div><div class="lead">Traducción de referencia</div><div class="line">${html(q.es[0])}</div><div class="lead">Tu respuesta</div><div class="line">${html(s.answer||'(Sin responder)')}</div><p class="auto">${s.correct?'Coincide con una respuesta admitida.':'Una traducción puede ser correcta aunque utilice otras palabras. Compárala con la solución y decide.'}</p><div class="decision"><button class="btn ${s.correct?'secondary':'outline'}" id="accept" type="button">✓ La doy por correcta</button><button class="btn ${!s.correct?'danger':'outline'}" id="reject" type="button">✕ Necesito repasarla</button></div>`;
- $('accept').classList.toggle('picked',s.correct);$('reject').classList.toggle('picked',!s.correct);
+ const verdict=s.esCorrect?'✓ Traducción reconocida':(!s.answer?'Frase sin responder':'Comprueba si tu traducción es equivalente');
+ f.innerHTML=`<div class="result-title">${verdict}</div><div class="lead">Frase escuchada en francés</div><div class="line french" lang="fr">${html(q.fr)}</div><div class="lead">Tu dictado · ${s.frScore}%</div><div class="line" lang="fr">${html(s.dictation||'(Sin responder)')}</div><p class="auto">Acentos: penalización de 0,2 por palabra; apóstrofos: 0,3; errata de una letra en palabras de al menos cuatro letras: 0,6; palabra incorrecta, omitida o añadida: 1. Mayúsculas y puntuación general no penalizan.</p><div class="lead">Traducción de referencia</div><div class="line">${html(q.es[0])}</div><div class="lead">Tu respuesta</div><div class="line">${html(s.answer||'(Sin responder)')}</div><p class="auto">${s.esCorrect?'Coincide con una respuesta admitida.':'Una traducción puede ser correcta aunque utilice otras palabras. Compárala con la solución y decide.'}</p><div class="decision"><button class="btn ${s.esCorrect?'secondary':'outline'}" id="accept" type="button">✓ Traducción válida</button><button class="btn ${!s.esCorrect?'danger':'outline'}" id="reject" type="button">✕ Traducción incorrecta</button></div>`;
+ $('accept').classList.toggle('picked',s.esCorrect);$('reject').classList.toggle('picked',!s.esCorrect);
  $('accept').addEventListener('click',()=>setResult(true));$('reject').addEventListener('click',()=>setResult(false));
 }
-function setResult(correct){const s=state.status[state.at];s.correct=correct;s.reviewed=true;metrics();showCorrection()}
+function setResult(correct){const s=state.status[state.at];s.esCorrect=correct;s.correct=correct&&s.frScore===100;s.reviewed=true;metrics();showCorrection()}
 function advance(){if(!state.status[state.at].done)return;if(state.at<state.questions.length-1){state.at++;state.heard=0;draw()}else finish()}
 function finish(){if('speechSynthesis'in window)window.speechSynthesis.cancel();$('exercise').classList.add('hidden');$('finalScreen').classList.remove('hidden');const m=metrics();$('finalCount').textContent=`${m.correct} / ${state.questions.length}`;
- const percent=Math.round(m.correct/state.questions.length*100);$('finalMessage').textContent=`${percent}% de aciertos. La puntuación incluye las respuestas equivalentes que has validado manualmente.`;
+ const fr=Math.round(state.status.reduce((a,s)=>a+s.frScore,0)/state.questions.length),es=Math.round(state.status.filter(s=>s.esCorrect).length/state.questions.length*100);$('finalMessage').textContent=`Dictado: ${fr}% · Traducción: ${es}% · Nota global: ${((fr+es)/20).toFixed(1)}/10. Las traducciones equivalentes pueden validarse manualmente.`;
  const errors=state.questions.map((q,i)=>({q,i,s:state.status[i]})).filter(x=>!x.s.correct);
- $('review').innerHTML=errors.length?errors.map(({q,i,s})=>`<div class="review-row"><div class="fr">${i+1}. ${html(q.fr)}</div><div class="es">${html(q.es[0])}</div>${s.answer?`<div class="muted small">Tu respuesta: ${html(s.answer)}</div>`:''}</div>`).join(''):'<p>¡Muy bien! No quedan errores en esta tanda.</p>';
+ $('review').innerHTML=errors.length?errors.map(({q,i,s})=>`<div class="review-row"><div class="fr">${i+1}. ${html(q.fr)}</div><div class="es">${html(q.es[0])}</div><div class="muted small">Tu dictado (${s.frScore}%): ${html(s.dictation||'(Sin responder)')}</div>${s.answer?`<div class="muted small">Tu traducción: ${html(s.answer)}</div>`:''}</div>`).join(''):'<p>¡Muy bien! No quedan errores en esta tanda.</p>';
  $('repeatErrors').disabled=!errors.length;
 }
 function printHTML(){if(!state.questions.length)return;
  const listening=document.querySelector('input[name="printMode"]:checked')?.value!=='reading',solutions=$('includeSolutions').checked;
  const unit=[...new Set(state.questions.map(q=>q.u))].sort().join(' y ');const num=state.questions.length;
  const title=listening?'HOJA DE RESPUESTAS · AUDICIÓN':'BOLETÍN · COMPRENSIÓN LECTORA';
- let markup=`<section class="printHeading"><div><h1>${title}</h1><p>Francés 2.º ESO · Transit 2 · Unidad(es) ${unit} · ${num} ejercicios</p></div><div class="printSmall">Écoute &amp; comprends</div></section><div class="printName"><span>Nombre:</span><span>Fecha:</span></div><p class="printSmall">${listening?'Escucha las frases en la aplicación y escribe su significado en español.':'Lee las frases en francés y tradúcelas al español.'}</p>`;
- markup+=state.questions.map((q,i)=>`<div class="prq ${listening?'':'reading'}"><div class="prq-title">${i+1}. ${listening?'Escucha la frase en francés':'Traduce al español'}</div>${listening?'':`<p class="prq-french" lang="fr">${html(q.fr)}</p>`}<div class="write-lines"></div><div class="write-lines"></div></div>`).join('');
+ let markup=`<section class="printHeading"><div><h1>${title}</h1><p>Francés 2.º ESO · Transit 2 · Unidad(es) ${unit} · ${num} ejercicios</p></div><div class="printSmall">Écoute &amp; comprends</div></section><div class="printName"><span>Nombre:</span><span>Fecha:</span></div><p class="printSmall">${listening?'Escucha las frases en la aplicación, escribe el dictado en francés y traduce al español.':'Lee las frases en francés y tradúcelas al español.'}</p>`;
+ markup+=state.questions.map((q,i)=>`<div class="prq ${listening?'':'reading'}"><div class="prq-title">${i+1}. ${listening?'Escucha la frase en francés':'Traduce al español'}</div>${listening?'<p>1. Dictado en francés</p><div class="write-lines"></div><div class="write-lines"></div><p>2. Traducción al español</p>':`<p class="prq-french" lang="fr">${html(q.fr)}</p>`}<div class="write-lines"></div><div class="write-lines"></div></div>`).join('');
  if(solutions)markup+=`<section class="printKey"><h2>Solucionario · Francés → Español</h2><p class="printSmall">Respuestas de referencia. Se admiten traducciones equivalentes que mantengan el significado.</p>${state.questions.map((q,i)=>`<div class="ans-item"><span class="num">${i+1}. </span><span class="fr" lang="fr">${html(q.fr)}</span><div class="es">${html(q.es[0])}</div></div>`).join('')}<div class="printFoot">El audio se genera mediante síntesis de voz del navegador; no se imprime ni se guarda como MP3.</div></section>`;
  $('printOnly').innerHTML=markup;
 }
@@ -221,7 +230,7 @@ $('print').addEventListener('click',()=>{printHTML();window.print()});
 window.addEventListener('beforeprint',printHTML);
 if('speechSynthesis'in window){speechSynthesis.addEventListener?.('voiceschanged',voicesReady);setTimeout(voicesReady,450)}
 renderTopicFilters();voicesReady();newSet();
-window.__listenTest={BANK,TOPICS,state,newSet,correct,finish,norm,printHTML,selection,updateSelectionSummary,SPEEDS};
+window.__listenTest={frenchScore,BANK,TOPICS,state,newSet,correct,finish,norm,printHTML,selection,updateSelectionSummary,SPEEDS};
 </script>
 </body>
 </html>
