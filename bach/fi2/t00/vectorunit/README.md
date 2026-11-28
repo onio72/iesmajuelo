@@ -42,3 +42,8 @@ La carga requiere un navegador moderno compatible con `DecompressionStream`.
 ## GitHub Pages
 
 `https://onio72.github.io/iesmajuelo/bach/fi2/t00/vectorunit/`
+
+
+## Actualización Info e IA
+
+Añade también `recurso-ayuda.js`, `info.md` y `prompt.md` al ZIP SCORM junto con los archivos anteriores; el manifiesto ya los declara. Los ZIP antiguos no incluyen esta actualización.

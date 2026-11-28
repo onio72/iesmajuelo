@@ -115,3 +115,14 @@ Las dos entradas de campo gravitatorio (raíz y página directa) redirigen a la 
 - variacion_magnitudes_II_SCORM/index.html — Info + IA.
 
 Estado: Campo gravitatorio 34/34 entradas (33 aplicaciones distintas), Vibraciones y ondas 43/43 entradas y dos adicionales. Física 77/91 entradas; catálogo 77/166 indexadas. Total 78 aplicaciones distintas modificadas. GRAVITA: banco de 61 preguntas incorporado al prompt. Pruebas de navegador, Pages y regeneración ZIP SCORM pendientes.
+
+## Repaso de cinemática y dinámica
+- vectorunit — Info + IA.
+- trabajo01 — Info + IA.
+- trabajo02 — Info + IA.
+- esquemasfuerzas — Info + IA.
+- editor_plano_inclinado — Info + IA.
+- fuerzamov — Info + IA.
+- signotrabajo — pendiente: carpeta vacía (.gitkeep), no se encuentra index.html en historial consultado.
+
+83/166 entradas indexadas actualizadas, 6/7 repaso. ZIP SCORM pendientes.

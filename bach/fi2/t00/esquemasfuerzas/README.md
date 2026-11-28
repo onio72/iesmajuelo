@@ -141,3 +141,8 @@ Sí debe revisarse el manifiesto si:
 3. Crear un ZIP nuevo con esos tres archivos en la raíz.
 4. Sustituir el paquete SCORM en Moodle.
 5. Probar el paquete con un usuario alumno y comprobar que Moodle registra el intento y la puntuación.
+
+
+## Actualización Info e IA
+
+Añade también `recurso-ayuda.js`, `info.md` y `prompt.md` al ZIP SCORM junto con los archivos anteriores; el manifiesto ya los declara. Los ZIP antiguos no incluyen esta actualización.
