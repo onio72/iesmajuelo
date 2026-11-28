@@ -14,7 +14,7 @@
     if(!('DecompressionStream' in window))throw new Error('Este navegador no admite descompresión gzip.');
     const ds=new DecompressionStream('gzip');
     const html=await new Response(new Blob([bytes]).stream().pipeThrough(ds)).text();
-    document.open();document.write(html.replace(/<\/body\s*>/i, '<script src="recurso-ayuda.js" data-prompt="prompt.md">'+'<'+ '/script>'+ 'document.write(html)'));document.close();
+    document.open();document.write(html.replace(/<\/body\s*>/i, '<script src="recurso-ayuda.js" data-prompt="prompt.md">'+'<'+ '/script>'+ '$&'));document.close();
   }catch(e){
     document.body.innerHTML='<p style="font-family:sans-serif;padding:2rem">No se pudo cargar la actividad: '+String(e.message||e)+'</p>';
   }
