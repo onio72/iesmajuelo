@@ -167,3 +167,6 @@ Estado: FQ3 21/21; 111/166 entradas indexadas. Pendientes pruebas visuales, Page
 
 ## Física y Química de 2.º ESO
 18 entradas actualizadas en método científico, formulación, teoría cinético-molecular y cinemática. Pendientes: fq2/material_lab (ruta inexistente) y eso/fq2/metodo_cientifico/material_lab (HTML 2.956.171 bytes, no devuelto íntegro por conector). Total 129/166 entradas; FQ2 18/20. Pruebas visuales, Pages y ZIP SCORM pendientes.
+
+## Física y Química de 1.º Bachillerato
+12/12 entradas actualizadas: fórmula empírica, grifo, tiro parabólico (simulador y generador), planos inclinados, cuerpos enlazados, tres choques, generador de momento y carro de masa variable. Sin cambios de lógica original. Advertencias de reconstrucción: razones fraccionarias en fórmula empírica y balance de momento de masa variable; no se copian credenciales de panel docente. Total 141/166 entradas. Pruebas visuales, Pages y ZIP SCORM pendientes.
