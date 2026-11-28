@@ -36,4 +36,5 @@ function draw(){let cssW=canvas.clientWidth||800,cssH=canvas.clientHeight||370,d
 function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
 function tick(now){if(last===0)last=now;let dt=Math.min((now-last)/1000,.05);last=now;if(running){t+=dt;refreshClock()}draw();requestAnimationFrame(tick)}window.addEventListener('resize',draw);newExercise();updateScore();requestAnimationFrame(tick);
 })();
-</script></body></html>
+</script><script src="/iesmajuelo/shared/recurso-ayuda.js?v=1" data-info="info.md" data-prompt="prompt.md"></script>
+</body></html>

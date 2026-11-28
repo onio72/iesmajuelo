@@ -44,3 +44,17 @@ Estado: 22/22 del directorio Ondas, 22/166 del inventario inicial. Pendiente ver
 - t02/desfase_seno_coseno/index.html — Info + IA y Markdown.
 - t02/funcion_mas_guiado/index.html — Info + IA y Markdown.
 - t02/mas_muelle_vertical/visualizacion_20261113.html — Info + IA y Markdown.
+
+## MAS · segunda tanda
+- t02/dinamica_mas_muelle_vertical/index.html — Info + IA y Markdown.
+- t02/que_muelle_es/index.html — Info + IA y Markdown.
+- t02/comparador_mas/index.html — Info + IA y Markdown.
+- t02/comparador_mas/scorm/index.html — Info + IA y Markdown. Recursos locales y manifiesto SCORM actualizados; ZIP pendiente.
+- t02/laboratorio_ecuaciones_mas/index.html — Info + IA y Markdown.
+- t02/laboratorio_ecuaciones_mas/scorm/index.html — Info + IA y Markdown. Recursos locales y manifiesto SCORM actualizados; ZIP pendiente.
+- t02/laboratorio_oscilaciones/index.html — Info + IA y Markdown.
+- t01/constante_elastica/index.html — Info + IA y Markdown.
+- t01/mcu_mas/index.html — Info + IA y Markdown.
+- t01/reto_fase_inicial_mas/index.html — Info + IA y Markdown.
+
+Estado: 19/19 MAS, 41/166 catálogo inicial. Pendientes cuatro recursos de ondas fuera del directorio y pruebas visuales.

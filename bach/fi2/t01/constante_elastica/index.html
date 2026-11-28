@@ -91,4 +91,5 @@ $('reset').onclick=()=>{placed=Array(5).fill(false);kAssigned=Array(5).fill(null
 $('check').onclick=()=>{if(!placed.every(Boolean)||!kAssigned.every(v=>v!=null)){say('Antes de comprobar, cuelga las cinco masas y coloca las cinco etiquetas de k.','bad');return}checked=true;const hits=kAssigned.filter((v,i)=>v===order[i]).length;$('score').textContent=`Reto ${round} · Aciertos: ${hits}/5`;if(hits===5){say('¡Excelente! Has ordenado correctamente las cinco constantes elásticas. El muelle que menos se alarga tiene la k mayor.','good');$('results').innerHTML=order.map((v,i)=>`<tr><td>${i+1}</td><td>${v}</td><td>${(mass*g/v).toFixed(3).replace('.',',')}</td></tr>`).join('');$('explain').classList.add('visible')}else{say(`Has acertado ${hits} de los 5 valores. Las marcas verdes indican asignaciones correctas; las rojas, incorrectas. Puedes intercambiar las etiquetas y comprobar de nuevo.`,'bad');$('explain').classList.remove('visible')}draw()};
 function frame(ms){now=ms;draw();requestAnimationFrame(frame)}newRound();requestAnimationFrame(frame);
 })();
-</script></body></html>
+</script><script src="/iesmajuelo/shared/recurso-ayuda.js?v=1" data-info="info.md" data-prompt="prompt.md"></script>
+</body></html>

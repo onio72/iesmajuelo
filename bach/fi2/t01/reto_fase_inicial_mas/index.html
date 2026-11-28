@@ -69,4 +69,5 @@ function showSolutionAndAdvance(){
  box.innerHTML='<strong>Solución del reto anterior: φ₀ = '+angle+'.</strong> Al empezar, la masa está '+position+' y '+direction+'. En y = A sen(ωt + φ₀), la posición inicial determina el seno de φ₀ y el sentido inicial determina el signo del coseno. <strong>Ya estás en el siguiente reto.</strong>';
 }
 for(const choice of choices){const od=document.createElement('option');od.value=choice.deg;od.textContent=choice.deg+'°';$('degrees').append(od);const or=document.createElement('option');or.value=choice.deg;or.textContent=choice.rad+' rad';$('radians').append(or)}$('play').onclick=()=>playing?stop():start();$('prev').onclick=()=>{stop();time-=T/24;draw()};$('next').onclick=()=>{stop();time+=T/24;draw()};$('restart').onclick=()=>{stop();time=0;draw()};$('check').onclick=verify;$('solutionBtn').onclick=showSolutionAndAdvance;$('hintBtn').onclick=()=>{showHint=!showHint;$('hintBtn').textContent=showHint?'Ocultar pista':'Mostrar pista';draw()};$('new').onclick=newRound;$('new2').onclick=newRound;$('replay').onclick=()=>{stop();time=0;draw();start()};for(const k of ['y','v','a'])$('show'+k).onchange=drawGraphs;newRound();})();
-</script></body></html>
+</script><script src="/iesmajuelo/shared/recurso-ayuda.js?v=1" data-info="info.md" data-prompt="prompt.md"></script>
+</body></html>
