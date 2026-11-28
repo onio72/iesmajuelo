@@ -58,3 +58,11 @@ Estado: 22/22 del directorio Ondas, 22/166 del inventario inicial. Pendiente ver
 - t01/reto_fase_inicial_mas/index.html — Info + IA y Markdown.
 
 Estado: 19/19 MAS, 41/166 catálogo inicial. Pendientes cuatro recursos de ondas fuera del directorio y pruebas visuales.
+
+## Ondas · recursos indexados en rutas adicionales
+- fidos/tema02/ondas/periodo/index.html — Info + IA y Markdown.
+- bach/fi2/t02/modosvib01/index.html — Info + IA y Markdown.
+- bach/fi2/t02/estacionaria/index.html — Info + IA y Markdown.
+- bach/fi2/t02/huygens/index.html — Info + IA y Markdown.
+
+Estado: 26/26 recursos de ondas y 19/19 de MAS (45/45 Vibraciones y ondas), 45/166 catálogo inicial. Pruebas visuales y ZIP SCORM pendientes.
