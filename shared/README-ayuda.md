@@ -20,3 +20,16 @@ Pendiente: pruebas visuales en navegadores, despliegue de Pages y resto del cat�
 - interferencias_dos_altavoces — Info + IA y Markdown.
 - laboratorio_estacionarias — Info + IA y Markdown.
 - laboratorio_longitud_onda — Info + IA y Markdown.
+
+## Tercera tanda
+- laboratorio_resonancia — Info + IA y Markdown.
+- laboratorio_velocidad_cuerda — Info + IA y Markdown.
+- observacion_punto_cuerda — Info + IA y Markdown.
+- propagacion_dos_cuerdas — Info + IA y Markdown.
+- puntos_desfase_dado — Info + IA y Markdown.
+- puntos_fase_oposicion — Info + IA y Markdown.
+- reflexion_huygens — Info + IA y Markdown.
+- refraccion_huygens — Info + IA y Markdown.
+- reflexion_transmision_dos_cuerdas — Info + IA y Markdown. Conserva ayuda nativa.
+
+Estado: 22/22 del directorio Ondas, 22/166 del inventario inicial. Pendiente verificar ejecución visual y despliegue.
