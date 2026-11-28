@@ -151,3 +151,16 @@ Estado: 7/7 interacción electromagnética; 90/91 entradas Física de 2.º Bachi
 - t02/abundisot/index.html — Info + IA.
 - t02/configelect/index.html — Info + IA.
 101/166 entradas indexadas; 11/21 de FQ3. Pruebas visuales pendientes.
+
+## Física y Química 3.º ESO · Átomo y enlaces (segunda parte)
+- t02/configtabla/index.html — Info + IA.
+- t02/retoconfigtabla/index.html — Info + IA.
+- t02/table02/index.html — Info + IA.
+- t02/tabla03/index.html — Info + IA.
+- t03/sustenlaces/index.html — Info + IA.
+- t03/sustenlaces2/index.html — Info + IA.
+- t03/enlacesprop/index.html — Info + IA.
+- t03/enlaces/index.html — Info + IA.
+- t03/flashcards_enlaces/index.html — Info + IA.
+- t03/enlaces_form/index.html — Info + IA.
+Estado: FQ3 21/21; 111/166 entradas indexadas. Pendientes pruebas visuales, Pages y ZIP SCORM; signotrabajo sigue sin HTML.
