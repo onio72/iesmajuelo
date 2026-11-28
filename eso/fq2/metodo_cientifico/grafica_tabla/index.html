@@ -60,4 +60,5 @@ $('form').addEventListener('submit',e=>{e.preventDefault();const checks=[['ind',
 const all=good===total,fb=$('feedback');fb.classList.remove('hidden');if(all){if(firstCheck){perfect++;$('score').textContent=(perfect*2.5).toFixed(1).replace('.',',');$('perfects').textContent=perfect+' / 4 perfectos';fb.innerHTML='<b>¡Perfecto!</b> '+good+' de '+total+' respuestas correctas. Este intento suma 2,5 puntos.'}else fb.innerHTML='<b>¡Ya está todo correcto!</b> Este intento no suma como perfecto porque hubo algún error en la primera comprobación.';$('next').classList.remove('hidden');if(perfect>=4){fb.innerHTML='<b>¡10 conseguido!</b> Has completado cuatro ejercicios perfectos.';$('next').classList.add('hidden')}}else{firstCheck=false;fb.innerHTML='Has acertado <b>'+good+' de '+total+'</b>. Los aciertos están en verde y los errores en rojo. Corrige solo lo necesario y vuelve a pulsar <b>Comprobar</b>.'}});
 $('next').addEventListener('click',()=>{round++;fresh()});fresh();
 })();
-</script></body></html>
+</script><script src="/iesmajuelo/shared/recurso-ayuda.js?v=1" data-info="info.md" data-prompt="prompt.md"></script>
+</body></html>
