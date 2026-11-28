@@ -59,4 +59,5 @@ function downloadPdf(){
   const url=URL.createObjectURL(new Blob([pdf],{type:'application/pdf'})),a=document.createElement('a');a.href=url;a.download='variacion_magnitudes_I_informe.pdf';a.click();setTimeout(()=>URL.revokeObjectURL(url),15000);
 }
 $('check').onclick=check;$('next').onclick=next;$('pdf').onclick=downloadPdf;window.addEventListener('pagehide',()=>{save();if(initialized){try{api.LMSFinish('')}catch(e){}}});load();render();})();
-</script></body></html>
+</script><script src="recurso-ayuda.js" data-info="info.md" data-prompt="prompt.md"></script>
+</body></html>

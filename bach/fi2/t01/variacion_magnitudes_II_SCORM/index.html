@@ -84,4 +84,5 @@ el('calc-keys').addEventListener('click',event=>{const key=event.target.closest(
 el('calc-open').addEventListener('click',()=>box.classList.toggle('open'));el('calc-close').addEventListener('click',()=>box.classList.remove('open'));
 let drag=null;const head=el('calc-drag');head.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const r=box.getBoundingClientRect();drag={x:e.clientX-r.left,y:e.clientY-r.top};head.setPointerCapture(e.pointerId)});head.addEventListener('pointermove',e=>{if(!drag)return;box.style.left=Math.max(0,Math.min(window.innerWidth-box.offsetWidth,e.clientX-drag.x))+'px';box.style.top=Math.max(0,Math.min(window.innerHeight-45,e.clientY-drag.y))+'px';box.style.right='auto'});head.addEventListener('pointerup',()=>drag=null);head.addEventListener('pointercancel',()=>drag=null);
 })();
-</script></body></html>
+</script><script src="recurso-ayuda.js" data-info="info.md" data-prompt="prompt.md"></script>
+</body></html>

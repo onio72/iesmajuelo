@@ -103,3 +103,15 @@ Las dos entradas de campo gravitatorio (raíz y página directa) redirigen a la 
 - fuerzas_conservativas/index.html — Info + IA.
 
 26/34 entradas del bloque, 69/166 indexadas. Se conserva guía nativa del mapa de potencial; aviso de líneas migrado al modal común.
+
+## Campo gravitatorio · Principios energéticos, satélites y control de variables
+- cuestiones_teoricas_01/index.html — Info + IA.
+- principios_energeticos/index.html — Info + IA.
+- movimiento_satelites/energia_movimiento_radial/index.html — Info + IA.
+- control_variables/index.html — Info + IA.
+- cuestteor01/index.html — Info + IA.
+- variacion_magnitudes_I_SCORM/index.html — Info + IA.
+- cuestteor02/index.html — Info + IA.
+- variacion_magnitudes_II_SCORM/index.html — Info + IA.
+
+Estado: Campo gravitatorio 34/34 entradas (33 aplicaciones distintas), Vibraciones y ondas 43/43 entradas y dos adicionales. Física 77/91 entradas; catálogo 77/166 indexadas. Total 78 aplicaciones distintas modificadas. GRAVITA: banco de 61 preguntas incorporado al prompt. Pruebas de navegador, Pages y regeneración ZIP SCORM pendientes.
