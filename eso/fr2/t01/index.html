@@ -60,6 +60,13 @@ const TOPICS=[
 {id:'feminine',unit:0,name:'Femenino de adjetivos',page:'p. 7–9'},
 {id:'questions',unit:0,name:'Preguntas y presentación',page:'p. 6–9'},
 {id:'communication',unit:1,name:'Deseos, permisos y opiniones',page:'p. 10–17'}
+,
+{"id":"place","unit":1,"name":"Preposiciones de lugar","page":"Refuerzo examen"},
+{"id":"articles","unit":1,"name":"Artículos: singular y plural","page":"Refuerzo examen"},
+{"id":"family","unit":0,"name":"Familia","page":"Refuerzo examen"},
+{"id":"jobs","unit":0,"name":"Profesiones","page":"Refuerzo examen"},
+{"id":"examverbs","unit":1,"name":"Los siete verbos del examen","page":"Refuerzo examen"},
+{"id":"codmore","unit":1,"name":"Pronombres COD: refuerzo","page":"Refuerzo examen"}
 ];
 const garments=[
 ['un tee-shirt','una camiseta'],['une chemise','una camisa'],['un chemisier','una blusa'],['un sweat','una sudadera'],['un pull','un jersey'],['une veste','una chaqueta'],['un blouson','una cazadora'],['un anorak','un anorak'],['un short','un pantalón corto'],['une jupe','una falda'],['un pantalon','un pantalón'],['un jean','un vaquero'],['une robe','un vestido'],['des leggings','unos leggings'],['un survêtement','un chándal'],['des chaussettes','unos calcetines'],['des chaussures','unos zapatos'],['des baskets','unas zapatillas deportivas'],['des bottes','unas botas'],['des bottines','unos botines'],['des sandales','unas sandalias'],['un bonnet','un gorro'],['un chapeau','un sombrero'],['une écharpe','una bufanda'],['un foulard','un pañuelo'],['une casquette','una gorra'],['une ceinture','un cinturón']
@@ -85,7 +92,7 @@ const feminines=[
 ];
 const codExamples=[
 {orig:'Je porte le pull.',rest:'Je ___ porte.',a:'le',rule:'«Le pull» es masculino singular; se sustituye por le.'},
-{orig:'Tu achètes la jupe.',rest:'Tu ___ achètes.',a:'la',rule:'«La jupe» es femenino singular; se sustituye por la.'},
+{orig:'Tu achètes la jupe.',rest:'Tu ___achètes.',a:"l'",rule:'Delante de una vocal, la se convierte en l’.'},
 {orig:'Nous regardons les chaussures.',rest:'Nous ___ regardons.',a:'les',rule:'«Les chaussures» es plural; se sustituye por les.'},
 {orig:'Il met le bonnet.',rest:'Il ___ met.',a:'le',rule:'«Le bonnet» es masculino singular.'},
 {orig:'Elle porte la veste.',rest:'Elle ___ porte.',a:'la',rule:'«La veste» es femenino singular.'},
@@ -146,10 +153,10 @@ function buildBank(){
  });
  nouns.forEach(([word,a,why],i)=>add('demo',`Completa: «___ ${word}».`,a,`Se escribe «${a} ${word}»: ${why}.`,i<12?1:i<22?2:3,['ce','cet','cette','ces'].filter(x=>x!==a),'Adjetivos demostrativos'));
  Object.entries(conjugations).forEach(([verb,forms])=>forms.forEach((form,i)=>{
-   const core=['porter','aimer','être','avoir'].includes(verb);const level=core?1:['acheter','mettre','vouloir','pouvoir'].includes(verb)?2:3;
-   let subject=persons[i]; if(i===0 && ['acheter','aimer','adorer','habiter','avoir','être'].includes(verb))subject="j’";
-   const prompt=`Completa en presente: «${subject} ___» (verbo ${verb}).`;
-   const explain=`${verb} en presente: ${forms.map((x,j)=>(persons[j]==='je'&&['acheter','aimer','adorer','habiter','avoir','être'].includes(verb)?"j’":persons[j])+' '+x).join(' · ').replace(/j’ /g,'j’')}.`;
+   const core=['porter','aimer','être','avoir','habiter'].includes(verb);const level=core?1:['acheter','mettre','vouloir','pouvoir'].includes(verb)?2:3;
+   let subject=persons[i]; if(i===0 && ['acheter','aimer','adorer','habiter','avoir'].includes(verb))subject="j’";
+   const prompt=`Completa en presente: «${subject}${subject==='j’'?'':' '}___» (verbo ${verb}).`;
+   const explain=`${verb} en presente: ${forms.map((x,j)=>(persons[j]==='je'&&['acheter','aimer','adorer','habiter','avoir'].includes(verb)?"j’":persons[j])+' '+x).join(' · ').replace(/j’ /g,'j’')}.`;
    const distract=Object.values(conjugations).flat().filter(x=>x!==form);
    add('verbs',prompt,form,explain,level,distract,'Conjugación del presente');
  }));
@@ -160,6 +167,25 @@ function buildBank(){
  communicationExamples.forEach(([context,sentence,a,wrong,rule],i)=>add('communication',`Completa: «${sentence}»`,a,rule,i<6?2:3,wrong,context));
 }
 buildBank();
+
+const placeRows=[["dans","Le pull est ___ le placard.","dentro del armario"],["sur","Le chapeau est ___ la table.","sobre la mesa"],["sous","Les chaussures sont ___ le lit.","debajo de la cama"],["devant","Ma sœur est ___ la porte.","delante de la puerta"],["derrière","La veste est ___ la porte.","detrás de la puerta"],["entre","La jupe est ___ le pull et la robe.","entre el jersey y el vestido"],["à côté de","Le sac est ___ la chaise.","al lado de la silla"],["en face de","La boutique est ___ la pharmacie.","enfrente de la farmacia"],["près de","J'habite ___ la boulangerie.","cerca de la panadería"],["loin de","Nous habitons ___ la ville.","lejos de la ciudad"],["à droite de","Le bonnet est ___ la veste.","a la derecha de la chaqueta"],["à gauche de","Le pantalon est ___ la robe.","a la izquierda del vestido"],["chez","Je suis ___ ma tante.","en casa de mi tía"],["au-dessus de","Le miroir est ___ la table.","por encima de la mesa"],["au-dessous de","Le sac est ___ la fenêtre.","por debajo de la ventana"],["autour de","Les enfants sont ___ la table.","alrededor de la mesa"],["au milieu de","La chaise est ___ la pièce.","en medio de la habitación"],["au","Il habite ___ Portugal.","en Portugal"],["en","Elle habite ___ France.","en Francia"],["à","Ma tante habite ___ Paris.","en París"]],articleRows=[["pantalon","pantalons","un","le"],["veste","vestes","une","la"],["chapeau","chapeaux","un","le"],["chaussure","chaussures","une","la"],["écharpe","écharpes","une","l'"],["pull","pulls","un","le"],["robe","robes","une","la"],["anorak","anoraks","un","l'"],["chemise","chemises","une","la"],["bottine","bottines","une","la"],["frère","frères","un","le"],["sœur","sœurs","une","la"],["oncle","oncles","un","l'"]],familyRows=[["le père","el padre"],["la mère","la madre"],["le frère","el hermano"],["la sœur","la hermana"],["le grand-père","el abuelo"],["la grand-mère","la abuela"],["la tante","la tía"],["l'oncle","el tío"],["le cousin","el primo"],["la cousine","la prima"],["les parents","los padres"]],jobRows=[["professeur","profesor"],["professeure","profesora"],["vétérinaire","veterinario/a"],["boulanger","panadero"],["boulangère","panadera"],["cuisinier","cocinero"],["cuisinière","cocinera"],["jardinier","jardinero"],["jardinière","jardinera"],["coiffeur","peluquero"],["coiffeuse","peluquera"],["policier","policía (masculino)"],["policière","policía (femenino)"],["pharmacien","farmacéutico"],["pharmacienne","farmacéutica"]],codRows=[["Je veux acheter ce pull.","Je veux ___acheter.","l'"],["Tu peux mettre cette veste.","Tu peux ___ mettre.","la"],["Elle veut acheter ces bottes.","Elle veut ___ acheter.","les"],["Nous pouvons porter ce pantalon.","Nous pouvons ___ porter.","le"],["Vous achetez la robe.","Vous ___achetez.","l'"],["Ils mettent les chaussures.","Ils ___ mettent.","les"],["Je ne veux pas porter cette jupe.","Je ne veux pas ___ porter.","la"],["Elle n'achète pas le bonnet.","Elle ne ___achète pas.","l'"],["Il veut mettre le chapeau.","Il veut ___ mettre.","le"],["Vous pouvez acheter cette écharpe.","Vous pouvez ___acheter.","l'"],["Tu mets les baskets.","Tu ___ mets.","les"],["Nous aimons cette robe.","Nous ___aimons.","l'"]];
+for(const [a,s,es] of placeRows)add('place',`Completa: «${s}» (${es}).`,a,`Respuesta: ${a}. ${es}.`,1,placeRows.map(x=>x[0]).filter(x=>x!==a),'Localización');
+for(const [sg,pl,ind,def] of articleRows){
+ for(const [art,plural] of [[ind,'des'],[def,'les']]){
+ const original=art+(art.endsWith("'")?'':' ')+sg, target=plural+' '+pl;
+ add('articles',`Pasa al plural: «${original}».`,target,`Singular: ${original}; plural: ${target}.`,1,[plural+' '+sg,(plural==='des'?'les':'des')+' '+pl,original],'Artículos y número');
+ add('articles',`Pasa al singular: «${target}».`,original,`Singular: ${original}.`,2,[art+' '+pl,(art==='un'?'une':art==='une'?'un':art==='le'?'la':'le')+' '+sg,target],'Artículos y número');
+ }}
+for(const [topic,rows] of [['family',familyRows],['jobs',jobRows]])for(const [fr,es] of rows){
+ add(topic,`Traduce al francés: «${es}».`,fr,`Se dice «${fr}».`,1,rows.filter(x=>x[0]!==fr).map(x=>x[0]),'Vocabulario');
+ if(fr==='vétérinaire')BANK[BANK.length-1].answers.push('vétérinaire');
+}
+for(const verb of ['être','avoir','habiter','acheter','mettre','vouloir','pouvoir'])conjugations[verb].forEach((form,i)=>{
+ const subject=i===0&&['avoir','habiter','acheter'].includes(verb)?"j’":persons[i];
+ add('examverbs',`Completa en presente: «${subject}${subject==='j’'?'':' '}___» (verbo ${verb}).`,form,`${verb}: ${conjugations[verb].join(' · ')}.`,1,Object.values(conjugations).flat().filter(x=>x!==form),'Los siete verbos del examen');
+});
+for(const [orig,rest,a] of codRows)add('codmore',`Sustituye el COD: «${orig}» → «${rest}».`,a,'Le, la o les sustituyen al complemento directo; le y la se convierten en l’ ante vocal. El pronombre precede al verbo al que complementa.',1,['le','la','les',"l'"].filter(x=>x!==a),'Pronombres COD');
+
 const state={questions:[],graded:false,wrong:[],batch:0};
 const $=id=>document.getElementById(id);
 const topicName=id=>TOPICS.find(t=>t.id===id)?.name||id;
