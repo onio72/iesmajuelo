@@ -19,4 +19,5 @@ ctx.fillStyle='#f6b55b';ctx.beginPath();ctx.ellipse(cx,(shoulderY+waistY)/2,23*s
 const shoulderDist=22,elbowDist=35+38*p,handDist=25+105*p;for(const d of [-1,1]){const sh=side(d,shoulderDist),el=side(d,elbowDist,shoulderY+15*s*(1-p)),hand=side(d,handDist,shoulderY+(42*(1-p))*s);drawLine(sh,el,'#f2c6a3',11*s);drawLine(el,hand,'#f2c6a3',9*s);circle(hand,7*s,'#f2c6a3')}
 // Cabeza y moño
 circle({x:cx,y:headY},26*s,'#f0bb96');circle({x:cx+13*s*Math.sin(a),y:headY-24*s},13*s,'#5d354d');ctx.fillStyle='#6d4257';ctx.beginPath();ctx.arc(cx,headY-5*s,26*s,Math.PI,2*Math.PI);ctx.fill();ctx.fillStyle='#bcd0e3';ctx.font=`${13*s}px system-ui`;ctx.fillText('Eje de giro',cx+11*s,headY-60*s);requestAnimationFrame(render)}read();requestAnimationFrame(render)})();
-</script></body></html>
+</script><script src="/iesmajuelo/shared/recurso-ayuda.js?v=1" data-info="info.md" data-prompt="prompt.md"></script>
+</body></html>

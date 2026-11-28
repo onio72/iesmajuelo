@@ -102,4 +102,5 @@ function desc(e){if(e<.01)return'Su órbita es tan poco excéntrica que a esta e
 function renderReal(){const q=bodies[$('#bodySelect').value],c=a*q.e,b=a*Math.sqrt(1-q.e*q.e);$('#realOrbit').setAttribute('ry',b);$('#realFocus').setAttribute('cx',cx+c);$('#realFocusLabel').setAttribute('x',cx+c+13);$('#realFocusLabel').textContent=q.f;const x=cx+a,y=cy;$('#realBody').setAttribute('cx',x);$('#realBody').setAttribute('cy',y);$('#realBodyLabel').setAttribute('x',x-22);$('#realBodyLabel').setAttribute('y',y-22);$('#realBodyLabel').textContent=q.n;$('#realE').textContent='e = '+q.e.toLocaleString('es-ES',{minimumFractionDigits:q.e<.001?6:4,maximumFractionDigits:q.e<.001?6:4});$('#parentBody').textContent=q.p;$('#realDescription').textContent=desc(q.e)}
 $('#bodySelect').addEventListener('change',renderReal);renderReal();
 </script>
+<script src="/iesmajuelo/shared/recurso-ayuda.js?v=1" data-info="excentricidad_orbitas-info.md" data-prompt="excentricidad_orbitas-prompt.md"></script>
 </body></html>

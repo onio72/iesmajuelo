@@ -137,4 +137,5 @@ function check(){
  updateScore();draw();persist();
 }
 document.querySelectorAll('input[type=radio]').forEach(e=>e.addEventListener('change',()=>persist()));document.getElementById('check').onclick=check;document.getElementById('new').onclick=make;document.getElementById('left').onclick=()=>{yaw-=.23;draw()};document.getElementById('right').onclick=()=>{yaw+=.23;draw()};document.getElementById('reset').onclick=()=>{yaw=-2.35;pitch=-.65;draw()};svg.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,yaw,pitch};svg.setPointerCapture(e.pointerId)});svg.addEventListener('pointermove',e=>{if(!drag)return;yaw=drag.yaw+(e.clientX-drag.x)*.009;pitch=Math.max(-1.45,Math.min(1.45,drag.pitch+(e.clientY-drag.y)*.007));draw()});svg.addEventListener('pointerup',()=>drag=null);svg.addEventListener('pointercancel',()=>drag=null);startApp();
-</script></body></html>
+</script><script src="recurso-ayuda.js" data-info="info.md" data-prompt="prompt.md"></script>
+</body></html>

@@ -66,3 +66,15 @@ Estado: 19/19 MAS, 41/166 catálogo inicial. Pendientes cuatro recursos de ondas
 - bach/fi2/t02/huygens/index.html — Info + IA y Markdown.
 
 Estado: 26/26 recursos de ondas y 19/19 de MAS (45/45 Vibraciones y ondas), 45/166 catálogo inicial. Pruebas visuales y ZIP SCORM pendientes.
+
+## Campo gravitatorio · Kepler y momentos
+- campo_gravitatorio/excentricidad_orbitas.html — Info + IA.
+- momento_angular/index.html — Info + IA.
+- momento_angular_vectores/index.html — Info + IA.
+- momento_angular_vectores_SCORM/index.html — Info + IA.
+- bailarina_momento_angular/index.html — Info + IA.
+- regla_sacacorchos/index.html — Info + IA.
+- momento_fuerza/index.html — Info + IA.
+- momento_fuerza_SCORM/index.html — Info + IA.
+
+Corrección de inventario: Vibraciones y ondas contiene 43 entradas indexadas; 45 aplicaciones modificadas incluyen 2 adicionales (armónicos y altavoces). Con esta tanda: 51/166 indexadas y 53 aplicaciones en total. ZIP SCORM y pruebas de navegador pendientes.
