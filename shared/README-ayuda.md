@@ -164,3 +164,6 @@ Estado: 7/7 interacción electromagnética; 90/91 entradas Física de 2.º Bachi
 - t03/flashcards_enlaces/index.html — Info + IA.
 - t03/enlaces_form/index.html — Info + IA.
 Estado: FQ3 21/21; 111/166 entradas indexadas. Pendientes pruebas visuales, Pages y ZIP SCORM; signotrabajo sigue sin HTML.
+
+## Física y Química de 2.º ESO
+18 entradas actualizadas en método científico, formulación, teoría cinético-molecular y cinemática. Pendientes: fq2/material_lab (ruta inexistente) y eso/fq2/metodo_cientifico/material_lab (HTML 2.956.171 bytes, no devuelto íntegro por conector). Total 129/166 entradas; FQ2 18/20. Pruebas visuales, Pages y ZIP SCORM pendientes.

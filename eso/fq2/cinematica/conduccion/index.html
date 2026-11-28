@@ -190,5 +190,6 @@ $('quiz').onsubmit=e=>{
 $('next').onclick=()=>{if(done&&i<8){i++;setup()}};$('reset').onclick=start;
 function frame(now){let dt=Math.min(.05,(now-last)/1000||0);last=now;if(playing){t=Math.min(duration,t+dt);let c=current(),v=speed(c,t),targetSide=Math.atan2(-c.k*v*v,9.81),targetFore=Math.atan2(c.a,9.81);sv+=(25*(targetSide-side)-7*sv)*dt;fv+=(25*(targetFore-fore)-7*fv)*dt;side+=sv*dt;fore+=fv*dt;if(t>=duration){playing=false;$('play').textContent='Reproducir';if(!freeMode())$('questions').onchange()}}draw();requestAnimationFrame(frame)}
 start();requestAnimationFrame(frame);
-</script></body></html>
+</script><script src="/iesmajuelo/shared/recurso-ayuda.js?v=1" data-info="info.md" data-prompt="prompt.md"></script>
+</body></html>
  
