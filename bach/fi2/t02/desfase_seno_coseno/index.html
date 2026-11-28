@@ -44,4 +44,5 @@ document.getElementById('moveSin').onclick=()=>choose('sin');document.getElement
 function coords(e){const r=svg.getBoundingClientRect();return(e.clientX-r.left)/r.width*W}
 svg.addEventListener('pointerdown',e=>{const x=coords(e);if(x<L||x>W-R)return;drag={id:e.pointerId,x,initial:Number(range.value)};svg.setPointerCapture(e.pointerId);wrap.classList.add('dragging');e.preventDefault()});svg.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;let d=(coords(e)-drag.x)/plotW*(XMAX-XMIN)/Math.PI;let value=Math.min(2,Math.max(-2,drag.initial+d));range.value=snap(Math.round(value/0.005)*0.005).toFixed(3);update()});function finish(e){if(drag&&e.pointerId===drag.id){drag=null;wrap.classList.remove('dragging')}}svg.addEventListener('pointerup',finish);svg.addEventListener('pointercancel',finish);update();
 })();
-</script></body></html>
+</script><script src="/iesmajuelo/shared/recurso-ayuda.js?v=1" data-info="info.md" data-prompt="prompt.md"></script>
+</body></html>

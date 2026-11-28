@@ -33,3 +33,14 @@ Pendiente: pruebas visuales en navegadores, despliegue de Pages y resto del cat�
 - reflexion_transmision_dos_cuerdas — Info + IA y Markdown. Conserva ayuda nativa.
 
 Estado: 22/22 del directorio Ondas, 22/166 del inventario inicial. Pendiente verificar ejecución visual y despliegue.
+
+## MAS · primera tanda
+- t02/descubriendo_mas/index.html — Info + IA y Markdown.
+- t02/mas_proyeccion_mcu/index.html — Info + IA y Markdown.
+- t02/mas/proyeccion_mcu_3d/index.html — Info + IA y Markdown.
+- t02/mas/deduccion_mcu_mas/index.html — Info + IA y Markdown.
+- t02/mas_ecuacion/index.html — Info + IA y Markdown.
+- t02/mas_calculo_ecuacion/index.html — Info + IA y Markdown.
+- t02/desfase_seno_coseno/index.html — Info + IA y Markdown.
+- t02/funcion_mas_guiado/index.html — Info + IA y Markdown.
+- t02/mas_muelle_vertical/visualizacion_20261113.html — Info + IA y Markdown.
