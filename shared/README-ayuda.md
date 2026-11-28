@@ -137,3 +137,17 @@ Estado: Campo gravitatorio 34/34 entradas (33 aplicaciones distintas), Vibracion
 - fuerza_lorentz/index.html — Info + IA.
 
 Estado: 7/7 interacción electromagnética; 90/91 entradas Física de 2.º Bachillerato y 90/166 indexadas. Única incidencia FI2: signotrabajo sin HTML. 91 aplicaciones distintas modificadas contando dos no indexadas y una entrada duplicada. Pendientes pruebas visuales, Pages y ZIP SCORM.
+
+## Física y Química 3.º ESO · Método científico y átomo (primera parte)
+- t01/repasoSI.html — Info + IA.
+- t01/repgrafica.html — Info + IA.
+- t01/movercoma.html — Info + IA.
+- t01/cambiosvolumen.html — Info + IA.
+- formulacion/tabla_valencias.html — Info + IA.
+- t02/tabla_simbolosnomb/index.html — Info + IA.
+- t02/tabla_familias/index.html — Info + IA.
+- t02/tabla_familias2/index.html — Info + IA.
+- t02/tabla01/index.html — Info + IA.
+- t02/abundisot/index.html — Info + IA.
+- t02/configelect/index.html — Info + IA.
+101/166 entradas indexadas; 11/21 de FQ3. Pruebas visuales pendientes.
